@@ -8,6 +8,7 @@
       "name": "arbiter_rr_regs",
       "kind": "rtl_module",
       "source_sections": [
+        "decomposition",
         "io_list",
         "parameters",
         "registers"
@@ -17,6 +18,7 @@
       ],
       "rtl_file": "rtl/arbiter_rr_regs.sv",
       "ssot_refs": [
+        "decomposition.units.csr_decode",
         "io_list",
         "io_list.interfaces.apb_slave",
         "parameters.apb_addr_width",
@@ -57,6 +59,8 @@
       "kind": "rtl_module",
       "source_sections": [
         "cycle_model",
+        "dataflow",
+        "decomposition",
         "features",
         "fsm",
         "function_model",
@@ -84,6 +88,10 @@
         "cycle_model.pipeline.s0_sample_req",
         "cycle_model.pipeline.s1_grant",
         "cycle_model.reset",
+        "dataflow",
+        "dataflow.sequence",
+        "dataflow.sequence.sequence_0",
+        "decomposition.units.arbitrate",
         "features",
         "features.enable_disable",
         "features.request_masking",
@@ -308,11 +316,13 @@
       "rtl_module": "arbiter_rr_regs",
       "rtl_file": "rtl/arbiter_rr_regs.sv",
       "source_sections": [
+        "decomposition",
         "io_list",
         "parameters",
         "registers"
       ],
       "ssot_refs": [
+        "decomposition.units.csr_decode",
         "io_list",
         "io_list.interfaces.apb_slave",
         "parameters.apb_addr_width",
@@ -391,6 +401,8 @@
       "rtl_file": "rtl/arbiter_rr_core.sv",
       "source_sections": [
         "cycle_model",
+        "dataflow",
+        "decomposition",
         "features",
         "fsm",
         "function_model",
@@ -414,6 +426,10 @@
         "cycle_model.pipeline.s0_sample_req",
         "cycle_model.pipeline.s1_grant",
         "cycle_model.reset",
+        "dataflow",
+        "dataflow.sequence",
+        "dataflow.sequence.sequence_0",
+        "decomposition.units.arbitrate",
         "features",
         "features.enable_disable",
         "features.request_masking",

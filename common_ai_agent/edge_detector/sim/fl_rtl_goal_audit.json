@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "fl_rtl_goal_audit",
   "ip": "edge_detector",
-  "generated_at": "2026-05-15T02:30:46Z",
+  "generated_at": "2026-05-15T02:32:33Z",
   "status": "fail",
   "source_of_truth": {
     "ssot": "edge_detector/yaml/edge_detector.ssot.yaml",
@@ -12,13 +12,10 @@
   },
   "summary": {
     "total_checks": 16,
-    "passed_checks": 7,
-    "failed_checks": 9,
+    "passed_checks": 10,
+    "failed_checks": 6,
     "blockers": [
       "req",
-      "fl_model",
-      "equivalence_goals",
-      "module_equivalence_goals",
       "scoreboard_contract",
       "simulation",
       "fl_rtl_compare",
@@ -48,13 +45,13 @@
     {
       "id": "fl_model",
       "label": "Executable functional model passes self-check",
-      "status": "fail",
+      "status": "pass",
       "owner": "fl-model-gen",
       "evidence": [
         "edge_detector/model/functional_model.py",
         "edge_detector/model/fl_model_check.json"
       ],
-      "detail": "missing model/fl_model_check.json",
+      "detail": "fl_model_check.passed=True",
       "next_action": "rerun /ssot-equiv-goals edge_detector after repairing FunctionalModel from SSOT"
     },
     {
@@ -78,19 +75,19 @@
     {
       "id": "equivalence_goals",
       "label": "SSOT-traceable equivalence goals are generated",
-      "status": "fail",
+      "status": "pass",
       "owner": "fl-model-gen",
       "evidence": "edge_detector/verify/equivalence_goals.json",
-      "detail": "missing verify/equivalence_goals.json",
+      "detail": "total=38 blocked=0 errors=[]",
       "next_action": "rerun /ssot-equiv-goals edge_detector or answer SSOT blockers"
     },
     {
       "id": "module_equivalence_goals",
       "label": "Each RTL owner module has an exact FL-vs-RTL functionality goal",
-      "status": "fail",
+      "status": "pass",
       "owner": "fl-model-gen",
       "evidence": "edge_detector/verify/equivalence_goals.json",
-      "detail": "module_contracts=1 module_goals=0 missing=['edge_detector'] blocked=[]",
+      "detail": "module_contracts=1 module_goals=1 missing=[] blocked=[]",
       "next_action": "rerun /ssot-fl-model and /ssot-equiv-goals; every module owning function_model refs needs a scope.level=module goal"
     },
     {
@@ -133,7 +130,7 @@
         "edge_detector/sim/scoreboard_events.jsonl",
         "workflow/tb-gen/scripts/check_scoreboard_events.py"
       ],
-      "detail": "[check_scoreboard_events] SKIP: missing edge_detector/verify/equivalence_goals.json",
+      "detail": "[check_scoreboard_events] FAIL: no TB source files found under tb/ or sim/\n[check_scoreboard_events] FAIL: missing edge_detector/sim/scoreboard_events.jsonl\n[check_scoreboard_events] FAIL: edge_detector/sim/scoreboard_events.jsonl has no scoreboard rows\n[check_scoreboard_events] FAIL: missing scoreboard rows for required goals: EQ_COVERAGE_CCOV_EDGE_DECODE, EQ_COVERAGE_CCOV_IRQ_SAME_CYCLE, EQ_COVERAGE_CCOV_SYNC_LATENCY, EQ_COVERAGE_CYCLE_BACKPRESSURE_0, EQ_COVERAGE_CYCLE_LATENCY_INTERRUPT_LATENCY, EQ_COVERAGE_CYCLE_LATENCY_SYNC_LATENCY, EQ_COVERAGE_CYCLE_PERF_DEPTH, EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ, EQ_COVERAGE_CYCLE_PERF_THROUGHPUT, EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC, EQ_COVERAGE_CYCLE_PIPELINE_S1_EDGE_DECODE, EQ_COVERAGE_CYCLE_PIPELINE_S2_OUTPUT, ... +26",
       "next_action": "repair cocotb/pyuvm TB to instantiate EquivalenceScoreboard and cover all required goals"
     },
     {
@@ -153,7 +150,7 @@
       "status": "fail",
       "owner": "sim_debug",
       "evidence": "edge_detector/sim/fl_rtl_compare.json",
-      "detail": "status=pending summary={'total': 0, 'goals_checked': 0, 'goals_passed': 0, 'goals_failed': 0, 'goals_blocked': 0, 'goals_untested': 0, 'scoreboard_events': 0, 'orphan_scoreboard_events': 0, 'missing_evidence': ['edge_detector/verify/equivalence_goals.json', 'edge_detector/sim/scoreboard_events.jsonl', 'edge_detector/sim/results.xml'], 'stale_evidence': [], 'sim_results': {'exists': False, 'total': 0, 'fail': 0, 'errors': 0, 'source': ''}}",
+      "detail": "status=pending summary={'total': 38, 'goals_checked': 0, 'goals_passed': 0, 'goals_failed': 0, 'goals_blocked': 0, 'goals_untested': 38, 'scoreboard_events': 0, 'orphan_scoreboard_events': 0, 'missing_evidence': ['edge_detector/sim/scoreboard_events.jsonl', 'edge_detector/sim/results.xml'], 'stale_evidence': [], 'sim_results': {'exists': False, 'total': 0, 'fail': 0, 'errors': 0, 'source': ''}}",
       "next_action": "run /sim-debug edge_detector; repair classified owner or answer human gate"
     },
     {
@@ -162,7 +159,7 @@
       "status": "fail",
       "owner": "sim_debug",
       "evidence": "edge_detector/sim/mismatch_classification.json",
-      "detail": "status=pending classifications=0 schema_ok=True",
+      "detail": "status=pending classifications=38 schema_ok=True",
       "next_action": "loopable classifications may repair the owner; human classifications must open ATLAS question and persist answer"
     },
     {
@@ -187,9 +184,9 @@
   "stop_condition": {
     "req_ok": false,
     "ssot_ok": true,
-    "fl_model_pass": false,
+    "fl_model_pass": true,
     "cycle_model_present": true,
-    "equivalence_goals_generated": false,
+    "equivalence_goals_generated": true,
     "scoreboard_from_goals": false,
     "simulation_complete": false,
     "fl_rtl_compare_complete": false,

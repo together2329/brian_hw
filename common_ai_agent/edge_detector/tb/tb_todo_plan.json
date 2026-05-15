@@ -15,13 +15,13 @@
     "open_required_todos": 2,
     "status": "human_gate"
   },
-  "generated_at": "2026-05-15T02:30:42Z",
+  "generated_at": "2026-05-15T02:32:32Z",
   "headline": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
   "human_review_needed": [
     {
       "decision_needed": "Provide the missing source artifact required by generic TB generation.",
       "downstream_effect": "The generator must consume disk-truth SSOT, FL, equivalence-goal, and RTL-contract artifacts.",
-      "evidence": "missing equivalence goals: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/verify/equivalence_goals.json",
+      "evidence": "missing RTL contract: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/rtl/rtl_contract.json",
       "id": "TB_GENERATOR_INPUT",
       "options": [
         "Run the owning ATLAS stage shown in the evidence, then rerun /tb."
@@ -36,7 +36,7 @@
       "label": "emit_goal_scoreboard_cocotb",
       "returncode": 2,
       "stderr": "",
-      "stdout": "[SSOT QUESTION] tb-gen blocked for edge_detector: missing equivalence goals: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/verify/equivalence_goals.json"
+      "stdout": "[SSOT QUESTION] tb-gen blocked for edge_detector: missing RTL contract: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/rtl/rtl_contract.json"
     }
   ],
   "schema_version": "golden_todo_stage.v1",

@@ -17,10 +17,10 @@
     "rtl/fifo_sync.sv",
     "rtl/fifo_sync_param.vh"
   ],
-  "timestamp": "2026-05-15T02:13:18.566049+00:00",
-  "returncode": 0,
+  "timestamp": "2026-05-15T02:32:40.154916+00:00",
+  "returncode": 1,
   "errors": 0,
-  "warnings": 0,
+  "warnings": 2,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -37,11 +37,30 @@
       "tool": "verilator",
       "available": true,
       "command": "verilator --lint-only -Wall -Irtl -f list/fifo_sync.f --top-module fifo_sync",
-      "returncode": 0,
+      "returncode": 1,
       "errors": 0,
-      "warnings": 0,
-      "diagnostics": [],
-      "passed": true
+      "warnings": 2,
+      "diagnostics": [
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/fifo_sync_ptrs.sv",
+          "line": 34,
+          "column": 29,
+          "message": "Signal is not used: 'almost_full_o_next'",
+          "source": "    logic                   almost_full_o_next;"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/fifo_sync_ptrs.sv",
+          "line": 35,
+          "column": 29,
+          "message": "Signal is not used: 'almost_empty_o_next'",
+          "source": "    logic                   almost_empty_o_next;"
+        }
+      ],
+      "passed": false
     }
   ],
   "suppression_violation_count": 0,
@@ -49,5 +68,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": true
+  "passed": false
 }

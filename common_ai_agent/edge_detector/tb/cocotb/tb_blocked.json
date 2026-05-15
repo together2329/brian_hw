@@ -9,7 +9,7 @@
     {
       "id": "TB_GENERATOR_INPUT",
       "decision_needed": "Provide the missing source artifact required by generic TB generation.",
-      "evidence": "missing equivalence goals: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/verify/equivalence_goals.json",
+      "evidence": "missing RTL contract: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/rtl/rtl_contract.json",
       "options": [
         "Run the owning ATLAS stage shown in the evidence, then rerun /tb."
       ],
@@ -18,5 +18,5 @@
     }
   ],
   "next_action": "Repair SSOT/RTL contract through ATLAS, rerun /ssot-rtl, then rerun /tb.",
-  "timestamp": "2026-05-15T02:30:42Z"
+  "timestamp": "2026-05-15T02:32:32Z"
 }

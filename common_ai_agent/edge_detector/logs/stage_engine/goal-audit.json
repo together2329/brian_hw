@@ -3,16 +3,13 @@
     "edge_detector/sim/fl_rtl_goal_audit.json"
   ],
   "blocker": "",
-  "created_at": "2026-05-15T02:30:46Z",
+  "created_at": "2026-05-15T02:32:33Z",
   "headline": "[goal-audit] FAIL",
   "ip": "edge_detector",
-  "message": "[goal-audit] FAIL\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py\nmodule: edge_detector\nexit: 1\nsummary: status=fail passed=7/16 blockers=req, fl_model, equivalence_goals, module_equivalence_goals, scoreboard_contract, simulation, fl_rtl_compare, mismatch_classification, functional_coverage\n\nruns:\n- goal_audit: exit 1\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py edge_detector --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[goal-audit] wrote edge_detector/sim/fl_rtl_goal_audit.json\n[goal-audit] status=fail passed=7/16 blockers=req,fl_model,equivalence_goals,module_equivalence_goals,scoreboard_contract,simulation,fl_rtl_compare,mismatch_classification,functional_coverage\n\nexpected artifact:\n- edge_detector/sim/fl_rtl_goal_audit.json\n\nblockers:\n- req\n- fl_model\n- equivalence_goals\n- module_equivalence_goals\n- scoreboard_contract\n- simulation\n- fl_rtl_compare\n- mismatch_classification\n- functional_coverage\n\nnext: inspect fl_rtl_goal_audit.json and rerun the owning ATLAS stage; do not bypass with a fixed IP template.",
+  "message": "[goal-audit] FAIL\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py\nmodule: edge_detector\nexit: 1\nsummary: status=fail passed=10/16 blockers=req, scoreboard_contract, simulation, fl_rtl_compare, mismatch_classification, functional_coverage\n\nruns:\n- goal_audit: exit 1\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py edge_detector --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[goal-audit] wrote edge_detector/sim/fl_rtl_goal_audit.json\n[goal-audit] status=fail passed=10/16 blockers=req,scoreboard_contract,simulation,fl_rtl_compare,mismatch_classification,functional_coverage\n\nexpected artifact:\n- edge_detector/sim/fl_rtl_goal_audit.json\n\nblockers:\n- req\n- scoreboard_contract\n- simulation\n- fl_rtl_compare\n- mismatch_classification\n- functional_coverage\n\nnext: inspect fl_rtl_goal_audit.json and rerun the owning ATLAS stage; do not bypass with a fixed IP template.",
   "metadata": {
     "blockers": [
       "req",
-      "fl_model",
-      "equivalence_goals",
-      "module_equivalence_goals",
       "scoreboard_contract",
       "simulation",
       "fl_rtl_compare",
@@ -27,7 +24,7 @@
       "label": "goal_audit",
       "returncode": 1,
       "stderr": "",
-      "stdout": "[goal-audit] wrote edge_detector/sim/fl_rtl_goal_audit.json\n[goal-audit] status=fail passed=7/16 blockers=req,fl_model,equivalence_goals,module_equivalence_goals,scoreboard_contract,simulation,fl_rtl_compare,mismatch_classification,functional_coverage"
+      "stdout": "[goal-audit] wrote edge_detector/sim/fl_rtl_goal_audit.json\n[goal-audit] status=fail passed=10/16 blockers=req,scoreboard_contract,simulation,fl_rtl_compare,mismatch_classification,functional_coverage"
     }
   ],
   "stage": "goal-audit",

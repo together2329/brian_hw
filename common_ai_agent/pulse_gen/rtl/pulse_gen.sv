@@ -29,7 +29,7 @@ module pulse_gen #(
     logic ctrl_hw_trig_en;
     logic [15:0] \pulse_gen_core.pulse_width_i ;
     logic \pulse_gen_core.int_enable_i ;
-    logic \pulse_gen_regs.status_done ;
+    wire \pulse_gen_regs.status_done ;
     logic \pulse_gen_core.status_done_o ;
     logic pulse_gen_regs_status_done_set;
     logic \pulse_gen_regs.status_busy ;
@@ -86,7 +86,7 @@ module pulse_gen #(
     ) u_core (
         .clk_i(PCLK),
         .rst_ni(PRESETn_sync),
-        .rst_ni(PRESETn),
+        .trigger_i(trigger_i),
         .ctrl_fire_i(ctrl_fire),
         .ctrl_polarity_i(ctrl_polarity),
         .ctrl_enable_i(ctrl_enable),

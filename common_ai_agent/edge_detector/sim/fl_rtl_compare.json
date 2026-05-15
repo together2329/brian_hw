@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "fl_rtl_compare",
   "ip": "edge_detector",
-  "generated_at": "2026-05-15T02:30:43Z",
+  "generated_at": "2026-05-15T02:32:32Z",
   "status": "pending",
   "sources": {
     "equivalence_goals": "edge_detector/verify/equivalence_goals.json",
@@ -12,16 +12,15 @@
     "fl_model_check": "edge_detector/model/fl_model_check.json"
   },
   "summary": {
-    "total": 0,
+    "total": 38,
     "goals_checked": 0,
     "goals_passed": 0,
     "goals_failed": 0,
     "goals_blocked": 0,
-    "goals_untested": 0,
+    "goals_untested": 38,
     "scoreboard_events": 0,
     "orphan_scoreboard_events": 0,
     "missing_evidence": [
-      "edge_detector/verify/equivalence_goals.json",
       "edge_detector/sim/scoreboard_events.jsonl",
       "edge_detector/sim/results.xml"
     ],
@@ -34,5 +33,392 @@
       "source": ""
     }
   },
-  "goals": []
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_DETECT",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC1_executed",
+        "SC2_executed",
+        "SC3_executed",
+        "fcov_rising_edge",
+        "fcov_falling_edge",
+        "fcov_both_edge",
+        "function_edge_detect",
+        "cycle_latency_edge_detect_latency",
+        "error_error_1"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC1_executed",
+        "SC10_executed",
+        "SC11_executed",
+        "SC12_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC2_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC3_executed",
+        "fcov_both_edge"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC5",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC5_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC6",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC6_executed",
+        "fcov_w1c_clear"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC7",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC7_executed",
+        "fcov_enable_gate"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC8",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC8_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC9",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC9_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC10",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC10_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC11",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC11_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC12",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC12_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_apb_read",
+        "ccov_apb_write",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_apb_read",
+        "ccov_apb_write",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_apb_read",
+        "ccov_apb_write",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_REGISTER_CONTROL",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC10_executed",
+        "fcov_w1c_clear",
+        "fcov_reserved_mode",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_perf_outstanding",
+        "error_error_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_REGISTER_STATUS",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC10_executed",
+        "fcov_sticky_set",
+        "fcov_overflow_set",
+        "fcov_w1c_clear",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_perf_outstanding",
+        "error_error_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC10_executed",
+        "fcov_w1c_clear",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_perf_outstanding",
+        "error_error_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fcov_reserved_mode",
+        "error_error_0",
+        "error_error_1"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_MODULE_EDGE_DETECTOR",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_SYNC_LATENCY",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_sync_latency"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_EDGE_DECODE",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_edge_decode"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_IRQ_SAME_CYCLE",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_irq_same_cycle"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_SYNC_LATENCY",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_latency_sync_latency"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_INTERRUPT_LATENCY",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_latency_interrupt_latency"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_pipeline_s0_sync"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_EDGE_DECODE",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_pipeline_s1_edge_decode"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S2_OUTPUT",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_pipeline_s2_output"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_backpressure_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_perf_depth"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_perf_throughput"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NOTE_SYNC_SAMPLE_TO_EDGE_DECODE_0",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fsm_note_sync_sample_to_edge_decode_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NOTE_EDGE_DECODE_TO_OUTPUT_PULSE_1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fsm_note_edge_decode_to_output_pulse_1"
+      ],
+      "coverage_hit": null
+    }
+  ]
 }
