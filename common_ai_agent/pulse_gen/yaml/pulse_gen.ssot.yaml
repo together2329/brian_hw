@@ -217,14 +217,10 @@ function_model:
         - { name: "pulse_out_active", expr: "latched_polarity ? 1'b0 : 1'b1", width: "PULSE_OUT_WIDTH", port: "pulse_out", description: "Active-level assertion during PULSE state" }
         - { name: "pulse_out_idle", expr: "latched_polarity ? 1'b1 : 1'b0", width: "PULSE_OUT_WIDTH", port: "pulse_out", description: "Idle-level when not in PULSE state" }
         - { name: "irq_o", expr: "status_done & INT_ENABLE.done_ie", width: 1, port: "irq_o", description: "Interrupt output driven by done status AND enable" }
-        - { name: "status_busy_out", expr: "fsm_state == PULSE ? 1 : 0", width: 1, port: "STATUS.busy", description: "Busy flag mirrors PULSE state" }
-        - { name: "status_done_set", expr: "fsm_state transitions PULSE→DONE ? set : unchanged", width: 1, port: "STATUS.done", description: "Done flag set at pulse completion, cleared by W1C" }
       output_rules:
         - { name: "pulse_out_active", expr: "latched_polarity ? 1'b0 : 1'b1", width: "PULSE_OUT_WIDTH", port: "pulse_out", description: "Active-level assertion during PULSE state" }
         - { name: "pulse_out_idle", expr: "latched_polarity ? 1'b1 : 1'b0", width: "PULSE_OUT_WIDTH", port: "pulse_out", description: "Idle-level when not in PULSE state" }
         - { name: "irq_o", expr: "status_done & INT_ENABLE.done_ie", width: 1, port: "irq_o", description: "Interrupt output driven by done status AND enable" }
-        - { name: "status_busy_out", expr: "fsm_state == PULSE ? 1 : 0", width: 1, port: "STATUS.busy", description: "Busy flag mirrors PULSE state" }
-        - { name: "status_done_set", expr: "fsm_state transitions PULSE→DONE ? set : unchanged", width: 1, port: "STATUS.done", description: "Done flag set at pulse completion, cleared by W1C" }
       side_effects:
         - "fsm_state transitions: IDLE → PULSE → DONE → IDLE"
         - "pulse_counter increments each PCLK cycle while in PULSE state"

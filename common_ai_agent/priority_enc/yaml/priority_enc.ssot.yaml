@@ -770,11 +770,11 @@ test_requirements:
         - { id: "FCOV_IRQ_DISABLED", source_ref: "function_model.transactions.PRI_ENCODE.output_rules.irq_o", class: "output_rule", description: "Interrupt disabled path observed" }
         - { id: "FCOV_THRESHOLD_MET", source_ref: "function_model.transactions.PRI_ENCODE.output_rules.thresh_met", class: "output_rule", description: "Threshold met condition observed" }
         - { id: "FCOV_THRESHOLD_NOT_MET", source_ref: "function_model.transactions.PRI_ENCODE.output_rules.thresh_met", class: "output_rule", description: "Threshold not met condition observed" }
-        - { id: "FCOV_ACTIVE_COUNT", source_ref: "function_model.transactions.PRI_ENCODE.output_rules.thresh_met", class: "output_rule", description: "Active count value correctness observed" }
+        - { id: "FCOV_ACTIVE_COUNT", source_ref: "function_model.transactions.PRI_ENCODE.state_updates", class: "state_update", description: "Active count value correctness observed" }
         - { id: "FCOV_APB_RW", source_ref: "function_model.transactions.APB_READ", class: "transaction", description: "APB read and write transactions observed" }
         - { id: "FCOV_APB_ERROR", source_ref: "function_model.transactions.APB_READ.error_cases", class: "error_case", description: "APB error response for unsupported address" }
         - { id: "FCOV_APB_WRITE_RO_ERR", source_ref: "function_model.transactions.APB_WRITE.error_cases", class: "error_case", description: "APB write to RO register error observed" }
-        - { id: "FCOV_RESET_CLEAR", source_ref: "cycle_model.reset.assertion", class: "reset", description: "Reset clears all state observed" }
+        - { id: "FCOV_RESET_CLEAR", source_ref: "function_model.state_variables", class: "state_variable", description: "Reset clears all state variables to declared reset values observed" }
         - { id: "FCOV_W1C_CLEAR", source_ref: "function_model.transactions.APB_WRITE.side_effects", class: "side_effect", description: "W1C clear mechanism observed" }
         - { id: "FCOV_CONTINUOUS_TOGGLE", source_ref: "function_model.transactions.PRI_ENCODE", class: "transaction", description: "Continuous random input toggling observed" }
     cycle:
