@@ -328,17 +328,19 @@ def _ref_is_covered(ref: str, owner_ref: str) -> bool:
 
 
 def _ref_prefix_covered(ref: str, owner_ref: str) -> bool:
+    ref_norm = ref.lower()
+    owner_norm = owner_ref.lower()
     return (
-        ref == owner_ref
-        or ref.startswith(owner_ref + ".")
-        or owner_ref.startswith(ref + ".")
+        ref_norm == owner_norm
+        or ref_norm.startswith(owner_norm + ".")
+        or owner_norm.startswith(ref_norm + ".")
     )
 
 
 def _ref_leaf_strong_match(ref: str, owner_ref: str) -> bool:
     ref_parent, _, ref_leaf = ref.rpartition(".")
     owner_parent, _, owner_leaf = owner_ref.rpartition(".")
-    if not ref_parent or ref_parent != owner_parent:
+    if not ref_parent or ref_parent.lower() != owner_parent.lower():
         return False
     ref_parts = {part for part in re.split(r"[_\W]+", ref_leaf.lower()) if len(part) > 1}
     owner_parts = {part for part in re.split(r"[_\W]+", owner_leaf.lower()) if len(part) > 1}
@@ -351,14 +353,19 @@ def _covered_by_module(ref: str, module: dict[str, Any], *, single_owner: bool) 
     if single_owner:
         return "single_owner"
     refs = module.get("refs") if isinstance(module.get("refs"), list) else []
+    prefix_matches: list[str] = []
     for owner_ref in refs:
         owner_ref = str(owner_ref)
         if _ref_prefix_covered(ref, owner_ref):
-            return owner_ref
+            prefix_matches.append(owner_ref)
+    leaf_matches: list[str] = []
     for owner_ref in refs:
         owner_ref = str(owner_ref)
         if _ref_leaf_strong_match(ref, owner_ref):
-            return owner_ref
+            leaf_matches.append(owner_ref)
+    matches = [*prefix_matches, *leaf_matches]
+    if matches:
+        return max(matches, key=lambda item: (len(item.split(".")), len(item)))
     return ""
 
 
@@ -1044,6 +1051,9 @@ _CMPOPS = {{
 
 def _normal_expr(text):
     text = str(text or "").strip()
+    reduction_or = re.fullmatch(r"\|\s*\((.*)\)", text)
+    if reduction_or:
+        text = f"reduction_or({{reduction_or.group(1)}})"
     text = text.replace("&&", " and ").replace("||", " or ")
     text = re.sub(r"(?<![=!<>])!(?!=)", " not ", text)
     return text
@@ -1052,6 +1062,49 @@ def _normal_expr(text):
 def _literal_int(text):
     text = str(text).strip().replace("_", "")
     return bool(re.fullmatch(r"(?:0x[0-9a-fA-F]+|[0-9]+|[0-9]*'[hHdDbB][0-9a-fA-FxXzZ]+)", text))
+
+
+def _h_bin_to_gray(value):
+    v = _parse_int(value, 0)
+    return v ^ (v >> 1)
+
+
+def _h_gray_to_bin(value):
+    g = _parse_int(value, 0)
+    b = g
+    s = g >> 1
+    while s:
+        b ^= s
+        s >>= 1
+    return b
+
+
+def _h_popcount(value):
+    return bin(_parse_int(value, 0) & ((1 << 256) - 1)).count("1")
+
+
+def _h_parity(value):
+    return _h_popcount(value) & 1
+
+
+def _h_clog2(value):
+    v = _parse_int(value, 0)
+    if v <= 1:
+        return 0
+    return (v - 1).bit_length()
+
+
+def _default_rule_helpers():
+    return {{
+        "bin_to_gray": _h_bin_to_gray,
+        "gray_to_bin": _h_gray_to_bin,
+        "popcount": _h_popcount,
+        "parity": _h_parity,
+        "clog2": _h_clog2,
+        "min": lambda a, b: min(_parse_int(a, 0), _parse_int(b, 0)),
+        "max": lambda a, b: max(_parse_int(a, 0), _parse_int(b, 0)),
+        "abs": lambda a: abs(_parse_int(a, 0)),
+    }}
 
 
 def _eval_ast(node, env):
@@ -1106,6 +1159,16 @@ def _eval_ast(node, env):
             return (base >> lo) & mask
         idx = _eval_ast(sl, env)
         return (base >> idx) & 1
+    if isinstance(node, ast.Call):
+        if not isinstance(node.func, ast.Name):
+            raise ValueError(f"unsupported rule call {{ast.dump(node.func)}}")
+        func = env.get(node.func.id)
+        if not callable(func):
+            raise ValueError(f"unsupported rule helper {{node.func.id}}")
+        if node.keywords:
+            raise ValueError(f"unsupported keyword args for rule helper {{node.func.id}}")
+        args = [_eval_ast(arg, env) for arg in node.args]
+        return _parse_int(func(*args), 0)
     raise ValueError(f"unsupported rule expression node {{type(node).__name__}}")
 
 
@@ -1177,6 +1240,55 @@ class FunctionalModel:
                 defaults[str(off)] = item.get("reset", 0)
         return defaults
 
+    @staticmethod
+    def _field_bounds(field):
+        bits = field.get("bits")
+        if isinstance(bits, (list, tuple)) and len(bits) >= 2:
+            hi = _parse_int(bits[0], 0)
+            lo = _parse_int(bits[1], 0)
+            return (max(hi, lo), min(hi, lo))
+        if "msb" in field and "lsb" in field:
+            hi = _parse_int(field.get("msb"), 0)
+            lo = _parse_int(field.get("lsb"), 0)
+            return (max(hi, lo), min(hi, lo))
+        if "lsb" in field and ("width" in field or "bit_width" in field):
+            lo = _parse_int(field.get("lsb"), 0)
+            width = max(1, _parse_int(field.get("width", field.get("bit_width", 1)), 1))
+            return (lo + width - 1, lo)
+        return (0, 0)
+
+    def _register_read_value(self, reg):
+        name = str(reg.get("name") or "")
+        value = _parse_int(self.registers.get(name, reg.get("reset", 0)), 0)
+        for field in reg.get("fields") or []:
+            if not isinstance(field, dict):
+                continue
+            fname = str(field.get("name") or "")
+            if fname in self.state:
+                fval = _parse_int(self.state.get(fname), 0)
+            elif f"{{fname}}_q" in self.state:
+                fval = _parse_int(self.state.get(f"{{fname}}_q"), 0)
+            elif fname in self.registers:
+                fval = _parse_int(self.registers.get(fname), 0)
+            else:
+                continue
+            hi, lo = self._field_bounds(field)
+            width = max(1, hi - lo + 1)
+            mask = (1 << width) - 1
+            value = (value & ~(mask << lo)) | ((fval & mask) << lo)
+        return value
+
+    def _read_mux(self, addr):
+        addr_i = _parse_int(addr, 0)
+        regs = SSOT_MODEL.get("registers") or {{}}
+        for reg in regs.get("register_list") or []:
+            if not isinstance(reg, dict):
+                continue
+            off = reg.get("offset")
+            if off is not None and addr_i == _parse_int(off, 0):
+                return self._register_read_value(reg)
+        return 0
+
     def reset(self):
         self.state = dict(self.state_defaults)
         self.registers = self._register_defaults()
@@ -1221,10 +1333,13 @@ class FunctionalModel:
 
     def _rule_env(self, txn):
         env = {{}}
+        env.update(_default_rule_helpers())
         env.update(self.params)
         env.update(self.state)
         env.update(self.registers)
         env.update(txn)
+        env["read_mux"] = self._read_mux
+        env["reduction_or"] = lambda value: 1 if _parse_int(value, 0) != 0 else 0
         env.setdefault("true", 1)
         env.setdefault("false", 0)
         return env
@@ -1435,6 +1550,8 @@ def run_self_check():
         }}
         known_names = set(model.params) | set(model.state) | set(model.registers) | output_names | update_names
         known_names.update({{"true", "false", "True", "False", "and", "or", "not"}})
+        known_names.update(_default_rule_helpers().keys())
+        known_names.update({{"read_mux", "reduction_or"}})
         for name in sorted(rule_names - known_names):
             if name and name not in txn:
                 txn[name] = idx + len(txn) + 1
@@ -1467,6 +1584,7 @@ def run_self_check():
             if expr is not None:
                 invariants.append({{"name": inv.get("name") or str(expr)[:40], "expr": expr}})
     invariants_eval_env = {{}}
+    invariants_eval_env.update(_default_rule_helpers())
     invariants_eval_env.update(model.params)
     invariants_eval_env.update(model.state)
     invariants_eval_env.update(model.registers)
