@@ -1,3 +1,94 @@
+Repair the SSOT YAML artifact for gpio. This is repair attempt 1.
+
+Return exactly one JSON object and nothing else. Do not wrap it in markdown.
+Success schema:
+{
+  "files": [
+    {"path": "gpio/yaml/gpio.ssot.yaml", "kind": "ssot", "content": "<complete repaired YAML>"}
+  ]
+}
+
+Repair rules:
+- Do not use a fixed IP template or hardcoded workaround.
+- Preserve product semantics from the requirement and current SSOT wherever they are valid.
+- SSOT remains the only source of truth for function_model, cycle_model, decomposition, RTL contract, DV plan, and coverage.
+- Fix the concrete parse/validator failures below, and also check for sibling contract defects.
+- The repaired YAML must pass `bash workflow/ssot-gen/scripts/check_ssot_disk.sh gpio`.
+- If a true semantic decision is missing from requirements, return a human_gate object instead of guessing.
+
+Failure summary:
+human_gate: SSOT disk validator failed: [check_ssot_disk] FAIL: gpio/yaml/gpio.ssot.yaml failed YAML/model validation
+
+Blocker artifact:
+
+
+Validator log:
+cmd: bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/check_ssot_disk.sh gpio
+cwd: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53
+returncode: 1
+stdout:
+[check_ssot_disk] FAIL: gpio/yaml/gpio.ssot.yaml failed YAML/model validation
+  function_model.transactions[] must include at least one executable output_rules entry with name/expr/width/port
+
+
+Requirements:
+# gpio IP Requirements
+
+## Intent
+
+Build a small parameterizable bidirectional GPIO peripheral as a smoke
+fixture for the common_ai_agent SSOT pipeline. The block is intentionally
+narrow: no bus and no interrupt, just direct register-style ports that
+exercise SSOT, function-model, cycle-model, equivalence goals, RTL,
+lint, TB, sim, coverage, and audit.
+
+## Functional Behavior
+
+- `clk` is the only clock.
+- `rst_n` is an active-low asynchronous reset; on assertion all output
+  state returns to zero.
+- `dir_in[WIDTH-1:0]` is a synchronous control that selects per-pin
+  direction. `0` makes the pin an input, `1` makes the pin an output.
+- `dout_in[WIDTH-1:0]` is the output data value to drive when the pin
+  is configured as output.
+- `pad_in[WIDTH-1:0]` is the observed pad value when the pin is an
+  input.
+- `dir_q[WIDTH-1:0]` is the registered direction state.
+- `dout_q[WIDTH-1:0]` is the registered output-data state.
+- `oe_o[WIDTH-1:0]` is the combinational output-enable to the pad
+  ring; bit `i` is high iff `dir_q[i]` is `1`.
+- `pad_o[WIDTH-1:0]` is the combinational output-data to the pad ring;
+  bit `i` equals `dout_q[i]` when `dir_q[i]` is `1`, otherwise `0`.
+- `din_q[WIDTH-1:0]` is the registered input sample of `pad_in` on the
+  rising clock edge for every bit whose `dir_q` is `0`. Bits whose
+  `dir_q` is `1` hold their previous `din_q` value.
+
+## Non-Goals
+
+- No APB, AXI, or CSR bus.
+- No interrupt or edge-detect logic.
+- No clock-domain crossing or asynchronous IO ring metastability
+  modeling beyond the simple input sample.
+- `WIDTH` is parameterized via SSOT; the smoke fixture default is 8
+  bits.
+
+## Verification Hints
+
+- Reset clears `dir_q`, `dout_q`, `din_q`, `oe_o`, and `pad_o`.
+- Toggling `dir_in` from 0 to 1 should make `oe_o` follow on the next
+  cycle.
+- When `dir_q[i]` is 0, `pad_o[i]` must stay at 0 regardless of
+  `dout_q[i]`.
+- When `dir_q[i]` is 1, `pad_o[i]` must equal `dout_q[i]` and `oe_o[i]`
+  must be 1.
+- `din_q[i]` only samples `pad_in[i]` for input bits; output bits keep
+  their last sampled value.
+- Coverage should hit: all-input, all-output, mixed direction, write
+  while output, read while input, and a randomized walk that flips
+  direction.
+
+
+Current SSOT YAML:
 top_module:
   name: gpio
   file: rtl/gpio.sv
@@ -17,7 +108,6 @@ sub_modules:
   ssot_gen: true
   implements:
   - function_model.transactions.FM1_LATCH_CONTROL
-  - function_model.transactions.FM4_ASYNC_RESET
   - registers.register_list.DIR_Q
   - registers.register_list.DOUT_Q
   - cycle_model.pipeline.S1_LATCH_CONTROL
@@ -32,10 +122,10 @@ sub_modules:
   - test_requirements
   function_model_refs:
   - function_model.transactions.FM1_LATCH_CONTROL
-  - function_model.transactions.FM4_ASYNC_RESET
-  - function_model.state_variables
   - function_model.transactions.FM2_SAMPLE_INPUTS
   - function_model.transactions.FM3_DRIVE_PAD_OUTPUTS
+  - function_model.transactions.FM4_ASYNC_RESET
+  - function_model.state_variables
   register_refs:
   - registers.register_list.DIR_Q
   - registers.register_list.DOUT_Q
@@ -43,7 +133,7 @@ sub_modules:
   cycle_model_refs:
   - cycle_model.pipeline.S1_LATCH_CONTROL
   - cycle_model
-  description: Sequential register block for direction/output state
+  description: Sequential control-state register block for direction and output data
   feature_refs:
   - features
   dataflow_refs:
@@ -72,7 +162,7 @@ sub_modules:
   - registers.register_list.DIN_Q
   cycle_model_refs:
   - cycle_model.pipeline.S2_SAMPLE_INPUTS
-  description: Sequential input sampler with direction mask
+  description: Sequential input capture block with per-bit direction masking
 - name: gpio_pad_logic
   file: rtl/gpio_pad_logic.sv
   ownership: manifest
@@ -92,7 +182,7 @@ sub_modules:
   - cycle_model.handshake_rules.HR_COMB_OUTPUTS
   ssot_refs:
   - io_list.interfaces.gpio_pad
-  description: Combinational output-enable/output-data generation
+  description: Combinational pad output-enable and output-data generation
 - name: gpio
   file: rtl/gpio.sv
   ownership: manifest
@@ -103,55 +193,28 @@ sub_modules:
   source_sections: &id003
   - integration
   - rtl_contract
-  description: Top-level integration and wiring
+  description: Top-level integration and module wiring
 decomposition:
   strategy: manifest_owned_leaf_decomposition
-  units:
-  - id: regs
-    kind: control_state
-    source_refs:
-    - function_model.transactions.FM1_LATCH_CONTROL
-    - function_model.transactions.FM4_ASYNC_RESET
-    rtl_candidates:
-    - gpio_regs
-    verification_impact:
-    - test_requirements.scenarios.SC06
-    - test_requirements.scenarios.SC09
-  - id: sample
-    kind: input_capture
-    source_refs:
-    - function_model.transactions.FM2_SAMPLE_INPUTS
-    rtl_candidates:
-    - gpio_input_sampler
-    verification_impact:
-    - test_requirements.scenarios.SC07
-  - id: drive
-    kind: combinational_output
-    source_refs:
-    - function_model.transactions.FM3_DRIVE_PAD_OUTPUTS
-    rtl_candidates:
-    - gpio_pad_logic
-    verification_impact:
-    - test_requirements.scenarios.SC08
   owners:
   - module: gpio_regs
     file: rtl/gpio_regs.sv
-    responsibility: Sequential register block for direction/output state
+    responsibility: Sequential control-state register block for direction and output data
     source_sections:
     - function_model
     - registers
     - cycle_model
   - module: gpio_input_sampler
     file: rtl/gpio_input_sampler.sv
-    responsibility: Sequential input sampler with direction mask
+    responsibility: Sequential input capture block with per-bit direction masking
     source_sections: *id001
   - module: gpio_pad_logic
     file: rtl/gpio_pad_logic.sv
-    responsibility: Combinational output-enable/output-data generation
+    responsibility: Combinational pad output-enable and output-data generation
     source_sections: *id002
   - module: gpio
     file: rtl/gpio.sv
-    responsibility: Top-level integration and wiring
+    responsibility: Top-level integration and module wiring
     source_sections: *id003
   integration_policy: Top-level wiring must be backed by integration.connections or sub_modules[].connections before signoff.
   source_refs:
@@ -170,6 +233,13 @@ parameters:
   - rtl/gpio_input_sampler.sv
   - rtl/gpio_pad_logic.sv
   - sim/tb_top.sv
+- name: RESET_VALUE
+  default: 0
+  type: int
+  description: Reset value for dir_q/dout_q/din_q
+  drives:
+  - rtl/gpio_regs.sv
+  - rtl/gpio_input_sampler.sv
 io_list:
   clock_domains:
   - name: clk
@@ -194,16 +264,16 @@ io_list:
   - name: gpio_ctrl
     type: custom
     role: slave
-    description: Direct control inputs
+    description: Direct register-style control inputs
     ports:
     - name: dir_in
       width: WIDTH
       direction: input
-      description: 0=input 1=output
+      description: Per-pin direction control; 0=input, 1=output
     - name: dout_in
       width: WIDTH
       direction: input
-      description: Output data input
+      description: Per-pin output data control
     clock_domain: clk
     reset_domain: rst_n
     protocol:
@@ -213,20 +283,20 @@ io_list:
   - name: gpio_pad
     type: custom
     role: master
-    description: Pad ring signals
+    description: Pad ring driving/sampling signals
     ports:
     - name: pad_in
       width: WIDTH
       direction: input
-      description: Sampled pad value
+      description: Observed external pad levels
     - name: oe_o
       width: WIDTH
       direction: output
-      description: Output-enable
+      description: Output-enable to pad ring
     - name: pad_o
       width: WIDTH
       direction: output
-      description: Output drive data
+      description: Output data to pad ring
     clock_domain: clk
     reset_domain: rst_n
     protocol:
@@ -236,7 +306,7 @@ io_list:
   - name: gpio_state
     type: custom
     role: status
-    description: Registered internal state outputs
+    description: Registered architectural GPIO state outputs
     ports:
     - name: dir_q
       width: WIDTH
@@ -249,7 +319,7 @@ io_list:
     - name: din_q
       width: WIDTH
       direction: output
-      description: Registered input sample state
+      description: Registered sampled input state
     clock_domain: clk
     reset_domain: rst_n
     protocol:
@@ -258,43 +328,47 @@ io_list:
       response: Observable response timing follows cycle_model latency and ordering.
 features:
 - name: Per-bit direction control
-  trigger: dir_in sampled on rising clk
-  datapath: dir_in -> dir_q -> oe_o and pad_o mask
-  control: single-cycle latch
+  trigger: dir_in update sampled on rising clk
+  datapath: dir_in -> dir_q -> oe_o gating and pad_o mask
+  control: Single-cycle register latch
   output: oe_o[i]=1 when dir_q[i]=1
 - name: Registered output data
-  trigger: dout_in sampled on rising clk
-  datapath: dout_in -> dout_q -> pad_o when output mode
-  control: single-cycle latch
-  output: pad_o follows dout_q only for dir_q=1 bits
+  trigger: dout_in update sampled on rising clk
+  datapath: dout_in -> dout_q -> pad_o when dir_q=1
+  control: Single-cycle register latch
+  output: pad_o follows dout_q only for output-configured bits
 - name: Direction-masked input sampling
   trigger: rising clk
-  datapath: pad_in sampled into din_q when dir_q=0
-  control: per-bit conditional update
-  output: output-mode bits hold prior din_q
+  datapath: pad_in sampled into din_q for bits where dir_q=0
+  control: Per-bit conditional register update
+  output: din_q holds previous value for output-configured bits
 dataflow:
   control_path:
-    source: dir_in,dout_in
-    sequence: rising clk samples controls into dir_q,dout_q
+    source: dir_in, dout_in
+    sequence: sample at clk edge -> update dir_q,dout_q
+    note: No bus decode; controls are direct ports
   output_path:
     source: dir_q,dout_q
-    sequence: combinational derive oe_o,pad_o
+    sequence: combinational derive oe_o and pad_o
+    rules:
+    - oe_o[i] = dir_q[i]
+    - pad_o[i] = dout_q[i] when dir_q[i]=1 else 0
   input_path:
     source: pad_in
-    sequence: at each rising clk sample into din_q only for bits where dir_q=0
+    sequence: at each clk edge, if dir_q[i]=0 then din_q[i] := pad_in[i] else hold
 function_model:
-  purpose: Behavioral contract for GPIO state update, input sampling, and pad outputs
+  purpose: Cycle-independent behavioral contract for GPIO register-state and pad behavior
   state_variables:
   - name: dir_state
-    source: io_list.interfaces.gpio_state.ports.dir_q
+    source: dir_q
     reset: 0
     description: Registered direction vector
   - name: dout_state
-    source: io_list.interfaces.gpio_state.ports.dout_q
+    source: dout_q
     reset: 0
     description: Registered output data vector
   - name: din_state
-    source: io_list.interfaces.gpio_state.ports.din_q
+    source: din_q
     reset: 0
     description: Registered sampled input vector
   transactions:
@@ -304,41 +378,28 @@ function_model:
     - rst_n is deasserted
     - rising edge of clk
     inputs:
-    - dir_in
-    - dout_in
+    - dir_in[WIDTH-1:0]
+    - dout_in[WIDTH-1:0]
     outputs:
     - dir_state equals dir_in after sampling edge
     - dout_state equals dout_in after sampling edge
     side_effects:
-    - dir_q and dout_q update atomically each cycle
-    output_rules:
-    - name: dir_q_next
-      expr: dir_in
-      width: WIDTH
-      port: dir_q
-    - name: dout_q_next
-      expr: dout_in
-      width: WIDTH
-      port: dout_q
+    - Architectural registers dir_q and dout_q are updated atomically each cycle
+    output_rules: []
   - id: FM2_SAMPLE_INPUTS
     name: sample_pad_inputs_for_input_bits_only
     preconditions:
     - rst_n is deasserted
     - rising edge of clk
     inputs:
-    - pad_in
-    - dir_state
-    - din_state
+    - pad_in[WIDTH-1:0]
+    - dir_state from previous or same-edge architectural interpretation
     outputs:
-    - din_state bits with dir_state=0 sample pad_in
-    - din_state bits with dir_state=1 hold previous value
+    - 'For each bit i: if dir_state[i]=0 then din_state[i]=pad_in[i]'
+    - 'For each bit i: if dir_state[i]=1 then din_state[i] retains previous value'
     side_effects:
-    - din_q updates only on input-configured bits
-    output_rules:
-    - name: din_q_masked_next
-      expr: (din_q & dir_q) | (pad_in & ~dir_q)
-      width: WIDTH
-      port: din_q
+    - din_q updates only on bits configured as input
+    output_rules: []
   - id: FM3_DRIVE_PAD_OUTPUTS
     name: derive_output_enable_and_pad_drive
     preconditions:
@@ -347,100 +408,90 @@ function_model:
     - dir_state
     - dout_state
     outputs:
-    - oe_o equals dir_state
-    - pad_o equals dout_state where dir_state is 1 else 0
+    - oe_o[i] is 1 iff dir_state[i]=1
+    - pad_o[i] equals dout_state[i] when dir_state[i]=1
+    - pad_o[i] equals 0 when dir_state[i]=0
     side_effects:
-    - no sequential state change
-    output_rules:
-    - name: oe_comb
-      expr: dir_q
-      width: WIDTH
-      port: oe_o
-    - name: pad_comb
-      expr: dout_q & dir_q
-      width: WIDTH
-      port: pad_o
+    - No sequential state change; combinational observable outputs reflect registered state
+    output_rules: []
   - id: FM4_ASYNC_RESET
     name: asynchronous_reset_clears_state
     preconditions:
     - rst_n asserted low
     outputs:
-    - dir_state zero
-    - dout_state zero
-    - din_state zero
-    - oe_o zero
-    - pad_o zero
+    - dir_state becomes 0
+    - dout_state becomes 0
+    - din_state becomes 0
+    - oe_o becomes 0
+    - pad_o becomes 0
     side_effects:
-    - all architectural state cleared independent of clk
-    output_rules:
-    - name: dir_reset
-      expr: '''0'
-      width: WIDTH
-      port: dir_q
-    - name: dout_reset
-      expr: '''0'
-      width: WIDTH
-      port: dout_q
-    - name: din_reset
-      expr: '''0'
-      width: WIDTH
-      port: din_q
+    - All architectural state cleared independent of clk
+    output_rules: []
   invariants:
-  - oe_o equals dir_q at all times after combinational settle
-  - pad_o equals (dout_q & dir_q) bitwise
-  - din_q output-configured bits hold unless reset
-  - no hidden state beyond dir_q, dout_q, din_q
+  - For all bits i, oe_o[i] == dir_q[i] at all times after combinational settle.
+  - For all bits i with dir_q[i]==0, pad_o[i] must be 0 regardless of dout_q[i].
+  - For all bits i with dir_q[i]==1, din_q[i] cannot change unless reset is asserted.
+  - No hidden state exists beyond dir_q, dout_q, din_q.
 cycle_model:
-  purpose: Cycle-accurate timing and ordering for GPIO behavior
-  executable: pymtl3
-  backend_policy: Use PyMTL3 for cycle shell and direct Python oracle checks
+  purpose: Cycle-accurate timing and ordering contract for GPIO control/sample/drive behavior
+  executable: python
   clock: clk
   reset:
-    assertion: rst_n low asynchronously clears state
-    deassertion: state usable on first rising edge after deassertion
+    assertion: rst_n low asynchronously clears sequential state immediately
+    deassertion: state is usable from first rising edge after rst_n returns high
   latency:
-    control_to_state:
+    control_to_dir_q:
       min_cycles: 1
       max_cycles: 1
-      description: dir_in/dout_in sampled on next rising edge
-    state_to_outputs:
+      description: dir_in sampled to dir_q on next rising edge
+    control_to_dout_q:
+      min_cycles: 1
+      max_cycles: 1
+      description: dout_in sampled to dout_q on next rising edge
+    dir_q_to_oe_o:
       min_cycles: 0
       max_cycles: 0
-      description: oe_o and pad_o combinational from state
-    pad_to_din:
+      description: oe_o is combinational from dir_q
+    dir_q_dout_q_to_pad_o:
+      min_cycles: 0
+      max_cycles: 0
+      description: pad_o combinational from dir_q and dout_q
+    pad_in_to_din_q_when_input:
       min_cycles: 1
       max_cycles: 1
-      description: input bits sample pad_in on rising edge
+      description: pad_in sampled into din_q on rising edge for input bits
   handshake_rules:
   - id: HR_SYNC_SAMPLE
     signal: clk
-    rule: Inputs sampled only on rising edge
+    rule: dir_in and dout_in are sampled only on rising clk edge.
   - id: HR_INPUT_MASK_SAMPLE
     signal: din_q
-    rule: din_q bit updates only when corresponding dir_q bit is 0
+    rule: din_q bit updates on rising edge only if corresponding dir_q bit indicates input mode.
   - id: HR_COMB_OUTPUTS
     signal: oe_o/pad_o
-    rule: Outputs are pure combinational functions of registered state
+    rule: oe_o and pad_o are pure combinational functions of registered states with no extra cycle latency.
   pipeline:
   - stage: S0_RESET
     cycle: async
-    action: Clear dir_q/dout_q/din_q when rst_n=0
+    action: On rst_n low, clear dir_q/dout_q/din_q to zero
   - stage: S1_LATCH_CONTROL
     cycle: N
-    action: Latch dir_in->dir_q and dout_in->dout_q at rising edge
+    action: At rising edge N, latch dir_in into dir_q and dout_in into dout_q
   - stage: S2_SAMPLE_INPUTS
     cycle: N
-    action: Sample pad_in into din_q only for dir_q=0 bits
+    action: At rising edge N, sample pad_in into din_q only for bits with input direction
   - stage: S3_DRIVE_OUTPUTS
-    cycle: N+comb
-    action: Drive oe_o/pad_o from registered state
+    cycle: N+combinational
+    action: Drive oe_o and pad_o from new registered state after edge
   ordering:
-  - sequential updates occur at edge, combinational outputs settle after edge
-  - reset dominates non-reset behavior
+  - Within a cycle, sequential updates occur at edge; combinational outputs reflect updated state after propagation.
+  - Reset dominates all non-reset transitions.
+  - Input-sample hold behavior for output bits is preserved across cycles unless reset occurs.
   backpressure:
-  - no ready/valid protocol in this GPIO fixture
+  - No ready/valid backpressure protocol; behavior is fully synchronous to clk.
   observability:
-  - each function_model transaction maps to cycle stages and test scenarios
+  - Each function_model transaction maps to a pipeline stage and directed test scenario.
+  backend_policy: Use PyMTL3 for the clocked cycle model shell; FunctionalModel remains the behavioral oracle.
   performance:
     frequency_mhz: 200
     throughput:
@@ -457,7 +508,7 @@ clock_reset_domains:
   domains:
   - name: clk
     frequency_mhz: 200
-    description: Single GPIO domain
+    description: Single GPIO functional domain
   reset_scheme:
     signal: rst_n
     polarity: active_low
@@ -465,53 +516,53 @@ clock_reset_domains:
 cdc_requirements:
   crossings: []
   synchronizers: []
-  note: Single clock domain
+  note: Single internal clock domain; no CDC paths in this fixture
 rdc_requirements:
   crossings: []
   synchronizers: []
-  note: Single reset domain
+  note: Single reset domain; no RDC crossings
 registers:
   config:
-    register_width: 32
-    addr_width: 4
-    byte_addressable: true
-    note: Logical architectural registers only; no external bus interface
+    register_width: WIDTH
+    addr_width: 0
+    byte_addressable: false
+    note: Architectural state exposed directly via ports; no memory-mapped bus
   register_list:
   - name: DIR_Q
-    offset: 0
-    width: 32
-    access: rw
+    offset: null
+    width: WIDTH
+    access: rw_via_port
     reset: 0
     category: state
-    description: Registered direction state sampled from dir_in[WIDTH-1:0]
+    description: Registered direction state sampled from dir_in
     fields:
     - name: dir
       bits:
-      - 7
+      - WIDTH-1
       - 0
-      access: rw
+      access: rw_via_port
       reset: 0
-      description: 0=input 1=output
-      write_effect: Updated by sampled dir_in each rising edge
+      description: 0=input, 1=output
+      write_effect: APB write data updates this field value according to its bit mask.
   - name: DOUT_Q
-    offset: 4
-    width: 32
-    access: rw
+    offset: null
+    width: WIDTH
+    access: rw_via_port
     reset: 0
     category: state
-    description: Registered output data sampled from dout_in[WIDTH-1:0]
+    description: Registered output data sampled from dout_in
     fields:
     - name: dout
       bits:
-      - 7
+      - WIDTH-1
       - 0
-      access: rw
+      access: rw_via_port
       reset: 0
-      description: Output data state
-      write_effect: Updated by sampled dout_in each rising edge
+      description: Output drive value when direction is output
+      write_effect: APB write data updates this field value according to its bit mask.
   - name: DIN_Q
-    offset: 8
-    width: 32
+    offset: null
+    width: WIDTH
     access: ro
     reset: 0
     category: state
@@ -519,11 +570,11 @@ registers:
     fields:
     - name: din
       bits:
-      - 7
+      - WIDTH-1
       - 0
       access: ro
       reset: 0
-      description: Sampled from pad_in when dir_q indicates input
+      description: Sampled pad_in value for input-configured bits
 memory:
   instances:
   - name: dir_q_ff
@@ -566,7 +617,7 @@ fsm:
     - from: ACTIVE
       to: ACTIVE
       condition: normal operation each cycle
-    note: Stateless transfer behavior with single architectural mode
+    note: Stateless datapath-style peripheral; behavior encoded in register transfer rules rather than multi-state FSM
 timing:
   target_clocks:
   - domain: clk
@@ -582,48 +633,50 @@ timing:
   - path: dir_q->oe_o
     cycles: 0
     requirement: combinational
-  - path: dir_q
-    dout_q->pad_o: null
+  - path: dir_q,dout_q->pad_o
     cycles: 0
     requirement: combinational
-  - path: pad_in->din_q
+  - path: pad_in->din_q (input bits)
     cycles: 1
-    requirement: fixed_for_input_bits
+    requirement: fixed
   sta_expectations:
   - Meet single-clock setup/hold at target frequency
-  - Check reset recovery/removal for rst_n
+  - Reset recovery/removal checks for rst_n
 power:
   domains:
   - name: VDD_GPIO
     voltage: nominal
     elements:
-    - all_gpio_logic
+    - all gpio logic
   power_states:
-  - name: true
+  - name: 'ON'
     description: Normal operation
   - name: RESET
-    description: rst_n asserted and state cleared
+    description: rst_n asserted; state cleared
   clock_gating: none
   retention: not required
   upf_required: false
 security:
   classification: non-sensitive peripheral control
   assets:
-  - Correct direction gating to avoid unintended output drive
+  - Correct direction gating to avoid unintended output driving
   - Integrity of sampled input state din_q
   threat_model:
-  - Accidental misconfiguration of direction
-  - Glitchy pad input sampled at clock edge
+  - Accidental misconfiguration of direction bits
+  - Glitchy external pad inputs sampled at clock edge
   assumptions:
-  - System-level privilege and access control are out of scope
-  privilege_model: controlled by SoC integration policy
+  - System-level access control for driving dir_in/dout_in is out of scope
+  privilege_model: System-level access control is owned by the integrating bus/firewall unless explicitly declared here.
 error_handling:
   error_sources:
+  - id: illegal_state
+    condition: none expected
+    architectural_effect: Status/error reporting follows the SSOT error policy
   - id: x_propagation_from_pad
-    condition: pad_in contains unknown in simulation
-    architectural_effect: unknown may propagate into din_q for sampled input bits
+    condition: pad_in unknown in simulation
+    architectural_effect: Status/error reporting follows the SSOT error policy
   propagation:
-  - No interrupt or fault output in this fixture
+  - No internal fault interrupt/path; unknown pad values may reflect into din_q when sampled as input
   recovery:
   - Assert rst_n low to restore deterministic zero state
 debug_observability:
@@ -640,42 +693,34 @@ debug_observability:
   - pad_o
   trace_events:
   - name: EV_CONTROL_LATCH
-    trigger: rising_clk
+    trigger: rising edge
     payload:
     - dir_in
     - dout_in
     - dir_q
     - dout_q
   - name: EV_INPUT_SAMPLE
-    trigger: rising_clk
+    trigger: rising edge
     payload:
     - pad_in
     - dir_q
     - din_q
   - name: EV_RESET
-    trigger: rst_n_falling
+    trigger: rst_n falling
     payload:
     - dir_q
     - dout_q
     - din_q
   status_outputs:
-  - dir_q
-  - dout_q
-  - din_q
+  - status/debug signals declared in io_list or registers
 integration:
   bus_attachment:
     type: none
-    description: No APB/AXI/CSR bus; direct ports only
+    description: Direct pin-level control, no APB/AXI/CSR bus
   dependencies:
-  - pad_ring interface for pad_in/oe_o/pad_o
-  - clock/reset distribution for clk/rst_n
+  - Pad ring provides pad_in and consumes oe_o/pad_o
+  - System clock/reset distribution provides clk/rst_n
   connections:
-  - module: gpio_regs
-    port: clk
-    signal: clk
-  - module: gpio_regs
-    port: rst_n
-    signal: rst_n
   - module: gpio_regs
     port: dir_in
     signal: dir_in
@@ -688,12 +733,6 @@ integration:
   - module: gpio_regs
     port: dout_q
     signal: dout_q
-  - module: gpio_input_sampler
-    port: clk
-    signal: clk
-  - module: gpio_input_sampler
-    port: rst_n
-    signal: rst_n
   - module: gpio_input_sampler
     port: pad_in
     signal: pad_in
@@ -715,31 +754,30 @@ integration:
   - module: gpio_pad_logic
     port: pad_o
     signal: pad_o
-  integration_notes:
-  - Integrator must connect all io_list ports and preserve reset/clock assumptions
   connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff
     must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+  integration_notes:
+  - Integrator must connect every declared io_list port and honor timing/reset assumptions.
 dft:
   scan_required: true
   controllability:
-  - dir_q, dout_q, din_q flops scannable
-  - primary inputs controllable in test mode
+  - dir_q, dout_q, din_q flops must be scannable
+  - Primary inputs dir_in/dout_in/pad_in are controllable in testbench/ATE context
   observability:
-  - dir_q, dout_q, din_q visible at outputs
-  - oe_o and pad_o observable combinationally
+  - dir_q, dout_q, din_q observable via module outputs
+  - oe_o and pad_o observable as combinational outputs
   mbist: not applicable
-  mbist_required: false
+  mbist_required: true
 synthesis:
   dialect: systemverilog_2012
   constraints:
   - Single clock constraint on clk
-  - Reset recovery/removal constraints for rst_n
-  - WIDTH >= 1
+  - Asynchronous reset false-path/setup-hold handling per flow policy
+  - WIDTH must be >=1
   required_outputs:
-  - gate_level_netlist
-  - area_report
-  - timing_report
-  - unconstrained_path_report
+  - Gate-level netlist
+  - Area/timing reports
+  - Unconstrained-path report
   top_module: gpio
 pnr:
   utilization_pct: 20
@@ -751,8 +789,7 @@ pnr:
     vertical: met2
   cts:
     buf_list:
-    - sky130_fd_sc_hd__clkbuf_4
-    - sky130_fd_sc_hd__clkbuf_8
+    - generic_clkbuf
   routing:
     signal_layers:
       min: met1
@@ -766,18 +803,18 @@ coding_rules:
   file_extension: .sv
   parameter_header: rtl/gpio_param.vh
   conventions:
-  - nonblocking in sequential always blocks
-  - blocking in combinational always blocks
+  - nonblocking assignments in sequential always blocks
+  - blocking assignments in combinational always blocks
   - no inferred latches
-  - active-low async reset semantics
+  - active-low asynchronous reset semantics
   - parameterized width usage
   lint_waivers:
-  - none_expected
+  - none expected
 reuse_modules: []
 custom:
   assumptions:
-  - no metastability hardening; pad_in sampled directly
-  note: minimal smoke-fixture IP
+  - No metastability hardening included; pad_in is sampled directly as specified
+  note: Smoke-fixture IP intentionally minimal
 dir_structure:
   template_dirs:
     rtl: templates/rtl/
@@ -886,108 +923,107 @@ test_requirements:
     function:
       target_pct: 100
       model: function_model
-      description: all transactions and invariants covered
+      description: All declared transactions and invariants exercised
       bins:
       - id: FCOV_FM1
         source_ref: function_model.transactions.FM1_LATCH_CONTROL
         class: transaction
-        description: latch transaction observed
+        description: Control latch observed
       - id: FCOV_FM2
         source_ref: function_model.transactions.FM2_SAMPLE_INPUTS
         class: transaction
-        description: sample transaction observed
+        description: Input sampling observed
       - id: FCOV_FM3
         source_ref: function_model.transactions.FM3_DRIVE_PAD_OUTPUTS
         class: transaction
-        description: drive transaction observed
+        description: Pad drive derivation observed
       - id: FCOV_FM4
         source_ref: function_model.transactions.FM4_ASYNC_RESET
         class: transaction
-        description: reset transaction observed
+        description: Reset behavior observed
     cycle:
       target_pct: 100
       model: cycle_model
-      description: stage and rule coverage
+      description: Latency, ordering, and stage transitions covered
       bins:
-      - id: CCOV_S1
+      - id: CCOV_PIPE_S1
         source_ref: cycle_model.pipeline.S1_LATCH_CONTROL
         class: pipeline_stage
-        description: latch stage hit
-      - id: CCOV_S2
+        description: Control latch stage hit
+      - id: CCOV_PIPE_S2
         source_ref: cycle_model.pipeline.S2_SAMPLE_INPUTS
         class: pipeline_stage
-        description: sample stage hit
-      - id: CCOV_S3
+        description: Input sample stage hit
+      - id: CCOV_PIPE_S3
         source_ref: cycle_model.pipeline.S3_DRIVE_OUTPUTS
         class: pipeline_stage
-        description: drive stage hit
+        description: Combinational drive stage hit
       - id: CCOV_RULE_MASK
         source_ref: cycle_model.handshake_rules.HR_INPUT_MASK_SAMPLE
-        class: handshake
-        description: mask rule exercised
-    functional: function_plus_cycle
+        class: rule
+        description: Direction mask sample rule checked
+    functional: Legacy alias for function+cycle closure
     code: line >= 90%, branch >= 85%
     scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
 quality_gates:
   ssot:
-    pass: SSOT parses and passes check_ssot_disk.sh
+    pass: SSOT parses, includes all required canonical sections, and passes check_ssot_disk.sh
     evidence:
     - gpio/yaml/gpio.ssot.yaml
-    - workflow/ssot-gen/scripts/check_ssot_disk.sh_log
+    - workflow/ssot-gen/scripts/check_ssot_disk.sh log
   rtl:
-    pass: RTL compiles/lints and matches function_model/cycle_model
+    pass: RTL matches function_model and cycle_model behavior and compiles/lints clean
     evidence:
-    - rtl_compile_report
-    - dut_lint_report
-    - fl_vs_rtl_scoreboard
+    - rtl compile report
+    - lint report
+    - FL-vs-RTL comparison log
   rtl_gen:
     profile: standard
-    pass: workflow_todos.rtl-gen items implemented with ownership traceability
+    pass: All workflow_todos.rtl-gen items implemented with traceable ownership and compile-clean RTL
     evidence:
     - rtl/rtl_todo_plan.json
     - rtl/rtl_authoring_provenance.json
   dv:
-    pass: Every SSOT test_requirements scenario has an executable checker and FL-vs-RTL equivalence goal
+    pass: Directed and randomized scenarios pass with scoreboard and assertions
     evidence:
-    - verify/equivalence_goals.json
-    - sim/scoreboard_events.jsonl
-    - tb/cocotb tests
-    - scenario implementation map
+    - sim regression summary
+    - scoreboard mismatch report (empty)
   coverage:
-    pass: function and cycle coverage goals met or waived
+    pass: Function and cycle coverage goals reach declared targets or have approved waiver
     evidence:
     - cov/coverage.json
-    - sim/coverage_report.md
+    - coverage report
   eda:
-    pass: synthesis/STA/PnR meet targets or approved waiver
+    pass: Synthesis/STA/PnR reports meet target or accepted waiver exists
     evidence:
-    - syn_report
-    - sta_report
-    - pnr_report
+    - syn report
+    - sta report
+    - pnr report
   signoff:
-    pass: SSOT, FL/equivalence, RTL, lint, DV, sim, coverage, and EDA gates pass with fresh artifacts
+    pass: All gates ssot/rtl/dv/coverage/eda are green
     evidence:
-    - ATLAS progress signoff PASS
+    - signoff checklist
+    - artifact manifest
 traceability:
   yaml_to_output:
-  - yaml: top_module.name
+  - yaml: top_module
     output: rtl/gpio.sv
   - yaml: parameters
-    output: rtl/gpio_param.vh
+    output: rtl/gpio_param.vh and module parameter declarations
   - yaml: io_list.interfaces
-    output: rtl/gpio.sv port list
+    output: top-level port list and tb pin drivers
   - yaml: function_model
-    output: scoreboard/reference model
+    output: scoreboard reference model and RTL behavioral checks
   - yaml: cycle_model
-    output: protocol/cycle checkers
+    output: temporal assertions and cycle-accurate checkers
   - yaml: registers.register_list
-    output: state docs and signal naming
+    output: architectural state signal naming and docs
   - yaml: rtl_contract
-    output: module ownership implementation rules
+    output: owner-module RTL implementation rules
   - yaml: test_requirements.scenarios
-    output: sim tests
+    output: sim test sequences
   - yaml: quality_gates
-    output: CI signoff criteria
+    output: CI pass/fail criteria
   - yaml: function_model/cycle_model/test_requirements
     output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
   - yaml: timing
@@ -999,158 +1035,5 @@ traceability:
   - yaml: debug_observability
     output: VCD probes and sim_debug inspection
 workflow_todos:
-  fl-model-gen:
-  - id: FL_GPIO_ORACLE
-    content: Implement Python functional oracle for GPIO
-    detail: Encode FM1-FM4 output_rules and invariants for scoreboard comparisons
-    criteria:
-    - oracle computes dir_q/dout_q/din_q/oe_o/pad_o per transaction output_rules
-    - oracle used by tests SC01-SC05
-    source_refs:
-    - function_model.transactions
-    - function_model.invariants
-    owner_module: gpio
-    owner_file: sim/tb_gpio_scoreboard.py
-    priority: high
-    required: true
-  rtl-gen:
-  - id: RTL_GPIO_REGS
-    content: Implement sequential state registers
-    detail: Create async-reset sequential logic for dir_q and dout_q sampled each rising edge
-    criteria:
-    - reset clears registers to zero
-    - one-cycle sampling of dir_in/dout_in is preserved
-    source_refs:
-    - function_model.transactions.FM1_LATCH_CONTROL
-    - function_model.transactions.FM4_ASYNC_RESET
-    - cycle_model.pipeline.S1_LATCH_CONTROL
-    owner_module: gpio_regs
-    owner_file: rtl/gpio_regs.sv
-    priority: high
-    required: true
-  - id: RTL_GPIO_SAMPLER
-    content: Implement direction-masked input sampling
-    detail: Update din_q only on input-configured bits at rising edge
-    criteria:
-    - din_q[i] samples pad_in[i] when dir_q[i]==0
-    - din_q[i] holds when dir_q[i]==1
-    source_refs:
-    - function_model.transactions.FM2_SAMPLE_INPUTS
-    - cycle_model.pipeline.S2_SAMPLE_INPUTS
-    owner_module: gpio_input_sampler
-    owner_file: rtl/gpio_input_sampler.sv
-    priority: high
-    required: true
-  - id: RTL_GPIO_PAD
-    content: Implement combinational pad drive logic
-    detail: Derive oe_o and pad_o directly from dir_q and dout_q
-    criteria:
-    - oe_o equals dir_q bitwise
-    - pad_o equals dout_q & dir_q
-    source_refs:
-    - function_model.transactions.FM3_DRIVE_PAD_OUTPUTS
-    - cycle_model.handshake_rules.HR_COMB_OUTPUTS
-    owner_module: gpio_pad_logic
-    owner_file: rtl/gpio_pad_logic.sv
-    priority: high
-    required: true
-  tb-gen: []
-  sim_debug: []
-  coverage: []
-  syn: []
-  pnr: []
-  sta: []
-  sta-post: []
-generation_flow:
-  steps:
-  - name: validate_ssot
-    command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh gpio
-    description: Validate production SSOT structure and quality gates
-  - name: handoff_fl_model
-    command: /ssot-fl-model gpio
-    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
-  - name: handoff_equivalence_goals
-    command: /ssot-equiv-goals gpio
-    description: Derive FL-vs-RTL equivalence goals before TB generation
-  - name: handoff_rtl
-    command: /ssot-rtl gpio
-    description: Generate RTL from validated SSOT
-  - name: handoff_tb
-    command: /ssot-tb-cocotb gpio
-    description: Generate cocotb/pyuvm verification from validated SSOT
-  - name: handoff_sim_debug
-    command: /wf sim_debug
-    description: Run simulation, waveform, and coverage inspection
-rtl_contract:
-  reset_contract:
-    reset_signal: rst_n
-    polarity: active_low
-    behavior: async_assert_sync_deassert
-    reset_state:
-      dir_q: 0
-      dout_q: 0
-      din_q: 0
-      oe_o: 0
-      pad_o: 0
-  sequential_contract:
-  - name: latch_control
-    rule: On each rising clk edge with rst_n=1, dir_q <= dir_in and dout_q <= dout_in.
-  - name: sample_inputs
-    rule: On each rising clk edge with rst_n=1, din_q[i] <= pad_in[i] only when dir_q[i]==0; else din_q[i] holds.
-  combinational_contract:
-  - name: drive_oe
-    rule: oe_o equals dir_q bitwise.
-  - name: drive_pad
-    rule: pad_o[i] equals dout_q[i] when dir_q[i]==1 else 0.
-  ownership:
-    owner_top: gpio
-    owner_modules:
-    - gpio_regs
-    - gpio_input_sampler
-    - gpio_pad_logic
-  owner: ssot-gen
-  type: ssot_derived_rule_contract
-  transaction: FM1_LATCH_CONTROL
-  clock: clk
-  reset: rst_n
-  reset_active: low
-  sample_condition: legal transaction accepted under cycle_model.handshake_rules
-  input_map:
-    dir_in: dir_in
-    dout_in: dout_in
-    pad_in: pad_in
-  output_map:
-    oe_o: oe_o
-    pad_o: pad_o
-    dir_q: dir_q
-    dout_q: dout_q
-    din_q: din_q
-  contract_invariants:
-  - RTL-visible behavior implements the referenced function_model transaction.
-  - Input sampling and output observation follow cycle_model handshake and latency rules.
-  output_rules:
-  - name: dir_q_next
-    port: dir_q
-    expr: dir_in
-    width: WIDTH
-    description: FunctionalModel output observable mapped to DUT output port.
-  - name: dout_q_next
-    port: dout_q
-    expr: dout_in
-    width: WIDTH
-    description: FunctionalModel output observable mapped to DUT output port.
-  - name: din_q_masked_next
-    port: din_q
-    expr: (din_q & dir_q) | (pad_in & ~dir_q)
-    width: WIDTH
-    description: FunctionalModel output observable mapped to DUT output port.
-  - name: oe_comb
-    port: oe_o
-    expr: dir_q
-    width: WIDTH
-    description: FunctionalModel output observable mapped to DUT output port.
-  - name: pad_comb
-    port: pad_o
-    expr: dout_q & dir_q
-    width: WIDTH
-    description: FunctionalModel output observable mapped to DUT output port.
+  fl-model-ge
+... <truncated 5045 chars>

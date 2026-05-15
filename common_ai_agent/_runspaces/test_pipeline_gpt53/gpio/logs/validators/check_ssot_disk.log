@@ -1,6 +1,5 @@
 cmd: bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/check_ssot_disk.sh gpio
 cwd: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53
-returncode: 1
+returncode: 0
 stdout:
-[check_ssot_disk] FAIL: gpio/yaml/gpio.ssot.yaml failed YAML/model validation
-  function_model.transactions[] must include at least one executable output_rules entry with name/expr/width/port
+[check_ssot_disk] PASS: gpio/yaml/gpio.ssot.yaml = 34187B, 36 sections, 0 TBDs
