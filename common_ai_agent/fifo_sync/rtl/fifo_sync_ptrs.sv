@@ -49,8 +49,10 @@ module fifo_sync_ptrs #(
     assign rd_ptr_inc = (rd_ptr_q == ADDR_LAST) ? ADDR_ZERO : (rd_ptr_q + ADDR_ONE);
     assign almost_full_o_level = count_q;
     assign almost_empty_o_level = count_q;
-    assign almost_full_o_next = full_o ? 1'b1 : (almost_full_o_level >= COUNT_ONE);
-    assign almost_empty_o_next = empty_o ? 1'b1 : (almost_empty_o_level <= COUNT_ONE);
+    assign almost_full_o_next = push_accepted_o && !pop_accepted_o && !full_o &&
+                                (almost_full_o_level >= COUNT_ONE);
+    assign almost_empty_o_next = pop_accepted_o && !push_accepted_o && !empty_o &&
+                                 (almost_empty_o_level <= COUNT_ONE);
     assign wr_data_i_count_effect = push_accepted_o ? COUNT_ONE : COUNT_ZERO;
     assign rd_data_o_count_effect = pop_accepted_o ? COUNT_ONE : COUNT_ZERO;
 
@@ -64,10 +66,10 @@ module fifo_sync_ptrs #(
             rd_ptr_q <= ADDR_ZERO;
             count_q  <= COUNT_ZERO;
         end else begin
-            if (push_accepted_o) begin
+            if (push_accepted_o || almost_full_o_next) begin
                 wr_ptr_q <= wr_ptr_inc;
             end
-            if (pop_accepted_o) begin
+            if (pop_accepted_o || almost_empty_o_next) begin
                 rd_ptr_q <= rd_ptr_inc;
             end
             if (push_accepted_o && !pop_accepted_o) begin

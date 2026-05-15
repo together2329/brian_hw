@@ -13,9 +13,9 @@
     "rtl/pulse_gen_core.sv",
     "rtl/pulse_gen.sv"
   ],
-  "timestamp": "2026-05-15T02:32:12Z",
-  "returncode": 3,
-  "errors": 3,
+  "timestamp": "2026-05-15T02:33:28Z",
+  "returncode": 2,
+  "errors": 2,
   "diagnostics": 0,
   "style_violations": 0,
   "style_violation_details": [],

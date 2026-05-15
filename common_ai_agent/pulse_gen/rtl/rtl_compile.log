@@ -1,5 +1,3 @@
-rtl/pulse_gen.sv:86: error: port ``rst_ni'' already bound.
-rtl/pulse_gen.sv:98: error: Unresolved net/uwire pulse_gen_regs.status_done cannot have multiple drivers.
-rtl/pulse_gen.sv:98: error: Inout port expression must support continuous assignment.
-rtl/pulse_gen.sv:98:      : Port 12 (status_done_o) of pulse_gen_core is connected to pulse_gen_regs.status_done
-3 error(s) during elaboration.
+rtl/pulse_gen.sv:53: error: Unable to bind wire/reg/memory `pulse_gen_core.status_done_o' in `pulse_gen'
+rtl/pulse_gen.sv:53: error: Unable to elaborate r-value: ((PREADY_zero_wait_state)|((1'd0)&(TOP_io_list_live)))|((1'd0)&(pulse_gen_core.status_done_o))
+2 error(s) during elaboration.

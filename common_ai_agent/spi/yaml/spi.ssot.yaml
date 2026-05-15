@@ -22,7 +22,26 @@ sub_modules:
       - "error_handling"
       - "io_list.interfaces.apb_slave"
     source_sections: ["registers", "interrupts", "error_handling", "io_list"]
-    register_refs: ["registers.register_list"]
+    ssot_refs:
+      - "registers"
+      - "registers.config"
+      - "registers.register_list"
+      - "io_list.interfaces.apb_slave"
+      - "error_handling.error_sources.illegal_apb_address"
+      - "error_handling.error_sources.unsupported_write_strobe"
+      - "error_handling.error_sources.access_policy_violation"
+    register_refs:
+      - "registers.config"
+      - "registers.register_list"
+      - "registers.register_list.CTRL"
+      - "registers.register_list.STATUS"
+      - "registers.register_list.PRESCALE"
+      - "registers.register_list.TXDATA"
+      - "registers.register_list.RXDATA"
+      - "registers.register_list.CS_IDLE"
+      - "registers.register_list.DEBUG"
+    interrupt_refs:
+      - "interrupts.sources.ILLEGAL_ACCESS"
     description: "APB register decode, policy checks, sticky/status update plumbing"
   - name: "spi_fifo"
     file: "rtl/spi_fifo.sv"
@@ -32,45 +51,164 @@ sub_modules:
       - "memory.instances"
       - "cycle_model.backpressure"
       - "dataflow"
-    source_sections: ["memory", "cycle_model", "dataflow"]
-    dataflow_refs: ["dataflow.tx_path", "dataflow.rx_path"]
-    cycle_model_refs: ["cycle_model.backpressure"]
-    description: "TX/RX FIFO storage and level tracking"
+      - "function_model.state_variables.tx_fifo"
+      - "function_model.state_variables.rx_fifo"
+    source_sections: ["memory", "cycle_model", "dataflow", "function_model"]
+    ssot_refs:
+      - "memory.instances"
+      - "dataflow.tx_path"
+      - "dataflow.rx_path"
+      - "function_model.state_variables.tx_fifo"
+      - "function_model.state_variables.rx_fifo"
+      - "function_model.transactions.FM_APB_TX_PUSH"
+      - "function_model.transactions.FM_APB_RX_POP"
+      - "function_model.transactions.FM_FRAME_COMPLETE.side_effects"
+    dataflow_refs:
+      - "dataflow.tx_path"
+      - "dataflow.rx_path"
+    cycle_model_refs:
+      - "cycle_model.backpressure"
+      - "cycle_model.pipeline.S0_APB_CFG"
+      - "cycle_model.pipeline.S5_COMPLETE"
+    function_model_refs:
+      - "function_model.state_variables.tx_fifo"
+      - "function_model.state_variables.rx_fifo"
+      - "function_model.transactions.FM_APB_TX_PUSH"
+      - "function_model.transactions.FM_APB_RX_POP"
+      - "function_model.transactions.FM_FRAME_COMPLETE.side_effects"
+    description: "TX/RX FIFO storage, level tracking, APB push/pop ownership, and frame-complete RX enqueue behavior"
   - name: "spi_clkgen"
     file: "rtl/spi_clkgen.sv"
     ownership: "manifest"
     ssot_gen: true
     implements:
       - "parameters.PRESCALE_WIDTH"
-      - "cycle_model.handshake_rules"
+      - "cycle_model.handshake_rules.sclk_o"
+      - "cycle_model.handshake_rules.sample_edge"
+      - "cycle_model.pipeline.S3_SHIFT"
+      - "cycle_model.pipeline.S4_SAMPLE"
       - "timing"
     source_sections: ["parameters", "cycle_model", "timing"]
-    cycle_model_refs: ["cycle_model.handshake_rules", "cycle_model.pipeline"]
-    description: "SCLK waveform generation from PCLK prescale"
+    ssot_refs:
+      - "parameters.PRESCALE_WIDTH"
+      - "cycle_model.handshake_rules.sclk_o"
+      - "cycle_model.handshake_rules.sample_edge"
+      - "cycle_model.pipeline.S3_SHIFT"
+      - "cycle_model.pipeline.S4_SAMPLE"
+      - "timing.protocol_timing"
+    cycle_model_refs:
+      - "cycle_model.handshake_rules.sclk_o"
+      - "cycle_model.handshake_rules.sample_edge"
+      - "cycle_model.pipeline.S3_SHIFT"
+      - "cycle_model.pipeline.S4_SAMPLE"
+      - "cycle_model.performance"
+    description: "SCLK waveform, prescale tick, and edge timing generation from PCLK prescale"
   - name: "spi_shift"
     file: "rtl/spi_shift.sv"
     ownership: "manifest"
     ssot_gen: false
     implements:
-      - "function_model.transactions"
+      - "function_model.transactions.FM_FRAME_LAUNCH"
+      - "function_model.transactions.FM_SHIFT_SAMPLE"
+      - "function_model.transactions.FM_FRAME_COMPLETE"
       - "cycle_model.pipeline"
+      - "cycle_model.ordering"
       - "fsm.channel_level"
       - "features"
-    source_sections: ["function_model", "cycle_model", "fsm", "features"]
-    function_model_refs: ["function_model.transactions"]
-    cycle_model_refs: ["cycle_model.pipeline", "cycle_model.ordering"]
-    fsm_refs: ["fsm.channel_level"]
-    description: "Frame launch/shift/sample engine and chip-select control"
+    source_sections: ["function_model", "cycle_model", "fsm", "features", "dataflow"]
+    ssot_refs:
+      - "function_model.state_variables.ctrl_enable"
+      - "function_model.state_variables.ctrl_mode"
+      - "function_model.state_variables.active_cs"
+      - "function_model.state_variables.frame_bits"
+      - "function_model.state_variables.prescale_div"
+      - "function_model.state_variables.busy"
+      - "function_model.state_variables.sticky_errors"
+      - "function_model.invariants"
+      - "function_model.transactions.FM_FRAME_LAUNCH"
+      - "function_model.transactions.FM_SHIFT_SAMPLE"
+      - "function_model.transactions.FM_FRAME_COMPLETE"
+      - "cycle_model.pipeline.S1_LAUNCH_CHECK"
+      - "cycle_model.pipeline.S2_ASSERT_CS"
+      - "cycle_model.pipeline.S3_SHIFT"
+      - "cycle_model.pipeline.S4_SAMPLE"
+      - "cycle_model.pipeline.S5_COMPLETE"
+      - "cycle_model.ordering"
+      - "fsm.channel_level"
+      - "features.APB-programmed frame transfer"
+      - "features.Programmable SPI mode and bit order"
+      - "dataflow.control_path"
+    function_model_refs:
+      - "function_model.state_variables.ctrl_enable"
+      - "function_model.state_variables.ctrl_mode"
+      - "function_model.state_variables.active_cs"
+      - "function_model.state_variables.frame_bits"
+      - "function_model.state_variables.prescale_div"
+      - "function_model.state_variables.busy"
+      - "function_model.state_variables.sticky_errors"
+      - "function_model.invariants.invariant_0"
+      - "function_model.invariants.invariant_1"
+      - "function_model.invariants.invariant_3"
+      - "function_model.transactions.FM_FRAME_LAUNCH"
+      - "function_model.transactions.FM_SHIFT_SAMPLE"
+      - "function_model.transactions.FM_FRAME_COMPLETE"
+    cycle_model_refs:
+      - "cycle_model.pipeline.S1_LAUNCH_CHECK"
+      - "cycle_model.pipeline.S2_ASSERT_CS"
+      - "cycle_model.pipeline.S3_SHIFT"
+      - "cycle_model.pipeline.S4_SAMPLE"
+      - "cycle_model.pipeline.S5_COMPLETE"
+      - "cycle_model.ordering"
+      - "cycle_model.handshake_rules.launch_gate"
+    fsm_refs:
+      - "fsm.channel_level"
+    feature_refs:
+      - "features.APB-programmed frame transfer"
+      - "features.Programmable SPI mode and bit order"
+    dataflow_refs:
+      - "dataflow.control_path"
+    description: "Frame launch/shift/sample engine, chip-select control, mode ownership, and frame completion sequencing"
   - name: "spi_int"
     file: "rtl/spi_int.sv"
     ownership: "manifest"
     ssot_gen: true
     implements:
       - "interrupts"
-      - "registers.register_list"
+      - "registers.register_list.INT_MASK"
+      - "registers.register_list.INT_PENDING"
+      - "registers.register_list.INT_CLEAR"
+      - "function_model.transactions.FM_INT_CLEAR"
+      - "function_model.invariants.invariant_2"
+      - "function_model.invariants.invariant_4"
       - "error_handling"
-    source_sections: ["interrupts", "registers", "error_handling"]
-    description: "Interrupt pending/mask/clear logic and irq_o generation"
+    source_sections: ["interrupts", "registers", "error_handling", "function_model"]
+    ssot_refs:
+      - "interrupts"
+      - "registers.register_list.INT_MASK"
+      - "registers.register_list.INT_PENDING"
+      - "registers.register_list.INT_CLEAR"
+      - "function_model.state_variables.int_pending"
+      - "function_model.transactions.FM_INT_CLEAR"
+      - "function_model.invariants.invariant_2"
+      - "function_model.invariants.invariant_4"
+      - "features.Interrupt and sticky error reporting"
+      - "error_handling.recovery"
+    register_refs:
+      - "registers.register_list.INT_MASK"
+      - "registers.register_list.INT_PENDING"
+      - "registers.register_list.INT_CLEAR"
+    interrupt_refs:
+      - "interrupts.sources"
+    function_model_refs:
+      - "function_model.state_variables.int_pending"
+      - "function_model.transactions.FM_INT_CLEAR"
+      - "function_model.invariants.invariant_2"
+      - "function_model.invariants.invariant_4"
+    error_handling_refs:
+      - "error_handling.recovery"
+    feature_refs:
+      - "features.Interrupt and sticky error reporting"
+    description: "Interrupt pending/mask/clear logic, W1C ownership, sticky error pending ownership, and irq_o generation"
 
 decomposition:
   units:
