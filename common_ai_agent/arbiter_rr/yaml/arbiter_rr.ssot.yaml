@@ -718,7 +718,7 @@ test_requirements:
         - { id: "CCOV_GRANT_STAGE", source_ref: "cycle_model.pipeline.S1_GRANT", class: "pipeline_stage", description: "Grant output stage observed" }
         - { id: "CCOV_1CYCLE_LATENCY", source_ref: "cycle_model.latency.arbitration", class: "latency", description: "1-cycle arbitration latency measured and confirmed" }
         - { id: "CCOV_REQ_STABILITY", source_ref: "cycle_model.handshake_rules.req_i", class: "handshake", description: "Request stability rule exercised" }
-        - { id: "CCOV_GNT_ONEHOT_ASSERTION", source_ref: "function_model.invariants", class: "assertion", description: "One-hot grant invariant assertion triggered" }
+        - { id: "CCOV_GNT_ONEHOT_ASSERTION", source_ref: "cycle_model.handshake_rules.gnt_o", class: "assertion", description: "One-hot grant invariant assertion triggered" }
         - { id: "CCOV_RESET_CLEAN", source_ref: "cycle_model.reset", class: "reset", description: "Reset clears all outputs and state" }
     functional: "Legacy alias: function + cycle coverage must both close."
     line: ">= 95% instrumented line coverage"
