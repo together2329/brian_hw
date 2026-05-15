@@ -16,6 +16,8 @@ follow the source docs for implementation detail.
 8. [[golden-todo-evidence]] — TodoTracker, evidence approval, and human review states.
 9. [[provider-and-llm-call-accounting]] — provider normalization and how to count one LLM call.
 10. [[human-review-and-escalation]] — when to stop automation and ask for product/spec authority.
+11. [[deterministic-emit-stages]] — why fl-model-gen and cl-model-gen run without an LLM, and what contract that places on the upstream SSOT.
+12. [[karpathy-llm-wiki-pattern]] — reference page for Andrej Karpathy's LLM Wiki concept (3-layer markdown + index + log + schema; no RAG, no vector DB) and how `doc/wiki/` already aligns to it.
 
 ## Reference Runs (working examples on real IPs)
 

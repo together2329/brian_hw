@@ -24,6 +24,9 @@
      not run out the iteration cap doing nothing — ~50 min of the
      ~3 h wall-time on this run was post-completion idle.
 - Updated [[rtl-version-run-history]] with the arm_m0_min row.
+- New wiki page [[deterministic-emit-stages]] documents why fl-model-gen / cl-model-gen run with 0 LLM calls, what SSOT contract this places on the upstream ssot-gen LLM, and what failure modes (`SyntaxError`, helper unknown, etc.) mean for ownership. Also captures the cl-model-gen entry point: `/ssot-cycle-model <ip>` lives inside the `fl-model-gen` workspace (no separate `workflow/cl-model-gen/` directory).
+- New wiki page [[karpathy-llm-wiki-pattern]] captures Andrej Karpathy's LLM Wiki concept (3-layer markdown architecture, frontmatter schema, ingest/query/lint/log operations, no RAG / no vector DB) and the gap analysis against the current `doc/wiki/`. Frontmatter rollout and lint extension are parked as follow-ups; the discussion itself is now searchable.
+- New script `workflow/wiki/build_graph.py` emits `doc/wiki/_graph.json` (schema `wiki_graph.v1`) by parsing every wiki `.md`, optional YAML frontmatter, and `[[refs]]`. Initial index: nodes=15, edges=58, broken_refs=0. `--check` exits non-zero on broken refs so CI/lint can catch dangling wiki links.
 - Addressed the three workflow improvement candidates surfaced by the arm_m0_min run:
   1. Confirmed `repair_ssot_schema.py` already normalizes C ternary (`cond ? a : b` → `(a if cond else b)`), full Verilog bit literals (`32'h0`, `1'b1`, `8'hff`), and SystemVerilog unsized fills (`'0`, `'1`, `'x`, `'z`) inside `expr` strings. Verified with a regression matrix; no further patch needed.
   2. `workflow/rtl-gen/system_prompt.md` now states the provenance JSON schema explicitly and tells the LLM rtl-gen agent NOT to write `rtl/rtl_authoring_provenance.json` directly — the engine (`src/headless_workflow.py`, `workflow/rtl-gen/scripts/ssot_to_rtl.py`) already auto-emits it at end of every rtl-gen run.

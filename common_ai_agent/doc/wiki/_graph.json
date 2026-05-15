@@ -1,0 +1,396 @@
+{
+  "schema_version": "wiki_graph.v1",
+  "generated_at": "2026-05-15T22:00:47Z",
+  "root": "doc/wiki",
+  "node_count": 15,
+  "edge_count": 64,
+  "tags": {},
+  "types": {
+    "reference": [
+      "arm-m0-min-pipeline-run",
+      "common-ai-agent-map",
+      "deterministic-emit-stages",
+      "full-flow-pipeline",
+      "golden-todo-evidence",
+      "human-review-and-escalation",
+      "index",
+      "karpathy-llm-wiki-pattern",
+      "log",
+      "provider-and-llm-call-accounting",
+      "rtl-gen-ssot-contract",
+      "rtl-version-run-history",
+      "ssot-qa-workbench",
+      "workflow-feedback-and-scheduling",
+      "workflow-ownership-and-boundaries"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "arm-m0-min-pipeline-run",
+      "title": "arm_m0_min — Reference Pipeline Run (2026-05-15)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "full-flow-pipeline",
+        "workflow-ownership-and-boundaries",
+        "golden-todo-evidence",
+        "rtl-gen-ssot-contract",
+        "rtl-version-run-history",
+        "provider-and-llm-call-accounting",
+        "human-review-and-escalation",
+        "workflow-feedback-and-scheduling",
+        "log"
+      ],
+      "incoming": [
+        "deterministic-emit-stages",
+        "full-flow-pipeline",
+        "index",
+        "log",
+        "rtl-version-run-history"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "End-to-end run of common_ai_agent on a minimal ARMv6-M Thumb CPU, `SSOT → fl-model-gen → rtl-gen → tb-gen → sim → lint`. This page is the **reference run** for CPU-class IPs and the first IP-on-DB-stack run captured in the wiki. Detailed run report lives at [`arm_m0_min/PIPELINE_SUMMARY.md`](../../arm_m0_min/PIPELINE_SUMMARY.md).",
+      "path": "doc/wiki/arm-m0-min-pipeline-run.md",
+      "size_bytes": 7510
+    },
+    {
+      "id": "common-ai-agent-map",
+      "title": "common_ai_agent Map",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "workflow-ownership-and-boundaries",
+        "full-flow-pipeline",
+        "golden-todo-evidence",
+        "provider-and-llm-call-accounting",
+        "human-review-and-escalation"
+      ],
+      "incoming": [
+        "full-flow-pipeline",
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "common_ai_agent turns an IP idea into traceable implementation and verification evidence. The system is not a free-form coding assistant; it is a workflow factory controlled by SSOT, TodoTracker, validators, and human review.",
+      "path": "doc/wiki/common-ai-agent-map.md",
+      "size_bytes": 1642
+    },
+    {
+      "id": "deterministic-emit-stages",
+      "title": "Deterministic Emit Stages (fl-model-gen, cl-model-gen)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "full-flow-pipeline",
+        "workflow-ownership-and-boundaries",
+        "rtl-gen-ssot-contract",
+        "golden-todo-evidence",
+        "provider-and-llm-call-accounting",
+        "arm-m0-min-pipeline-run",
+        "log"
+      ],
+      "incoming": [
+        "index",
+        "karpathy-llm-wiki-pattern",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Some pipeline stages do **not** call an LLM. They are mechanical translators that read SSOT and write a Python or JSON artifact whose content is fully determined by the SSOT input. This page explains why that design choice exists, which stages it applies to today, and what the failure modes look like.",
+      "path": "doc/wiki/deterministic-emit-stages.md",
+      "size_bytes": 7504
+    },
+    {
+      "id": "full-flow-pipeline",
+      "title": "Full Flow Pipeline",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "arm-m0-min-pipeline-run",
+        "common-ai-agent-map",
+        "workflow-ownership-and-boundaries",
+        "workflow-feedback-and-scheduling",
+        "golden-todo-evidence"
+      ],
+      "incoming": [
+        "arm-m0-min-pipeline-run",
+        "common-ai-agent-map",
+        "deterministic-emit-stages",
+        "golden-todo-evidence",
+        "human-review-and-escalation",
+        "index",
+        "provider-and-llm-call-accounting",
+        "rtl-gen-ssot-contract",
+        "ssot-qa-workbench",
+        "workflow-ownership-and-boundaries"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "requirement -> ssot-gen -> {fl-model-gen, cl-model-gen} -> equiv-goals -> rtl-gen -> {lint, tb-gen, syn}",
+      "path": "doc/wiki/full-flow-pipeline.md",
+      "size_bytes": 2614
+    },
+    {
+      "id": "golden-todo-evidence",
+      "title": "Golden Todo Evidence",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "workflow-ownership-and-boundaries",
+        "full-flow-pipeline"
+      ],
+      "incoming": [
+        "arm-m0-min-pipeline-run",
+        "common-ai-agent-map",
+        "deterministic-emit-stages",
+        "full-flow-pipeline",
+        "human-review-and-escalation",
+        "index",
+        "provider-and-llm-call-accounting",
+        "rtl-gen-ssot-contract",
+        "workflow-ownership-and-boundaries"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "The todo list is not a prompt checklist. It is a contract between SSOT, generated artifacts, and evidence.",
+      "path": "doc/wiki/golden-todo-evidence.md",
+      "size_bytes": 1368
+    },
+    {
+      "id": "human-review-and-escalation",
+      "title": "Human Review And Escalation",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "workflow-ownership-and-boundaries",
+        "golden-todo-evidence",
+        "full-flow-pipeline"
+      ],
+      "incoming": [
+        "arm-m0-min-pipeline-run",
+        "common-ai-agent-map",
+        "index",
+        "ssot-qa-workbench",
+        "workflow-ownership-and-boundaries"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Use `human_review_needed` when the system lacks authority to decide product or spec truth. Do not hide these items inside ordinary rejected todo rows.",
+      "path": "doc/wiki/human-review-and-escalation.md",
+      "size_bytes": 1279
+    },
+    {
+      "id": "index",
+      "title": "common_ai_agent Wiki",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "common-ai-agent-map",
+        "workflow-ownership-and-boundaries",
+        "ssot-qa-workbench",
+        "full-flow-pipeline",
+        "rtl-gen-ssot-contract",
+        "workflow-feedback-and-scheduling",
+        "rtl-version-run-history",
+        "golden-todo-evidence",
+        "provider-and-llm-call-accounting",
+        "human-review-and-escalation",
+        "deterministic-emit-stages",
+        "karpathy-llm-wiki-pattern",
+        "arm-m0-min-pipeline-run"
+      ],
+      "incoming": [
+        "karpathy-llm-wiki-pattern"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
+      "path": "doc/wiki/index.md",
+      "size_bytes": 3371
+    },
+    {
+      "id": "karpathy-llm-wiki-pattern",
+      "title": "Karpathy LLM Wiki Pattern",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "index",
+        "log",
+        "workflow-ownership-and-boundaries",
+        "deterministic-emit-stages"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Reference page summarizing Andrej Karpathy's LLM Wiki concept and how the current `common_ai_agent/doc/wiki/` aligns to it. Captured 2026-05-16 so future sessions can pick up the same vocabulary without re-searching.",
+      "path": "doc/wiki/karpathy-llm-wiki-pattern.md",
+      "size_bytes": 4777
+    },
+    {
+      "id": "log",
+      "title": "Wiki Log",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "arm-m0-min-pipeline-run",
+        "rtl-version-run-history",
+        "deterministic-emit-stages",
+        "karpathy-llm-wiki-pattern"
+      ],
+      "incoming": [
+        "arm-m0-min-pipeline-run",
+        "deterministic-emit-stages",
+        "karpathy-llm-wiki-pattern"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "- New IP run captured: [[arm-m0-min-pipeline-run]] — first CPU-class IP driven end-to-end through `ssot-gen → fl-model-gen → rtl-gen → tb-gen → sim → lint` with green compile/lint/sim/coverage on the headless surface (`gpt-5.3-codex`, `/mode pipeline`). 8 SV files (22 KB), scoreboard 37/37 with 0 mismatches, 35/35 fcov bins hit, lint clean. Detailed report…",
+      "path": "doc/wiki/log.md",
+      "size_bytes": 8270
+    },
+    {
+      "id": "provider-and-llm-call-accounting",
+      "title": "Provider And LLM Call Accounting",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "golden-todo-evidence",
+        "full-flow-pipeline"
+      ],
+      "incoming": [
+        "arm-m0-min-pipeline-run",
+        "common-ai-agent-map",
+        "deterministic-emit-stages",
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "GPT, DeepSeek, GLM, Kimi, Cursor CLI, and Claude CLI may all produce different raw outputs. The workflow must normalize them into the same stage artifact contract before writing files or updating todo state.",
+      "path": "doc/wiki/provider-and-llm-call-accounting.md",
+      "size_bytes": 1421
+    },
+    {
+      "id": "rtl-gen-ssot-contract",
+      "title": "RTL-Gen SSOT Contract",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "full-flow-pipeline",
+        "golden-todo-evidence",
+        "workflow-ownership-and-boundaries"
+      ],
+      "incoming": [
+        "arm-m0-min-pipeline-run",
+        "deterministic-emit-stages",
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "RTL-gen is the SSOT-to-RTL translation workflow. It reads the current canonical SSOT as the mandatory reference and implements that contract in RTL.",
+      "path": "doc/wiki/rtl-gen-ssot-contract.md",
+      "size_bytes": 1623
+    },
+    {
+      "id": "rtl-version-run-history",
+      "title": "Artifact Version And Run History",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "arm-m0-min-pipeline-run"
+      ],
+      "incoming": [
+        "arm-m0-min-pipeline-run",
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Today the UI can show workflow, cost, todo, tool, and intervention history, but it must also show which artifact snapshots a downstream run used. A failed sim is not trustworthy unless it states the exact `ssot`, `rtl`, and `tb` versions it consumed. A failed lint/syn/sta/pnr result is stale if a newer RTL version exists after a repair.",
+      "path": "doc/wiki/rtl-version-run-history.md",
+      "size_bytes": 4493
+    },
+    {
+      "id": "ssot-qa-workbench",
+      "title": "SSOT Q&A Workbench",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "full-flow-pipeline",
+        "human-review-and-escalation",
+        "workflow-ownership-and-boundaries"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`ssot-gen` should start from the Q&A Session tab. The tab is the authoring surface for missing design decisions, not a passive history viewer.",
+      "path": "doc/wiki/ssot-qa-workbench.md",
+      "size_bytes": 1576
+    },
+    {
+      "id": "workflow-feedback-and-scheduling",
+      "title": "Workflow Feedback And Scheduling",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "arm-m0-min-pipeline-run",
+        "full-flow-pipeline",
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "This page defines how common_ai_agent should run multiple IP workflows without turning the system into either a slow serial script or an unsafe free-for-all.",
+      "path": "doc/wiki/workflow-feedback-and-scheduling.md",
+      "size_bytes": 7132
+    },
+    {
+      "id": "workflow-ownership-and-boundaries",
+      "title": "Workflow Ownership And Boundaries",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "full-flow-pipeline",
+        "golden-todo-evidence",
+        "human-review-and-escalation"
+      ],
+      "incoming": [
+        "arm-m0-min-pipeline-run",
+        "common-ai-agent-map",
+        "deterministic-emit-stages",
+        "full-flow-pipeline",
+        "golden-todo-evidence",
+        "human-review-and-escalation",
+        "index",
+        "karpathy-llm-wiki-pattern",
+        "rtl-gen-ssot-contract",
+        "ssot-qa-workbench"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Do not directly patch generated IP artifacts during a pipeline test. Use the owning common_ai_agent workflow, collect evidence, and let validators approve or reject the result.",
+      "path": "doc/wiki/workflow-ownership-and-boundaries.md",
+      "size_bytes": 2068
+    }
+  ]
+}
