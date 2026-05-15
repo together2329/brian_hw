@@ -4925,10 +4925,21 @@ const AskUserQuestionBlock = ({
   );
 };
 
-const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSession, onBack, onRefresh, onSubmitPending }) => {
+const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSession, onBack, onRefresh, onRunCommand, onSubmitPending }) => {
   const sections = Array.isArray(data?.sections) ? data.sections : [];
   const sessionRows = Array.isArray(sessions) ? sessions : [];
   const summary = data?.summary || { total: 0, approved: 0, pending: 0 };
+  const requirements = data?.requirements || {};
+  const requirementItems = Array.isArray(requirements.items) ? requirements.items : [];
+  const missingRequirementKeys = Array.isArray(requirements.missing_keys)
+    ? requirements.missing_keys
+    : requirementItems.filter(item => item?.status === 'missing').map(item => item.key);
+  const requirementTotal = Number(requirements.total || requirementItems.length || 0);
+  const requirementMissing = Number(requirements.missing ?? missingRequirementKeys.length ?? 0);
+  const requirementFilled = Number(requirements.filled ?? Math.max(0, requirementTotal - requirementMissing));
+  const requirementPct = requirementTotal > 0
+    ? Math.max(0, Math.min(100, Math.round((requirementFilled / requirementTotal) * 100)))
+    : 0;
   const hasIp = !!data?.ip;
   const activeSessionNorm = normalizeUiSession(activeSession || data?.session || '');
   const activeOwner = activeSessionNorm.split('/').filter(Boolean)[0] || '';
@@ -4953,6 +4964,8 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         total: 'total',
         approved: 'approved',
         pending: 'pending',
+        requirements: 'requirements',
+        requirementsRemaining: 'remaining',
         ssot: 'ssot',
         draft: 'draft',
         sessions: 'Current session',
@@ -4974,6 +4987,11 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         inputUpdated: 'draft ready',
         send: 'send',
         sendNeedAnswer: 'select an option or type an answer first',
+        importFiles: 'Import',
+        importing: 'Importing...',
+        deepInterview: 'Deep Interview',
+        toSsot: 'To SSOT',
+        importReady: 'uploaded',
       }
     : {
         noSession: '선택된 SSOT QA 세션이 없습니다.',
@@ -4985,6 +5003,8 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         total: '전체',
         approved: '승인',
         pending: '대기',
+        requirements: '요구사항',
+        requirementsRemaining: '남음',
         ssot: 'SSOT',
         draft: '작성중',
         sessions: '현재 세션',
@@ -5006,7 +5026,47 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         inputUpdated: '답변 초안 준비됨',
         send: '전송',
         sendNeedAnswer: '옵션을 선택하거나 답변을 입력한 후 전송하세요',
+        importFiles: 'Import',
+        importing: 'Importing...',
+        deepInterview: 'Deep Interview',
+        toSsot: 'To SSOT',
+        importReady: '업로드됨',
       };
+  const importInputRef = React.useRef(null);
+  const [importBusy, setImportBusy] = React.useState(false);
+  const [importStatus, setImportStatus] = React.useState('');
+  const runSsotCommand = (cmd) => {
+    const text = String(cmd || '').trim();
+    if (!text || !onRunCommand) return;
+    onRunCommand(text);
+  };
+  const uploadImportFiles = async (fileList) => {
+    const files = Array.from(fileList || []);
+    if (!files.length || !data?.ip) return;
+    setImportBusy(true);
+    setImportStatus('');
+    try {
+      const fd = new FormData();
+      fd.append('ip', data.ip);
+      fd.append('session', activeSessionNorm || '');
+      files.forEach(file => fd.append('files', file, file.name));
+      const res = await fetch('/api/ssot/import/upload', {
+        method: 'POST',
+        body: fd,
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload?.ok) {
+        throw new Error(payload?.error || `upload failed (${res.status})`);
+      }
+      setImportStatus(`${t.importReady}: ${(payload.paths || []).length}`);
+      if (payload.command) runSsotCommand(payload.command);
+      setTimeout(() => { try { onRefresh && onRefresh(); } catch (_) {} }, 600);
+    } catch (err) {
+      setImportStatus(String(err?.message || err || 'upload failed'));
+    } finally {
+      setImportBusy(false);
+    }
+  };
   // All QA cards (pending AND approved) default to expanded. Track the
   // *closed* set so newly-streamed items inherit the open-by-default rule.
   const [closedCardKeys, setClosedCardKeys] = React.useState(() => new Set());
@@ -5290,7 +5350,14 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontFamily: 'var(--mono)' }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12,
+      fontFamily: 'var(--mono)',
+      height: '100%',
+      minHeight: 0,
+    }}>
       <div style={{
         border: '1px solid var(--line)',
         background: 'var(--bg-1)',
@@ -5300,6 +5367,43 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
           <div style={{ color: 'var(--fg)', fontSize: 15, fontWeight: 700 }}>{t.title}</div>
           <code className="acc">{data.ip}</code>
           <span style={{ flex: 1 }} />
+          <input
+            ref={importInputRef}
+            type="file"
+            multiple
+            style={{ display: 'none' }}
+            onChange={(ev) => {
+              const files = ev.target.files;
+              ev.target.value = '';
+              uploadImportFiles(files);
+            }}
+          />
+          <button
+            className="mini-btn"
+            type="button"
+            disabled={importBusy}
+            onClick={() => importInputRef.current?.click()}
+            title="Upload requirement docs, notes, RTL, YAML, logs, or filelists into SSOT import evidence"
+          >
+            {importBusy ? t.importing : t.importFiles}
+          </button>
+          <button
+            className="mini-btn"
+            type="button"
+            onClick={() => runSsotCommand(`/grill-me ${data.ip}`)}
+            title="Run /grill-me for unresolved SSOT decisions"
+          >
+            {t.deepInterview}
+          </button>
+          <button
+            className="mini-btn"
+            type="button"
+            onClick={() => runSsotCommand(`/to-ssot ${data.ip}`)}
+            title="Run /to-ssot for this IP"
+            style={{ borderColor: 'var(--ok)', color: 'var(--ok)' }}
+          >
+            {t.toSsot}
+          </button>
           <button className="mini-btn" type="button" onClick={onRefresh}>{t.refresh}</button>
           <button className="mini-btn" type="button" onClick={onBack}>{t.chat}</button>
         </div>
@@ -5307,8 +5411,60 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
           <AtlasStatusBadge status="total" label={t.total} count={summary.total || 0} compact soft />
           <AtlasStatusBadge status="approved" label={t.approved} count={summary.approved || 0} compact soft />
           <AtlasStatusBadge status="pending" label={t.pending} count={summary.pending || 0} compact soft />
+          {requirementTotal > 0 ? (
+            <AtlasStatusBadge status={requirementMissing ? 'pending' : 'approved'} label={`${t.requirements} ${t.requirementsRemaining}`} count={requirementMissing} compact soft />
+          ) : null}
           <AtlasStatusBadge status={data.approved ? 'approved' : (data.state_status || 'draft')} label={`${t.ssot} ${data.approved ? t.approved : (data.state_status || t.draft)}`} compact soft />
         </div>
+        {requirementTotal > 0 ? (
+          <div style={{ marginTop: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: 'var(--fg-mute)' }}>
+              <span>{t.requirements}: {requirementFilled}/{requirementTotal}</span>
+              <span style={{ flex: 1 }} />
+              <span>{requirementMissing} {t.requirementsRemaining}</span>
+            </div>
+            <div style={{
+              height: 5,
+              marginTop: 4,
+              border: '1px solid var(--line)',
+              background: 'var(--bg-2)',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                width: `${requirementPct}%`,
+                height: '100%',
+                background: requirementMissing ? 'var(--warn)' : 'var(--ok)',
+              }} />
+            </div>
+            {missingRequirementKeys.length ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 6 }}>
+                {missingRequirementKeys.slice(0, 9).map(key => {
+                  const item = requirementItems.find(row => row?.key === key) || {};
+                  return (
+                    <span
+                      key={key}
+                      title={item.label || key}
+                      style={{
+                        border: '1px solid var(--line)',
+                        color: 'var(--warn)',
+                        background: 'color-mix(in oklch, var(--warn) 8%, transparent)',
+                        padding: '1px 5px',
+                        fontSize: 10,
+                      }}
+                    >
+                      {key}
+                    </span>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        {importStatus ? (
+          <div style={{ marginTop: 8, color: importStatus.includes('failed') ? 'var(--warn)' : 'var(--fg-mute)', fontSize: 10 }}>
+            {importStatus}
+          </div>
+        ) : null}
       </div>
 
       <div style={{
@@ -5399,6 +5555,7 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
             border: '1px solid var(--line)',
             background: 'var(--bg-1)',
             display: 'flex',
+            flex: 1,
             minHeight: 0,
           }}>
             {/* Left column — section tabs (vertical) */}
@@ -5407,7 +5564,7 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
               flex: '0 0 260px',
               borderRight: '1px solid var(--line)',
               padding: 10,
-              maxHeight: '70vh',
+              minHeight: 0,
               overflowY: 'auto',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
@@ -5479,9 +5636,9 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
             <div style={{
               flex: 1,
               padding: 12,
-              maxHeight: '70vh',
               overflowY: 'auto',
               minWidth: 0,
+              minHeight: 0,
             }}>
               {active ? (
                 <>

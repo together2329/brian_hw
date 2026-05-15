@@ -4,7 +4,7 @@
 
 - Top: arm_m0_min
 - Packets: 9
-- LLM-actionable tasks: 21
+- LLM-actionable tasks: 2
 - Human-locked tasks: 2
 - Tool-evidence tasks: 7
 - Deferred human QA allowed: True
@@ -15,10 +15,7 @@
 
 ## Next LLM Packets
 
-- module__arm_m0_min_if: rtl/authoring_packets/module__arm_m0_min_if.json (llm_open=3, human_locked=0)
-- module__arm_m0_min_id: rtl/authoring_packets/module__arm_m0_min_id.json (llm_open=15, human_locked=0)
 - unowned_tasks: rtl/authoring_packets/unowned_tasks.json (llm_open=2, human_locked=0)
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=1, human_locked=0)
 
 ## Tool Evidence Queue
 

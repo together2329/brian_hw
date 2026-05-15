@@ -24,7 +24,7 @@
 - Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT connection contracts:
@@ -48,13 +48,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.static_rtl_evidence
 - Detail: After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.
 SSOT ref: quality_gates.rtl_gen.static_rtl_evidence.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: 18 static-evidence-required task(s) still lack DUT RTL evidence.
+- Current reason: Static DUT RTL evidence audit has no missing required task.
 - Criteria:
   - derive_rtl_todos.py --audit-rtl ran after the final RTL edit
   - rtl_todo_plan.json static_rtl_evidence.missing is zero
@@ -229,7 +229,7 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
 - Detail: Production-profile RTL cannot be a shallow shell that merely satisfies names, ports, or compile checks. The RTL must contain aggregate implementation structure scaled from the current SSOT task count, behavior-owner modules, and manifest hierarchy.
 SSOT ref: quality_gates.rtl_gen.rtl_implementation_depth_evidence.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=241, required=66).
+- Current reason: Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=253, required=66).
 - Criteria:
   - Implementation depth thresholds are derived from SSOT owner/task complexity, not a fixed IP template
   - Listed DUT RTL sources contain enough nonconstant logic, procedural/state/control structure, and child instances for the SSOT profile

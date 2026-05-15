@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 15
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: fsm, fsm.core, fsm.core.states.DECODE, function_model, function_model.transactions.TX_DECODE_EXEC, isa_spec, isa_spec.decode_contract
 
@@ -96,14 +96,14 @@ SSOT item context: value=fault_halt == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_1.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: value=instruction fetch completed with i_hready == 1 and i_hresp == OKAY.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -216,14 +216,14 @@ SSOT item context: value=PC updated sequentially or redirected for B/BEQ/BNE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: name=pc_next_addr; port=i_haddr; expr=(branch_target) if (branch_taken) else ((pc + 2)); width=32.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -240,14 +240,14 @@ SSOT item context: name=pc_next_addr; port=i_haddr; expr=(branch_target) if (bra
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: name=store_data_mux; port=d_hwdata; expr=(rs2) if (is_store) else (0); width=32.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -385,14 +385,14 @@ SSOT item context: value=Register writes occur only from committed EX outcomes..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.core.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.states.state_0.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: value=RESET.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -406,14 +406,14 @@ SSOT item context: value=RESET.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.core.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.states.state_1.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: value=RUN.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -427,14 +427,14 @@ SSOT item context: value=RUN.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.core.states.state_2
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.states.state_2.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: value=STALL_IF.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -448,14 +448,14 @@ SSOT item context: value=STALL_IF.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.core.states.state_3
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.states.state_3.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: value=STALL_MEM.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -490,14 +490,14 @@ SSOT item context: value=FAULT_HALT.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.core.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.transitions.transition_0.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=RESET; to=RUN; condition=rst deasserted.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -512,14 +512,14 @@ SSOT item context: from=RESET; to=RUN; condition=rst deasserted.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.core.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.transitions.transition_1.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=RUN; to=STALL_IF; condition=i_hready==0.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -534,14 +534,14 @@ SSOT item context: from=RUN; to=STALL_IF; condition=i_hready==0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.core.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.transitions.transition_2.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=STALL_IF; to=RUN; condition=i_hready==1.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -556,14 +556,14 @@ SSOT item context: from=STALL_IF; to=RUN; condition=i_hready==1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.core.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.transitions.transition_3.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=RUN; to=STALL_MEM; condition=active load/store && d_hready==0.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -578,14 +578,14 @@ SSOT item context: from=RUN; to=STALL_MEM; condition=active load/store && d_hrea
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.core.transitions.transition_4
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.transitions.transition_4.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=STALL_MEM; to=RUN; condition=d_hready==1 && d_hresp==OKAY.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -600,14 +600,14 @@ SSOT item context: from=STALL_MEM; to=RUN; condition=d_hready==1 && d_hresp==OKA
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.core.transitions.transition_5
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.transitions.transition_5.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=RUN; to=FAULT_HALT; condition=i_hresp==ERROR || d_hresp==ERROR.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -622,14 +622,14 @@ SSOT item context: from=RUN; to=FAULT_HALT; condition=i_hresp==ERROR || d_hresp=
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.core.transitions.transition_6
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.transitions.transition_6.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=STALL_MEM; to=FAULT_HALT; condition=d_hresp==ERROR.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -644,14 +644,14 @@ SSOT item context: from=STALL_MEM; to=FAULT_HALT; condition=d_hresp==ERROR.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.core.transitions.transition_7
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.transitions.transition_7.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=FAULT_HALT; to=RESET; condition=rst asserted.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented

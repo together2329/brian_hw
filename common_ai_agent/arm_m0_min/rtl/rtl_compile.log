@@ -1,0 +1,3 @@
+rtl/arm_m0_min_id.sv:78: error: Unable to bind wire/reg/memory `rst' in `arm_m0_min.u_id'
+rtl/arm_m0_min_id.sv:78: error: Unable to elaborate condition expression.
+2 error(s) during elaboration.

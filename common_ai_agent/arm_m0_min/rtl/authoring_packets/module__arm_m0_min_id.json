@@ -71,9 +71,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 15,
-    "open_required_count": 15,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -123,7 +123,7 @@
       "module_task_count": 31,
       "task_limit": 48
     },
-    "open_required_count": 15,
+    "open_required_count": 0,
     "required_count": 31,
     "source_refs": [
       "workflow_todos.rtl-gen[1]",
@@ -152,8 +152,7 @@
       "fsm.core.transitions.transition_1"
     ],
     "status_counts": {
-      "open": 15,
-      "pass": 16
+      "pass": 31
     },
     "task_count": 31
   },
@@ -389,8 +388,13 @@
         "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "hready",
+          "hresp",
+          "i_hready",
+          "i_hresp"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -401,7 +405,7 @@
           "i_hresp"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -411,9 +415,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -661,8 +665,12 @@
         "function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "branch",
+          "branch_target",
+          "target"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -676,7 +684,7 @@
           "target"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -686,9 +694,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -729,9 +737,10 @@
         "function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "rs2"
+          "rs2",
+          "store"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -744,7 +753,7 @@
           "store"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -754,9 +763,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1052,8 +1061,10 @@
         "fsm.core.states.state_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "RESET"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1061,7 +1072,7 @@
           "RESET"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1071,9 +1082,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1104,8 +1115,10 @@
         "fsm.core.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "RUN"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1113,7 +1126,7 @@
           "RUN"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1123,9 +1136,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1156,8 +1169,10 @@
         "fsm.core.states.state_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "STALL_IF"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1165,7 +1180,7 @@
           "STALL_IF"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1175,9 +1190,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1208,8 +1223,10 @@
         "fsm.core.states.state_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "STALL_MEM"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1217,7 +1234,7 @@
           "STALL_MEM"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1227,9 +1244,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1318,8 +1335,11 @@
         "fsm.core.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "RESET",
+          "RUN"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1328,7 +1348,7 @@
           "RUN"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1338,9 +1358,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1377,8 +1397,13 @@
         "fsm.core.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "RUN",
+          "STALL_IF",
+          "hready",
+          "i_hready"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1389,7 +1414,7 @@
           "i_hready"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1399,9 +1424,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1438,8 +1463,13 @@
         "fsm.core.transitions.transition_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "RUN",
+          "STALL_IF",
+          "hready",
+          "i_hready"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1450,7 +1480,7 @@
           "i_hready"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1460,9 +1490,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1499,8 +1529,13 @@
         "fsm.core.transitions.transition_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "RUN",
+          "STALL_MEM",
+          "d_hready",
+          "hready"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1511,7 +1546,7 @@
           "hready"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1521,9 +1556,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1563,8 +1598,15 @@
         "fsm.core.transitions.transition_4"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "RUN",
+          "STALL_MEM",
+          "d_hready",
+          "d_hresp",
+          "hready",
+          "hresp"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1578,7 +1620,7 @@
           "hresp"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1588,9 +1630,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1628,9 +1670,13 @@
         "fsm.core.transitions.transition_5"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
-          "FAULT_HALT"
+          "FAULT_HALT",
+          "RUN",
+          "d_hresp",
+          "hresp",
+          "i_hresp"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1643,7 +1689,7 @@
           "i_hresp"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1653,9 +1699,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1692,9 +1738,12 @@
         "fsm.core.transitions.transition_6"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 4,
         "matched_terms": [
-          "FAULT_HALT"
+          "FAULT_HALT",
+          "STALL_MEM",
+          "d_hresp",
+          "hresp"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1706,7 +1755,7 @@
           "hresp"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1716,9 +1765,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1753,9 +1802,10 @@
         "fsm.core.transitions.transition_7"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "FAULT_HALT"
+          "FAULT_HALT",
+          "RESET"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1765,7 +1815,7 @@
           "RESET"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1775,9 +1825,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
