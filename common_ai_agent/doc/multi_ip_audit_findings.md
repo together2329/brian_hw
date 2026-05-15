@@ -134,6 +134,71 @@ IP does not yet have, the emit script reports its own block reason, which
 the audit then surfaces as a *specific* SSOT request rather than the generic
 "missing artifact". This routes blockers to the correct upstream lane.
 
+## Operational weaknesses observed when scaling to 20 IPs
+
+These three weaknesses surface only when the pipeline is exercised at *batch scale* (more than a handful of IPs in parallel). They do not show up on a single-IP run.
+
+### W8 — API balance is the real batch ceiling
+
+When 12 `ssot-gen` processes were launched in parallel with `--model deepseek`, all 12 terminated with `[LLM] Insufficient Balance` mid-flow at iterations 37-62 (of the 70-ish typically needed for the 5 phases). The agents had already produced 31-52 KB of SSOT content (50-75% of the final size) but Phase 5 handoff and `check_ssot_disk` validation never ran.
+
+**Implication.** Workflow throughput is not just iter/wall-time gated — it is *provider-balance* gated. The pipeline must either:
+
+- Detect insufficient balance and *checkpoint* the partial SSOT cleanly (so the agent can resume on the next session) — currently it just terminates with `exit.json.status=ok` even though work is incomplete.
+- Support *fallback model rotation*: when the primary model returns 402/quota error, the workflow should reconfigure to a secondary profile (`glm`, `kimi`) and continue.
+- Or surface batch-runner concurrency as a top-level config so users can split the 20-IP run across multiple sessions/days.
+
+### W9 — Incomplete SSOTs cascade into a known failure pattern
+
+When the 12 truncated SSOTs were fed through the rest of the canonical chain:
+
+- `emit_fl_model.py`: `SyntaxError: unexpected EOF while parsing` on the lower-quality SSOTs.
+- `derive_rtl_todos.py`: emits the plan but `gate=blocked` for IPs missing required SSOT sections.
+- `rtl_compile_report.py`: passes trivially because only scaffold `<ip>.sv` stubs exist.
+- `dut_lint_report.py`: passes trivially for the same reason.
+- Audit closure 18-50% — far below the 92-98% range observed when SSOT is mature.
+
+So the pipeline *does run end-to-end* (no crash) but the closure number is misleading: a 30% pass rate on a partial SSOT is not a 30% production-quality result, it is a 30% derivation-coverage result with no real RTL behind it.
+
+**Implication.** Closure% should be paired with a *SSOT maturity score* before being treated as a workflow signal — otherwise an IP with a half-finished SSOT looks like it has 50% real coverage when in fact it has 0% real RTL. Add a `ssot.maturity = mature | partial | scaffold` field to the audit summary.
+
+### W10 — Headless cleanup is verified at scale
+
+Despite W8 killing 12 processes mid-flow, the `--headless` exit path worked correctly for every one of them. Each session wrote a valid `exit.json`, closed the cocotb / pyslang / verilator subprocesses, and the watcher script that polled the 12 processes detected termination cleanly and proceeded to run the audit chain on the partial state.
+
+This is the load test for Item 2 (Phase A headless mode). No zombies, no manual `kill` needed, no `(y/n)` prompts blocking. The mechanism that this session built holds up under batch failure, which is the regime where it matters most.
+
+## 20-IP closure table (2026-05-15 measurement)
+
+```
+IP                       pass / total     gate     rtl     SSOT maturity
+─────────────────────────────────────────────────────────────────────────
+todo_counter_pipe        276 / 279 = 98.9% fail    4 sv    mature
+timer                    102 / 104 = 98.1% fail    1 sv    mature (missing pnr)
+dma                      103 / 105 = 98.1% fail    1 sv    partial (13/34 sections)
+uart_lite                279 / 286 = 97.6% fail    8 sv    mature
+simple_gpio_lite         161 / 171 = 94.2% fail    2 sv    mature (missing pnr)
+cortex_m0lite            174 / 189 = 92.1% fail    8 sv    mature
+todo_demo_ip              14 /  20 = 70.0% blocked 1 sv    scaffold (138 B SSOT)
+spi                        6 / 258 =  2.3% fail    0 sv    mature SSOT, no RTL
+─────────────────────────────────────────────────────────────────────────
+[12 new IPs — deepseek Insufficient Balance, partial SSOT, then re-launched on glm]
+mux_4to1                  60 / 120 = 50.0% fail    1 sv    partial
+edge_detector             71 / 150 = 47.3% fail    1 sv    partial
+arbiter_rr                54 / 128 = 42.2% fail    1 sv    partial
+debouncer                 49 / 127 = 38.6% blocked 1 sv    partial (FL SyntaxError)
+pulse_gen                 58 / 157 = 36.9% fail    1 sv    partial
+adder_kogge_stone         63 / 174 = 36.2% fail    1 sv    partial
+lfsr                      44 / 140 = 31.4% fail    1 sv    partial
+fifo_sync                 53 / 200 = 26.5% fail    1 sv    partial
+priority_enc              39 / 167 = 23.4% fail    1 sv    partial
+shift_reg                 35 / 165 = 21.2% fail    1 sv    partial
+clkdiv                    34 / 184 = 18.5% fail    1 sv    partial
+parity_gen                 5 / 155 =  3.2% fail    0 sv    partial (FL emit failed)
+```
+
+The 12 new IPs are being re-run with `glm-5.1` after the deepseek run hit Insufficient Balance. Updated numbers will replace the partial row when the second pass completes.
+
 ## Predicted closure impact
 
 | Fix | IPs improved | Estimated absolute closure gain |

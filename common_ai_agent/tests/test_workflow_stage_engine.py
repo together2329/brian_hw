@@ -2655,6 +2655,65 @@ def test_dynamic_rtl_todos_gate_allows_explicit_ssot_output_tieoff(tmp_path: Pat
     assert plan["top_output_drive_evidence"]["driven"] == 1
 
 
+def test_dynamic_rtl_todos_gate_allows_controlled_constant_procedural_output(tmp_path: Path):
+    ip = "dynamic_top_output_controlled_constant_gate"
+    ip_dir = tmp_path / ip
+    for subdir in ("yaml", "rtl", "list"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                f"  name: {ip}",
+                "io_list:",
+                "  interfaces:",
+                "    - name: stream",
+                "      ports:",
+                "        - {name: clk, direction: input, width: 1}",
+                "        - {name: rst_n, direction: input, width: 1}",
+                "        - {name: start_i, direction: input, width: 1}",
+                "        - {name: valid_o, direction: output, width: 1}",
+                "function_model:",
+                "  outputs:",
+                "    - valid_o",
+                "cycle_model:",
+                "  latency: 1",
+                "filelist:",
+                "  rtl:",
+                f"    - rtl/{ip}.sv",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        f"module {ip}(input wire clk, input wire rst_n, input wire start_i, output reg valid_o);\n"
+        "  always @(posedge clk or negedge rst_n) begin\n"
+        "    if (!rst_n) valid_o <= 1'b0;\n"
+        "    else if (start_i) valid_o <= 1'b1;\n"
+        "    else valid_o <= 1'b0;\n"
+        "  end\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+
+    subprocess.run(
+        [sys.executable, str(DERIVE_RTL_TODOS), ip, "--root", str(tmp_path), "--audit-rtl"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    plan = json.loads((ip_dir / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    drive_task = next(
+        task
+        for task in plan["tasks"]
+        if (task.get("gate_todo") or {}).get("kind") == "top_output_drive_evidence"
+    )
+    assert drive_task["todo_completion"]["status"] == "pass"
+    assert plan["top_output_drive_evidence"]["driven"] == 1
+
+
 def test_dynamic_rtl_todos_gate_rejects_unused_top_input_without_ssot_waiver(tmp_path: Path):
     ip = "dynamic_top_input_use_gate"
     ip_dir = tmp_path / ip

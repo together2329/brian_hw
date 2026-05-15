@@ -1,227 +1,249 @@
-# lfsr.ssot.yaml — Single Source of Truth
+# =============================================================================
+# LFSR PRBS Generator — Single Source of Truth (SSOT)
+# =============================================================================
+ip: lfsr
+version: "1.0"
 top_module:
   name: "lfsr"
   file: "rtl/lfsr.sv"
   version: "1.0"
   type: "peripheral"
-  description: "Parameterized LFSR PRBS generator with APB-lite CSR interface. Galois/Fibonacci-configurable feedback, single-cycle shift latency, parameterized polynomial width."
-  reference_spec: "user-defined — ITU-T O.150 / Xilinx XAPP052 PRBS patterns"
+  description: "Parameterized LFSR PRBS generator with APB-lite CSR interface, configurable polynomial/seed/width, and 1-cycle output latency."
+  reference_spec: "user-defined"
   target:
     technology: "generic"
     clock_freq_mhz: 50
     area_um2: null
     power_mw: null
 sub_modules:
-  - { name: "lfsr_regs",    file: "rtl/lfsr_regs.sv",    ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list", "io_list.interfaces.apb_slave"], source_sections: ["registers", "io_list"], register_refs: ["registers.register_list"], description: "APB-lite register decode and storage" }
-  - { name: "lfsr_core",    file: "rtl/lfsr_core.sv",    ownership: "manifest", ssot_gen: false, implements: ["function_model", "cycle_model", "features"], source_sections: ["function_model", "cycle_model", "features"], function_model_refs: ["function_model.state_variables", "function_model.output_rules", "function_model.state_updates"], cycle_model_refs: ["cycle_model.pipeline"], feature_refs: ["features"], description: "LFSR shift engine and PRBS output generation" }
+  - { name: "lfsr_regs", file: "rtl/lfsr_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list", "io_list.interfaces.apb_slave"], source_sections: ["registers", "io_list"], register_refs: ["registers.register_list"], ssot_refs: ["io_list.interfaces.apb_slave"], description: "APB-lite register decode and read/write logic" }
+  - { name: "lfsr_core", file: "rtl/lfsr_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model", "cycle_model", "fsm", "features"], source_sections: ["function_model", "cycle_model", "fsm", "features"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"], fsm_refs: ["fsm.lfsr_control"], description: "LFSR shift register, feedback XOR, and output datapath" }
 decomposition:
   units:
-    - { id: "apb_decode", kind: "control", source_refs: ["function_model.transactions", "registers.register_list"], rtl_candidates: ["lfsr_regs"], verification_impact: ["test_requirements.scenarios.SC_APB_RW"] }
-    - { id: "lfsr_shift", kind: "datapath", source_refs: ["function_model.state_updates", "cycle_model.pipeline"], rtl_candidates: ["lfsr_core"], verification_impact: ["coverage_plan.functional"] }
+    - { id: "config", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["lfsr_regs"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "generate", kind: "datapath", source_refs: ["function_model.transactions", "cycle_model.pipeline"], rtl_candidates: ["lfsr_core"], verification_impact: ["test_requirements.coverage_goals"] }
 parameters:
-  - name: "POLY_WIDTH"
-    default: 32
-    type: int
-    description: "LFSR polynomial width in bits (2..64)"
-    drives: ["lfsr_core.sv", "lfsr_regs.sv", "lfsr.sv"]
-  - name: "DEFAULT_SEED"
-    default: "32'hDEAD_BEEF"
-    type: hex
-    description: "Default seed value at reset"
-    drives: ["lfsr_core.sv"]
-  - name: "DEFAULT_TAPS"
-    default: "32'h8000_0004"
-    type: hex
-    description: "Default polynomial tap bitmask (x^31 + x^2 + 1 for PRBS31 ITU-T O.150)"
-    drives: ["lfsr_core.sv"]
-  - name: "CLOCK_FREQ_MHZ"
-    default: 50
-    type: int
-    description: "Target PCLK frequency in MHz"
-    drives: ["tb_top.sv", "docs/README.md"]
-  - name: "RESET_POLARITY"
-    default: "active_low"
-    type: enum
-    values: ["active_low", "active_high"]
-    drives: ["ALL .sv files"]
+  - { name: "LFSR_WIDTH", default: 32, type: int, description: "LFSR register width in bits; determines PRBS period and polynomial range", drives: ["lfsr_core.sv", "lfsr_regs.sv"] }
+  - { name: "OUTPUT_WIDTH", default: 1, type: int, description: "Output data width: 1 for serial PRBS, LFSR_WIDTH for parallel", drives: ["lfsr_core.sv"] }
+  - { name: "APB_ADDR_WIDTH", default: 8, type: int, description: "APB address bus width in bits", drives: ["lfsr_regs.sv"] }
+  - { name: "APB_DATA_WIDTH", default: 32, type: int, description: "APB data bus width in bits", drives: ["lfsr_regs.sv"] }
+  - { name: "NUM_PRESETS", default: 8, type: int, description: "Number of predefined polynomial presets", drives: ["lfsr_core.sv", "lfsr_regs.sv"] }
+  - { name: "HAS_COUNT_REG", default: 1, type: int, description: "Include shift-count register when 1", drives: ["lfsr_regs.sv", "lfsr_core.sv"] }
+  - { name: "RESET_POLARITY", default: "active_low", type: enum, values: ["active_low", "active_high"], drives: ["ALL .sv files"] }
 io_list:
   clock_domains:
-    - name: "PCLK"
+    - name: "pclk"
       frequency_mhz: 50
-      description: "APB peripheral clock"
+      description: "Single system clock"
       ports:
-        - { name: "PCLK", width: 1, direction: "input", description: "Peripheral clock" }
-
+        - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
   resets:
-    - name: "PRESETn"
+    - name: "presetn"
       polarity: "active_low"
       sync_async: "async_assert_sync_deassert"
-      description: "APB peripheral reset — asynchronous assertion, synchronous deassertion to PCLK"
+      description: "System reset, async assert, sync deassert"
       ports:
-        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low asynchronous reset" }
-
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low async reset" }
   interfaces:
     - name: "apb_slave"
       type: "APB-lite"
       role: "slave"
-      clock_domain: "PCLK"
-      reset_domain: "PRESETn"
-      description: "APB-lite register access interface (no PSLVERR in baseline APB-lite)"
+      clock_domain: "pclk"
+      reset_domain: "presetn"
+      description: "APB-lite CSR interface for runtime configuration and status readback"
       protocol:
-        setup_phase: "PSEL=1, PENABLE=0 captures address (PADDR), write data (PWDATA), and write strobes (PSTRB)."
-        access_phase: "PSEL=1, PENABLE=1; transfer completes when PREADY=1."
-        read_rule: "PRDATA driven combinatorially from addressed register; valid in the completing access phase."
-        write_rule: "PWDATA/PSTRB sampled and register updated on the PCLK rising edge at the end of the completing access phase."
+        setup_phase: "PSEL=1, PENABLE=0 captures address and control."
+        access_phase: "PSEL=1, PENABLE=1 completes when PREADY=1."
+        read_rule: "PRDATA is valid in the completing access phase for reads."
+        write_rule: "PWDATA is sampled in the completing access phase for writes."
+        error_rule: "No PSLVERR pin on APB-lite; illegal offsets return OKAY with no side effect."
       ports:
-        - { name: "PADDR",   width: 8,  direction: "input",  description: "APB address" }
+        - { name: "PADDR",   width: 8,  direction: "input",  description: "APB address bus" }
         - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
         - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
-        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write=1 / read=0" }
+        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write/read" }
         - { name: "PWDATA",  width: 32, direction: "input",  description: "APB write data" }
-        - { name: "PSTRB",   width: 4,  direction: "input",  description: "APB byte strobes" }
         - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
-        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready — always 1 (zero-wait-state)" }
-
-    - name: "lfsr_output"
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready; always 1 for zero-wait-state" }
+    - name: "prbs_output"
       type: "custom"
-      clock_domain: "PCLK"
-      reset_domain: "PRESETn"
-      description: "Parallel PRBS output word"
+      clock_domain: "pclk"
+      reset_domain: "presetn"
+      description: "PRBS output data and valid flag"
       protocol:
-        sampling: "lfsr_out updates on PCLK rising edge after PRESETn deasserted, one cycle after shift enable."
-        stability: "lfsr_out held stable when shift is disabled."
-        reset_value: "DEFAULT_SEED (from parameter)"
+        valid_rule: "prbs_valid is asserted for one PCLK cycle each time a new output sample is produced."
+        data_rule: "prbs_out holds the current LFSR output bits; width is OUTPUT_WIDTH parameter."
+        reset_value: "prbs_valid=0, prbs_out=0 after reset"
       ports:
-        - { name: "lfsr_out", width: "POLY_WIDTH", direction: "output", description: "Current LFSR state / PRBS output word" }
+        - { name: "prbs_out",   width: "OUTPUT_WIDTH", direction: "output", description: "PRBS output data" }
+        - { name: "prbs_valid", width: 1,               direction: "output", description: "PRBS output valid pulse" }
 features:
-  - name: "PRBS shift"
-    trigger: "CTRL.enable bit set and PCLK rising edge"
-    datapath: "lfsr_state[POLY_WIDTH-1:1] shifted right; feedback bit = XOR_reduce(lfsr_state & tap_mask) becomes new MSB"
-    control: "CTRL.enable gates shift; CTRL.load_seed loads SEED into lfsr_state"
-    output: "lfsr_out = lfsr_state (updated value appears on next PCLK edge)"
+  - name: "Free-run PRBS generation"
+    trigger: "CTRL.enable set to 1 and CTRL.mode = 0 (free-run)"
+    datapath: "LFSR state shifts left, feedback XOR computed from POLY taps, result feeds bit 0"
+    control: "IDLE → RUNNING on enable; RUNNING → IDLE on disable"
+    output: "prbs_out[OUTPUT_WIDTH-1:0] updated every PCLK cycle; prbs_valid pulsed"
+  - name: "Single-step PRBS generation"
+    trigger: "CTRL.enable=1, CTRL.mode=1 (step), and CTRL.step_req written as 1 (auto-clear)"
+    datapath: "Exactly one LFSR shift-and-feedback step per step_req write"
+    control: "IDLE → STEPPING on step_req; STEPPING → IDLE after one shift"
+    output: "prbs_out updated once; prbs_valid pulsed for one cycle"
   - name: "Seed load"
-    trigger: "CTRL.load_seed bit set, sampled on APB write access phase"
-    datapath: "SEED register value → lfsr_state"
-    control: "Single-cycle load; takes priority over shift on same cycle"
-    output: "lfsr_out reflects new seed on next PCLK edge"
-  - name: "Runtime polynomial select"
-    trigger: "TAPS register write via APB; takes effect on next shift when enabled"
-    datapath: "TAPS register drives tap_mask into feedback XOR tree"
-    control: "TAPS write allowed regardless of enable; new taps used on next shift"
-    output: "Subsequent shifts use new polynomial"
+    trigger: "CTRL.load_seed written as 1 (auto-clear)"
+    datapath: "SEED register value is copied directly into the LFSR state register"
+    control: "Can occur in any FSM state; takes precedence over shift"
+    output: "LFSR state updated; no prbs_valid pulse unless also running"
+  - name: "Polynomial preset select"
+    trigger: "CTRL.preset_select written with a valid index (0..NUM_PRESETS-1)"
+    datapath: "POLY register is overwritten with the corresponding predefined tap bitmask"
+    control: "Can occur in any FSM state"
+    output: "POLY register updated; next shift uses new taps"
+  - name: "Zero-lockup detection"
+    trigger: "LFSR state transitions to all zeros after a shift"
+    datapath: "STATUS.zero_lockup is set to 1; LFSR stops shifting to prevent infinite zeros"
+    control: "Remains in zero_lockup until new seed is loaded"
+    output: "STATUS.zero_lockup=1; prbs_valid deasserted"
 dataflow:
-  shift_path:
-    source: "lfsr_state (flop array POLY_WIDTH bits)"
-    compute: "feedback_bit = XOR_reduce(lfsr_state[POLY_WIDTH-1:0] & tap_mask[POLY_WIDTH-1:0])"
-    update: "next_lfsr_state = {feedback_bit, lfsr_state[POLY_WIDTH-1:1]}"
-    output: "lfsr_out = next_lfsr_state (registered on next PCLK edge)"
-    condition: "CTRL.enable == 1 and not in reset"
-  load_path:
+  feedback_path:
+    source: "lfsr_state[LFSR_WIDTH-1:0] (current shift register)"
+    tap_mask: "POLY[LFSR_WIDTH-1:0] (bitmask selecting feedback tap positions)"
+    feedback: "XOR-reduce(lfsr_state & POLY) → single feedback bit"
+    sequence: "lfsr_state → AND with POLY → XOR-reduce → feedback_bit → shift into lfsr_state[0]"
+  output_path:
+    source: "lfsr_state[OUTPUT_WIDTH-1:0]"
+    sequence: "lfsr_state bits → prbs_out port → prbs_valid pulse"
+  seed_load_path:
     source: "SEED register (APB-writable)"
-    target: "lfsr_state"
-    trigger: "CTRL.load_seed sampled high on APB write access phase"
-    priority: "Seed load overrides shift when both occur same cycle"
-  cfg_path:
-    source: "TAPS register (APB-writable)"
-    target: "tap_mask internal signal"
-    trigger: "Any APB write to TAPS register"
-    effect: "New tap_mask used on next enabled shift cycle"
+    sequence: "APB write to SEED → CTRL.load_seed trigger → copy SEED into lfsr_state"
 function_model:
-  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes the LFSR PRBS computation independent of cycle timing."
+  purpose: "Cycle-independent behavioral contract for the LFSR PRBS generator; describes what the IP computes."
   state_variables:
-    - { name: "lfsr_state", source: "internal", reset: "DEFAULT_SEED", description: "Current shift register state (POLY_WIDTH bits)" }
-    - { name: "enabled", source: "registers.CTRL.enable", reset: 0, description: "Shift enable flag" }
-    - { name: "tap_mask", source: "registers.TAPS", reset: "DEFAULT_TAPS", description: "Active polynomial tap bitmask" }
-  state_updates:
-    - { name: "lfsr_state", reset: "DEFAULT_SEED", expr: "if load_seed: SEED; elif enabled: {feedback_bit, lfsr_state[POLY_WIDTH-1:1]} where feedback_bit = XOR_reduce(lfsr_state[POLY_WIDTH-1:0] & tap_mask[POLY_WIDTH-1:0]); else: lfsr_state (hold)" }
-    - { name: "enabled", reset: 0, expr: "CTRL.enable bit value (APB-writable)" }
-    - { name: "tap_mask", reset: "DEFAULT_TAPS", expr: "TAPS register value (APB-writable, takes effect on next shift)" }
+    - { name: "lfsr_state",  source: "registers.STATE",  reset: 0, description: "Current LFSR shift register value (LFSR_WIDTH bits)" }
+    - { name: "seed_val",    source: "registers.SEED",   reset: 0, description: "Seed value loaded on load_seed trigger" }
+    - { name: "poly_mask",   source: "registers.POLY",   reset: 0, description: "Feedback polynomial tap bitmask" }
+    - { name: "ctrl_enable", source: "registers.CTRL.enable", reset: 0, description: "1 = LFSR enabled" }
+    - { name: "ctrl_mode",   source: "registers.CTRL.mode",   reset: 0, description: "0 = free-run, 1 = single-step" }
+    - { name: "status",      source: "registers.STATUS",      reset: 0, description: "Status flags (running, zero_lockup)" }
   transactions:
-    - id: "FM_SHIFT"
-      name: "lfsr_one_shift"
+    - id: "FM1"
+      name: "prbs_free_run"
       preconditions:
-        - "PRESETn deasserted"
-        - "enabled == 1"
-        - "load_seed == 0"
+        - "ctrl_enable == 1"
+        - "ctrl_mode == 0 (free-run)"
+        - "lfsr_state != 0 (not in zero-lockup)"
       inputs:
-        - "current lfsr_state"
-        - "tap_mask"
+        - "lfsr_state (current)"
+        - "poly_mask (current POLY register)"
       output_rules:
-        - { name: "lfsr_out", expr: "{feedback_bit, lfsr_state[POLY_WIDTH-1:1]} where feedback_bit = XOR_reduce(lfsr_state[POLY_WIDTH-1:0] & tap_mask[POLY_WIDTH-1:0])", width: "POLY_WIDTH", port: "lfsr_out", description: "Shifted LFSR state with feedback" }
-      outputs:
-        - "lfsr_out = shifted lfsr_state with feedback bit as computed by state_updates"
+        - { name: "feedback_bit", expr: "^{lfsr_state & poly_mask}", width: 1, port: "internal", description: "XOR-reduce of masked state bits produces 1-bit feedback" }
+        - { name: "next_state",   expr: "{lfsr_state[LFSR_WIDTH-2:0], feedback_bit}", width: "LFSR_WIDTH", port: "internal", description: "Shift left by 1, insert feedback at bit 0" }
+        - { name: "prbs_serial",  expr: "lfsr_state[LFSR_WIDTH-1]", width: 1, port: "prbs_out", description: "MSB of current state for serial output mode" }
+        - { name: "prbs_parallel", expr: "lfsr_state[OUTPUT_WIDTH-1:0]", width: "OUTPUT_WIDTH", port: "prbs_out", description: "Low OUTPUT_WIDTH bits of state for parallel output mode" }
+      state_updates:
+        - { name: "lfsr_state", reset: 0, expr: "{lfsr_state[LFSR_WIDTH-2:0], ^{lfsr_state & poly_mask}}", description: "Shift left 1, XOR-reduce feedback feeds bit 0" }
+        - { name: "shift_count", reset: 0, expr: "shift_count + 1", description: "Increment shift counter when HAS_COUNT_REG=1" }
+        - { name: "status.zero_lockup", reset: 0, expr: "(next_state == 0) ? 1 : status.zero_lockup", description: "Set if next state is all zeros" }
       side_effects:
-        - "lfsr_state advances by one Fibonacci shift (see state_updates.expr)"
-      error_cases: []
-    - id: "FM_LOAD_SEED"
-      name: "load_seed_into_state"
+        - "prbs_valid pulsed for one cycle on each shift"
+        - "If next_state == 0, STATUS.zero_lockup is set and shifting halts until new seed"
+      error_cases:
+        - { condition: "lfsr_state == 0 and ctrl_enable == 1", result: "STATUS.zero_lockup=1; no further shifts; prbs_valid stays 0" }
+    - id: "FM2"
+      name: "prbs_single_step"
       preconditions:
-        - "PRESETn deasserted"
-        - "CTRL.load_seed == 1"
+        - "ctrl_enable == 1"
+        - "ctrl_mode == 1 (step)"
+        - "step_req pulse received (auto-clear)"
+        - "lfsr_state != 0"
       inputs:
-        - "SEED register value"
+        - "lfsr_state (current)"
+        - "poly_mask (current)"
       output_rules:
-        - { name: "lfsr_out", expr: "SEED", width: "POLY_WIDTH", port: "lfsr_out", description: "Seed value output on load" }
-      outputs:
-        - "lfsr_out = SEED (on next output edge)"
+        - { name: "feedback_bit", expr: "^{lfsr_state & poly_mask}", width: 1, port: "internal", description: "Same XOR-reduce feedback as FM1" }
+        - { name: "next_state",   expr: "{lfsr_state[LFSR_WIDTH-2:0], feedback_bit}", width: "LFSR_WIDTH", port: "internal", description: "One shift" }
+        - { name: "prbs_out",     expr: "next_state[OUTPUT_WIDTH-1:0]", width: "OUTPUT_WIDTH", port: "prbs_out", description: "Output after single step" }
+      state_updates:
+        - { name: "lfsr_state", reset: 0, expr: "{lfsr_state[LFSR_WIDTH-2:0], ^{lfsr_state & poly_mask}}", description: "Exactly one shift" }
+        - { name: "shift_count", reset: 0, expr: "shift_count + 1", description: "Increment counter" }
       side_effects:
-        - "lfsr_state ← SEED"
-        - "load_seed self-clears (one-shot pulse)"
+        - "prbs_valid pulsed for one cycle"
+        - "step_req auto-clears to 0"
       error_cases: []
-    - id: "FM_IDLE"
-      name: "hold_state"
+    - id: "FM3"
+      name: "seed_load"
       preconditions:
-        - "enabled == 0 and load_seed == 0"
-      inputs: []
+        - "CTRL.load_seed written as 1 (auto-clear trigger)"
+      inputs:
+        - "seed_val from registers.SEED"
       output_rules:
-        - { name: "lfsr_out", expr: "lfsr_state (hold)", width: "POLY_WIDTH", port: "lfsr_out", description: "Held LFSR output (no change)" }
-      outputs:
-        - "lfsr_out hold previous value"
+        - { name: "lfsr_state_next", expr: "seed_val", width: "LFSR_WIDTH", port: "internal", description: "State is directly overwritten with seed" }
+      state_updates:
+        - { name: "lfsr_state",         reset: 0, expr: "seed_val", description: "Overwritten with SEED register value" }
+        - { name: "status.zero_lockup",  reset: 0, expr: "(seed_val == 0) ? 1 : 0", description: "Cleared unless new seed is zero" }
       side_effects:
-        - "No state change; lfsr_state and all registers hold current values"
-      error_cases: []
+        - "STATUS.zero_lockup cleared if seed_val != 0"
+        - "If LFSR was in zero-lockup, it resumes"
+        - "No prbs_valid pulse (seed load is not a shift)"
+      error_cases:
+        - { condition: "seed_val == 0", result: "STATUS.zero_lockup remains 1; no shifting" }
+    - id: "FM4"
+      name: "preset_polynomial"
+      preconditions:
+        - "CTRL.preset_select written with valid index (0..NUM_PRESETS-1)"
+      inputs:
+        - "preset_select index"
+      output_rules:
+        - { name: "poly_next", expr: "PRESET_TABLE[preset_select]", width: "LFSR_WIDTH", port: "internal", description: "POLY register loaded from preset table" }
+      state_updates:
+        - { name: "poly_mask", reset: 0, expr: "PRESET_TABLE[preset_select]", description: "POLY register updated" }
+      side_effects:
+        - "Next shift uses the new polynomial taps"
+      error_cases:
+        - { condition: "preset_select >= NUM_PRESETS", result: "No change to POLY; write ignored" }
   invariants:
-    - "SEED must be non-zero for maximal-length sequence; zero seed produces degenerate all-zero output."
-    - "tap_mask LSB must be 1 for proper Fibonacci LFSR feedback (or Galois LSB tap)."
-    - "load_seed takes priority over shift when both are asserted in same APB cycle."
-  reference_model_hint: "tb-gen should implement a Python scoreboard model that applies state_updates algebraically and compares expected lfsr_out against RTL for every scenario."
+    - "Feedback is always XOR-reduce(lfsr_state & poly_mask); the LFSR does not use any other feedback topology."
+    - "A zero state (lfsr_state == 0) never produces a non-zero next state; the IP detects and halts."
+    - "Seed load takes precedence over shift in the same cycle."
+    - "prbs_valid is asserted only when an actual shift occurs, not on seed load."
+  reference_model_hint: "tb-gen should implement a Python reference LFSR model that XOR-reduces state & poly and shifts left per transaction, comparing expected state and output against RTL for every scenario."
 cycle_model:
-  purpose: "Cycle/handshake contract for rtl-gen; describes when lfsr_state updates, lfsr_out changes, and APB handshake timing."
+  purpose: "Cycle/handshake contract for rtl-gen; describes when state, outputs, and valid change."
   executable: "pymtl3"
-  backend_policy: "Use PyMTL3 clocked shell; FunctionalModel as behavioral oracle; direct Python smoke checks."
+  backend_policy: "Use PyMTL3 for cycle-accurate model; functional model serves as oracle."
   clock: "PCLK"
   reset:
-    assertion: "PRESETn low asynchronously clears all architectural state to reset values"
+    assertion: "PRESETn low asynchronously clears all registers and state to reset values"
     deassertion: "State is usable on the first rising PCLK edge after synchronized deassertion"
   latency:
-    register_read: { min_cycles: 0, max_cycles: 1, description: "APB-lite PREADY always 1; read data valid in access phase" }
-    register_write: { min_cycles: 0, max_cycles: 1, description: "APB-lite write completes in access phase; PREADY always 1" }
-    shift_output: { min_cycles: 1, max_cycles: 1, description: "From enable assertion or previous shift, new lfsr_out appears 1 PCLK later" }
-    seed_load: { min_cycles: 1, max_cycles: 1, description: "From load_seed APB write, new lfsr_out appears 1 PCLK later" }
+    apb_read: { min_cycles: 0, max_cycles: 0, description: "Zero-wait-state APB: PREADY=1 in same access phase" }
+    apb_write: { min_cycles: 0, max_cycles: 0, description: "Zero-wait-state APB: PREADY=1 in same access phase" }
+    seed_load: { min_cycles: 1, max_cycles: 1, description: "State updated one PCLK after load_seed write completes" }
+    prbs_output: { min_cycles: 1, max_cycles: 1, description: "New output available 1 PCLK after enable/step triggers" }
   handshake_rules:
-    - { signal: "PSEL/PENABLE", rule: "PREADY driven to 1 combinatorially when PSEL=1 regardless of PENABLE; zero-wait-state APB-lite slave" }
-    - { signal: "lfsr_out", rule: "Updated on PCLK rising edge; stable between updates" }
+    - { signal: "PREADY", rule: "Always driven 1; APB-lite slave has zero wait states for all valid addresses." }
+    - { signal: "prbs_valid", rule: "Pulsed high for exactly one PCLK cycle when a new shift completes; low otherwise." }
   pipeline:
-    - { stage: "S0_REGISTER_READ", cycle: 0, action: "APB read access phase — PRDATA driven combinationally from addressed register" }
-    - { stage: "S1_REGISTER_WRITE", cycle: 0, action: "APB write access phase — PWDATA sampled, register updated on next PCLK edge" }
-    - { stage: "S2_SHIFT_EVAL", cycle: 1, action: "Combinational feedback XOR tree evaluates; next_lfsr_state computed" }
-    - { stage: "S3_OUTPUT_UPDATE", cycle: 2, action: "lfsr_state flops updated; lfsr_out drives new value" }
+    - { stage: "S0_CONFIG", cycle: 0, action: "APB write latches configuration (CTRL/SEED/POLY) into internal registers" }
+    - { stage: "S1_SEED_LOAD", cycle: 0, action: "If load_seed=1, SEED value is gated into lfsr_state register on next rising edge" }
+    - { stage: "S2_FEEDBACK", cycle: 0, action: "XOR-reduce of (lfsr_state & poly_mask) computed combinationally" }
+    - { stage: "S3_SHIFT", cycle: 1, action: "On next rising edge: lfsr_state shifts left, feedback_bit inserted at bit 0, prbs_valid pulsed" }
+    - { stage: "S4_OUTPUT", cycle: 1, action: "prbs_out driven from new lfsr_state[OUTPUT_WIDTH-1:0]; prbs_valid=1 for this cycle" }
   ordering:
-    - "Register write sampled in cycle N; new register value visible for shift in cycle N+1."
-    - "lfsr_out for cycle N reflects the shift result initiated in cycle N-1."
-    - "Seed load in cycle N overwrites lfsr_state on cycle N+1; lfsr_out reflects seed on cycle N+2."
+    - "Seed load (S1) and feedback/shift (S2/S3) are mutually exclusive in the same cycle; seed load wins."
+    - "Output (S4) is combinational from the new state registered in S3."
+    - "APB writes to CTRL/SEED/POLY take effect on the next rising PCLK edge after the APB access completes."
   backpressure:
-    - "No downstream backpressure; lfsr_out is always driven."
+    - "No backpressure mechanism; PRBS output is always ready and valid pulses are one cycle."
   performance:
     frequency_mhz: 50
-    throughput: { sustained_beats_per_cycle: 1, condition: "When enabled and not loading seed" }
-    outstanding: { read_max: 1, write_max: 1, description: "APB-lite single-transfer; no pipelined APB bursts" }
-    depth: { pipeline_stages: 2, queue_depth: 0, description: "2-stage pipeline: eval → update (1 cycle of compute latency)" }
+    throughput: { samples_per_cycle: 1, condition: "Free-run mode with non-zero state" }
+    outstanding: { description: "Not applicable; no request/response protocol on output" }
+    depth: { pipeline_stages: 1, description: "Single registered stage: combinational feedback + registered state update" }
   observability:
     - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
 clock_reset_domains:
   domains:
-    - { name: "PCLK", frequency_mhz: 50, description: "APB peripheral clock" }
+    - { name: "pclk", frequency_mhz: 50, description: "Single system clock" }
   reset_scheme:
     signal: "PRESETn"
     polarity: "active_low"
@@ -233,12 +255,13 @@ cdc_requirements:
 rdc_requirements:
   crossings: []
   synchronizers: []
-  note: "No reset domain crossings"
+  note: "Single reset domain — no RDC required"
 registers:
   config:
     register_width: 32
     addr_width: 8
     byte_addressable: true
+    num_channels: 1
   bit_order: "lsb0"
   bits_format: "[msb, lsb]"
   reserved_field_policy:
@@ -252,49 +275,48 @@ registers:
       access: "rw"
       reset: 0x00000000
       category: "control"
-      description: "Control Register"
+      description: "Control register — enable, mode, seed load, step request, polynomial preset"
       write_side_effects:
-        - "Writing enable=1 starts LFSR shifting on next PCLK edge."
-        - "Writing load_seed=1 causes one-shot seed load; bit self-clears after load."
+        - "Writing load_seed=1 triggers an immediate seed load from SEED register; bit auto-clears."
+        - "Writing step_req=1 triggers one LFSR shift in step mode; bit auto-clears."
+        - "Writing preset_select with valid index loads POLY from preset table."
       fields:
-        - { name: "enable", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "1=shift enabled; 0=hold state", description: "LFSR shift enable" }
-        - { name: "load_seed", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "1=load SEED into lfsr_state (self-clearing pulse)", description: "One-shot seed load trigger" }
-        - { name: "reserved_31_2", bits: [31, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+        - { name: "enable",       bits: [0, 0],   access: "rw", reset: 0x0, description: "LFSR enable: 0=stopped, 1=running" }
+        - { name: "mode",         bits: [1, 1],   access: "rw", reset: 0x0, description: "0=free-run, 1=single-step" }
+        - { name: "load_seed",    bits: [2, 2],   access: "rw", reset: 0x0, write_effect: "Auto-clear: writing 1 loads SEED into LFSR state, then clears to 0", description: "Trigger seed load (auto-clear)" }
+        - { name: "step_req",     bits: [3, 3],   access: "rw", reset: 0x0, write_effect: "Auto-clear: writing 1 triggers one shift in step mode, then clears to 0", description: "Step request (auto-clear)" }
+        - { name: "preset_select", bits: [7, 4],  access: "rw", reset: 0x0, write_effect: "Loads POLY from preset table when written with valid index 0..NUM_PRESETS-1", description: "Polynomial preset index" }
+        - { name: "reserved_31_8", bits: [31, 8], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
 
     - name: "SEED"
       offset: 0x04
       width: 32
       access: "rw"
-      reset: "DEFAULT_SEED"
-      category: "config"
-      description: "Seed Value Register"
-      write_side_effects:
-        - "Write updates seed storage; lfsr_state loaded only on CTRL.load_seed pulse."
+      reset: 0x00000001
+      category: "control"
+      description: "Seed value for LFSR initialization; loaded into state on CTRL.load_seed trigger"
       fields:
-        - { name: "seed_value", bits: [31, 0], access: "rw", reset: "DEFAULT_SEED", write_effect: "Update seed storage for next load_seed", description: "Seed value loaded into LFSR on load_seed" }
+        - { name: "seed_val", bits: [31, 0], access: "rw", reset: 0x00000001, description: "Seed value; default 1 to avoid zero-lockup" }
 
-    - name: "TAPS"
+    - name: "POLY"
       offset: 0x08
       width: 32
       access: "rw"
-      reset: "DEFAULT_TAPS"
-      category: "config"
-      description: "Polynomial Tap Mask Register"
-      write_side_effects:
-        - "New tap mask used on next enabled shift cycle."
-        - "LSB should be 1 for proper Fibonacci feedback; violating this produces deterministic but non-maximal sequence."
+      reset: 0x00000000
+      category: "control"
+      description: "Feedback polynomial tap bitmask; bit[i]=1 means tap at position i"
       fields:
-        - { name: "tap_mask", bits: [31, 0], access: "rw", reset: "DEFAULT_TAPS", write_effect: "Polynomial tap bitmask; takes effect next shift", description: "Bitmask selecting feedback tap positions" }
+        - { name: "poly_mask", bits: [31, 0], access: "rw", reset: 0x00000000, description: "Feedback tap bitmask; override via preset_select or direct write" }
 
-    - name: "DATA"
+    - name: "STATE"
       offset: 0x0C
       width: 32
       access: "ro"
-      reset: "DEFAULT_SEED"
+      reset: 0x00000000
       category: "status"
-      description: "Current LFSR Output Data Register"
+      description: "Current LFSR state (read-only); reflects internal shift register"
       fields:
-        - { name: "data_out", bits: [31, 0], access: "ro", reset: "DEFAULT_SEED", description: "Current lfsr_state value / PRBS output" }
+        - { name: "lfsr_state", bits: [31, 0], access: "ro", reset: 0x00000000, description: "Current LFSR shift register value" }
 
     - name: "STATUS"
       offset: 0x10
@@ -302,149 +324,164 @@ registers:
       access: "ro"
       reset: 0x00000000
       category: "status"
-      description: "Status Register"
+      description: "Status flags"
       fields:
-        - { name: "running", bits: [0, 0], access: "ro", reset: 0x0, description: "1=shifting active (mirror of CTRL.enable)" }
-        - { name: "poly_width", bits: [15, 8], access: "ro", reset: "POLY_WIDTH", description: "Hardware polynomial width parameter" }
-        - { name: "reserved_31_16", bits: [31, 16], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+        - { name: "running",      bits: [0, 0], access: "ro", reset: 0x0, description: "1 when LFSR is actively shifting" }
+        - { name: "zero_lockup",  bits: [1, 1], access: "ro", reset: 0x0, description: "1 when LFSR state is all zeros; shifting halted" }
+        - { name: "reserved_31_2", bits: [31, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "COUNT"
+      offset: 0x14
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Shift counter — number of LFSR shifts since last seed load or counter reset (if HAS_COUNT_REG=1)"
+      fields:
+        - { name: "shift_count", bits: [31, 0], access: "ro", reset: 0x00000000, description: "Monotonically increasing shift counter" }
+      conditional: "HAS_COUNT_REG == 1"
 memory:
   instances:
-    - { name: "lfsr_state_reg", type: "register", depth: 1, width: "POLY_WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "LFSR shift register flops" }
-  note: "Register-only storage; no SRAM/FIFO required"
+    - { name: "lfsr_state_reg", type: "register", depth: 1, width: "LFSR_WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "LFSR shift register" }
+    - { name: "seed_reg", type: "register", depth: 1, width: "LFSR_WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "Seed value register" }
+    - { name: "poly_reg", type: "register", depth: 1, width: "LFSR_WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "Polynomial tap bitmask register" }
+  note: "No SRAM/FIFO; all storage is simple registers."
 interrupts:
   sources: []
   output:
-    signal: null
-    polarity: null
-    type: null
-  note: "No interrupts in baseline LFSR PRBS peripheral; add interrupt sources in a future revision if notification needed."
+    signal: "none"
+    polarity: "none"
+    type: "none"
+  note: "No interrupt output in this LFSR revision; status is polled via APB read of STATUS register."
 fsm:
-  lfsr_core_fsm:
+  lfsr_control:
     states:
       - "IDLE"
-      - "SHIFT"
-      - "LOAD_SEED"
+      - "RUNNING"
+      - "STEPPING"
+      - "ZERO_LOCKUP"
     transitions:
-      - { from: "IDLE",     to: "SHIFT",     condition: "CTRL.enable && !CTRL.load_seed" }
-      - { from: "IDLE",     to: "LOAD_SEED", condition: "CTRL.load_seed" }
-      - { from: "SHIFT",    to: "SHIFT",     condition: "CTRL.enable && !CTRL.load_seed" }
-      - { from: "SHIFT",    to: "IDLE",      condition: "!CTRL.enable && !CTRL.load_seed" }
-      - { from: "SHIFT",    to: "LOAD_SEED", condition: "CTRL.load_seed" }
-      - { from: "LOAD_SEED", to: "IDLE",     condition: "!CTRL.enable" }
-      - { from: "LOAD_SEED", to: "SHIFT",    condition: "CTRL.enable" }
-    note: "LOAD_SEED is a transient state lasting one cycle; load_seed bit self-clears after state transition."
+      - { from: "IDLE",        to: "RUNNING",      condition: "ctrl_enable=1 and ctrl_mode=0" }
+      - { from: "IDLE",        to: "STEPPING",      condition: "ctrl_enable=1 and ctrl_mode=1 and step_req=1" }
+      - { from: "RUNNING",     to: "IDLE",           condition: "ctrl_enable=0" }
+      - { from: "RUNNING",     to: "ZERO_LOCKUP",    condition: "next_state == 0 after shift" }
+      - { from: "STEPPING",    to: "IDLE",           condition: "single shift completes" }
+      - { from: "STEPPING",    to: "ZERO_LOCKUP",    condition: "next_state == 0 after shift" }
+      - { from: "ZERO_LOCKUP", to: "IDLE",           condition: "load_seed=1 and seed_val != 0" }
+    note: "Seed load is a side-effect that can occur in any state; it transitions ZERO_LOCKUP to IDLE (if seed != 0) or stays in ZERO_LOCKUP (if seed == 0)."
 rtl_contract:
-  transaction: "FM_SHIFT"
-  sample_condition: "PCLK rising edge with PRESETn deasserted"
+  transaction: "FM1"
+  sample_condition: "prbs_valid pulse rising edge"
   input_map:
-    enable: "registers.CTRL.enable"
-    load_seed: "registers.CTRL.load_seed"
-    seed: "registers.SEED.seed_value"
-    taps: "registers.TAPS.tap_mask"
-    apb_write_data: "PWDATA"
+    seed_value: "registers.SEED.seed_val"
+    poly_taps: "registers.POLY.poly_mask"
+    ctrl_enable: "registers.CTRL.enable"
+    ctrl_mode: "registers.CTRL.mode"
   output_map:
-    prbs_output: "lfsr_out"
-    apb_read_data: "PRDATA"
-    apb_ready: "PREADY"
+    prbs_output: "prbs_out"
+    prbs_valid: "prbs_valid"
+    current_state: "registers.STATE.lfsr_state"
+    status: "registers.STATUS"
   state_updates:
-    - { name: "lfsr_state", reset: "DEFAULT_SEED", expr: "if load_seed: SEED; elif enable: {feedback_bit, lfsr_state[POLY_WIDTH-1:1]} where feedback_bit = XOR_reduce(lfsr_state[POLY_WIDTH-1:0] & tap_mask[POLY_WIDTH-1:0]); else: hold" }
-    - { name: "enabled", reset: 0, expr: "CTRL.enable" }
-    - { name: "tap_mask_reg", reset: "DEFAULT_TAPS", expr: "TAPS register value" }
+    - { name: "lfsr_state",  reset: 0,                          expr: "{lfsr_state[LFSR_WIDTH-2:0], ^{lfsr_state & poly_mask}}", description: "Shift left with XOR-reduce feedback" }
+    - { name: "shift_count", reset: 0,                          expr: "shift_count + 1",                                       description: "Increment per shift when HAS_COUNT_REG=1" }
+    - { name: "zero_lockup", reset: 0,                          expr: "(lfsr_state == 0) ? 1 : 0",                              description: "Set when state transitions to all zeros" }
+    - { name: "running",     reset: 0,                          expr: "ctrl_enable & ~zero_lockup",                              description: "Active when enabled and not locked" }
+  output_rules:
+    - { name: "prbs_serial",   expr: "lfsr_state[LFSR_WIDTH-1]",              width: 1,             port: "prbs_out", description: "MSB for serial mode (OUTPUT_WIDTH=1)" }
+    - { name: "prbs_parallel", expr: "lfsr_state[OUTPUT_WIDTH-1:0]",          width: "OUTPUT_WIDTH", port: "prbs_out", description: "Low bits for parallel mode" }
+    - { name: "prbs_valid",    expr: "running | step_pulse",                  width: 1,             port: "prbs_valid", description: "Valid pulse for one cycle per shift" }
 timing:
   target_clocks:
-    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.5 }
+    - { name: "pclk", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.2 }
   latency_budget:
-    register_access_cycles: { min: 1, max: 2, measured_from: "PSEL && PENABLE", measured_to: "PREADY assertion" }
-    shift_latency_cycles: { min: 1, max: 1, measured_from: "PCLK edge after enable", measured_to: "lfsr_out update" }
-    seed_load_latency_cycles: { min: 1, max: 1, measured_from: "PCLK edge after load_seed APB write", measured_to: "lfsr_out update with seed" }
+    apb_access_cycles: { min: 1, max: 2, measured_from: "PSEL && PENABLE", measured_to: "PREADY" }
+    prbs_output_latency: { min: 1, max: 1, measured_from: "enable/step trigger", measured_to: "prbs_valid pulse" }
   throughput:
-    sustained_beats_per_cycle: 1
-    conditions: "CTRL.enable=1, no seed load in progress"
+    samples_per_cycle: 1
+    conditions: "Free-run mode, non-zero state, no zero-lockup"
   timing_exceptions: []
   io_delays:
     inputs:
-      - { ports: "all_inputs_except_clocks_resets", clock: "PCLK", delay_ns: 2.0, source: "APB-lite typical budget at 50 MHz" }
+      - { ports: "all_inputs_except_PCLK_PRESETn", clock: "pclk", delay_ns: 2.0, source: "system-level timing budget" }
     outputs:
-      - { ports: "all_outputs", clock: "PCLK", delay_ns: 2.0, source: "APB-lite typical budget at 50 MHz" }
+      - { ports: "all_outputs", clock: "pclk", delay_ns: 2.0, source: "system-level timing budget" }
   false_paths:
     - { from: "PRESETn", to: "all_registers", reason: "async reset assertion" }
   multicycle_paths: []
   sta_expectations:
     setup_wns_ns_min: 0.0
     hold_wns_ns_min: 0.0
-    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt"]
 power:
   domains:
-    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["PCLK"], isolation: "not_required_single_domain" }
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["pclk"], isolation: "not_required_single_domain" }
   clock_gating:
     required: false
-    rationale: "Clock always running; IP is low gate-count; gating deferred to SoC level"
+    rationale: "No explicit low-power mode in this IP revision"
   reset_retention:
     retention_required: false
-    reset_value_source: "parameters and registers"
+    reset_value_source: "registers and function_model state_variables"
   power_states:
-    - { name: "ON", entry: "PRESETn deasserted", exit: "PRESETn asserted", guarantees: ["All architectural behavior active"] }
+    - { name: "ON", entry: "reset deasserted", exit: "reset asserted", guarantees: ["All behavior active"] }
   upf_required: false
 security:
   classification: "non_secure_peripheral"
   assets:
     - { name: "register_map", protection: "APB access control is external to this IP" }
-    - { name: "prbs_sequence", protection: "Observable via lfsr_out; no cryptographic security claim" }
+    - { name: "prbs_sequence", protection: "No cryptographic guarantee; LFSR output is deterministic from seed+poly" }
   threat_model:
-    - { threat: "illegal register write via APB", mitigation: "External APB interconnect enforces access control; this IP trusts incoming APB transactions" }
-  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
-  safety_goals: []
+    - { threat: "illegal register write while running", mitigation: "Register writes are accepted in any state; software is responsible for proper sequencing" }
+  privilege_model: "No internal privilege; APB bus fabric enforces access policy"
+  safety_goals:
+    - "Zero-lockup detection prevents silent stall"
 error_handling:
   error_sources:
-    - { id: "ERR_ZERO_SEED", condition: "SEED written to 0x00000000 and load_seed asserted", architectural_effect: "LFSR enters degenerate all-zero state; output stuck at 0", recovery: "Write non-zero SEED and assert load_seed" }
-    - { id: "ERR_ZERO_TAPS", condition: "TAPS written to 0x00000000 and shift enabled", architectural_effect: "Feedback bit stuck at 0; output decays to 0 over POLY_WIDTH shifts", recovery: "Write valid TAPS with LSB=1" }
+    - { id: "ERR_ZERO_LOCKUP", condition: "LFSR state is all zeros after shift", architectural_effect: "STATUS.zero_lockup=1; shifting halted" }
+    - { id: "ERR_INVALID_PRESET", condition: "CTRL.preset_select >= NUM_PRESETS", architectural_effect: "No change to POLY; write ignored" }
   propagation:
-    - "No hardware error detection; degenerate behavior is self-correcting via APB reconfiguration."
+    - "Zero-lockup is visible in STATUS register; no interrupt in this revision."
+    - "Invalid preset is silently ignored."
   recovery:
-    - { action: "software write non-zero SEED + load_seed", clears: ["ERR_ZERO_SEED effect"], preserves: ["TAPS", "CTRL.enable"] }
-    - { action: "software write valid TAPS", clears: ["ERR_ZERO_TAPS effect"], preserves: ["lfsr_state", "SEED"] }
+    - { action: "software writes non-zero seed via CTRL.load_seed", clears: ["STATUS.zero_lockup"], preserves: ["POLY", "COUNT", "CTRL.enable"] }
 debug_observability:
   waveform_must_probe:
     - "lfsr_state"
-    - "tap_mask"
     - "feedback_bit"
-    - "CTRL.enable"
-    - "CTRL.load_seed"
-    - "lfsr_out"
+    - "prbs_out"
+    - "prbs_valid"
+    - "fsm_state (IDLE/RUNNING/STEPPING/ZERO_LOCKUP)"
+    - "ctrl_enable, ctrl_mode"
   status_outputs:
-    - "DATA.data_out (mirrors lfsr_out)"
     - "STATUS.running"
+    - "STATUS.zero_lockup"
   trace_events:
-    - { name: "shift_tick", trigger: "enabled PCLK edge with load_seed=0" }
-    - { name: "seed_load", trigger: "load_seed pulse acknowledged" }
+    - { name: "seed_loaded", trigger: "CTRL.load_seed write" }
+    - { name: "shift_complete", trigger: "prbs_valid pulse" }
+    - { name: "zero_lockup", trigger: "STATUS.zero_lockup transition to 1" }
   debug_registers:
-    - "DATA"
-    - "STATUS"
+    - "STATE (read LFSR state directly)"
+    - "STATUS (running + zero_lockup flags)"
+    - "COUNT (shift counter)"
 integration:
   bus_attachment:
     control: "APB-lite slave"
-    data: null
   connections:
-    - { module: "lfsr_regs", port: "PCLK", signal: "PCLK" }
-    - { module: "lfsr_regs", port: "PRESETn", signal: "PRESETn" }
-    - { module: "lfsr_core", port: "clk", signal: "PCLK" }
-    - { module: "lfsr_core", port: "rst_n", signal: "PRESETn" }
-    - { module: "lfsr_core", port: "enable_i", signal: "ctrl_enable (from lfsr_regs)" }
-    - { module: "lfsr_core", port: "load_seed_i", signal: "ctrl_load_seed (from lfsr_regs)" }
-    - { module: "lfsr_core", port: "seed_i", signal: "seed_value (from lfsr_regs)" }
-    - { module: "lfsr_core", port: "taps_i", signal: "tap_mask_reg (from lfsr_regs)" }
-    - { module: "lfsr_core", port: "state_o", signal: "lfsr_state (to top lfsr_out and lfsr_regs DATA)" }
+    - { module: "lfsr_core", port: "clk_i", signal: "PCLK" }
+    - { module: "lfsr_core", port: "rst_ni", signal: "PRESETn" }
+    - { module: "lfsr_regs", port: "clk_i", signal: "PCLK" }
+    - { module: "lfsr_regs", port: "rst_ni", signal: "PRESETn" }
   address_map_requirements:
     alignment_bytes: 4
     decode_owner: "SoC interconnect"
-    illegal_access_response: "Not applicable — APB-lite has no PSLVERR in baseline"
+    illegal_access_response: "Read returns 0 with PREADY=1; write ignored with PREADY=1 (APB-lite no PSLVERR)"
   dependencies:
     external_modules: []
     external_clocks: ["PCLK"]
     external_resets: ["PRESETn"]
   integration_notes:
-    - "SoC provides APB-lite compliant PSEL/PENABLE sequencing."
-    - "lfsr_out connects to SoC PRBS consumer or observation point."
+    - "SoC APB bus fabric connects PADDR/PSEL/PENABLE/PWRITE/PWDATA to this IP."
+    - "prbs_out and prbs_valid connect directly to downstream consumer logic."
 dft:
   scan_required: false
   scan_ports: []
@@ -453,23 +490,18 @@ dft:
     reset: "PRESETn must be controllable in test mode"
     clocks: ["PCLK"]
   observability:
-    required_internal_points: ["lfsr_state", "feedback_bit"]
+    required_internal_points: ["lfsr_state", "STATUS"]
   mbist_required: false
-  notes: "Register-only design; scan insertion deferred to SoC level"
+  notes: "No SRAM macro; DFT relies on scan insertion during SoC integration."
 synthesis:
   dialect: "systemverilog_2012"
   top_module: "lfsr"
   technology:
-    pdk: "sky130"
-    standard_cell_library: "sky130_fd_sc_hd"
-    liberty_corner: "ss_100C_1v40"
-    liberty_env: "SKY130_LIB"
-    lef_env: "SKY130_LEF"
-    tech_lef_env: "SKY130_TLEF"
-    rcx_rules_env: "SKY130_RCX_RULES"
+    pdk: "generic"
+    standard_cell_library: "generic"
   constraints:
     - "No inferred latches"
-    - "All flops reset async_assert_sync_deassert per clock_reset_domains"
+    - "All flops reset via PRESETn (active-low async)"
     - "No package/interface/modport/function/task/for/while constructs"
   ppa_targets:
     area_um2_max: null
@@ -480,79 +512,45 @@ synthesis:
     - "syn/out/area.rpt"
     - "syn/out/timing_summary.rpt"
 pnr:
-  utilization_pct: 40
+  utilization_pct: 60
   aspect_ratio: 1.0
-  core_space_um: 10.0
-  global_density: 0.60
-  io_layers:
-    horizontal: "met3"
-    vertical: "met2"
-  placement:
-    density_target: 0.60
-    max_displacement_um: null
-  cts:
-    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
-    functional_mode_case_analysis: []
-  routing:
-    signal_layers: { min: "met1", max: "met5" }
-    clock_layers: { min: "met3", max: "met5" }
-    drc_waivers: []
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  cts: { buf_list: ["sky130_fd_sc_hd__clkbuf_4"] }
+  routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
   required_outputs:
-    - "pnr/out/floorplan.def"
-    - "pnr/out/placed.def"
-    - "pnr/out/cts.def"
     - "pnr/out/routed.def"
     - "pnr/out/routed.v"
-    - "pnr/out/routed.spef"
     - "pnr/out/pnr.report.md"
 coding_rules:
   verilog_style: "systemverilog_2012"
   file_extension: ".sv"
   parameter_header: "rtl/lfsr_param.vh"
   conventions:
-    - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
+    - "nonblocking (<=) in sequential always @(posedge clk …)"
     - "blocking (=) in combinational always @(*)"
-    - "No latches: every combinational branch assigns all outputs (use default assignment)"
+    - "No latches: every combinational branch assigns all outputs (use a default)"
     - "Active-low async reset: always @(posedge PCLK or negedge PRESETn) with if (!PRESETn)"
-    - "Parameterize widths (no hardcoded numbers except APB 32-bit data bus)"
-    - "Use rtl/lfsr_param.vh for shared parameter declarations; include inside consuming modules"
+    - "Parameterize widths (no hardcoded numbers)"
+    - "Use rtl/lfsr_param.vh for shared parameter declarations"
     - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
     - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
     - "Use localparam state encoding with logic state/next_state signals"
   lint_waivers:
-    - "UNUSEDSIGNAL: approved tie-offs"
+    - "UNUSEDSIGNAL: explicit tie-offs only"
+    - "WIDTHEXPAND: XOR-reduce of wide vectors"
 reuse_modules: []
 custom:
-  note: "Pipeline-mode assumptions recorded below; user review requested."
   assumptions:
-    - id: "ASM_FIBONACCI_ARCH"
-      description: "LFSR architecture assumed Fibonacci (shift-right, feedback-XOR tree into MSB). Galois variant is a future option."
-      status: "pending_review"
-      yaml_path: "function_model.state_updates.lfsr_state.expr"
-    - id: "ASM_NO_INTERRUPT"
-      description: "No interrupt output; PRBS sequence observation is polling-only via DATA register or lfsr_out port."
-      status: "pending_review"
-      yaml_path: "interrupts"
-    - id: "ASM_APB_LITE_NO_PSLVERR"
-      description: "APB-lite without PSLVERR; illegal address behavior is undefined (wraparound / no response)."
-      status: "pending_review"
-      yaml_path: "io_list.interfaces.apb_slave"
-    - id: "ASM_POLY_WIDTH_32_DEFAULT"
-      description: "POLY_WIDTH defaulted to 32 with DEFAULT_TAPS for PRBS31 (x^31 + x^2 + 1 from ITU-T O.150). Other widths/taps at user discretion."
-      status: "pending_review"
-      yaml_path: "parameters.POLY_WIDTH"
-    - id: "ASM_NO_GALOIS_MODE"
-      description: "Only one polynomial active at a time; no dual-mode Galois/Fibonacci select mux. TAPS register implements Fibonacci tap mask."
-      status: "pending_review"
-      yaml_path: "features"
-    - id: "ASM_SINGLE_CLOCK"
-      description: "Single PCLK domain; no CDC or synchronizers needed."
-      status: "pending_review"
-      yaml_path: "cdc_requirements"
-    - id: "ASM_ZERO_WAIT_STATE_APB"
-      description: "PREADY always 1; APB slave always ready. No backpressure from peripheral."
-      status: "pending_review"
-      yaml_path: "cycle_model.handshake_rules"
+    - "Galois LFSR topology: shift left, XOR-reduce feedback feeds bit 0. No Fibonacci mode in this revision."
+    - "POLY register default is 0 (no taps); software must configure via direct write or preset_select before enabling."
+    - "SEED register default is 1 to avoid immediate zero-lockup on load_seed."
+    - "OUTPUT_WIDTH must be <= LFSR_WIDTH; the SSOT does not enforce this at elaboration time — it is an integration constraint."
+    - "APB-lite interface: no PSLVERR pin; all addresses return OKAY with no side effect for unsupported offsets."
+    - "No interrupt output in this revision; status polled via APB."
+    - "preset_select >= NUM_PRESETS is silently ignored; POLY unchanged."
+    - "PRBS sequence is deterministic from (seed, poly_mask); not cryptographically secure."
 dir_structure:
   template_dirs:
     rtl: "templates/rtl/"
@@ -573,182 +571,156 @@ filelist:
     - "rtl/lfsr.sv"
   sim:
     - "sim/tb_top.sv"
-    - "sim/tb_program.sv"
     - "sim/lfsr_model.sv"
   firmware:
     - "firmware/lfsr_regs.h"
   docs:
     - "docs/register_map.md"
-    - "docs/fsm_diagram.md"
     - "docs/README.md"
 test_requirements:
   scenarios:
-    - id: "SC_PRBS_SHIFT"
-      name: "Basic PRBS shift operation"
-      stimulus: "Assert PRESETn deasserted. Write SEED=0xDEADBEEF, TAPS for PRBS31 (0x80000004). Write CTRL.enable=1. Run for 100 PCLK cycles."
-      expected: "lfsr_out updates every enabled cycle; sequence matches reference Python model applying Fibonacci shift formula."
-      checker: "Scoreboard compares RTL lfsr_out against Python reference model per-cycle."
-      coverage: ["FM_SHIFT", "S2_SHIFT_EVAL", "S3_OUTPUT_UPDATE"]
-    - id: "SC_SEED_LOAD"
-      name: "Seed load operation"
-      stimulus: "Write SEED=0x12345678. Write CTRL.load_seed=1. Wait 2 cycles. Read DATA."
-      expected: "DATA == 0x12345678. CTRL.load_seed reads back 0 (self-cleared)."
-      checker: "APB readback assertion on DATA register; self-clear check on CTRL.load_seed field."
-      coverage: ["FM_LOAD_SEED", "S3_OUTPUT_UPDATE"]
-    - id: "SC_ENABLE_GATE"
-      name: "Enable/disable gating"
-      stimulus: "With SEED loaded and TAPS configured, set CTRL.enable=1 for 5 cycles, then CTRL.enable=0 for 3 cycles, then CTRL.enable=1 again."
-      expected: "lfsr_out advances during enabled cycles; holds value during disabled cycles; resumes correctly."
-      checker: "Scoreboard tracks lfsr_out per-cycle; verifies hold during disabled windows."
-      coverage: ["FM_IDLE", "S2_SHIFT_EVAL"]
-    - id: "SC_APB_RW"
-      name: "APB register read/write"
-      stimulus: "Write known values to CTRL, SEED, TAPS. Read back all registers. Write to DATA (expect no change — RO)."
-      expected: "CTRL.enable, SEED, TAPS read back written values. DATA read ignores write (RO). STATUS.running matches CTRL.enable."
-      checker: "APB readback assertion; RO write-ignore check."
-      coverage: ["S0_REGISTER_READ", "S1_REGISTER_WRITE"]
-    - id: "SC_RESET"
-      name: "Reset behavior"
-      stimulus: "Configure SEED/TAPS/CTRL. Assert PRESETn low for 3 cycles, deassert. Read all registers."
-      expected: "All registers at reset values. lfsr_out = DEFAULT_SEED. CTRL.enable = 0."
-      checker: "APB readback after reset; lfsr_out sampling."
-      coverage: ["cycle_model.reset"]
-    - id: "SC_ZERO_SEED_DEGENERATE"
-      name: "Zero-seed degenerate behavior"
-      stimulus: "Write SEED=0x00000000. Assert load_seed. Enable shift for 10 cycles."
-      expected: "lfsr_out stays 0x00000000 (degenerate all-zero)."
-      checker: "Scoreboard verifies stuck-at-zero output."
-      coverage: ["ERR_ZERO_SEED"]
-    - id: "SC_DEFAULT_TAPS_PRBS31"
-      name: "Default PRBS31 maximal-length sequence check"
-      stimulus: "With DEFAULT_SEED and DEFAULT_TAPS, enable shift for (2^31 - 1) beats (or a proven subset with known check pattern)."
-      expected: "Sequence matches ITU-T O.150 PRBS31 reference at known check points."
-      checker: "Scoreboard compares per-cycle against golden PRBS31 model; asserts known check-value at offset N."
-      coverage: ["FM_SHIFT", "CCOV_PRBS31_CHECK"]
-  scoreboard_checks: 7
+    - id: "SC1"
+      name: "Free-run PRBS generation"
+      stimulus: "Configure SEED=0xACE1, POLY=0xA3000001 (PRBS-31), set CTRL.enable=1 CTRL.mode=0, run 1000 cycles"
+      expected: "prbs_out changes every cycle, prbs_valid pulses every cycle, STATE register matches reference model, COUNT increments by 1000"
+      checker: "Python reference model compares expected lfsr_state and prbs_out per cycle"
+      coverage: ["FM1", "S3_SHIFT", "S4_OUTPUT"]
+    - id: "SC2"
+      name: "Single-step PRBS generation"
+      stimulus: "Configure SEED=0x1, POLY=0x3 (4-bit LFSR), set CTRL.mode=1, pulse CTRL.step_req three times"
+      expected: "Exactly 3 shifts occur, prbs_valid pulses 3 times, COUNT=3"
+      checker: "Reference model verifies each step state"
+      coverage: ["FM2", "STEPPING"]
+    - id: "SC3"
+      name: "Seed load and resume from zero-lockup"
+      stimulus: "Run until zero-lockup occurs (seed=0), then write SEED=0xDEAD, CTRL.load_seed=1"
+      expected: "STATUS.zero_lockup=1 after zero state, cleared after seed load, LFSR resumes generating"
+      checker: "Check STATUS.zero_lockup transitions and output resumes"
+      coverage: ["FM3", "ZERO_LOCKUP", "ERR_ZERO_LOCKUP"]
+    - id: "SC4"
+      name: "Polynomial preset selection"
+      stimulus: "Write CTRL.preset_select=0 (PRBS-7), verify POLY loaded; write preset_select=99 (invalid), verify POLY unchanged"
+      expected: "Valid preset loads correct POLY mask; invalid preset ignored"
+      checker: "Read back POLY after each write"
+      coverage: ["FM4", "ERR_INVALID_PRESET"]
+    - id: "SC5"
+      name: "Reset clears all state"
+      stimulus: "Run LFSR for 100 cycles, assert PRESETn, deassert"
+      expected: "STATE=0, STATUS=0, COUNT=0, prbs_valid=0, prbs_out=0 after reset"
+      checker: "Read all registers post-reset"
+      coverage: ["reset"]
+    - id: "SC6"
+      name: "APB register readback"
+      stimulus: "Write all writable registers, read them back"
+      expected: "Read data matches written data for CTRL, SEED, POLY; STATE and STATUS reflect current operation"
+      checker: "APB readback comparison"
+      coverage: ["APB_access"]
+    - id: "SC7"
+      name: "Seed load while running"
+      stimulus: "Run in free-run mode, trigger CTRL.load_seed mid-stream"
+      expected: "LFSR state overwritten with SEED value, generation continues from new state"
+      checker: "State changes immediately, output sequence restarts from new seed"
+      coverage: ["FM3", "seed_load_precedence"]
+  scoreboard_checks: 12
   coverage_goals:
     function:
       target_pct: 100
       model: "function_model"
-      description: "Cycle-independent behavioral intent coverage; proves what LFSR computes."
+      description: "Behavioral coverage: what the LFSR computes per transaction."
       bins:
-        - { id: "FCOV_FM_SHIFT", source_ref: "function_model.transactions.FM_SHIFT", class: "transaction", description: "LFSR shift transaction observed by scoreboard" }
-        - { id: "FCOV_FM_LOAD_SEED", source_ref: "function_model.transactions.FM_LOAD_SEED", class: "transaction", description: "Seed load transaction observed by scoreboard" }
-        - { id: "FCOV_FM_IDLE", source_ref: "function_model.transactions.FM_IDLE", class: "transaction", description: "Hold/idle transaction observed" }
-        - { id: "FCOV_ERR_ZERO_SEED", source_ref: "error_handling.error_sources.ERR_ZERO_SEED", class: "error_case", description: "Zero-seed degenerate behavior observed" }
+        - { id: "FCOV_FREE_RUN_SHIFT", source_ref: "function_model.transactions.FM1", class: "transaction", description: "Free-run shift observed by scoreboard" }
+        - { id: "FCOV_SINGLE_STEP", source_ref: "function_model.transactions.FM2", class: "transaction", description: "Single-step shift observed" }
+        - { id: "FCOV_SEED_LOAD", source_ref: "function_model.transactions.FM3", class: "transaction", description: "Seed load observed" }
+        - { id: "FCOV_PRESET_SELECT", source_ref: "function_model.transactions.FM4", class: "transaction", description: "Preset polynomial load observed" }
+        - { id: "FCOV_ZERO_LOCKUP", source_ref: "function_model.transactions.FM1.error_cases", class: "error_case", description: "Zero-lockup detection observed" }
     cycle:
       target_pct: 100
       model: "cycle_model"
-      description: "Cycle/handshake/latency/FSM coverage; proves when LFSR behavior occurs."
+      description: "Cycle/handshake/FSM coverage: when behavior occurs."
       bins:
-        - { id: "CCOV_STAGE_REG_READ", source_ref: "cycle_model.pipeline.S0_REGISTER_READ", class: "pipeline_stage", description: "APB read access phase observed" }
-        - { id: "CCOV_STAGE_REG_WRITE", source_ref: "cycle_model.pipeline.S1_REGISTER_WRITE", class: "pipeline_stage", description: "APB write access phase observed" }
-        - { id: "CCOV_STAGE_SHIFT_EVAL", source_ref: "cycle_model.pipeline.S2_SHIFT_EVAL", class: "pipeline_stage", description: "Shift feedback eval stage observed" }
-        - { id: "CCOV_STAGE_OUT_UPDATE", source_ref: "cycle_model.pipeline.S3_OUTPUT_UPDATE", class: "pipeline_stage", description: "Output update stage observed" }
-        - { id: "CCOV_HANDSHAKE_PSEL", source_ref: "cycle_model.handshake_rules.PSEL/PENABLE", class: "handshake", description: "APB handshake rule observed" }
-        - { id: "CCOV_FSM_IDLE_TO_SHIFT", source_ref: "fsm.lfsr_core_fsm.transitions", class: "state_transition", description: "FSM transition IDLE→SHIFT observed" }
-        - { id: "CCOV_FSM_SHIFT_TO_LOAD", source_ref: "fsm.lfsr_core_fsm.transitions", class: "state_transition", description: "FSM transition SHIFT→LOAD_SEED observed" }
-        - { id: "CCOV_PERF_THROUGHPUT", source_ref: "cycle_model.performance.throughput", class: "throughput", description: "Sustained 1 beat/cycle throughput condition exercised" }
-        - { id: "CCOV_PERF_DEPTH", source_ref: "cycle_model.performance.depth", class: "depth", description: "2-stage pipeline depth exercised" }
-        - { id: "CCOV_RESET", source_ref: "cycle_model.reset", class: "reset", description: "Reset assertion/deassertion cycle observed" }
-        - { id: "CCOV_PRBS31_CHECK", source_ref: "test_requirements.scenarios.SC_DEFAULT_TAPS_PRBS31", class: "sequence_check", description: "PRBS31 reference model check passed" }
-    functional: "Legacy alias: function + cycle coverage must both close."
-    line: ">= 90%"
-    branch: ">= 85%"
-    fsm: "100% declared FSM states and legal transitions covered"
-    assertions: "All protocol/order assertions pass"
+        - { id: "CCOV_SHIFT_COMPLETE", source_ref: "cycle_model.pipeline.S3_SHIFT", class: "pipeline_stage", description: "Shift+output stage observed" }
+        - { id: "CCOV_PRBS_VALID_PULSE", source_ref: "cycle_model.handshake_rules.prbs_valid", class: "handshake", description: "prbs_valid one-cycle pulse observed" }
+        - { id: "CCOV_FSM_IDLE_RUNNING", source_ref: "fsm.lfsr_control.transitions", class: "state_transition", description: "IDLE→RUNNING transition observed" }
+        - { id: "CCOV_FSM_RUNNING_ZERO_LOCKUP", source_ref: "fsm.lfsr_control.transitions", class: "state_transition", description: "RUNNING→ZERO_LOCKUP transition observed" }
+        - { id: "CCOV_FSM_ZERO_LOCKUP_IDLE", source_ref: "fsm.lfsr_control.transitions", class: "state_transition", description: "ZERO_LOCKUP→IDLE via seed load observed" }
+    functional: "Function + cycle coverage must both close."
+    code: "line >= 90%, branch >= 85%"
 quality_gates:
   ssot:
-    pass: "All canonical sections present; substantive; internally consistent; ≤5 live TBD markers."
-    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+    pass: "All canonical sections present, substantive, no TBD placeholders."
+    evidence: ["check_ssot_disk.sh PASS"]
   rtl_gen:
-    profile: "standard"
+    profile: "production"
     target_scale:
-      basis: "Small peripheral IP — no structural depth minima enforced"
+      basis: "LFSR is a small peripheral; depth target not enforced"
       source_files_min: 0
       modules_min: 0
-      procedural_blocks_min: 0
-      state_updates_min: 0
-      depth_score_min: 0
-      logic_modules_min: 0
-      behavior_owner_logic_modules_min: 0
     target_scale_waiver:
       approved: true
-      reason: "Small peripheral IP; structural depth gates not applicable"
-      owner: "ssot-gen auto-waiver"
-    pass: "SSOT-derived rtl_todo_plan has no blockers. RTL compiles; lints clean; FL-vs-RTL equivalence passes; coverage goals close."
-    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "sim/fl_rtl_goal_audit.json", "cov/coverage.json"]
+      reason: "Small peripheral IP; structural depth not a meaningful gate"
+      owner: "ssot-gen"
+    pass: "SSOT-derived RTL compiles, lints, and matches function_model/cycle_model."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json"]
   rtl:
-    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches locked FL/CL authority."
-    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard audit"]
+    pass: "RTL implements function_model and cycle_model, compiles, lints."
+    evidence: ["rtl compile report", "dut lint report"]
   coverage:
-    pass: "SSOT-declared functional/code/FSM coverage goals pass or have approved waivers."
-    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+    pass: "SSOT-declared function/cycle/code coverage goals pass."
+    evidence: ["cov/coverage.json"]
   eda:
-    pass: "Synthesis, STA, PnR, and post-route STA meet SSOT targets."
-    evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
+    pass: "Synthesis and STA meet timing targets."
+    evidence: ["syn report", "sta reports"]
 traceability:
   yaml_to_output:
     - { yaml: "top_module.name", output: "ALL files (module name)" }
-    - { yaml: "parameters", output: "lfsr_param.vh" }
+    - { yaml: "parameters", output: "lfsr_param.vh (shared parameter include)" }
     - { yaml: "io_list.interfaces", output: "lfsr.sv (port list)" }
     - { yaml: "registers.register_list", output: "lfsr_regs.sv + firmware + docs" }
-    - { yaml: "function_model", output: "lfsr_core.sv + tb/cocotb scoreboard/reference model" }
-    - { yaml: "cycle_model", output: "lfsr_core.sv pipeline + waveform checks" }
-    - { yaml: "fsm", output: "lfsr_core.sv + docs/fsm_diagram.md" }
+    - { yaml: "function_model", output: "lfsr_core.sv + reference model" }
+    - { yaml: "cycle_model", output: "lfsr_core.sv shift/feedback logic + waveform checks" }
+    - { yaml: "fsm", output: "lfsr_core.sv FSM + docs" }
     - { yaml: "timing", output: "STA constraints" }
-    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
-    - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
+    - { yaml: "test_requirements", output: "sim/tb_top.sv and test scenarios" }
 workflow_todos:
   fl-model-gen: []
   rtl-gen:
-    - id: "RTL_LFSR_CORE"
-      content: "Implement LFSR shift engine with Fibonacci feedback"
-      detail: "Translate function_model.state_updates into RTL: XOR-reduce feedback tree, shift-right logic, seed load mux with priority. Use cycle_model.pipeline for register staging. Implement FSM states IDLE/SHIFT/LOAD_SEED per fsm.lfsr_core_fsm."
+    - id: "RTL_TODO_LFSR_CORE"
+      content: "Implement LFSR shift register with XOR-reduce feedback in lfsr_core.sv"
+      detail: "Translate function_model FM1/FM2 transactions and cycle_model pipeline into RTL state/datapath/control logic in lfsr_core.sv. Implement Galois LFSR: shift left, feedback = XOR-reduce(lfsr_state & poly_mask), insert at bit 0."
       criteria:
-        - "RTL owner logic is present in rtl/lfsr_core.sv"
-        - "FunctionalModel expected lfsr_out matches RTL observed lfsr_out for all scenarios"
-        - "All FSM states and transitions implemented"
-      source_refs: ["function_model.state_updates", "cycle_model.pipeline", "fsm.lfsr_core_fsm"]
+        - "lfsr_core.sv contains lfsr_state register with parameterized LFSR_WIDTH"
+        - "Feedback XOR-reduce logic matches function_model expression"
+        - "FSM states IDLE/RUNNING/STEPPING/ZERO_LOCKUP match fsm.lfsr_control"
+        - "prbs_out and prbs_valid ports match io_list"
+      source_refs: ["function_model.transactions", "cycle_model.pipeline", "fsm.lfsr_control"]
       owner_module: "lfsr_core"
       owner_file: "rtl/lfsr_core.sv"
       priority: "high"
       required: true
-    - id: "RTL_LFSR_REGS"
-      content: "Implement APB-lite register block with CSR map"
-      detail: "Translate registers.register_list into APB-lite decode/read/write logic. Implement zero-wait-state PREADY. Handle RO register write-ignore. Implement CTRL.load_seed self-clearing pulse."
+    - id: "RTL_TODO_LFSR_REGS"
+      content: "Implement APB-lite register decode in lfsr_regs.sv"
+      detail: "Decode PADDR for CTRL/SEED/POLY/STATE/STATUS/COUNT registers per registers.register_list. Zero-wait-state PREADY. Auto-clear load_seed and step_req."
       criteria:
-        - "RTL owner logic is present in rtl/lfsr_regs.sv"
-        - "All register fields read/write per access policy"
-        - "APB-lite protocol timing matches cycle_model.handshake_rules"
-      source_refs: ["registers.register_list", "io_list.interfaces.apb_slave", "cycle_model.handshake_rules"]
+        - "APB-lite protocol timing matches cycle_model.latency"
+        - "All register fields match bit ranges and access policies"
+        - "load_seed and step_req auto-clear"
+      source_refs: ["registers.register_list", "cycle_model.latency"]
       owner_module: "lfsr_regs"
       owner_file: "rtl/lfsr_regs.sv"
       priority: "high"
       required: true
-    - id: "RTL_LFSR_TOP"
-      content: "Wire top-level lfsr.sv connecting lfsr_regs and lfsr_core"
-      detail: "Instantiate lfsr_regs and lfsr_core. Connect per integration.connections. Route lfsr_out from lfsr_core state to top-level output and DATA register readback."
+    - id: "RTL_TODO_LFSR_TOP"
+      content: "Implement top-level wiring in lfsr.sv"
+      detail: "Instantiate lfsr_regs and lfsr_core, wire APB ports, clock/reset, and output ports per io_list."
       criteria:
-        - "All integration.connections wired with named port maps"
-        - "Top IO contract matches io_list"
-        - "No undriven outputs or unconnected inputs"
-      source_refs: ["integration.connections", "io_list"]
+        - "Top module port list matches io_list exactly"
+        - "All sub-module instances wired per integration.connections"
+      source_refs: ["io_list", "integration.connections"]
       owner_module: "lfsr"
       owner_file: "rtl/lfsr.sv"
-      priority: "medium"
-      required: true
-  tb-gen:
-    - id: "TB_LFSR_SCOREBOARD"
-      content: "Create cocotb scoreboard from function_model"
-      detail: "Implement Python reference model applying function_model.state_updates algebraically. Compare expected lfsr_out against RTL observed value per-PCLK-cycle for all test_requirements.scenarios."
-      criteria:
-        - "All 7 scoreboard checks pass"
-        - "All coverage_goals bins hit"
-      source_refs: ["function_model", "test_requirements"]
-      owner_file: "sim/tb_program.sv"
       priority: "high"
       required: true
+  tb-gen: []
   sim_debug: []
   coverage: []
   syn: []
@@ -758,9 +730,9 @@ workflow_todos:
 generation_flow:
   steps:
     - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh lfsr", description: "Validate production SSOT structure and quality gates" }
-    - { name: "handoff_fl_model", command: "/ssot-fl-model lfsr", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals" }
-    - { name: "handoff_rtl", command: "/ssot-rtl lfsr", description: "Downstream RTL generation from validated SSOT" }
-    - { name: "handoff_tb", command: "/ssot-tb lfsr", description: "Downstream cocotb verification from validated SSOT" }
-    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Waveform, failure, and coverage inspection after sim" }
-    - { name: "handoff_coverage", command: "/coverage lfsr", description: "Measure SSOT-declared coverage goals" }
-    - { name: "handoff_eda", command: "/syn lfsr && /sta lfsr && /pnr lfsr && /sta-post lfsr", description: "Synthesis, STA, PnR, post-route STA evidence" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model lfsr", description: "FunctionalModel from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl lfsr", description: "RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb lfsr", description: "Testbench from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Simulation and debug" }
+    - { name: "handoff_coverage", command: "/coverage lfsr", description: "Coverage measurement" }
+    - { name: "handoff_eda", command: "/syn lfsr && /sta lfsr", description: "Synthesis and STA" }

@@ -6162,7 +6162,13 @@ def _assignment_exprs_for_lhs(body: str, port: str) -> list[dict[str, Any]]:
         if re.search(r"\bassign\s+$", prefix):
             continue
         expr = " ".join(match.group(1).split())
-        records.append({"kind": "procedural_assign", "expr": expr, "constant": _is_constant_expr(expr)})
+        context = clean[max(0, match.start() - 240):match.start()]
+        records.append({
+            "kind": "procedural_assign",
+            "expr": expr,
+            "constant": _is_constant_expr(expr),
+            "control_context": bool(re.search(r"\b(?:if|else|case)\b", context)),
+        })
     return records
 
 
@@ -6298,8 +6304,13 @@ def _audit_top_output_drives(ip_dir: Path, plan: dict[str, Any]) -> dict[str, An
             child_records.extend(_child_output_drive_records(body, port, port_details_by_module))
         nonconstant_assigns = [record for record in assignment_records if not record.get("constant")]
         constant_assigns = [record for record in assignment_records if record.get("constant")]
+        controlled_constant_values = {
+            _normalize_expr(str(record.get("expr") or ""))
+            for record in assignment_records
+            if record.get("kind") == "procedural_assign" and record.get("constant") and record.get("control_context")
+        }
         accepted_child = [record for record in child_records if record.get("accepted")]
-        if nonconstant_assigns or accepted_child:
+        if nonconstant_assigns or accepted_child or len(controlled_constant_values) > 1:
             driven += 1
             continue
         if constant_assigns and allow_constant:

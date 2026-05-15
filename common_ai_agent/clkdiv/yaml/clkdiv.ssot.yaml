@@ -1,1359 +1,426 @@
+# =============================================================================
+# clkdiv.ssot.yaml — Configurable Clock Divider — Single Source of Truth
+# =============================================================================
 top_module:
-  name: clkdiv
-  file: rtl/clkdiv.sv
+  name: "clkdiv"
+  file: "rtl/clkdiv.sv"
   version: "1.0"
-  type: peripheral
-  description: "Configurable clock divider with APB-lite CSR, parameterized counter width, near-50% duty cycle output."
+  type: "peripheral"
+  description: "Configurable clock divider that divides input clock PCLK by a programmable ratio and produces a gated output clock CLKOUT."
   reference_spec: "user-defined"
   target:
-    technology: generic
+    technology: "generic"
     clock_freq_mhz: 50
     area_um2: null
     power_mw: null
 sub_modules:
-- name: clkdiv_structure
-  file: rtl/clkdiv_structure.sv
-  ownership: manifest
-  ssot_gen: true
-  implements:
-  - io_list.interfaces.apb_slave
-  - io_list.interfaces.clock_output
-  - function_model
-  - cycle_model
-  - registers.register_list
-  - dataflow
-  - features
-  - fsm
-  - error_handling
-  source_sections:
-  - io_list
-  - features
-  - dataflow
-  - function_model
-  - cycle_model
-  - registers
-  - fsm
-  - error_handling
-  function_model_refs:
-  - function_model
-  - function_model.state_variables
-  - function_model.transactions
-  - function_model.invariants
-  cycle_model_refs:
-  - cycle_model
-  - cycle_model.handshake_rules
-  - cycle_model.pipeline
-  - cycle_model.ordering
-  - cycle_model.latency
-  register_refs:
-  - registers.register_list
-  - registers.register_list.DIVISOR
-  - registers.register_list.CTRL
-  - registers.register_list.STATUS
-  dataflow_refs:
-  - dataflow
-  - dataflow.sequence
-  feature_refs:
-  - features
-  - features.apb_register_access
-  - features.clock_division
-  - features.divisor_update
-  fsm_refs:
-  - fsm
-  - fsm.control
-  test_refs:
-  - test_requirements.scenarios
-  trace_refs:
-  - traceability.yaml_to_output
-  description: "APB register decode, clock division counter, output toggle logic, and error response."
-- name: clkdiv
-  file: rtl/clkdiv.sv
-  ownership: manifest
-  ssot_gen: true
-  wiring_only: true
-  kind: top_wrapper
-  implements:
-  - top_module
-  - io_list
-  - integration.connections
-  - filelist
-  source_sections:
-  - top_module
-  - io_list
-  - integration
-  - filelist
-  ssot_refs:
-  - top_module
-  - io_list.interfaces
-  - integration.connections
-  - filelist.rtl
-  ports:
-  - PCLK
-  - PRESETn
-  - PADDR
-  - PSEL
-  - PENABLE
-  - PWRITE
-  - PWDATA
-  - PSTRB
-  - PRDATA
-  - PREADY
-  - PSLVERR
-  - clkdiv_o
-  connections:
-  - module: clkdiv_structure
-    port: PCLK
-    signal: PCLK
-  - module: clkdiv_structure
-    port: PRESETn
-    signal: PRESETn
-  - module: clkdiv_structure
-    port: PADDR
-    signal: PADDR
-  - module: clkdiv_structure
-    port: PSEL
-    signal: PSEL
-  - module: clkdiv_structure
-    port: PENABLE
-    signal: PENABLE
-  - module: clkdiv_structure
-    port: PWRITE
-    signal: PWRITE
-  - module: clkdiv_structure
-    port: PWDATA
-    signal: PWDATA
-  - module: clkdiv_structure
-    port: PSTRB
-    signal: PSTRB
-  - module: clkdiv_structure
-    port: PRDATA
-    signal: PRDATA
-  - module: clkdiv_structure
-    port: PREADY
-    signal: PREADY
-  - module: clkdiv_structure
-    port: PSLVERR
-    signal: PSLVERR
-  - module: clkdiv_structure
-    port: clkdiv_o
-    signal: clkdiv_o
-  description: "Top-level wrapper that exposes the SSOT port contract and instantiates clkdiv_structure."
-
+  - { name: "clkdiv_regs", file: "rtl/clkdiv_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list", "io_list.interfaces.apb_slave"], source_sections: ["registers", "io_list"], register_refs: ["registers.register_list"], description: "APB-lite register decode and storage" }
+  - { name: "clkdiv_core", file: "rtl/clkdiv_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model", "cycle_model", "fsm", "features"], source_sections: ["function_model", "cycle_model", "fsm", "features"], function_model_refs: ["function_model.transactions", "function_model.state_variables", "function_model.output_rules"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"], fsm_refs: ["fsm.counter_toggle"], description: "Counter/toggle clock divider core logic" }
 decomposition:
   units:
-  - id: apb_register_decode
-    kind: control
-    source_refs:
-    - io_list.interfaces.apb_slave
-    - registers.register_list
-    - error_handling.unsupported_address
-    rtl_candidates:
-    - clkdiv_structure
-    verification_impact:
-    - test_requirements.scenarios.register_access
-    - test_requirements.scenarios.invalid_address
-    description: "Decode one-cycle APB accesses for supported register offsets (0x00, 0x04, 0x08) and return pslverr for unsupported addresses."
-  - id: clock_division_counter
-    kind: datapath/control
-    source_refs:
-    - registers.register_list.DIVISOR
-    - registers.register_list.CTRL
-    - registers.register_list.STATUS
-    - fsm.control
-    - cycle_model.pipeline
-    rtl_candidates:
-    - clkdiv_structure
-    verification_impact:
-    - test_requirements.scenarios.division_ratio
-    - test_requirements.scenarios.duty_cycle
-    description: "Counter-based clock divider producing clkdiv_o with near-50% duty cycle per fsm.control.notes."
-  - id: top_integration
-    kind: wiring
-    source_refs:
-    - top_module
-    - io_list
-    - integration.connections
-    rtl_candidates:
-    - clkdiv
-    verification_impact:
-    - quality_gates.rtl
-    description: "Expose top ports and connect them by name to the manifest-owned structure module."
-rtl_contract:
-  top_module: clkdiv
-  clock: PCLK
-  reset: PRESETn
-  transaction: "FM_CLOCK_DIVIDE"
-  sample_condition: "PCLK rising edge after PRESETn deasserted"
-  input_map:
-    divisor_write: "APB PWDATA at offset 0x00"
-    enable_write: "APB PWDATA bit 0 at offset 0x04"
-    pclk_edge: "PCLK rising edge"
-  output_map:
-    clock_output: clkdiv_o
-    apb_read_data: PRDATA
-    apb_ready: PREADY
-    apb_error: PSLVERR
-  state_updates:
-  - name: divisor_q
-    reset: 0
-    expr: "APB write to 0x00 → PWDATA[COUNTER_WIDTH-1:0]; else hold"
-  - name: enable_q
-    reset: 0
-    expr: "APB write to 0x04 → PWDATA[0]; else hold"
-  - name: counter_q
-    reset: 0
-    expr: "enable_q ? (counter_q >= effective_divisor_q-1 ? 0 : counter_q+1) : 0"
-  - name: clkdiv_o
-    reset: 0
-    expr: "enable_q ? (counter_q < half_period_q) : 1'b0"
-  observable_outputs:
-  - PRDATA
-  - PREADY
-  - PSLVERR
-  - clkdiv_o
+    - { id: "csr_decode", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["clkdiv_regs"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "counter_toggle", kind: "datapath", source_refs: ["function_model.transactions", "cycle_model.pipeline"], rtl_candidates: ["clkdiv_core"], verification_impact: ["coverage_goals.function", "coverage_goals.cycle"] }
 parameters:
-- name: COUNTER_WIDTH
-  default: 16
-  type: int
-  description: "Width of internal counter and divisor register field. Max divisor = 2^COUNTER_WIDTH - 1."
-  drives:
-  - rtl/clkdiv_structure.sv
-  - rtl/clkdiv.sv
-- name: DATA_WIDTH
-  default: 32
-  type: int
-  description: "APB data width in bits."
-  drives:
-  - rtl/clkdiv_structure.sv
-  - rtl/clkdiv.sv
-- name: APB_ADDR_WIDTH
-  default: 8
-  type: int
-  description: "APB local address width in bits."
-  drives:
-  - rtl/clkdiv_structure.sv
-  - rtl/clkdiv.sv
-- name: PCLK_FREQ_MHZ
-  default: 50
-  type: int
-  description: "Input PCLK frequency in MHz (metadata, not synthesized)."
-  drives:
-  - tb/cocotb/test_clkdiv.py
-  - doc/clkdiv_mas.md
+  - { name: "DIV_WIDTH", default: 16, type: int, description: "Counter width in bits; sets maximum division ratio to 2^DIV_WIDTH-1", drives: ["clkdiv_core.sv", "clkdiv_regs.sv"] }
+  - { name: "PCLK_FREQ_MHZ", default: 50, type: int, description: "Input clock frequency in MHz for documentation/timing", drives: ["tb_top.sv", "docs/README.md"] }
+  - { name: "DEFAULT_DIV_RATIO", default: 2, type: int, description: "Power-on division ratio value loaded into DIV_RATIO register", drives: ["clkdiv_regs.sv", "clkdiv_core.sv"] }
+  - { name: "RESET_POLARITY", default: "active_low", type: enum, values: ["active_low", "active_high"], drives: ["ALL .sv files"] }
+  - { name: "APB_ADDR_WIDTH", default: 12, type: int, description: "APB address bus width", drives: ["clkdiv_regs.sv"] }
 io_list:
   clock_domains:
-  - name: pclk_domain
-    frequency_mhz: 50
-    description: "Main peripheral clock domain"
-    ports:
-    - name: PCLK
-      width: 1
-      direction: input
-      description: "50 MHz input clock"
+    - name: "PCLK"
+      frequency_mhz: 50
+      description: "Main input clock — the clock being divided"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "Input clock to be divided" }
   resets:
-  - name: presetn_domain
-    polarity: active_low
-    sync_async: async_assert_sync_deassert
-    description: "Active-low asynchronous reset, synchronous deassert"
-    ports:
-    - name: PRESETn
-      width: 1
-      direction: input
-      description: "Active-low reset"
+    - name: "PRESETn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Main reset — asynchronously asserts, synchronously deasserts"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low asynchronous reset" }
   interfaces:
-  - name: apb_slave
-    type: APB4
-    clock: PCLK
-    reset: PRESETn
-    description: "APB-lite slave register interface for divisor/control CSR"
-    protocol:
-      setup_phase: "psel=1, penable=0 captures paddr, pwrite, pwdata."
-      access_phase: "psel=1, penable=1 completes transaction when pready=1."
-      read_rule: "prdata valid concurrent with pready=1 for reads."
-      write_rule: "pwdata sampled concurrent with pready=1 for writes."
-      error_rule: "pslverr asserted with pready=1 for unsupported APB offsets."
-    ports:
-    - name: PADDR
-      width: 8
-      direction: input
-      description: "APB byte address"
-    - name: PSEL
-      width: 1
-      direction: input
-      description: "APB select"
-    - name: PENABLE
-      width: 1
-      direction: input
-      description: "APB access phase enable"
-    - name: PWRITE
-      width: 1
-      direction: input
-      description: "APB write enable"
-    - name: PWDATA
-      width: 32
-      direction: input
-      description: "APB write data"
-    - name: PSTRB
-      width: 4
-      direction: input
-      description: "APB byte write strobes"
-    - name: PRDATA
-      width: 32
-      direction: output
-      description: "APB read data"
-    - name: PREADY
-      width: 1
-      direction: output
-      description: "APB ready — always one-cycle response (pready=1)"
-    - name: PSLVERR
-      width: 1
-      direction: output
-      description: "APB error on unsupported address"
-  - name: clock_output
-    type: divided_clock
-    clock: PCLK
-    reset: PRESETn
-    description: "Divided clock output with near-50% duty cycle"
-    protocol:
-      output_rule: "clkdiv_o toggles on PCLK rising edge based on counter_q vs half_period_q when enable_q=1. Held low when enable_q=0."
-      duty_cycle: "Even effective divisor: 50% duty cycle. Odd effective divisor: high phase one PCLK cycle longer than low phase."
-      passthrough: "DIVISOR=0 (effective divisor=1): clkdiv_o = PCLK."
-      frequency: "f_clkdiv_o = f_PCLK / (DIVISOR + 1)"
-    ports:
-    - name: clkdiv_o
-      width: 1
-      direction: output
-      description: "Divided clock output = PCLK / DIVISOR"
-  top_ports:
-  - name: PCLK
-    direction: input
-    width: 1
-    description: "System clock"
-  - name: PRESETn
-    direction: input
-    width: 1
-    description: "Active-low reset"
-  - name: PADDR
-    direction: input
-    width: 8
-    description: "APB address"
-  - name: PSEL
-    direction: input
-    width: 1
-    description: "APB select"
-  - name: PENABLE
-    direction: input
-    width: 1
-    description: "APB enable"
-  - name: PWRITE
-    direction: input
-    width: 1
-    description: "APB write"
-  - name: PWDATA
-    direction: input
-    width: 32
-    description: "APB write data"
-  - name: PSTRB
-    direction: input
-    width: 4
-    description: "APB strobes"
-  - name: PRDATA
-    direction: output
-    width: 32
-    description: "APB read data"
-  - name: PREADY
-    direction: output
-    width: 1
-    description: "APB ready"
-  - name: PSLVERR
-    direction: output
-    width: 1
-    description: "APB error"
-  - name: clkdiv_o
-    direction: output
-    width: 1
-    description: "Divided clock output"
+    - name: "apb_slave"
+      type: "APB4"
+      role: "slave"
+      description: "APB-lite CSR interface for runtime configuration"
+      protocol:
+        setup_phase: "psel=1, penable=0 captures address and control."
+        access_phase: "psel=1, penable=1 completes when pready=1."
+        read_rule: "prdata is valid in the completing access phase for reads."
+        write_rule: "pwdata is sampled in the completing access phase for writes."
+        error_rule: "pslverr is never asserted (APB-lite — no error response)."
+      ports:
+        - { name: "PADDR",   width: 12, direction: "input",  description: "APB address bus" }
+        - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write (1=write, 0=read)" }
+        - { name: "PWDATA",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready (always 1 — zero wait-state)" }
+    - name: "clkout"
+      type: "custom"
+      description: "Divided output clock"
+      ports:
+        - { name: "CLKOUT", width: 1, direction: "output", description: "Divided output clock (gated by output_enable)" }
 features:
-- id: apb_register_access
-  name: "APB register access"
-  description: "One-cycle APB4 read/write to DIVISOR, CTRL, and STATUS registers. Unsupported offsets assert PSLVERR."
-- id: clock_division
-  name: "Clock division"
-  description: "Counter-based divider produces clkdiv_o = PCLK / (DIVISOR + 1) with near-50% duty cycle. DIVISOR=0 gives passthrough."
-- id: divisor_update
-  name: "Divisor update"
-  description: "DIVISOR writes take effect on the next counter wrap (or immediately if IDLE) to avoid output glitches."
-- id: enable_gating
-  name: "Output enable gating"
-  description: "CTRL.enable=0 forces clkdiv_o low after the current output phase completes. CTRL.enable=1 resumes from counter=0."
-- id: apb_error_response
-  name: "APB error response"
-  description: "Unsupported APB offsets assert PSLVERR and return zero read data. Supported offsets never assert PSLVERR."
-
+  - name: "Clock Division"
+    trigger: "CTRL.enable asserted and DIV_RATIO >= 2"
+    datapath: "Counter increments each PCLK rising edge; on terminal count (counter == DIV_RATIO-1) the output toggle register flips and counter resets to 0"
+    control: "IDLE when disabled; COUNTING when enabled"
+    output: "CLKOUT = toggle_register when output_enable=1, else 0"
+  - name: "Runtime Configuration"
+    trigger: "APB write to CTRL or DIV_RATIO register"
+    datapath: "Software writes CTRL.enable, CTRL.output_enable, and DIV_RATIO via APB; changes take effect on the next PCLK rising edge after register write completes"
+    control: "No FSM change required — register values are combinational inputs to the counter/toggle logic"
+    output: "Updated configuration reflected in CLKOUT behavior within 1..DIV_RATIO cycles"
+  - name: "Output Gating"
+    trigger: "CTRL.output_enable = 0"
+    datapath: "CLKOUT is driven low regardless of toggle_register state"
+    control: "Counter and toggle continue operating internally so the divided phase resumes correctly when re-enabled"
+    output: "CLKOUT = 0 when gated; CLKOUT = toggle_register when ungated"
+  - name: "Counter Reset"
+    trigger: "APB write of 1 to CTRL.counter_reset (auto-clear bit)"
+    datapath: "Counter and toggle_register are synchronously cleared to 0"
+    control: "Counter reset pulse is 1 cycle wide; auto-clears"
+    output: "CLKOUT goes low for at least DIV_RATIO cycles after reset if output_enable=1"
 dataflow:
-  sources:
-  - "APB write channel (pwdata → DIVISOR, CTRL)"
-  - "PCLK (clock source)"
-  sinks:
-  - "APB read channel (prdata ← DIVISOR, CTRL, STATUS)"
-  - clkdiv_o
-  sequence:
-  - id: DF_APB_WRITE
-    from: "pwdata / pstrb"
-    through: "apb_register_decode"
-    to: "DIVISOR, CTRL"
-  - id: DF_APB_READ
-    from: "register bank"
-    through: "read mux"
-    to: "prdata"
-  - id: DF_CLOCK_DIVIDE
-    from: "PCLK and DIVISOR.divisor and CTRL.enable"
-    through: "counter increment, half-period compare, output toggle"
-    to: "clkdiv_o"
-  backpressure: "None. PREADY is permanently high for all supported offsets."
+  divide_path:
+    source: "PCLK rising edge"
+    counter: "Free-running counter (0 to DIV_RATIO-1) in clkdiv_core"
+    toggle: "Toggle register flips when counter reaches DIV_RATIO-1"
+    sequence: "PCLK ↑ → counter++ → counter == DIV_RATIO-1 → toggle_reg ^= 1 → counter = 0"
+  output_path:
+    source: "toggle_register"
+    gate: "CTRL.output_enable AND-gate"
+    sequence: "toggle_register → AND with output_enable → CLKOUT port"
+  configuration_path:
+    source: "APB write to CTRL or DIV_RATIO"
+    sequence: "APB access_phase (PSEL=1, PENABLE=1) → register update on next PCLK ↑ → counter/toggle logic sees new values"
 function_model:
-  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the clock divider computes independent of cycle timing."
+  purpose: "Cycle-independent behavioral contract for clkdiv; describes what the IP computes — counter/toggle division, output gating, and register configuration effects."
   state_variables:
-  - id: divisor_q
-    name: divisor_q
-    width: COUNTER_WIDTH
-    reset: 0
-    source: registers.DIVISOR.divisor
-    description: "Latched divisor value from APB write"
-  - id: enable_q
-    name: enable_q
-    width: 1
-    reset: 0
-    source: registers.CTRL.enable
-    description: "Latched enable bit from APB write"
-  - id: counter_q
-    name: counter_q
-    width: COUNTER_WIDTH
-    reset: 0
-    source: internal
-    description: "Free-running counter; increments each PCLK cycle when enabled, wraps at effective_divisor_q"
-  - id: effective_divisor_q
-    name: effective_divisor_q
-    width: COUNTER_WIDTH
-    reset: 1
-    source: derived
-    description: "Cached effective divisor = divisor_q + 1. Minimum value 1 (passthrough when divisor_q=0)."
-  - id: half_period_q
-    name: half_period_q
-    width: COUNTER_WIDTH
-    reset: 0
-    source: derived
-    description: "Half-period threshold = (effective_divisor_q + 1) >> 1. Counter below this → output high."
-
+    - { name: "counter", source: "clkdiv_core internal", reset: 0, description: "Free-running counter that increments each PCLK cycle and wraps at DIV_RATIO" }
+    - { name: "toggle_reg", source: "clkdiv_core internal", reset: 0, description: "Output toggle register; flips on terminal count to produce 50% duty cycle" }
+    - { name: "ctrl_enable", source: "registers.CTRL.enable", reset: 0, description: "Counter enable from CTRL register" }
+    - { name: "ctrl_output_enable", source: "registers.CTRL.output_enable", reset: 0, description: "Output clock gate from CTRL register" }
+    - { name: "div_ratio", source: "registers.DIV_RATIO.div_ratio", reset: "DEFAULT_DIV_RATIO", description: "Active division ratio" }
   transactions:
-  - id: FM_APB_WRITE_DIVISOR
-    name: "APB write DIVISOR register"
-    preconditions:
-    - "PSEL && PENABLE && PWRITE"
-    - "PADDR == 0x00"
-    inputs:
-    - "PWDATA[COUNTER_WIDTH-1:0]"
-    outputs:
-    - "PREADY = 1"
-    - "PSLVERR = 0"
-    side_effects:
-    - "divisor_q ← PWDATA[COUNTER_WIDTH-1:0]"
-    - "effective_divisor_q ← divisor_q + 1 (takes effect on next counter wrap or immediately if IDLE)"
-    - "half_period_q ← (effective_divisor_q + 1) >> 1"
-    output_rules:
-    - name: PRDATA
-      expr: "32'h0000_0000"
-      width: 32
-      port: PRDATA
-    - name: PREADY
-      expr: "1'b1"
-      width: 1
-      port: PREADY
-    - name: PSLVERR
-      expr: "1'b0"
-      width: 1
-      port: PSLVERR
-    error_cases:
-    - "None for this transaction"
-
-  - id: FM_APB_WRITE_CTRL
-    name: "APB write CTRL register"
-    preconditions:
-    - "PSEL && PENABLE && PWRITE"
-    - "PADDR == 0x04"
-    inputs:
-    - "PWDATA[0]"
-    outputs:
-    - "PREADY = 1"
-    - "PSLVERR = 0"
-    side_effects:
-    - "enable_q ← PWDATA[0]"
-    - "When enable_q transitions 0→1: counter_q ← 0, clkdiv_o resumes toggling."
-    - "When enable_q transitions 1→0: clkdiv_o completes current phase then holds low; counter_q ← 0."
-    output_rules:
-    - name: PRDATA
-      expr: "32'h0000_0000"
-      width: 32
-      port: PRDATA
-    - name: PREADY
-      expr: "1'b1"
-      width: 1
-      port: PREADY
-    - name: PSLVERR
-      expr: "1'b0"
-      width: 1
-      port: PSLVERR
-    error_cases:
-    - "None for this transaction"
-
-  - id: FM_APB_READ_REGISTER
-    name: "APB read supported register"
-    preconditions:
-    - "PSEL && PENABLE && !PWRITE"
-    - "PADDR in {0x00, 0x04, 0x08}"
-    inputs:
-    - "PADDR"
-    outputs:
-    - "PREADY = 1"
-    - "PSLVERR = 0"
-    side_effects:
-    - "No state change from reads"
-    output_rules:
-    - name: PRDATA
-      expr: "(PADDR==0x00) ? {reserved_zero, divisor_q} : (PADDR==0x04) ? {reserved_zero, enable_q} : {reserved_zero, counter_q}"
-      width: 32
-      port: PRDATA
-    - name: PREADY
-      expr: "1'b1"
-      width: 1
-      port: PREADY
-    - name: PSLVERR
-      expr: "1'b0"
-      width: 1
-      port: PSLVERR
-    error_cases:
-    - "Unsupported PADDR: PSLVERR=1, PRDATA=0, PREADY=1 (see FM_APB_ERROR)"
-
-  - id: FM_APB_ERROR
-    name: "APB unsupported address error"
-    preconditions:
-    - "PSEL && PENABLE"
-    - "PADDR not in {0x00, 0x04, 0x08}"
-    inputs:
-    - "PADDR"
-    outputs:
-    - "PREADY = 1"
-    - "PSLVERR = 1"
-    - "PRDATA = 0"
-    side_effects:
-    - "No writable state is modified"
-    output_rules:
-    - name: PRDATA
-      expr: "32'h0000_0000"
-      width: 32
-      port: PRDATA
-    - name: PREADY
-      expr: "1'b1"
-      width: 1
-      port: PREADY
-    - name: PSLVERR
-      expr: "1'b1"
-      width: 1
-      port: PSLVERR
-
-  - id: FM_CLOCK_DIVIDE
-    name: "Clock division cycle"
-    preconditions:
-    - "PRESETn is high (deasserted)"
-    - "PCLK rising edge"
-    inputs:
-    - "divisor_q"
-    - "enable_q"
-    - "effective_divisor_q"
-    - "half_period_q"
-    outputs:
-    - "clkdiv_o updates based on counter_q and half_period_q"
-    side_effects:
-    - "counter_q ← enable_q ? ((counter_q >= (effective_divisor_q - 1)) ? 0 : counter_q + 1) : 0"
-    - "When enable_q && counter_q wraps: re-latch effective_divisor_q and half_period_q from divisor_q"
-    output_rules:
-    - name: clkdiv_o
-      expr: "enable_q ? (counter_q < half_period_q) : 1'b0"
-      width: 1
-      port: clkdiv_o
-    error_cases:
-    - "PRESETn low (reset asserted): counter_q ← 0, divisor_q ← 0, enable_q ← 0, clkdiv_o ← 0"
-
+    - id: "FM1"
+      name: "clock_divide"
+      preconditions:
+        - "ctrl_enable == 1"
+        - "div_ratio >= 2"
+      inputs:
+        - "PCLK rising edge (implicit clock tick)"
+      output_rules:
+        - { name: "clkout", expr: "ctrl_output_enable ? toggle_reg : 1'b0", width: 1, port: "CLKOUT", description: "Divided output clock, gated by output_enable" }
+      state_updates:
+        - { name: "counter", reset: 0, expr: "counter == div_ratio - 1 ? 0 : counter + 1" }
+        - { name: "toggle_reg", reset: 0, expr: "counter == div_ratio - 1 ? ~toggle_reg : toggle_reg" }
+      side_effects: []
+      error_cases:
+        - { condition: "div_ratio == 0 or div_ratio == 1 written via APB", result: "counter never reaches terminal count; CLKOUT stays in current state (stuck). No error interrupt — see custom.assumptions." }
+    - id: "FM2"
+      name: "counter_reset"
+      preconditions:
+        - "APB write of 1 to CTRL.counter_reset"
+      inputs:
+        - "CTRL.counter_reset = 1 (write pulse)"
+      output_rules:
+        - { name: "clkout", expr: "1'b0 for at least div_ratio cycles after reset (if output_enable=1)", width: 1, port: "CLKOUT", description: "CLKOUT forced low during and after counter reset" }
+      state_updates:
+        - { name: "counter", reset: 0, expr: "0" }
+        - { name: "toggle_reg", reset: 0, expr: "0" }
+      side_effects:
+        - "CTRL.counter_reset auto-clears to 0 on the next PCLK cycle"
+      error_cases: []
   invariants:
-  - "PREADY is always 1 for all APB accesses (supported and unsupported)."
-  - "Supported APB offsets never assert PSLVERR."
-  - "Unsupported APB offsets always assert PSLVERR and return PRDATA=0."
-  - "clkdiv_o is held low when enable_q=0."
-  - "For even effective_divisor_q: clkdiv_o duty cycle is exactly 50%."
-  - "For odd effective_divisor_q: high phase is one PCLK cycle longer than low phase."
-  - "DIVISOR=0 (effective_divisor_q=1) → clkdiv_o = PCLK (passthrough)."
-  - "Reset clears all state: divisor_q=0, enable_q=0, counter_q=0, clkdiv_o=0."
-
-  reference_model_hint: "tb-gen should implement a Python scoreboard that models counter/increment/toggle behavior and compares expected clkdiv_o against RTL output for every scenario."
+    - "When ctrl_enable == 0, counter and toggle_reg hold their values (no increment/toggle)."
+    - "CLKOUT is always 0 when ctrl_output_enable == 0 regardless of toggle_reg."
+    - "toggle_reg toggles at frequency PCLK / (2 * div_ratio), producing 50% duty cycle on CLKOUT."
+    - "Register writes complete in 0 wait states (PREADY always 1)."
+  reference_model_hint: "tb-gen should implement a Python model tracking counter/toggle_reg and comparing CLKOUT phase/frequency against expected PCLK/(2*div_ratio)."
 cycle_model:
-  purpose: "Cycle/handshake contract for rtl-gen; describes when clkdiv_o, APB responses, and internal counter change relative to PCLK edges."
-  clock: PCLK
-  reset: "PRESETn active-low asynchronous assert, synchronous deassert at integration boundary"
+  purpose: "Cycle/handshake contract for clkdiv; describes when counter, toggle, and CLKOUT may change relative to PCLK edges."
+  executable: "pymtl3"
+  backend_policy: "Use PyMTL3 for cycle-accurate shell; FunctionalModel is the behavioral oracle."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears counter, toggle_reg, and all register storage"
+    deassertion: "All state is usable on the first PCLK rising edge after synchronized deassertion"
   latency:
-  - id: apb_access_latency
-    cycles: 1
-    description: "Each APB access completes in the access phase because PREADY is one."
-  - id: divisor_change_latency
-    cycles: "1 to effective_divisor_q"
-    description: "Divisor register write takes effect on the next counter wrap (or immediately if IDLE), avoiding glitches."
-  - id: enable_change_latency
-    cycles: 1
-    description: "CTRL.enable write takes effect on the next PCLK edge after the APB access completes."
+    register_write: { min_cycles: 0, max_cycles: 1, description: "APB write takes effect on the next PCLK rising edge (PREADY=1 means accepted)" }
+    register_read: { min_cycles: 0, max_cycles: 1, description: "APB read returns register value in the same access phase (PREADY=1)" }
+    output_toggle: { min_cycles: 1, max_cycles: "div_ratio", description: "CLKOUT toggles after exactly div_ratio PCLK cycles when enabled" }
   handshake_rules:
-  - id: apb_setup
-    signal: "PSEL, PENABLE"
-    rule: "PSEL=1 and PENABLE=0 is the setup phase. PADDR, PWRITE, PWDATA are captured."
-  - id: apb_access
-    signal: "PSEL, PENABLE"
-    rule: "PSEL=1 and PENABLE=1 is the access phase. PREADY=1 completes the transaction in the same cycle."
-  - id: apb_ready
-    signal: PREADY
-    rule: "PREADY is permanently high (1) for all APB accesses. No wait states are inserted."
+    - { signal: "PREADY", rule: "Always driven 1 — zero wait-state APB-lite slave." }
+    - { signal: "CLKOUT", rule: "Changes only on PCLK rising edge when counter reaches terminal count and toggle_reg updates." }
   pipeline:
-  - id: S0_RESET
-    cycle: 0
-    action: "PRESETn low: all state cleared to reset values."
-  - id: S1_APB_DECODE
-    cycle: 0
-    action: "Decode PADDR on access phase. Update divisor_q/enable_q on writes. MUX PRDATA on reads. Assert PSLVERR for unsupported offsets."
-  - id: S2_COUNTER_UPDATE
-    cycle: 0
-    action: "Increment counter_q if enable_q; wrap to 0 at terminal count (effective_divisor_q - 1). Re-latch effective_divisor_q and half_period_q on wrap."
-  - id: S3_OUTPUT_TOGGLE
-    cycle: 0
-    action: "Drive clkdiv_o = enable_q ? (counter_q < half_period_q) : 0."
+    - { stage: "S0_IDLE", cycle: 0, action: "ctrl_enable=0: counter and toggle_reg hold stable" }
+    - { stage: "S1_COUNT", cycle: "1..div_ratio", action: "Counter increments each PCLK rising edge" }
+    - { stage: "S2_TOGGLE", cycle: "div_ratio", action: "Counter == div_ratio-1: toggle_reg flips, counter resets to 0" }
   ordering:
-  - id: ordinal_apb_first
-    rule: "APB register writes in cycle N update divisor_q/enable_q for use in the counter update and output toggle of the same cycle N (or next cycle, design choice; SSOT permits 0 or 1 cycle write-to-effect latency)."
-  - id: ordinal_wrap_relatch
-    rule: "On counter_q wrap (counter_q == effective_divisor_q - 1), effective_divisor_q and half_period_q are re-latched from the current divisor_q for the next division period."
-  - id: ordinal_enable_gate
-    rule: "When enable_q=0, counter_q is forced to 0 and clkdiv_o is forced low, regardless of DIVISOR value."
-  - id: ordinal_read_after_write
-    rule: "An APB read in cycle N+1 observes the DIVISOR/CTRL value written in cycle N."
-  backpressure: "None. PREADY is permanently high."
+    - "Counter update and toggle_reg update occur on the same PCLK rising edge when terminal count is reached."
+    - "CLKOUT reflects toggle_reg (gated) combinationally after the clock edge."
+  backpressure:
+    - "No backpressure model — the divider is always ready to count when enabled."
   performance:
     frequency_mhz: 50
-    throughput:
-      max_output_freq_mhz: 25
-      condition: "DIVISOR=0 (passthrough), clkdiv_o = PCLK. Min output freq = PCLK / (2^COUNTER_WIDTH)."
-    depth:
-      pipeline_stages: 1
-      description: "Single-cycle counter-update/output-toggle loop. No multi-cycle pipeline."
-    outstanding:
-      description: "Not applicable — no queued transactions."
+    throughput: { output_toggle_per_pclk: "1/div_ratio", condition: "ctrl_enable=1, ctrl_output_enable=1" }
+    outstanding: { description: "Not applicable — no request/response protocol" }
+    depth: { pipeline_stages: 1, description: "Single-cycle counter increment pipeline" }
   observability:
-  - "Every function_model transaction maps to a cycle_model stage."
-  - "STATUS.counter provides real-time counter visibility for waveform debug."
-  - "PRDATA mux selection is observable in waveform."
-  clock_reset_domains:
-    domains:
-    - name: pclk_domain
-      clock: PCLK
-      reset: PRESETn
-      frequency_mhz: 50
-      modules:
-      - clkdiv
-      - clkdiv_structure
-    reset_behavior:
-    - "All writable registers (DIVISOR, CTRL) and internal state (counter_q, clkdiv_o) clear to zero."
-
-  cdc_requirements:
-    crossings: []
-    synchronizers: []
-    note: "Single clock domain — no CDC required."
-
-  rdc_requirements:
-    resets:
-    - name: PRESETn
-      domain: pclk_domain
-      style: async_assert_sync_deassert
-    waivers: []
-
-  memory:
-    instances: []
-    note: "No SRAM, FIFO, or internal buffer memory. Pure register-based counter and APB registers."
-
-  interrupts:
-    outputs: []
-    note: "No interrupts in this IP. clkdiv is a simple clock divider peripheral without IRQ generation."
-fsm:
-  control:
-    states:
-    - name: IDLE
-      description: "Divider disabled; clkdiv_o held low, counter reset to 0."
-    - name: RUNNING
-      description: "Divider enabled; counter increments each PCLK cycle. clkdiv_o toggles based on counter vs half-period threshold."
-    transitions:
-    - from: IDLE
-      to: RUNNING
-      condition: "CTRL.enable == 1"
-    - from: RUNNING
-      to: IDLE
-      condition: "CTRL.enable == 0"
-    outputs:
-    - clkdiv_o
-    notes:
-    - "When DIVISOR changes during RUNNING, the new divisor takes effect on the next counter wrap/edge to avoid glitches."
-    - "For even effective divisor (DIVISOR+1 even): 50% duty cycle (counter < half → high, counter >= half → low)."
-    - "For odd effective divisor (DIVISOR+1 odd): high phase = ceil(half), low phase = floor(half)."
-
+    - "FM1 clock_divide maps to cycle_model S1_COUNT → S2_TOGGLE."
+    - "FM2 counter_reset maps to an immediate S0_IDLE with cleared state."
+    - "STATUS.counter provides runtime observability of counter value."
 clock_reset_domains:
   domains:
-  - name: pclk_domain
-    clock: PCLK
-    reset: PRESETn
-    frequency_mhz: 50
-    modules:
-    - clkdiv
-    - clkdiv_structure
-  reset_behavior:
-  - "All writable registers (DIVISOR, CTRL) and internal state (counter_q, clkdiv_o) clear to zero."
-
+    - { name: "PCLK", frequency_mhz: 50, description: "Single clock domain — input clock to be divided" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
 cdc_requirements:
   crossings: []
   synchronizers: []
-  note: "Single clock domain — no CDC required."
-
+  note: "Single clock domain (PCLK only) — no CDC required"
 rdc_requirements:
-  resets:
-  - name: PRESETn
-    domain: pclk_domain
-    style: async_assert_sync_deassert
-  waivers: []
-
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain (PRESETn only) — no RDC required"
 registers:
-  bus: APB4
-  addr_width: 8
-  data_width: 32
-  bit_order: lsb0
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+    num_channels: 1
+  bit_order: "lsb0"
   bits_format: "[msb, lsb]"
   reserved_field_policy:
     read_value: 0
-    write_effect: ignore
+    write_effect: "ignore"
     rtl_requirement: "Reserved fields read as zero and do not allocate storage."
   register_list:
-  - name: DIVISOR
-    offset: "0x00"
-    width: 32
-    access: rw
-    reset: 0x00000000
-    description: "Clock divisor register. Effective divide ratio = DIVISOR + 1. DIVISOR=0 → passthrough (clkdiv_o = PCLK). Max divisor limited by COUNTER_WIDTH parameter."
-    write_side_effects:
-    - "Writing DIVISOR takes effect on the next PCLK rising edge after the APB access completes."
-    - "When CTRL.ENABLE=0, divisor writes update the register but output remains gated low until enabled."
-    fields:
-    - name: divisor
-      bits: [COUNTER_WIDTH-1, 0]
-      access: rw
-      reset: 0x0
-      write_effect: "Sets the clock division ratio; effective divisor = value + 1"
-      description: "Divide ratio selector"
-    - name: reserved
-      bits: [31, COUNTER_WIDTH]
-      access: reserved
-      reset: 0x0
-      read_value: 0
-      write_effect: ignore
-      description: "Reserved; reads zero"
-  - name: CTRL
-    offset: "0x04"
-    width: 32
-    access: rw
-    reset: 0x00000000
-    description: "Control register. Enables/disables the divided clock output."
-    write_side_effects:
-    - "Writing CTRL takes effect on the next PCLK rising edge after the APB access completes."
-    - "ENABLE=0 forces clkdiv_o low after the current output phase completes."
-    - "ENABLE=1 resumes divider operation starting from counter=0."
-    fields:
-    - name: enable
-      bits: [0, 0]
-      access: rw
-      reset: 0x0
-      write_effect: "0=disable (clkdiv_o held low), 1=enable divider operation"
-      description: "Clock divider enable"
-    - name: reserved
-      bits: [31, 1]
-      access: reserved
-      reset: 0x0
-      read_value: 0
-      write_effect: ignore
-      description: "Reserved; reads zero"
-  - name: STATUS
-    offset: "0x08"
-    width: 32
-    access: ro
-    reset: 0x00000000
-    description: "Status register. Exposes the internal counter value for debug and observability."
-    fields:
-    - name: counter
-      bits: [COUNTER_WIDTH-1, 0]
-      access: ro
-      reset: 0x0
-      description: "Current internal counter value"
-    - name: reserved
-      bits: [31, COUNTER_WIDTH]
-      access: reserved
-      reset: 0x0
-      read_value: 0
-      write_effect: ignore
-      description: "Reserved; reads zero"
-  unsupported_address: "pslverr asserts and prdata returns zero for any offset not in {0x00, 0x04, 0x08}"
-
+    - name: "CTRL"
+      offset: 0x000
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Control register — enable, output gate, and counter reset"
+      write_side_effects:
+        - "Writing counter_reset=1 synchronously clears counter and toggle_reg to 0 on the next PCLK edge; the bit auto-clears."
+      fields:
+        - { name: "enable", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "Enable counter/toggle operation", description: "0=disabled (counter holds), 1=enabled (counter runs)" }
+        - { name: "output_enable", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "Gate CLKOUT output", description: "0=CLKOUT forced low, 1=CLKOUT reflects toggle_reg" }
+        - { name: "counter_reset", bits: [2, 2], access: "rw", reset: 0x0, write_effect: "Pulse: clears counter and toggle_reg; auto-clears to 0 next cycle", description: "Write 1 to reset counter/toggle (auto-clear)" }
+        - { name: "reserved_31_3", bits: [31, 3], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "DIV_RATIO"
+      offset: 0x004
+      width: 32
+      access: "rw"
+      reset: 0x00000002
+      category: "control"
+      description: "Division ratio — output toggles every DIV_RATIO PCLK cycles"
+      write_side_effects:
+        - "New DIV_RATIO takes effect on the next counter cycle; mid-cycle changes are sampled at the next terminal-count comparison."
+      fields:
+        - { name: "div_ratio", bits: [15, 0], access: "rw", reset: 0x0002, write_effect: "Set division ratio (min 2)", description: "Division ratio value; output freq = PCLK/(2×div_ratio)" }
+        - { name: "reserved_31_16", bits: [31, 16], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "STATUS"
+      offset: 0x008
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Status register — read-only observability of internal counter and flags"
+      fields:
+        - { name: "running", bits: [0, 0], access: "ro", reset: 0x0, description: "1=counter is enabled and running, 0=counter is idle" }
+        - { name: "output_active", bits: [1, 1], access: "ro", reset: 0x0, description: "1=CLKOUT output is ungated (output_enable=1)" }
+        - { name: "reserved_15_2", bits: [15, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+        - { name: "counter", bits: [31, 16], access: "ro", reset: 0x0, description: "Current counter value (live snapshot)" }
 memory:
   instances: []
-  note: "No SRAM, FIFO, or internal buffer memory. Pure register-based counter and APB registers."
-
+  note: "No SRAM/FIFO/register-file — counter and toggle_reg are simple flip-flop registers in clkdiv_core."
 interrupts:
-  outputs: []
-  note: "No interrupts in this IP. clkdiv is a simple clock divider peripheral without IRQ generation."
-
+  sources: []
+  output:
+    signal: null
+    note: "No interrupts — clkdiv is a simple clock divider with no error/event signaling."
+  description: "No interrupt outputs. Status is observable only via APB register reads (STATUS register)."
+fsm:
+  counter_toggle:
+    states:
+      - "IDLE"
+      - "COUNTING"
+    transitions:
+      - { from: "IDLE", to: "COUNTING", condition: "CTRL.enable transitions 0→1" }
+      - { from: "COUNTING", to: "IDLE", condition: "CTRL.enable transitions 1→0" }
+    note: "Simple enable-gated counter; IDLE means counter and toggle hold their values. COUNTING means counter increments each PCLK and toggle_reg flips on terminal count. No complex FSM — rtl-gen should implement with an enable-gated counter and a toggle flop."
+rtl_contract:
+  transaction: "FM1"
+  sample_condition: "CLKOUT changes on PCLK rising edge when toggle_reg updates"
+  input_map:
+    enable: "registers.CTRL.enable"
+    output_enable: "registers.CTRL.output_enable"
+    div_ratio: "registers.DIV_RATIO.div_ratio"
+    counter_reset: "registers.CTRL.counter_reset (pulse, auto-clear)"
+  output_map:
+    clkout: "CLKOUT port"
+    running: "STATUS.running"
+    output_active: "STATUS.output_active"
+    counter_status: "STATUS.counter[15:0]"
+  state_updates:
+    - { name: "counter", reset: 0, expr: "counter_reset ? 0 : (enable && counter == div_ratio - 1 ? 0 : enable ? counter + 1 : counter)" }
+    - { name: "toggle_reg", reset: 0, expr: "counter_reset ? 0 : (enable && counter == div_ratio - 1 ? ~toggle_reg : toggle_reg)" }
+    - { name: "clkout", reset: 0, expr: "output_enable && toggle_reg" }
 timing:
   target_clocks:
-  - name: PCLK
-    frequency_mhz: 50
-    duty_cycle: 0.5
-    uncertainty_ns: 0.2
+    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.2 }
   latency_budget:
-  - path: "APB access to response"
-    cycles: 1
-    description: "PREADY=1 always; APB access completes in the access phase."
-  - path: "Divisor write to output effect"
-    cycles: "1 to (2^COUNTER_WIDTH)"
-    description: "New divisor latched on next counter wrap; worst case is full counter period."
-  - path: "Enable write to output effect"
-    cycles: 1
-    description: "CTRL.enable takes effect next PCLK edge after APB access completes."
+    register_access_cycles: { min: 1, max: 2, measured_from: "PSEL && PENABLE", measured_to: "PREADY", note: "Zero wait-state APB-lite" }
+    output_toggle_cycles: { min: 1, max: 65536, measured_from: "toggle_reg update", measured_to: "next toggle_reg update", note: "Exact latency = DIV_RATIO PCLK cycles" }
+  throughput:
+    sustained_toggles_per_sec: "PCLK_freq / (2 * DIV_RATIO)"
+    conditions: "ctrl_enable=1, ctrl_output_enable=1, DIV_RATIO >= 2"
+  timing_exceptions: []
   io_delays:
     inputs:
-    - ports: "PADDR, PSEL, PENABLE, PWRITE, PWDATA, PSTRB"
-      clock: PCLK
-      delay_ns: 0.2
-      source: "system-level timing budget"
+      - { ports: "APB inputs", clock: "PCLK", delay_ns: 2.0, source: "system-level budget" }
     outputs:
-    - ports: "PRDATA, PREADY, PSLVERR, clkdiv_o"
-      clock: PCLK
-      delay_ns: 0.2
-      source: "system-level timing budget"
+      - { ports: "CLKOUT", clock: "PCLK", delay_ns: 1.0, source: "toggle_reg to output path" }
+      - { ports: "PRDATA", clock: "PCLK", delay_ns: 2.0, source: "register read mux" }
   false_paths:
-  - from: PRESETn
-    to: "all_registers"
-    reason: "async reset assertion"
+    - { from: "PRESETn", to: "all_registers", reason: "async reset assertion" }
   multicycle_paths: []
   sta_expectations:
     setup_wns_ns_min: 0.0
     hold_wns_ns_min: 0.0
     required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt"]
-
 power:
   domains:
-  - name: PD_CORE
-    voltage: nominal
-    clock_domains: [PCLK]
-    isolation: not_required_single_domain
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["PCLK"], isolation: "not_required_single_domain" }
   clock_gating:
     required: false
-    rationale: "No explicit low-power mode in this IP revision."
+    rationale: "No explicit low-power mode; counter stops when CTRL.enable=0 which naturally reduces toggling"
   reset_retention:
     retention_required: false
-    reset_value_source: "registers and function_model state_variables"
   power_states:
-  - name: "ON"
-    entry: "PRESETn deasserted"
-    exit: "PRESETn asserted"
-    guarantees: ["All architectural behavior active"]
-  - name: "RESET"
-    entry: "PRESETn asserted"
-    exit: "PRESETn deasserted"
-    guarantees: ["All state cleared to reset values", "clkdiv_o held low"]
+    - { name: "ON", entry: "PRESETn deasserted", exit: "PRESETn asserted", guarantees: ["All registers and counter logic active"] }
   upf_required: false
-
 security:
-  classification: non_secure_peripheral
+  classification: "non_secure_clock_ip"
   assets:
-  - name: "divisor_register"
-    protection: "APB access control is external to this IP"
-  - name: "enable_register"
-    protection: "APB access control is external to this IP"
+    - { name: "register_map", protection: "APB access control is external to this IP" }
+    - { name: "CLKOUT_output", protection: "Output gating via CTRL.output_enable; no authentication" }
   threat_model:
-  - id: illegal_register_write
-    mitigation: "DIVISOR and CTRL only writable via APB; external bus fabric enforces privilege"
-  - id: unsupported_address_probe
-    mitigation: "PSLVERR asserted for unsupported offsets; PRDATA returns zero"
-  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels."
+    - { threat: "illegal register write while divider running", mitigation: "Writes take effect on next cycle; no corruption of in-flight counter" }
+  privilege_model: "External bus fabric enforces privilege; this IP has no internal privilege levels"
   safety_goals:
-  - "clkdiv_o is held low during reset and when CTRL.enable=0"
-  - "Divisor changes are glitch-free (latch on counter wrap)"
-
+    - "CLKOUT frequency is deterministic given PCLK and DIV_RATIO"
+    - "No metastability risk in single-clock design"
 error_handling:
   error_sources:
-  - id: unsupported_address
-    condition: "APB access offset is not 0x00, 0x04, or 0x08"
-    response: "PSLVERR=1, PRDATA=0 for reads, no state change for writes"
+    - { id: "ERR_DIV_RATIO_ZERO", condition: "DIV_RATIO.div_ratio == 0 written via APB", architectural_effect: "Counter never reaches terminal count (counter == -1 never true for unsigned); CLKOUT stays stuck at current level" }
+    - { id: "ERR_DIV_RATIO_ONE", condition: "DIV_RATIO.div_ratio == 1 written via APB", architectural_effect: "CLKOUT toggles every PCLK cycle — output equals input clock (no division); functionally valid but likely unintended" }
   propagation:
-  - "PSLVERR is asserted only during the access phase (PENABLE=1) for unsupported offsets."
-  - "No sticky error state; the next valid APB access proceeds normally."
+    - "No error interrupt — see custom.assumptions. Invalid DIV_RATIO values result in silent stuck/fast behavior observable via STATUS.counter."
   recovery:
-  - "Next valid APB access proceeds with PSLVERR=0. No software clear required."
-
+    - { action: "Write valid DIV_RATIO >= 2 via APB; optionally pulse CTRL.counter_reset to restart from known state", clears: ["stuck counter/toggle"], preserves: ["CTRL.enable", "CTRL.output_enable"] }
 debug_observability:
   waveform_must_probe:
-  - PCLK
-  - PRESETn
-  - PADDR
-  - PSEL
-  - PENABLE
-  - PWRITE
-  - PRDATA
-  - PREADY
-  - PSLVERR
-  - divisor_q
-  - enable_q
-  - counter_q
-  - effective_divisor_q
-  - half_period_q
-  - clkdiv_o
+    - "counter"
+    - "toggle_reg"
+    - "CLKOUT"
+    - "CTRL.enable"
+    - "CTRL.output_enable"
+    - "div_ratio"
+  status_outputs:
+    - "STATUS.running"
+    - "STATUS.output_active"
+    - "STATUS.counter[15:0]"
   trace_events:
-  - id: apb_access
-    signals: [PADDR, PWRITE, PSLVERR]
-  - id: divisor_change
-    signals: [divisor_q, effective_divisor_q]
-  - id: enable_change
-    signals: [enable_q, clkdiv_o]
-  - id: counter_wrap
-    signals: [counter_q, clkdiv_o]
-  status_outputs: []
-
+    - { name: "counter_terminal_count", trigger: "counter == div_ratio - 1" }
+    - { name: "toggle_flip", trigger: "toggle_reg changes value" }
+    - { name: "output_gate_change", trigger: "CTRL.output_enable transitions" }
+  debug_registers:
+    - "STATUS (live counter and status flags)"
 integration:
   bus_attachment:
-    type: "APB4 slave"
-    base_address: "SoC-assigned"
-    address_window: "0x00-0x0C"
-  dependencies:
-  - name: none
-    type: external_ip
-    description: "No external reusable IP dependencies"
+    control: "APB-lite slave (PCLK/PRESETn domain)"
+    data: "None — CLKOUT is a direct output clock signal"
   connections:
-  - module: clkdiv_structure
-    port: PCLK
-    signal: PCLK
-  - module: clkdiv_structure
-    port: PRESETn
-    signal: PRESETn
-  - module: clkdiv_structure
-    port: PADDR
-    signal: PADDR
-  - module: clkdiv_structure
-    port: PSEL
-    signal: PSEL
-  - module: clkdiv_structure
-    port: PENABLE
-    signal: PENABLE
-  - module: clkdiv_structure
-    port: PWRITE
-    signal: PWRITE
-  - module: clkdiv_structure
-    port: PWDATA
-    signal: PWDATA
-  - module: clkdiv_structure
-    port: PSTRB
-    signal: PSTRB
-  - module: clkdiv_structure
-    port: PRDATA
-    signal: PRDATA
-  - module: clkdiv_structure
-    port: PREADY
-    signal: PREADY
-  - module: clkdiv_structure
-    port: PSLVERR
-    signal: PSLVERR
-  - module: clkdiv_structure
-    port: clkdiv_o
-    signal: clkdiv_o
+    - { module: "clkdiv_core", port: "clk_i", signal: "PCLK" }
+    - { module: "clkdiv_core", port: "rst_ni", signal: "PRESETn" }
+    - { module: "clkdiv_core", port: "enable_i", signal: "regs.CTRL.enable" }
+    - { module: "clkdiv_core", port: "output_enable_i", signal: "regs.CTRL.output_enable" }
+    - { module: "clkdiv_core", port: "div_ratio_i", signal: "regs.DIV_RATIO.div_ratio" }
+    - { module: "clkdiv_core", port: "counter_reset_i", signal: "regs.CTRL.counter_reset" }
+    - { module: "clkdiv_core", port: "clkout_o", signal: "CLKOUT" }
   address_map_requirements:
     alignment_bytes: 4
     decode_owner: "SoC interconnect"
-    illegal_access_response: "PSLVERR for unsupported APB offsets (not 0x00, 0x04, 0x08)"
-  dependencies_list:
+    illegal_access_response: "PREADY=1 with PRDATA=0 (APB-lite — no pslverr)"
+  dependencies:
     external_modules: []
-    external_clocks: [PCLK]
-    external_resets: [PRESETn]
-  wrapper: clkdiv
-
+    external_clocks: ["PCLK"]
+    external_resets: ["PRESETn"]
+  integration_notes:
+    - "SoC interconnect decodes APB address to generate PSEL for this IP."
+    - "CLKOUT drives downstream clocked logic directly — ensure timing closure."
+    - "No interrupt connection needed — status polling only."
 dft:
   scan_required: false
   scan_ports: []
   test_mode_ports: []
   controllability:
-    reset: "PRESETn must be controllable in test mode"
-    clocks: [PCLK]
+    reset: "PRESETn controllable in test"
+    clocks: ["PCLK"]
   observability:
-    required_internal_points: [divisor_q, enable_q, counter_q, clkdiv_o]
+    required_internal_points: ["counter", "toggle_reg", "CLKOUT"]
   mbist_required: false
-  notes: "No SRAM macro in this IP."
-
+  notes: "Simple IP — no SRAM, no scan chain needed for initial revision."
 synthesis:
-  dialect: systemverilog_2012
-  top_module: clkdiv
+  dialect: "systemverilog_2012"
+  top_module: "clkdiv"
   technology:
-    pdk: sky130
-    standard_cell_library: sky130_fd_sc_hd
-    liberty_corner: "ss_100C_1v40"
+    pdk: "generic"
+    standard_cell_library: "generic"
   constraints:
-  - "No inferred latches"
-  - "All flops reset according to clock_reset_domains.reset_behavior"
-  - "No package/interface/modport/function/task/for/while constructs"
+    - "No inferred latches"
+    - "All flops reset via PRESETn async assert, sync deassert"
+    - "No package/interface/modport/function/task/for/while constructs"
   ppa_targets:
     area_um2_max: null
     power_mw_max: null
     frequency_mhz_min: 50
   required_outputs:
-  - "syn/out/clkdiv.json or syn/out/clkdiv.v"
-  - "syn/out/area.rpt"
-  - "syn/out/timing_summary.rpt"
-
-pnr:
-  utilization_pct: 40
-  aspect_ratio: 1.0
-  core_space_um: 2.0
-  global_density: 0.55
-  io_layers:
-    horizontal: met3
-    vertical: met2
-  placement:
-    density_target: 0.55
-  cts:
-    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
-  routing:
-    signal_layers: { min: met1, max: met5 }
-    clock_layers: { min: met3, max: met5 }
-
+    - "syn/out/clkdiv.v or clkdiv.json"
+    - "syn/out/area.rpt"
 coding_rules:
-  verilog_style: systemverilog_2012
+  verilog_style: "systemverilog_2012"
   file_extension: ".sv"
+  parameter_header: "rtl/clkdiv_param.vh"
   conventions:
-  - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
-  - "blocking (=) in combinational always @(*)"
-  - "No latches: every combinational branch assigns all outputs (use a default)"
-  - "Active-low async reset: always @(posedge PCLK or negedge PRESETn) with if (!PRESETn)"
-  - "Parameterize widths using COUNTER_WIDTH, DATA_WIDTH, APB_ADDR_WIDTH"
-  - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
-  - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
-  - "Use localparam for state encoding with logic state/next_state signals"
+    - "nonblocking (<=) in sequential always @(posedge clk …)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset: always @(posedge PCLK or negedge PRESETn)"
+    - "Parameterize widths via DIV_WIDTH parameter"
+    - "Use rtl/clkdiv_param.vh for shared parameter declarations"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
   lint_waivers:
-  - "UNUSEDSIGNAL: PSTRB may be unused if byte-write granularity is not implemented"
-  - "WIDTHEXPAND: parameterized counter width indexing"
-reuse_modules:
-  instances: []
-  policy: "No external reusable child IP is required for this simple leaf block."
-
-custom:
-  notes:
-  - "Simple clock divider IP keeps APB decode, counter, and output toggle in one structure module under a thin top wrapper."
-  assumptions:
-  - "DIVISOR=0 means effective divisor=1 (passthrough: clkdiv_o = PCLK)."
-  - "COUNTER_WIDTH default 16 supports divisors up to 65535 (effective up to 65536)."
-  - "Divisor changes are glitch-free: new divisor latched on counter wrap or immediately if IDLE."
-  - "Enable=0 holds clkdiv_o low after current phase completes, counter forced to 0."
-  - "Enable=1 resumes from counter=0 with clean start."
-  - "PREADY is always 1 for all APB accesses."
-  - "Odd effective divisor: high phase one PCLK cycle longer than low phase."
-  - "Even effective divisor: exact 50% duty cycle."
-  - "No interrupts in this IP revision."
-  - "PSTRB is accepted on the APB interface but may be unused if byte-write granularity is not required."
-
-dir_structure:
-  rtl: clkdiv/rtl
-  list: clkdiv/list
-  tb: clkdiv/tb/cocotb
-  sim: clkdiv/sim
-  lint: clkdiv/lint
-  doc: clkdiv/doc
-  req: clkdiv/req
-
-filelist:
-  rtl:
-  - rtl/clkdiv_structure.sv
-  - rtl/clkdiv.sv
-  list:
-  - list/clkdiv.f
-  tb:
-  - tb/cocotb/test_clkdiv.py
-  sim:
-  - sim/results.xml
-  - sim/waves.fst
-
-test_requirements:
-  scenarios:
-  - id: SC1
-    name: "Reset defaults"
-    stimulus: "Assert PRESETn low, then release."
-    expected: "DIVISOR=0, CTRL=0, STATUS=0, clkdiv_o=0, PREADY=1."
-    checker: "APB readback after reset deassertion."
-    coverage: ["reset_defaults"]
-  - id: SC2
-    name: "Register access — read/write DIVISOR and CTRL"
-    stimulus: "Write and read DIVISOR (offset 0x00) and CTRL (offset 0x04) with various values."
-    expected: "Written values read back correctly; PREADY=1; PSLVERR=0."
-    checker: "APB scoreboard — write then read, verify data match."
-    coverage: ["register_access", "FM_APB_WRITE_DIVISOR", "FM_APB_WRITE_CTRL", "FM_APB_READ_REGISTER"]
-  - id: SC3
-    name: "STATUS register read"
-    stimulus: "Enable divider, let it run, read STATUS (offset 0x08)."
-    expected: "STATUS.counter reflects internal counter value at read time. Non-zero when running."
-    checker: "Scoreboard compares STATUS readback with expected counter from function_model."
-    coverage: ["FM_APB_READ_REGISTER", "FM_CLOCK_DIVIDE"]
-  - id: SC4
-    name: "Unsupported address error"
-    stimulus: "APB read and write to unsupported offsets (e.g., 0x0C, 0x10)."
-    expected: "PSLVERR=1, PRDATA=0 for reads, writable state unchanged."
-    checker: "Error response assertion."
-    coverage: ["FM_APB_ERROR", "invalid_address"]
-  - id: SC5
-    name: "Clock division — even divisor"
-    stimulus: "Set CTRL.enable=1, DIVISOR=3 (effective divisor=4). Measure clkdiv_o."
-    expected: "clkdiv_o toggles at PCLK/4 with 50% duty cycle (2 cycles high, 2 cycles low)."
-    checker: "Scoreboard counts PCLK cycles between clkdiv_o edges."
-    coverage: ["FM_CLOCK_DIVIDE", "even_divisor", "S2_COUNTER_UPDATE", "S3_OUTPUT_TOGGLE"]
-  - id: SC6
-    name: "Clock division — odd divisor"
-    stimulus: "Set CTRL.enable=1, DIVISOR=4 (effective divisor=5). Measure clkdiv_o."
-    expected: "clkdiv_o toggles at PCLK/5: 3 cycles high, 2 cycles low (high phase one longer)."
-    checker: "Scoreboard measures high/low phase durations."
-    coverage: ["FM_CLOCK_DIVIDE", "odd_divisor", "duty_cycle"]
-  - id: SC7
-    name: "Clock division — passthrough"
-    stimulus: "Set CTRL.enable=1, DIVISOR=0 (effective divisor=1). Measure clkdiv_o."
-    expected: "clkdiv_o = PCLK (passthrough, toggles every PCLK cycle)."
-    checker: "Scoreboard verifies clkdiv_o mirrors PCLK."
-    coverage: ["FM_CLOCK_DIVIDE", "passthrough"]
-  - id: SC8
-    name: "Enable/disable gating"
-    stimulus: "Start with DIVISOR=7 (div 8), run, then set CTRL.enable=0, then re-enable."
-    expected: "After disable: clkdiv_o holds low after current phase completes. After re-enable: divider restarts from counter=0 with clean phase."
-    checker: "Scoreboard checks clkdiv_o = 0 after disable, clean restart after re-enable."
-    coverage: ["enable_gating", "FM_APB_WRITE_CTRL"]
-  - id: SC9
-    name: "Divisor change while running"
-    stimulus: "Run with DIVISOR=7 (div 8), then write DIVISOR=3 (div 4), observe transition."
-    expected: "New divisor takes effect on counter wrap; no glitch on clkdiv_o at the change boundary."
-    checker: "Scoreboard verifies clean divisor transition with no runt pulses."
-    coverage: ["divisor_update", "FM_APB_WRITE_DIVISOR"]
-  scoreboard_checks:
-  - "APB read/write mirror for all three registers"
-  - "clkdiv_o frequency and duty cycle vs DIVISOR"
-  - "Even divisor 50% duty cycle verification"
-  - "Odd divisor high-phase-one-longer verification"
-  - "Passthrough mode (DIVISOR=0) verification"
-  - "Enable/disable gating behavior"
-  - "Divisor change glitch-free transition"
-  - "Unsupported address PSLVERR assertion"
-  coverage_goals:
-    function:
-      target_pct: 100
-      model: function_model
-      description: "Cycle-independent behavioral intent coverage; proves what the clock divider computes."
-      bins:
-      - id: FCOV_FM_APB_WRITE_DIVISOR
-        source_ref: function_model.transactions.FM_APB_WRITE_DIVISOR
-        class: transaction
-        description: "APB write DIVISOR transaction observed"
-      - id: FCOV_FM_APB_WRITE_CTRL
-        source_ref: function_model.transactions.FM_APB_WRITE_CTRL
-        class: transaction
-        description: "APB write CTRL transaction observed"
-      - id: FCOV_FM_APB_READ_REGISTER
-        source_ref: function_model.transactions.FM_APB_READ_REGISTER
-        class: transaction
-        description: "APB read register transaction observed"
-      - id: FCOV_FM_APB_ERROR
-        source_ref: function_model.transactions.FM_APB_ERROR
-        class: transaction
-        description: "APB error transaction observed"
-      - id: FCOV_FM_CLOCK_DIVIDE
-        source_ref: function_model.transactions.FM_CLOCK_DIVIDE
-        class: transaction
-        description: "Clock division cycle observed"
-      - id: FCOV_FM_EVEN_DIVISOR
-        source_ref: function_model.invariants
-        class: invariant
-        description: "Even divisor 50% duty cycle invariant verified"
-      - id: FCOV_FM_ODD_DIVISOR
-        source_ref: function_model.invariants
-        class: invariant
-        description: "Odd divisor high-phase-one-longer invariant verified"
-    cycle:
-      target_pct: 100
-      model: cycle_model
-      description: "Cycle/handshake/FSM coverage; proves when behavior occurs."
-      bins:
-      - id: CCOV_APB_ACCESS
-        source_ref: cycle_model.handshake_rules.apb_access
-        class: handshake
-        description: "APB access phase handshake observed"
-      - id: CCOV_APB_READY
-        source_ref: cycle_model.handshake_rules.apb_ready
-        class: handshake
-        description: "PREADY always-1 rule verified"
-      - id: CCOV_S3_OUTPUT_TOGGLE
-        source_ref: cycle_model.pipeline.S3_OUTPUT_TOGGLE
-        class: pipeline_stage
-        description: "Output toggle stage observed"
-      - id: CCOV_S2_COUNTER_UPDATE
-        source_ref: cycle_model.pipeline.S2_COUNTER_UPDATE
-        class: pipeline_stage
-        description: "Counter update stage observed"
-      - id: CCOV_RESET
-        source_ref: cycle_model.pipeline.S0_RESET
-        class: pipeline_stage
-        description: "Reset stage state clear observed"
-      - id: CCOV_PERF_FREQ
-        source_ref: cycle_model.performance.frequency_mhz
-        class: frequency
-        description: "PCLK 50MHz assumption recorded"
-      - id: CCOV_PERF_DEPTH
-        source_ref: cycle_model.performance.depth
-        class: depth
-        description: "Single-cycle pipeline depth verified"
-    line: ">= 90% instrumented line coverage"
-    branch: ">= 85% instrumented branch coverage"
-    fsm: "100% FSM states and transitions covered (IDLE, RUNNING)"
-
-quality_gates:
-  ssot:
-    pass: "All canonical sections present, internally consistent, no live TBD placeholders."
-    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
-  rtl_gen:
-    profile: standard
-    pass: "RTL files compile and satisfy SSOT TODO audit."
-    evidence:
-    - "rtl/rtl_compile.json"
-    - "rtl/rtl_todo_plan.json"
-    - "rtl/rtl_authoring_provenance.json"
-  rtl:
-    pass: "RTL compiles, lints, and implements function_model and cycle_model."
-    evidence:
-    - "rtl/rtl_compile.json"
-    - "lint/dut_lint.json"
-  dv:
-    pass: "Cocotb tests implement all test_requirements scenarios."
-    evidence:
-    - "tb/cocotb/test_clkdiv.py"
-  coverage:
-    pass: "Coverage goals mapped to bins and instrumented."
-    evidence:
-    - "cov/coverage.json"
-  eda:
-    pass: "Lint and synthesis checks complete."
-    evidence:
-    - "lint/dut_lint.json"
-    - "syn/out/timing_summary.rpt"
-  signoff:
-    pass: "SSOT, RTL compile, lint, and TODO audit closed."
-    evidence:
-    - "logs/stage_engine/ssot-rtl.json"
-
-traceability:
-  yaml_to_output:
-  - source: parameters
-    outputs:
-    - rtl/clkdiv_structure.sv
-    - rtl/clkdiv.sv
-  - source: registers.register_list
-    outputs:
-    - rtl/clkdiv_structure.sv
-  - source: io_list.top_ports
-    outputs:
-    - rtl/clkdiv.sv
-    - rtl/clkdiv_structure.sv
-  - source: function_model
-    outputs:
-    - rtl/clkdiv_structure.sv
-    - tb/cocotb/test_clkdiv.py
-  - source: cycle_model
-    outputs:
-    - rtl/clkdiv_structure.sv
-    - tb/cocotb/test_clkdiv.py
-  - source: test_requirements.scenarios
-    outputs:
-    - tb/cocotb/test_clkdiv.py
-
-workflow_todos:
-  rtl-gen:
-  - content: "Implement APB register decode and read mux for DIVISOR, CTRL, STATUS"
-    detail: "RTL must decode three supported offsets (0x00, 0x04, 0x08), update divisor_q/enable_q on writes, mux PRDATA on reads, and assert PSLVERR for unsupported offsets. PREADY is always 1."
-    criteria:
-    - "DIVISOR, CTRL, STATUS read/write behavior matches function_model"
-    - "Unsupported offsets assert PSLVERR and return PRDATA=0"
-    - "PREADY is permanently high"
-    source_refs:
-    - registers.register_list
-    - io_list.interfaces.apb_slave
-    - function_model.transactions.FM_APB_WRITE_DIVISOR
-    - function_model.transactions.FM_APB_WRITE_CTRL
-    - function_model.transactions.FM_APB_READ_REGISTER
-    - function_model.transactions.FM_APB_ERROR
-    owner_module: clkdiv_structure
-    owner_file: rtl/clkdiv_structure.sv
-    priority: high
-    required: true
-  - content: "Implement counter-based clock divider with output toggle"
-    detail: "RTL must implement a COUNTER_WIDTH-bit counter that increments each PCLK cycle when enabled. Compute effective_divisor = divisor_q + 1, half_period = (effective_divisor + 1) >> 1. Toggle clkdiv_o based on counter < half_period. Wrap counter at effective_divisor - 1. Relatch effective_divisor/half_period on wrap."
-    criteria:
-    - "counter increments each PCLK cycle when enable_q=1"
-    - "counter wraps at effective_divisor_q - 1"
-    - "clkdiv_o = enable_q ? (counter_q < half_period_q) : 0"
-    - "effective_divisor_q and half_period_q relatch on counter wrap"
-    - "enable_q=0 forces counter_q=0 and clkdiv_o=0"
-    source_refs:
-    - function_model.transactions.FM_CLOCK_DIVIDE
-    - function_model.state_variables
-    - cycle_model.pipeline.S2_COUNTER_UPDATE
-    - cycle_model.pipeline.S3_OUTPUT_TOGGLE
-    - fsm.control
-    owner_module: clkdiv_structure
-    owner_file: rtl/clkdiv_structure.sv
-    priority: high
-    required: true
-  - content: "Implement top wrapper with named port connections"
-    detail: "Top module clkdiv must expose all SSOT top_ports, instantiate clkdiv_structure with named port connections per integration.connections, and list both RTL files in compile order."
-    criteria:
-    - "clkdiv module exists with all SSOT-declared ports"
-    - "clkdiv_structure instantiated with named connections"
-    - "list/clkdiv.f lists both RTL files in correct order"
-    source_refs:
-    - top_module
-    - io_list.top_ports
-    - integration.connections
-    - filelist.rtl
-    owner_module: clkdiv
-    owner_file: rtl/clkdiv.sv
-    priority: high
-    required: true
-
-generation_flow:
-  current_stage: "ssot-gen to rtl-gen"
-  commands:
-  - stage: ssot
-    command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh clkdiv"
-  - stage: rtl
-    command: "/ssot-rtl clkdiv"
-  - stage: lint
-    command: "/lint clkdiv"
-  - stage: tb
-    command: "/ssot-tb-cocotb clkdiv"
-  handoff:
-    next: rtl-gen
-    ssot: clkdiv/yaml/clkdiv.ssot.yaml
-    top_module: clkdiv
+    - "UNUSEDSIGNAL: tie-offs only"
+    - "WIDTHEXPAND: counter comparison width"
+reuse_modules: TBD
+custom: TBD
+dir_structure: TBD
+filelist: TBD
+test_requirements: TBD
+quality_gates: TBD
+traceability: TBD
+workflow_todos: TBD
+generation_flow: TBD

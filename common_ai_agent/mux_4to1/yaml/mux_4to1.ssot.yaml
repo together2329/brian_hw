@@ -1,9 +1,12 @@
+# =============================================================================
+# SSOT: mux_4to1 — 4-to-1 Parameterized Multiplexer with APB-Lite CSR
+# =============================================================================
 top_module:
   name: "mux_4to1"
   file: "rtl/mux_4to1.sv"
   version: "1.0"
-  type: "peripheral"
-  description: "Parameterized 4-to-1 multiplexer with APB-lite CSR interface for runtime input selection and 1-cycle datapath latency"
+  type: "bus"
+  description: "Parameterized 4-to-1 multiplexer with registered output (1-cycle latency), APB-Lite CSR for runtime select-source control, and optional enable gating."
   reference_spec: "user-defined"
   target:
     technology: "generic"
@@ -11,33 +14,30 @@ top_module:
     area_um2: null
     power_mw: null
 sub_modules:
-  - { name: "mux_4to1_regs",  file: "rtl/mux_4to1_regs.sv",  ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list"], source_sections: ["registers"], register_refs: ["registers.register_list"], description: "APB-lite register block for mux select" }
-  - { name: "mux_4to1_core",  file: "rtl/mux_4to1_core.sv",  ownership: "manifest", ssot_gen: false, implements: ["function_model", "cycle_model", "dataflow", "features"], source_sections: ["function_model", "cycle_model", "dataflow", "features"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline"], dataflow_refs: ["dataflow.sequence"], feature_refs: ["features"], description: "Core 4-to-1 mux datapath and control" }
+  - { name: "mux_4to1_regs", file: "rtl/mux_4to1_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list", "io_list.interfaces.apb_lite_slave"], source_sections: ["registers", "io_list"], register_refs: ["registers.register_list"], description: "APB-Lite CSR decode + register storage for CTRL and STATUS" }
+  - { name: "mux_4to1_core", file: "rtl/mux_4to1_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model.transactions.FM_SELECT", "function_model.transactions.FM_HOLD", "function_model.output_rules", "function_model.state_updates", "cycle_model.pipeline"], source_sections: ["function_model", "cycle_model"], function_model_refs: ["function_model.transactions.FM_SELECT", "function_model.transactions.FM_HOLD"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"], description: "Mux select logic + output register — core datapath" }
 decomposition:
   units:
-    - { id: "decode", kind: "control", source_refs: ["function_model.transactions"], rtl_candidates: ["mux_4to1_regs"], verification_impact: ["test_requirements.scenarios"] }
-    - { id: "select", kind: "datapath/control", source_refs: ["function_model.transactions", "cycle_model.pipeline"], rtl_candidates: ["mux_4to1_core"], verification_impact: ["coverage_plan.functional"] }
+    - { id: "csr_decode", kind: "control", source_refs: ["registers.register_list", "function_model.transactions.FM_SELECT"], rtl_candidates: ["mux_4to1_regs"], verification_impact: ["test_requirements.scenarios.SC1", "test_requirements.scenarios.SC2"] }
+    - { id: "mux_forward", kind: "datapath", source_refs: ["function_model.transactions.FM_SELECT", "function_model.output_rules", "cycle_model.pipeline"], rtl_candidates: ["mux_4to1_core"], verification_impact: ["test_requirements.scenarios.SC1", "test_requirements.scenarios.SC3"] }
 parameters:
   - name: "DATA_WIDTH"
-    default: 8
+    default: 32
     type: int
-    description: "Width of each mux input and output data bus in bits"
-    drives: ["rtl/mux_4to1_core.sv", "rtl/mux_4to1.sv"]
+    description: "Bit-width of each data input and the data output"
+    drives: ["mux_4to1.sv", "mux_4to1_core.sv", "mux_4to1_regs.sv"]
   - name: "NUM_INPUTS"
     default: 4
     type: int
-    description: "Number of mux inputs (fixed at 4 for this IP; parameter enables future scaling)"
-    drives: ["rtl/mux_4to1_core.sv"]
+    description: "Number of data inputs; must be a power of 2 for clean select encoding"
+    drives: ["mux_4to1.sv", "mux_4to1_core.sv"]
+    constraints: "power_of_2, min 2, max 16"
   - name: "SEL_WIDTH"
     default: 2
     type: int
-    description: "Select signal width (ceil(log2(NUM_INPUTS)))"
-    drives: ["rtl/mux_4to1_regs.sv", "rtl/mux_4to1_core.sv"]
-  - name: "CLOCK_FREQ_MHZ"
-    default: 50
-    type: int
-    description: "Target clock frequency in MHz"
-    drives: ["tb_top.sv", "docs/README.md"]
+    description: "clog2(NUM_INPUTS) — select port width, derived not overridden"
+    drives: ["mux_4to1.sv", "mux_4to1_core.sv"]
+    constraints: "Must equal $clog2(NUM_INPUTS)"
   - name: "RESET_POLARITY"
     default: "active_low"
     type: enum
@@ -47,169 +47,191 @@ io_list:
   clock_domains:
     - name: "PCLK"
       frequency_mhz: 50
-      description: "APB-lite peripheral clock"
+      description: "Single system clock"
       ports:
-        - { name: "PCLK", width: 1, direction: "input", description: "Peripheral clock" }
+        - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
   resets:
     - name: "PRESETn"
       polarity: "active_low"
       sync_async: "async_assert_sync_deassert"
-      description: "APB-lite peripheral reset"
+      description: "System reset — async assert, sync deassert"
       ports:
         - { name: "PRESETn", width: 1, direction: "input", description: "Active-low async reset" }
   interfaces:
-    - name: "apb_slave"
-      type: "APB4"
+    - name: "apb_lite_slave"
+      type: "APB-Lite"
       role: "slave"
       clock_domain: "PCLK"
       reset_domain: "PRESETn"
-      description: "APB-lite register access for runtime mux select configuration"
+      description: "APB-Lite CSR interface for runtime select-source control and status readback"
       protocol:
-        setup_phase: "psel=1, penable=0 captures address/control."
+        setup_phase: "psel=1, penable=0 captures address and control."
         access_phase: "psel=1, penable=1 completes when pready=1."
         read_rule: "prdata is valid in the completing access phase for reads."
-        write_rule: "pwdata/pstrb are sampled in the completing access phase for writes."
-        error_rule: "pslverr is asserted only with pready=1 for illegal or unsupported access."
-        zero_wait_state: "All accesses complete with pready=1 in the first access phase."
+        write_rule: "pwdata is sampled in the completing access phase for writes."
+        error_rule: "pslverr is asserted for illegal or unsupported access."
       ports:
-        - { name: "PADDR",   width: 8,  direction: "input",  description: "APB address" }
+        - { name: "PADDR",   width: 4,  direction: "input",  description: "APB address (word-aligned, 4-bit decode)" }
         - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
         - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
         - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write" }
         - { name: "PWDATA",  width: 32, direction: "input",  description: "APB write data" }
-        - { name: "PSTRB",   width: 4,  direction: "input",  description: "APB strobes" }
         - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
-        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready" }
-        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB error" }
-    - name: "mux_data_inputs"
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready (always 1 — zero-wait-state)" }
+        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB error (asserted for reserved/unmapped addresses)" }
+    - name: "data_inputs"
       type: "custom"
       clock_domain: "PCLK"
       reset_domain: "PRESETn"
-      description: "Four parallel data input buses for mux selection"
+      description: "4 parameterized-width data input buses"
       protocol:
-        sampling: "All input buses are sampled combinationally."
-        width_parameter: "DATA_WIDTH (default 8)"
-        binding_rule: "Inputs in[NUM_INPUTS-1:0][DATA_WIDTH-1:0] fed from external logic."
+        sampling: "Sampled on every rising PCLK edge when PRESETn is deasserted."
       ports:
-        - { name: "in0", width: "DATA_WIDTH", direction: "input", description: "Mux data input 0" }
-        - { name: "in1", width: "DATA_WIDTH", direction: "input", description: "Mux data input 1" }
-        - { name: "in2", width: "DATA_WIDTH", direction: "input", description: "Mux data input 2" }
-        - { name: "in3", width: "DATA_WIDTH", direction: "input", description: "Mux data input 3" }
-    - name: "mux_data_output"
+        - { name: "data_in_0", width: "DATA_WIDTH", direction: "input", description: "Data input 0" }
+        - { name: "data_in_1", width: "DATA_WIDTH", direction: "input", description: "Data input 1" }
+        - { name: "data_in_2", width: "DATA_WIDTH", direction: "input", description: "Data input 2" }
+        - { name: "data_in_3", width: "DATA_WIDTH", direction: "input", description: "Data input 3" }
+    - name: "select_input"
       type: "custom"
       clock_domain: "PCLK"
       reset_domain: "PRESETn"
-      description: "Selected mux data output"
+      description: "Hardware select input; used when CTRL.sel_src = 0"
       protocol:
-        data_rule: "out = in[sel] where sel is the registered select value from CTRL register."
-        latency_rule: "1-cycle: out updates on the clock edge after in[*] or sel changes."
-        reset_value: "0 after PRESETn deassertion (sel resets to 0, selecting in0)."
+        sampling: "Sampled on every rising PCLK edge."
       ports:
-        - { name: "out", width: "DATA_WIDTH", direction: "output", description: "Selected mux data output" }
+        - { name: "sel_i", width: "SEL_WIDTH", direction: "input", description: "Hardware select (2-bit for NUM_INPUTS=4)" }
+    - name: "data_output"
+      type: "custom"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Registered data output — 1-cycle latency from input sample to output"
+      protocol:
+        output_timing: "data_out is the registered value of the selected input, updated every clock cycle when enabled."
+        reset_value: "All zeros on reset deassertion."
+      ports:
+        - { name: "data_out", width: "DATA_WIDTH", direction: "output", description: "Selected data output (registered)" }
+        - { name: "data_out_valid", width: 1, direction: "output", description: "Indicates data_out holds a valid selected value (deasserted during reset)" }
 features:
-  - name: "Static mux selection via APB CSR"
-    trigger: "Software writes SEL field in CTRL register via APB-lite"
-    datapath: "CTRL.sel → registered select signal → combinational mux → out port"
-    control: "Zero-wait-state APB write; registered select updates on next PCLK edge"
-    output: "out port reflects the input selected by CTRL.sel after 1 PCLK cycle"
-  - name: "Readback of current select"
-    trigger: "Software reads CTRL register via APB-lite"
-    datapath: "Registered sel value → PRDATA on APB read"
-    control: "Zero-wait-state APB read"
-    output: "PRDATA[SEL_WIDTH-1:0] = current select value"
+  - name: "Hardware Select Muxing"
+    trigger: "CTRL.sel_src == 0 and sel_i is sampled on rising PCLK"
+    datapath: "sel_i selects one of data_in[0..3]; the selected value is registered into data_out on the next rising edge."
+    control: "No FSM — pure combinational select followed by output register."
+    output: "data_out = registered(data_in[sel_i])"
+  - name: "Software Select Muxing"
+    trigger: "CTRL.sel_src == 1; APB write to CTRL.sw_sel updates the select value"
+    datapath: "CTRL.sw_sel selects one of data_in[0..3]; the selected value is registered into data_out on the next rising edge."
+    control: "Select source latched from CTRL.sel_src register bit."
+    output: "data_out = registered(data_in[CTRL.sw_sel])"
+  - name: "Enable Gating"
+    trigger: "CTRL.en == 0"
+    datapath: "data_out holds its last value; data_out_valid is deasserted."
+    control: "CTRL.en bit controls whether the mux output register updates."
+    output: "data_out frozen, data_out_valid = 0"
+  - name: "APB-Lite CSR Access"
+    trigger: "APB transfer with PSEL=1"
+    datapath: "Read/write CTRL and STATUS registers through APB-Lite interface."
+    control: "Zero-wait-state (PREADY=1 always); PSLVERR for reserved addresses."
+    output: "PRDATA for reads; register update for writes."
 dataflow:
-  select_path:
-    source: "CTRL register SEL field (APB-writable)"
-    storage: "Registered sel signal (SEL_WIDTH bits)"
-    sequence: "APB write PWDATA → CTRL.sel register → sel signal → mux select"
-  mux_datapath:
-    source: "in0, in1, in2, in3 (each DATA_WIDTH bits)"
-    selection: "sel signal (SEL_WIDTH bits, registered)"
-    sequence: "in[sel] appears on out after 1 PCLK cycle combinational + register delay"
-  readback_path:
-    source: "CTRL register (registered sel)"
-    sequence: "CTRL.sel → PRDATA on APB read"
+  data_path:
+    source: "data_in[0..3] (DATA_WIDTH-bit input buses)"
+    select: "sel_i (hardware) or CTRL.sw_sel (software), muxed by CTRL.sel_src"
+    register: "data_out_reg (DATA_WIDTH-bit output register)"
+    sequence: "data_in[*] → combinational select → output register → data_out"
+  control_path:
+    source: "APB-Lite writes to CTRL register"
+    select_source: "CTRL.sel_src chooses between hardware sel_i and software CTRL.sw_sel"
+    enable: "CTRL.en gates the output register update"
+    sequence: "APB write → CTRL register update → sel_src/sw_sel/en take effect next cycle"
+  status_path:
+    source: "Output register and select logic"
+    readback: "STATUS.cur_sel reflects the active select index; STATUS.en reflects CTRL.en"
+    sequence: "output register update → STATUS register readable via APB"
 function_model:
-  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the 4-to-1 mux computes independent of cycle timing."
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the mux computes independent of cycle timing."
   state_variables:
-    - { name: "sel", source: "registers.CTRL.sel", reset: 0, description: "Current mux select value (0-3, selecting in0-in3)" }
+    - { name: "data_out_reg", source: "output register", reset: 0, description: "Registered data output — holds the selected input value from the previous cycle" }
+    - { name: "cur_sel", source: "CTRL.sel_src ? CTRL.sw_sel : sel_i", reset: 0, description: "Currently active select index (resolved from hardware or software source)" }
+    - { name: "ctrl_en", source: "registers.CTRL.en", reset: 0, description: "Enable bit — when 0 the output register holds its last value" }
+    - { name: "ctrl_sel_src", source: "registers.CTRL.sel_src", reset: 0, description: "Select source: 0=hardware sel_i, 1=software CTRL.sw_sel" }
+    - { name: "ctrl_sw_sel", source: "registers.CTRL.sw_sel", reset: 0, description: "Software select value, used when sel_src=1" }
+    - { name: "valid_reg", source: "derived from ctrl_en", reset: 0, description: "Registered valid flag — asserts when ctrl_en=1 after first clock" }
   transactions:
-    - id: "FM_MUX_SELECT"
-      name: "mux_select_output"
+    - id: "FM_SELECT"
+      name: "select_and_forward"
       preconditions:
-        - "PRESETn deasserted"
-        - "CTRL register contains a valid sel value (0-3)"
-        - "Inputs in0-in3 are stable"
+        - "ctrl_en == 1"
+        - "cur_sel < NUM_INPUTS"
       inputs:
-        - "in0 (DATA_WIDTH bits)"
-        - "in1 (DATA_WIDTH bits)"
-        - "in2 (DATA_WIDTH bits)"
-        - "in3 (DATA_WIDTH bits)"
-        - "sel from CTRL register"
-      outputs:
-        - "out equals the selected input: out = sel==0 ? in0 : sel==1 ? in1 : sel==2 ? in2 : in3"
+        - "data_in[0..NUM_INPUTS-1] (DATA_WIDTH-bit each)"
+        - "sel_i (SEL_WIDTH-bit hardware select) or ctrl_sw_sel (software select)"
       output_rules:
-        - { name: "mux_out", expr: "sel == 0 ? in0 : sel == 1 ? in1 : sel == 2 ? in2 : in3", width: "DATA_WIDTH", port: "out" }
-      side_effects:
-        - "None — pure combinational function with registered select, no architectural side effects"
-      error_cases:
-        - { condition: "sel >= NUM_INPUTS (out of range select)", result: "out reads as 0 (safe default); PSLVERR not asserted for legal range in this IP" }
+        - { name: "data_out",   expr: "data_in[cur_sel]", width: "DATA_WIDTH", port: "data_out",   description: "Selected input value registered to output" }
+        - { name: "data_out_valid", expr: "ctrl_en",       width: 1,           port: "data_out_valid", description: "Valid indicator — mirrors enable after register" }
       state_updates:
-        - { name: "sel", reset: 0, expr: "PWDATA[SEL_WIDTH-1:0] on APB write to CTRL" }
-    - id: "FM_READBACK"
-      name: "select_readback"
+        - { name: "data_out_reg", reset: 0,  expr: "data_in[cur_sel]" }
+        - { name: "cur_sel",      reset: 0,  expr: "ctrl_sel_src ? ctrl_sw_sel : sel_i" }
+        - { name: "valid_reg",    reset: 0,  expr: "ctrl_en" }
+      side_effects: []
+      error_cases:
+        - { condition: "cur_sel >= NUM_INPUTS", result: "data_out is driven from data_in[0] as safe default (assumption: sel is always within range; see custom.assumptions)" }
+    - id: "FM_HOLD"
+      name: "hold_output"
       preconditions:
-        - "PRESETn deasserted"
-        - "APB read to CTRL register offset"
-      inputs:
-        - "sel from register state"
-      outputs:
-        - "PRDATA[SEL_WIDTH-1:0] equals sel; upper bits read as 0"
+        - "ctrl_en == 0"
+      inputs: []
       output_rules:
-        - { name: "prdata_sel", expr: "{ {32-SEL_WIDTH{1'b0}}, sel }", width: 32, port: "PRDATA" }
-      side_effects:
-        - "Register read has no architectural side effects"
+        - { name: "data_out",   expr: "data_out_reg (previous value)", width: "DATA_WIDTH", port: "data_out",   description: "Output register holds last value" }
+        - { name: "data_out_valid", expr: "0",                         width: 1,            port: "data_out_valid", description: "Valid deasserted" }
+      state_updates:
+        - { name: "data_out_reg", reset: 0, expr: "data_out_reg (no change)" }
+        - { name: "valid_reg",    reset: 0, expr: "0" }
+      side_effects: []
       error_cases: []
-      state_updates: []
   invariants:
-    - "out is purely combinational in in[*] and registered sel; no internal state beyond sel register"
-    - "Register reads have no side effects"
-    - "APB writes to CTRL update sel on the next PCLK edge after the access phase completes"
-  reference_model_hint: "tb-gen should implement a Python scoreboard that drives in0-in3 and verifies out matches sel-gated input after 1 cycle"
+    - "data_out is always registered — it never glitches within a clock cycle."
+    - "data_out_valid is 0 during and immediately after reset."
+    - "When ctrl_en transitions from 0 to 1, data_out updates on the next clock edge."
+    - "cur_sel is always in the range [0, NUM_INPUTS-1] when ctrl_en=1 (see custom.assumptions for out-of-range policy)."
+  reference_model_hint: "tb-gen should implement a Python reference model: given data_in array, sel_i, ctrl_en, ctrl_sel_src, ctrl_sw_sel → compute expected data_out and data_out_valid each cycle. Compare with RTL output on every rising edge."
 cycle_model:
-  purpose: "Cycle/handshake contract for rtl-gen; describes when mux output, APB response, and register state update."
+  purpose: "Cycle/handshake contract for rtl-gen; describes when state and outputs change relative to PCLK edges."
   executable: "pymtl3"
-  backend_policy: "Use PyMTL3 for clocked cycle model; keep FunctionalModel as behavioral oracle."
+  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle."
   clock: "PCLK"
   reset:
-    assertion: "PRESETn low asynchronously clears sel register to 0"
-    deassertion: "sel is usable on the first rising edge after synchronized deassertion"
+    assertion: "PRESETn low asynchronously clears data_out_reg, cur_sel, valid_reg, and all control registers."
+    deassertion: "State is usable on the first rising PCLK edge after synchronized deassertion; data_out=0, data_out_valid=0."
   latency:
-    register_read: { min_cycles: 0, max_cycles: 1, description: "Zero-wait-state APB read: PRDATA valid same cycle as PSEL && PENABLE" }
-    register_write: { min_cycles: 0, max_cycles: 1, description: "Zero-wait-state APB write: PWDATA sampled and sel updates next cycle" }
-    mux_output: { min_cycles: 1, max_cycles: 1, description: "out reflects new sel or input change after 1 PCLK cycle" }
+    data_path: { min_cycles: 1, max_cycles: 1, description: "Exactly 1-cycle latency from data_in/sel_i sample to data_out update (registered output)" }
+    register_read: { min_cycles: 0, max_cycles: 1, description: "APB read: PREADY=1 always, PRDATA available in same access phase" }
+    register_write: { min_cycles: 0, max_cycles: 1, description: "APB write: PREADY=1 always, register updated at end of access phase" }
+    ctrl_to_output: { min_cycles: 1, max_cycles: 1, description: "CTRL register write takes effect on the next rising edge (registered control path)" }
   handshake_rules:
-    - { signal: "PREADY", rule: "Always 1 in access phase; no wait states." }
-    - { signal: "PSLVERR", rule: "Asserted only with PREADY=1 when PADDR maps to unimplemented offset." }
+    - { signal: "PREADY", rule: "Always driven high — zero-wait-state APB-Lite slave." }
+    - { signal: "PSLVERR", rule: "Asserted only during the access phase when PADDR targets a reserved/unmapped offset." }
+    - { signal: "data_out", rule: "Updates on every rising PCLK edge when ctrl_en=1; holds previous value when ctrl_en=0." }
+    - { signal: "data_out_valid", rule: "Asserted on the rising edge after ctrl_en=1 and deasserted one cycle after ctrl_en=0." }
   pipeline:
-    - { stage: "S0_REGISTER_SEL", cycle: 0, action: "Registered sel holds current select value" }
-    - { stage: "S1_COMB_MUX", cycle: 0, action: "Combinational mux selects in[sel], fed to out register input" }
-    - { stage: "S2_OUTPUT_REG", cycle: 1, action: "out port driven by registered mux result" }
+    - { stage: "S0_SAMPLE", cycle: "N", action: "Sample data_in[0..3], sel_i, and CTRL register state on rising PCLK edge" }
+    - { stage: "S1_RESOLVE_SEL", cycle: "N (combinational)", action: "Resolve active select: cur_sel = ctrl_sel_src ? ctrl_sw_sel : sel_i" }
+    - { stage: "S2_MUX", cycle: "N (combinational)", action: "Compute mux_next = data_in[cur_sel]" }
+    - { stage: "S3_REGISTER", cycle: "N+1", action: "If ctrl_en=1, data_out_reg <= mux_next; valid_reg <= 1. If ctrl_en=0, hold data_out_reg; valid_reg <= 0." }
   ordering:
-    - "APB write to CTRL.sel takes effect on the next PCLK edge; out updates one cycle later."
-    - "out is a registered output; it changes only on PCLK rising edges after PRESETn deassertion."
-  backpressure:
-    - "No backpressure on data interfaces; mux is purely feed-forward."
+    - "Register writes from APB complete at the end of the access phase (same cycle)."
+    - "Updated CTRL values affect the data path starting the next rising edge after the write completes."
+    - "data_out reflects the selected input value from the previous cycle — never the current cycle."
+  backpressure: []
   performance:
     frequency_mhz: 50
-    throughput: { sustained_beats_per_cycle: 1, condition: "Each cycle produces a new output; combinational mux path is single-cycle" }
-    outstanding: { read_max: 1, write_max: 1, description: "Single APB transaction at a time" }
-    depth: { pipeline_stages: 2, queue_depth: 0, description: "Register + combinational mux; no queuing" }
+    throughput: { sustained_beats_per_cycle: 1, condition: "ctrl_en=1 — one new output value every clock cycle" }
+    outstanding: { read_max: 0, write_max: 0, description: "No outstanding AXI transactions; simple registered datapath" }
+    depth: { pipeline_stages: 1, queue_depth: 1, description: "Single output register stage" }
   observability:
     - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
 clock_reset_domains:
   domains:
-    - { name: "PCLK", frequency_mhz: 50, description: "APB-lite peripheral clock" }
+    - { name: "PCLK", frequency_mhz: 50, description: "Single system clock" }
   reset_scheme:
     signal: "PRESETn"
     polarity: "active_low"
@@ -225,8 +247,9 @@ rdc_requirements:
 registers:
   config:
     register_width: 32
-    addr_width: 8
+    addr_width: 4
     byte_addressable: true
+    num_channels: 1
   bit_order: "lsb0"
   bits_format: "[msb, lsb]"
   reserved_field_policy:
@@ -240,146 +263,144 @@ registers:
       access: "rw"
       reset: 0x00000000
       category: "control"
-      description: "Control Register — mux select"
+      description: "Control Register — select source, software select, and enable"
       write_side_effects:
-        - "Writing SEL field updates the mux select on the next PCLK edge."
+        - "Writing sel_src switches between hardware and software select on the next clock edge."
+        - "Writing sw_sel updates the software select value used when sel_src=1."
+        - "Writing en gates/ungates the output register update."
       fields:
-        - { name: "SEL", bits: [1, 0], access: "rw", reset: 0x0, write_effect: "Selects which input drives out: 0=in0, 1=in1, 2=in2, 3=in3", description: "Mux select (0-3)" }
-        - { name: "reserved_31_2", bits: [31, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-    - name: "VERSION"
+        - { name: "en",      bits: [0, 0],  access: "rw", reset: 0x0, write_effect: "0=hold output, 1=update output", description: "Mux enable" }
+        - { name: "sel_src", bits: [1, 1],  access: "rw", reset: 0x0, write_effect: "0=hardware sel_i, 1=software sw_sel", description: "Select source" }
+        - { name: "sw_sel",  bits: [3, 2],  access: "rw", reset: 0x0, write_effect: "Software select index (0..3)", description: "Software select value" }
+        - { name: "reserved_31_4", bits: [31, 4], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "STATUS"
       offset: 0x04
       width: 32
       access: "ro"
-      reset: 0x00010000
-      category: "info"
-      description: "Hardware version register"
+      reset: 0x00000000
+      category: "status"
+      description: "Status Register — readback of active select and enable state"
       fields:
-        - { name: "MAJOR", bits: [23, 16], access: "ro", reset: 0x01, description: "Major version" }
-        - { name: "MINOR", bits: [15, 8], access: "ro", reset: 0x00, description: "Minor version" }
-        - { name: "PATCH", bits: [7, 0], access: "ro", reset: 0x00, description: "Patch version" }
-        - { name: "reserved_31_24", bits: [31, 24], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+        - { name: "en",      bits: [0, 0],  access: "ro", reset: 0x0, description: "Current enable state (mirrors CTRL.en)" }
+        - { name: "cur_sel", bits: [3, 2],  access: "ro", reset: 0x0, description: "Current active select index (0..3)" }
+        - { name: "valid",   bits: [4, 4],  access: "ro", reset: 0x0, description: "data_out_valid status (0=output held, 1=output tracking)" }
+        - { name: "reserved_31_5", bits: [31, 5], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
 memory:
-  instances: []
-  note: "No SRAM/FIFO in mux_4to1 — purely combinational datapath with a single register for sel"
+  instances:
+    - { name: "data_out_reg", type: "register", depth: 1, width: "DATA_WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "Output register for selected data" }
+  note: "No SRAM/FIFO — simple register-based output."
 interrupts:
   sources: []
-  output:
-    signal: "none"
-    polarity: "none"
-    type: "none"
-  note: "No interrupts in mux_4to1 — purely combinational datapath with APB CSR"
+  output: null
+  note: "No interrupts — mux_4to1 is a purely combinational+registered datapath with CSR. No interrupt generation needed."
 fsm:
-  note: "No FSM required — mux_4to1 is a fully pipelined, stateless datapath (registered sel + combinational mux). No state transitions beyond reset."
+  note: "No FSM required — pure combinational select with registered output. Control is register-based (no state machine)."
 rtl_contract:
-  transaction: "FM_MUX_SELECT"
-  sample_condition: "out port reflects in[sel] after 1 PCLK cycle"
+  transaction: "FM_SELECT"
+  sample_condition: "Rising PCLK edge when ctrl_en=1"
   input_map:
-    data_in0: "in0"
-    data_in1: "in1"
-    data_in2: "in2"
-    data_in3: "in3"
-    select_from_apb: "PWDATA[SEL_WIDTH-1:0] on APB write to CTRL"
+    data_inputs: "data_in_0..data_in_3"
+    hw_select: "sel_i"
+    sw_select: "CTRL.sw_sel"
+    select_source: "CTRL.sel_src"
+    enable: "CTRL.en"
   output_map:
-    mux_output: "out"
-    apb_read_data: "PRDATA"
+    data_out: "data_out (registered selected input)"
+    data_out_valid: "data_out_valid (registered enable)"
   state_updates:
-    - { name: "sel", reset: 0, expr: "PWDATA[SEL_WIDTH-1:0] on APB write with PSEL && PENABLE && PWRITE && PREADY" }
+    - { name: "data_out_reg", reset: 0, expr: "data_in[cur_sel] when ctrl_en=1; hold when ctrl_en=0" }
+    - { name: "valid_reg", reset: 0, expr: "ctrl_en (registered)" }
 timing:
   target_clocks:
-    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.1 }
+    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.5 }
   latency_budget:
-    register_access_cycles: { min: 0, max: 1, measured_from: "PSEL && PENABLE", measured_to: "PREADY" }
-    mux_output_latency_cycles: { min: 1, max: 1, measured_from: "input/sel change", measured_to: "out valid" }
+    data_path_cycles: { min: 1, max: 1, measured_from: "data_in/sel_i sample", measured_to: "data_out update", note: "Single register stage" }
+    register_access_cycles: { min: 1, max: 2, measured_from: "psel && penable", measured_to: "pready" }
   throughput:
     sustained_beats_per_cycle: 1
-    conditions: "Single-cycle combinational path; output updates every cycle"
+    conditions: "ctrl_en=1 — one new output per clock cycle"
   timing_exceptions: []
   io_delays:
     inputs:
-      - { ports: "all_inputs_except_PCLK_PRESETn", clock: "PCLK", delay_ns: 0.2, source: "system-level timing budget" }
+      - { ports: "all_inputs_except_PCLK_PRESETn", clock: "PCLK", delay_ns: 2.0, source: "50 MHz timing budget" }
     outputs:
-      - { ports: "all_outputs", clock: "PCLK", delay_ns: 0.2, source: "system-level timing budget" }
+      - { ports: "all_outputs", clock: "PCLK", delay_ns: 2.0, source: "50 MHz timing budget" }
   false_paths:
     - { from: "PRESETn", to: "all_registers", reason: "async reset assertion" }
   multicycle_paths: []
   sta_expectations:
     setup_wns_ns_min: 0.0
     hold_wns_ns_min: 0.0
-    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt"]
 power:
   domains:
     - { name: "PD_CORE", voltage: "nominal", clock_domains: ["PCLK"], isolation: "not_required_single_domain" }
   clock_gating:
     required: false
-    rationale: "No explicit low-power mode in this IP revision"
+    rationale: "Simple mux — no low-power mode in this revision"
   reset_retention:
     retention_required: false
     reset_value_source: "registers and function_model state_variables"
   power_states:
-    - { name: "ON", entry: "PRESETn deasserted", exit: "PRESETn asserted", guarantees: ["All architectural behavior active"] }
+    - { name: "ON", entry: "reset deasserted", exit: "reset asserted", guarantees: ["All datapath and CSR active"] }
   upf_required: false
 security:
-  classification: "non_secure_peripheral_ip"
+  classification: "non_secure_mux_ip"
   assets:
     - { name: "register_map", protection: "APB access control is external to this IP" }
-    - { name: "mux_datapath_data", protection: "Data flows are purely feed-forward; no data storage beyond sel register" }
+    - { name: "data_path", protection: "No data protection beyond AXI/APB protocol correctness" }
   threat_model:
-    - { threat: "illegal register write", mitigation: "RO access policy in registers.register_list; external bus enforces privilege" }
-  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
+    - { threat: "illegal register write", mitigation: "RO/WO access policy in registers.register_list" }
+    - { threat: "select glitch", mitigation: "Registered output prevents combinational glitches from propagating" }
+  privilege_model: "No internal privilege levels — external bus fabric enforces access policy"
   safety_goals:
-    - "out port safely drives 0 after reset (sel=0 selects in0)"
+    - "Output is always the selected input value or held previous value — no undefined states"
+    - "Reset clears all state to known values"
 error_handling:
   error_sources:
-    - { id: "ERR_UNSUPPORTED_ADDR", condition: "APB access to unimplemented register offset", architectural_effect: "PSLVERR asserted with PREADY=1; no state change" }
-    - { id: "ERR_SEL_OVERFLOW", condition: "sel >= NUM_INPUTS (synthesized out of range select)", architectural_effect: "out reads as 0; safe default" }
+    - { id: "ERR_APB_RESERVED", condition: "APB access to unmapped offset (PADDR >= 0x08)", architectural_effect: "PSLVERR asserted, PRDATA=0" }
+    - { id: "ERR_SEL_OOR", condition: "cur_sel >= NUM_INPUTS (should not happen with 2-bit sel)", architectural_effect: "Safe default: data_in[0] selected (see custom.assumptions)" }
   propagation:
-    - "PSLVERR is purely combinational in the APB cycle; no persistent error status."
-    - "No error interrupts in this IP."
+    - "PSLVERR is asserted only during the APB access phase for unmapped addresses."
+    - "No error interrupt — mux is a passthrough datapath."
   recovery:
-    - { action: "Next legal APB access receives PREADY=1 with PSLVERR=0" }
+    - { action: "Correct register programming", clears: ["select misconfiguration"], preserves: ["all register state"] }
 debug_observability:
   waveform_must_probe:
-    - "sel register"
-    - "in0, in1, in2, in3"
-    - "out"
-    - "APB interface signals (PSEL, PENABLE, PWRITE, PWDATA, PRDATA, PREADY, PSLVERR)"
-    - "PCLK"
-    - "PRESETn"
-  status_outputs: []
+    - "data_out_reg"
+    - "cur_sel"
+    - "ctrl_en"
+    - "data_out_valid"
+    - "CTRL register fields (en, sel_src, sw_sel)"
+  status_outputs:
+    - { name: "data_out_valid", description: "Indicates valid output when 1" }
   trace_events:
-    - { name: "sel_change", trigger: "sel register value changes" }
-    - { name: "output_update", trigger: "out port value changes" }
+    - { name: "output_update", trigger: "data_out_reg changes value (ctrl_en=1)" }
+    - { name: "output_hold", trigger: "ctrl_en transitions from 1 to 0" }
   debug_registers:
-    - "CTRL"
-    - "VERSION"
+    - "STATUS"
 integration:
   bus_attachment:
-    control: "APB4 slave"
-    data: "Custom parallel data (in0-in3, out)"
+    control: "APB-Lite slave for CSR"
+    data: "Direct data input/output ports (no bus for data)"
   connections:
-    - { module: "mux_4to1_regs", port: "PCLK", signal: "PCLK" }
-    - { module: "mux_4to1_regs", port: "PRESETn", signal: "PRESETn" }
-    - { module: "mux_4to1_core", port: "PCLK", signal: "PCLK" }
-    - { module: "mux_4to1_core", port: "PRESETn", signal: "PRESETn" }
-    - { module: "mux_4to1_regs", port: "sel_o", signal: "sel" }
-    - { module: "mux_4to1_core", port: "sel_i", signal: "sel" }
-    - { module: "mux_4to1_core", port: "in0_i", signal: "in0" }
-    - { module: "mux_4to1_core", port: "in1_i", signal: "in1" }
-    - { module: "mux_4to1_core", port: "in2_i", signal: "in2" }
-    - { module: "mux_4to1_core", port: "in3_i", signal: "in3" }
-    - { module: "mux_4to1_core", port: "out_o", signal: "out" }
+    - { module: "mux_4to1", port: "PCLK", signal: "system.PCLK" }
+    - { module: "mux_4to1", port: "PRESETn", signal: "system.PRESETn" }
+    - { module: "mux_4to1_regs", port: "clk_i", signal: "PCLK" }
+    - { module: "mux_4to1_regs", port: "rst_ni", signal: "PRESETn" }
+    - { module: "mux_4to1_core", port: "clk_i", signal: "PCLK" }
+    - { module: "mux_4to1_core", port: "rst_ni", signal: "PRESETn" }
   address_map_requirements:
     alignment_bytes: 4
     decode_owner: "SoC interconnect"
-    illegal_access_response: "PSLVERR with PREADY=1 for unsupported offsets"
+    illegal_access_response: "PSLVERR for PADDR >= 0x08"
   dependencies:
     external_modules: []
     external_clocks: ["PCLK"]
     external_resets: ["PRESETn"]
   integration_notes:
-    - "SoC must provide APB-compliant PSEL/PENABLE/PWRITE/PWDATA/PSTRB."
-    - "Input data buses in0-in3 are expected to be stable for at least one PCLK cycle."
-    - "out is a registered output that changes on PCLK rising edges."
+    - "SoC must provide APB-Lite compliant signals (PADDR, PSEL, PENABLE, PWRITE, PWDATA)."
+    - "data_in inputs must be driven by upstream logic; data_out connects to downstream consumer."
 dft:
   scan_required: false
   scan_ports: []
@@ -388,24 +409,20 @@ dft:
     reset: "PRESETn must be controllable in test mode"
     clocks: ["PCLK"]
   observability:
-    required_internal_points: ["sel register", "out"]
+    required_internal_points: ["data_out_reg", "cur_sel", "ctrl_en"]
   mbist_required: false
-  notes: "No SRAM macro in this design"
+  notes: "No SRAM macro — simple register-based design; DFT via scan insertion during synthesis if needed."
 synthesis:
   dialect: "systemverilog_2012"
   top_module: "mux_4to1"
   technology:
-    pdk: "sky130"
-    standard_cell_library: "sky130_fd_sc_hd"
-    liberty_corner: "ss_100C_1v40"
-    liberty_env: "SKY130_LIB"
-    lef_env: "SKY130_LEF"
-    tech_lef_env: "SKY130_TLEF"
-    rcx_rules_env: "SKY130_RCX_RULES"
+    pdk: "generic"
+    standard_cell_library: "generic"
+    liberty_corner: "typical"
   constraints:
     - "No inferred latches"
-    - "All flops reset according to clock_reset_domains.reset_scheme"
-    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
+    - "All flops reset via PRESETn (active-low async)"
+    - "No package/interface/modport/function/task/for/while constructs"
   ppa_targets:
     area_um2_max: null
     power_mw_max: null
@@ -414,33 +431,6 @@ synthesis:
     - "syn/out/mux_4to1.json or syn/out/mux_4to1.v"
     - "syn/out/area.rpt"
     - "syn/out/timing_summary.rpt"
-pnr:
-  utilization_pct: 60
-  aspect_ratio: 1.0
-  core_space_um: 2.0
-  global_density: 0.65
-  io_layers:
-    horizontal: "met3"
-    vertical: "met2"
-  placement:
-    density_target: 0.65
-    max_displacement_um: null
-  cts:
-    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
-    functional_mode_case_analysis:
-      - { port: "scan_en", value: 0, when_present: true }
-  routing:
-    signal_layers: { min: "met1", max: "met5" }
-    clock_layers: { min: "met3", max: "met5" }
-    drc_waivers: []
-  required_outputs:
-    - "pnr/out/floorplan.def"
-    - "pnr/out/placed.def"
-    - "pnr/out/cts.def"
-    - "pnr/out/routed.def"
-    - "pnr/out/routed.v"
-    - "pnr/out/routed.spef"
-    - "pnr/out/pnr.report.md"
 coding_rules:
   verilog_style: "systemverilog_2012"
   file_extension: ".sv"
@@ -449,25 +439,24 @@ coding_rules:
     - "nonblocking (<=) in sequential always @(posedge clk …)"
     - "blocking (=) in combinational always @(*)"
     - "No latches: every combinational branch assigns all outputs (use a default)"
-    - "Active-low async reset: always @(posedge clk or negedge rst_n) with if (!rst_n)"
+    - "Active-low async reset: always @(posedge PCLK or negedge PRESETn) with if (!PRESETn)"
     - "Parameterize widths (no hardcoded numbers)"
-    - "Use rtl/mux_4to1_param.vh for shared parameter declarations when needed; include it inside consuming modules"
     - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
     - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
-    - "Use localparam state encoding with logic state/next_state signals"
   lint_waivers:
     - "UNUSEDSIGNAL: explicit approved tie-offs only"
+    - "WIDTHEXPAND: sel_i width expansion"
 reuse_modules: []
 custom:
-  note: "No custom extensions"
   assumptions:
-    - "APB-lite interface follows zero-wait-state policy: PREADY always 1 in access phase."
-    - "DATA_WIDTH default is 8 bits; NUM_INPUTS default is 4; SEL_WIDTH derived as ceil(log2(NUM_INPUTS)) = 2."
-    - "Input data buses in0-in3 are assumed stable for at least one PCLK cycle for correct sampling."
-    - "Output is registered; combinational mux result is flopped on PCLK rising edge."
-    - "No interrupts; no DMA; no FIFOs; minimal peripheral complexity."
-    - "PSLVERR asserted for any APB access outside the implemented register map (0x00 and 0x04)."
-    - "Out-of-range sel values (sel >= NUM_INPUTS) produce out=0 as a safe default."
+    - "sel_i is always within [0, NUM_INPUTS-1]. Out-of-range select values are a programming error; safe default routes to data_in[0]."
+    - "CTRL.sw_sel is always within [0, NUM_INPUTS-1]. APB writes with out-of-range values are a software bug; hardware does not mask."
+    - "DATA_WIDTH is a power of 2 and >= 8. Sub-byte widths are not supported."
+    - "Upstream data sources hold data_in stable for at least 1 PCLK cycle before sampling."
+    - "APB-Lite bus operates in single-cycle access mode (PREADY=1 always)."
+    - "No interrupt generation needed — mux is a purely datapath IP."
+    - "50 MHz default frequency; higher frequencies achievable with standard synthesis constraints."
+  note: "Pipeline mode — assumptions recorded without blocking on ask_user."
 dir_structure:
   template_dirs:
     rtl: "templates/rtl/"
@@ -488,151 +477,14 @@ filelist:
     - "rtl/mux_4to1.sv"
   sim:
     - "sim/tb_top.sv"
-    - "sim/tb_program.sv"
-    - "sim/mux_4to1_model.sv"
+    - "sim/tb_mux_4to1_model.sv"
   firmware:
     - "firmware/mux_4to1_regs.h"
   docs:
     - "docs/register_map.md"
     - "docs/README.md"
-test_requirements:
-  scenarios:
-    - id: "SC1"
-      name: "Static select verification"
-      stimulus: "Program CTRL.sel to 0/1/2/3 via APB, drive unique patterns on in0-in3"
-      expected: "out matches in[sel] after 1 cycle for each select value"
-      checker: "Scoreboard compares out to expected in[sel] with 1-cycle latency"
-      coverage: ["FM_MUX_SELECT", "S0_REGISTER_SEL", "S2_OUTPUT_REG"]
-    - id: "SC2"
-      name: "Dynamic select change"
-      stimulus: "Start with sel=0, then write sel=1, sel=2, sel=3 in sequence while inputs are stable"
-      expected: "out transitions correctly to each new input after 1 cycle per APB write"
-      checker: "Cycle checker verifies out == in[sel] at each step"
-      coverage: ["sel_change", "multi_select"]
-    - id: "SC3"
-      name: "Input data change with fixed select"
-      stimulus: "Fix sel=1, change in1 to several values"
-      expected: "out tracks in1 changes after 1 cycle"
-      checker: "Scoreboard checks every beat"
-      coverage: ["output_update", "S1_COMB_MUX"]
-    - id: "SC4"
-      name: "APB readback"
-      stimulus: "Write CTRL.sel=3 via APB, then read CTRL via APB"
-      expected: "PRDATA[SEL_WIDTH-1:0]=3, upper bits 0"
-      checker: "Scoreboard verifies read data matches written select"
-      coverage: ["FM_READBACK"]
-    - id: "SC5"
-      name: "Unsupported address error"
-      stimulus: "APB read/write to offset 0x08 (unimplemented)"
-      expected: "PSLVERR=1 with PREADY=1; no state change"
-      checker: "APB protocol checker verifies error response"
-      coverage: ["ERR_UNSUPPORTED_ADDR"]
-    - id: "SC6"
-      name: "Reset behavior"
-      stimulus: "Assert PRESETn, verify out=0 (sel resets to 0 selecting in0), then deassert"
-      expected: "out = in0 after reset deassertion and 1 cycle"
-      checker: "Scoreboard verifies reset state and post-reset recovery"
-      coverage: ["reset", "sel_reset_0"]
-  scoreboard_checks: 12
-  coverage_goals:
-    function:
-      target_pct: 100
-      model: "function_model"
-      description: "Cycle-independent behavioral intent coverage for mux_4to1."
-      bins:
-        - { id: "FCOV_FM_MUX_SELECT", source_ref: "function_model.transactions.FM_MUX_SELECT", class: "transaction", description: "Mux select output transaction observed by scoreboard" }
-        - { id: "FCOV_FM_READBACK", source_ref: "function_model.transactions.FM_READBACK", class: "transaction", description: "Select readback transaction observed" }
-    cycle:
-      target_pct: 100
-      model: "cycle_model"
-      description: "Cycle/handshake/latency coverage for mux_4to1."
-      bins:
-        - { id: "CCOV_STAGE_REGISTER_SEL", source_ref: "cycle_model.pipeline.S0_REGISTER_SEL", class: "pipeline_stage", description: "Register sel stage active" }
-        - { id: "CCOV_STAGE_COMB_MUX", source_ref: "cycle_model.pipeline.S1_COMB_MUX", class: "pipeline_stage", description: "Combinational mux stage active" }
-        - { id: "CCOV_STAGE_OUTPUT_REG", source_ref: "cycle_model.pipeline.S2_OUTPUT_REG", class: "pipeline_stage", description: "Output register stage active" }
-        - { id: "CCOV_PREADY_HANDSHAKE", source_ref: "cycle_model.handshake_rules", class: "handshake", description: "PREADY always-1 handshake observed" }
-        - { id: "CCOV_PERF_FREQUENCY", source_ref: "cycle_model.performance.frequency_mhz", class: "frequency", description: "Declared frequency assumption in coverage" }
-    functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
-    line: ">= 90% instrumented line coverage or explicit project waiver"
-    branch: ">= 85% instrumented branch coverage or explicit project waiver"
-    fsm: "No FSM in this IP — waived"
-    assertions: "APB protocol assertions pass"
-quality_gates:
-  ssot:
-    pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
-    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
-  rtl_gen:
-    profile: "standard"
-    pass: "SSOT-derived rtl_todo_plan has no blockers/orphans; all implementation TODOs close with fresh compile/lint evidence."
-    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_compile.json", "lint/dut_lint.json"]
-  rtl:
-    pass: "RTL implements function_model and cycle_model, compiles, and has no unwaived lint warnings."
-    evidence: ["rtl filelist", "compile log", "lint report"]
-  dv:
-    pass: "Every test_requirements scenario has an executable test, expected/got checker, and coverage bin."
-    evidence: ["results.xml", "coverage.json", "VCD/FST waveform"]
-  coverage:
-    pass: "Functional coverage goals pass and code/FSM/assertion coverage meets thresholds or has approved waiver."
-    evidence: ["instrumented coverage report", "coverage_report.md"]
-  eda:
-    pass: "Synthesis, pre-route STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have explicit signed-off waivers."
-    evidence: ["syn report", "sta setup/hold report", "wns.json", "pnr report", "routed.def", "routed.spef", "sta-post setup/hold report"]
-  signoff:
-    pass: "SSOT, RTL, lint, DV, simulation, coverage, and required EDA gates pass with fresh evidence."
-    evidence: ["ATLAS progress signoff pass", "artifact timestamps newer than final source edits"]
-traceability:
-  yaml_to_output:
-    - { yaml: "top_module.name", output: "ALL files (module name)" }
-    - { yaml: "parameters", output: "rtl/mux_4to1_param.vh (shared parameter include, no package)" }
-    - { yaml: "io_list.interfaces", output: "rtl/mux_4to1.sv (port list)" }
-    - { yaml: "registers.register_list", output: "rtl/mux_4to1_regs.sv + firmware + docs" }
-    - { yaml: "function_model", output: "rtl/mux_4to1_core.sv + tb/cocotb scoreboard/reference model" }
-    - { yaml: "cycle_model", output: "rtl/mux_4to1_core.sv pipeline/handshake logic + waveform checks" }
-    - { yaml: "timing", output: "STA constraints and timing pass/fail criteria" }
-    - { yaml: "pnr", output: "floorplan/place/CTS/route TCL, routed DEF/Verilog/SPEF, PnR pass/fail criteria" }
-    - { yaml: "power", output: "power-state assumptions or explicit no-UPF rationale" }
-    - { yaml: "security", output: "security/safety checks and threat mitigations" }
-    - { yaml: "error_handling", output: "RTL error paths + DV fault scenarios" }
-    - { yaml: "quality_gates", output: "ATLAS progress/signoff criteria" }
-    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
-workflow_todos:
-  fl-model-gen: []
-  rtl-gen:
-    - id: "RTL_TODO_MUX_4TO1_IMPLEMENTATION"
-      content: "Implement the SSOT-declared mux transaction pipeline"
-      detail: "Translate function_model transactions FM_MUX_SELECT and FM_READBACK, cycle_model pipeline stages S0-S2, and ownership refs into RTL state/datapath/control logic. The top module mux_4to1.sv instantiates mux_4to1_regs and mux_4to1_core with named port connections matching integration.connections."
-      criteria:
-        - "RTL owner logic is present in the declared owner files"
-        - "FunctionalModel expected result and RTL observed result can be compared for the referenced source_refs"
-        - "DUT-only compile/lint evidence is fresh after the final edit"
-        - "Named port connections between mux_4to1_regs and mux_4to1_core match integration.connections"
-      source_refs: ["function_model.transactions", "cycle_model.pipeline", "integration.connections"]
-      owner_module: "mux_4to1_core"
-      owner_file: "rtl/mux_4to1_core.sv"
-      priority: "high"
-      required: true
-  tb-gen: []
-  sim_debug: []
-  coverage: []
-  syn: []
-  pnr: []
-  sta: []
-  sta-post: []
-generation_flow:
-  steps:
-    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh mux_4to1", description: "Validate production SSOT structure, function_model, cycle_model, DV plan, and quality gates" }
-    - { name: "handoff_rtl", command: "/ssot-rtl mux_4to1", description: "rtl-gen writes RTL directly from the SSOT and proves compile/lint gates" }
-    - { name: "handoff_tb", command: "/ssot-tb mux_4to1", description: "tb-gen writes cocotb tests, runs simulation, emits results XML, VCD, and functional coverage" }
-    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "sim_debug inspects waveform, failures, coverage evidence, and escalation ownership" }
-    - { name: "handoff_coverage", command: "/coverage mux_4to1", description: "coverage workflow measures SSOT-declared functional/code/toggle/FSM/assertion goals" }
-    - { name: "handoff_eda", command: "/syn mux_4to1 && /sta mux_4to1 && /pnr mux_4to1 && /sta-post mux_4to1", description: "EDA workflows produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence" }
-  atlas_workflows:
-    - "ssot-gen"
-    - "rtl-gen"
-    - "tb-gen"
-    - "sim_debug"
-    - "coverage"
-    - "syn"
-    - "pnr"
-    - "sta"
-    - "sta-post"
+test_requirements: TBD
+quality_gates: TBD
+traceability: TBD
+workflow_todos: TBD
+generation_flow: TBD

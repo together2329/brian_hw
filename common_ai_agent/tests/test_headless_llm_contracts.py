@@ -472,6 +472,38 @@ def test_repair_ssot_schema_marks_ready_high_tieoff_policy(tmp_path: Path):
     assert ready_port["tieoff"] == "1'b1"
 
 
+def test_repair_ssot_schema_promotes_transaction_output_rules_to_rtl_contract(tmp_path: Path):
+    ip = "repair_contract_output_rules_ip"
+    doc = _base_ssot_doc(ip)
+    tx0 = doc["function_model"]["transactions"][0]
+    tx0["id"] = "FM_ACCEPT"
+    tx0["output_rules"] = []
+    doc["function_model"]["transactions"].append({
+        "id": "FM_EMIT",
+        "name": "emit_result",
+        "preconditions": ["emit_armed is set"],
+        "inputs": ["latched_byte"],
+        "outputs": ["result and result_valid update"],
+        "side_effects": ["result is externally observable"],
+        "output_rules": [
+            {"name": "shifted_result", "port": "result", "expr": "(latched_byte << 1) & 511", "width": 9},
+            {"name": "result_valid_high", "port": "result_valid", "expr": "1'b1", "width": 1},
+        ],
+    })
+    doc["function_model"]["state_variables"].append({"name": "latched_byte", "reset": 0, "width": 8})
+    doc["rtl_contract"]["transaction"] = "FM_ACCEPT"
+    doc["rtl_contract"].pop("output_rules", None)
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip)
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    contract = loaded["rtl_contract"]
+    assert {rule["port"] for rule in contract["output_rules"]} >= {"result", "result_valid"}
+    assert any(rule["expr"] == "1" for rule in contract["output_rules"])
+
+
 def test_repair_ssot_schema_adds_observable_state_output_rules(tmp_path: Path):
     ip = "repair_observable_state_ip"
     doc = _base_ssot_doc(ip)

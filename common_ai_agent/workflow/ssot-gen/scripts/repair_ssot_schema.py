@@ -861,6 +861,43 @@ def _ensure_function_model_machine_rules(doc: dict[str, Any]) -> None:
         for rule in contract_rules
         if isinstance(rule, dict)
     }
+    requested_tx_id = str(contract.get("transaction") or contract.get("transaction_id") or "").strip()
+    requested_tx = next(
+        (
+            tx
+            for tx in txs
+            if requested_tx_id
+            and str(tx.get("id") or tx.get("name") or "").strip().lower() == requested_tx_id.lower()
+        ),
+        None,
+    )
+    output_rule_tx = requested_tx if isinstance(requested_tx, dict) and requested_tx.get("output_rules") else next(
+        (tx for tx in txs if isinstance(tx.get("output_rules"), list) and tx.get("output_rules")),
+        None,
+    )
+    if isinstance(output_rule_tx, dict):
+        tx_id = str(output_rule_tx.get("id") or output_rule_tx.get("name") or "").strip()
+        if tx_id:
+            contract["transaction"] = tx_id
+    for source_tx in ([output_rule_tx] if isinstance(output_rule_tx, dict) else []) + [
+        tx for tx in txs if tx is not output_rule_tx
+    ]:
+        if not isinstance(source_tx, dict):
+            continue
+        for rule in source_tx.get("output_rules") or []:
+            if not isinstance(rule, dict):
+                continue
+            port = _concrete_port_ref(rule.get("port") or rule.get("name"), output_ports)
+            if port not in output_ports or port in contract_rule_ports:
+                continue
+            contract_rules.append({
+                "name": rule.get("name") or port,
+                "port": port,
+                "expr": _normalize_rule_expr(rule.get("expr", rule.get("expression", rule.get("value", 0)))),
+                "width": rule.get("width", widths.get(port, 1)),
+                "description": rule.get("description") or "FunctionalModel output observable mapped to DUT output port.",
+            })
+            contract_rule_ports.add(port)
 
     for state in fm.get("state_variables") or []:
         if not isinstance(state, dict):

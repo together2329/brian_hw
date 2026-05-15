@@ -1,11 +1,16 @@
+# =============================================================================
+# SSOT — parity_gen (Parity Generator / Checker)
+# =============================================================================
 ip: parity_gen
-version: draft
+version: "1.0"
+purpose: "Configurable parity generator and checker with APB-lite CSR, parameterized data width, and 1-cycle registered latency."
+type: "peripheral"
 top_module:
   name: "parity_gen"
   file: "rtl/parity_gen.sv"
   version: "1.0"
   type: "peripheral"
-  description: "Parameterized parity generator/checker with APB-lite CSR, 1-cycle latency"
+  description: "Configurable parity generator and checker with APB-lite CSR, parameterized data width, and 1-cycle registered pipeline latency."
   reference_spec: "user-defined"
   target:
     technology: "generic"
@@ -13,35 +18,28 @@ top_module:
     area_um2: null
     power_mw: null
 sub_modules:
-  - { name: "parity_gen_regs",  file: "rtl/parity_gen_regs.sv",  ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list"], source_sections: ["registers"], register_refs: ["registers.register_list"], description: "APB register decode and read/write logic" }
-  - { name: "parity_gen_core",  file: "rtl/parity_gen_core.sv",  ownership: "manifest", ssot_gen: false, implements: ["function_model", "cycle_model", "fsm", "features"], source_sections: ["function_model", "cycle_model", "fsm", "features"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"], fsm_refs: ["fsm.core_fsm"], feature_refs: ["features"], description: "Core parity computation and control" }
-  - { name: "parity_gen",       file: "rtl/parity_gen.sv",       ownership: "manifest", ssot_gen: true,  wiring_only: true, source_sections: ["io_list", "integration"], ports: ["top-level io_list ports"], connections: "instance wiring from top-level ports to parity_gen_regs and parity_gen_core", description: "Top-level integration wrapper" }
-
+  - { name: "parity_gen_regs", file: "rtl/parity_gen_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list", "interrupts", "error_handling"], source_sections: ["registers", "interrupts", "error_handling"], register_refs: ["registers.register_list"], description: "APB-lite register decode, storage, and interrupt status" }
+  - { name: "parity_gen_core", file: "rtl/parity_gen_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model", "cycle_model", "dataflow", "features"], source_sections: ["function_model", "cycle_model", "dataflow", "features"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"], dataflow_refs: ["dataflow.generate_path", "dataflow.check_path"], feature_refs: ["features"], description: "Parity XOR-tree datapath, streaming handshake, and mode control" }
 decomposition:
   units:
-    - { id: "reg_decode", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["parity_gen_regs"], verification_impact: ["test_requirements.scenarios"] }
-    - { id: "parity_compute", kind: "datapath", source_refs: ["function_model.transactions", "cycle_model.pipeline"], rtl_candidates: ["parity_gen_core"], verification_impact: ["coverage_plan.functional"] }
+    - { id: "csr_decode", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["parity_gen_regs"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "parity_compute", kind: "datapath", source_refs: ["function_model.transactions.FM1", "function_model.transactions.FM2", "cycle_model.pipeline"], rtl_candidates: ["parity_gen_core"], verification_impact: ["coverage_goals.function", "coverage_goals.cycle"] }
 parameters:
   - name: "DATA_WIDTH"
     default: 32
     type: int
-    description: "Width of input data word in bits"
+    description: "Data bus width in bits; parity is computed over this many bits"
     drives: ["parity_gen_core.sv", "parity_gen.sv"]
-  - name: "PARITY_WIDTH"
-    default: 1
+  - name: "PARITY_TYPE"
+    default: 0
     type: int
-    description: "Width of parity output; 1 for single-bit parity"
-    drives: ["parity_gen_core.sv", "parity_gen.sv"]
+    description: "Default parity polarity: 0=even, 1=odd. Overridable at runtime via CTRL.parity_sel"
+    drives: ["parity_gen_core.sv"]
   - name: "APB_ADDR_WIDTH"
-    default: 12
+    default: 8
     type: int
-    description: "APB address width"
-    drives: ["parity_gen_regs.sv", "parity_gen.sv"]
-  - name: "CLOCK_FREQ_MHZ"
-    default: 50
-    type: int
-    description: "Target clock frequency in MHz"
-    drives: ["parity_gen.sv", "tb/tb_top.sv"]
+    description: "APB address width in bits"
+    drives: ["parity_gen_regs.sv"]
   - name: "RESET_POLARITY"
     default: "active_low"
     type: enum
@@ -51,76 +49,276 @@ io_list:
   clock_domains:
     - name: "PCLK"
       frequency_mhz: 50
-      description: "Main peripheral clock"
+      description: "Single system clock"
       ports:
-        - { name: "PCLK", width: 1, direction: "input", description: "Peripheral clock" }
+        - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
   resets:
     - name: "PRESETn"
       polarity: "active_low"
       sync_async: "async_assert_sync_deassert"
-      description: "Main reset"
+      description: "System reset, async assert, sync deassert"
       ports:
         - { name: "PRESETn", width: 1, direction: "input", description: "Active-low async reset" }
   interfaces:
     - name: "apb_slave"
-      type: "APB4"
+      type: "APB-lite"
       role: "slave"
       clock_domain: "PCLK"
       reset_domain: "PRESETn"
-      description: "Register access interface"
+      description: "APB-lite CSR interface for runtime configuration"
       protocol:
-        setup_phase: "psel=1, penable=0 captures address/control."
+        setup_phase: "psel=1, penable=0 captures address and control."
         access_phase: "psel=1, penable=1 completes when pready=1."
         read_rule: "prdata is valid in the completing access phase for reads."
-        write_rule: "pwdata/pstrb are sampled in the completing access phase for writes."
-        error_rule: "pslverr is asserted only with pready=1 for illegal or unsupported access."
+        write_rule: "pwdata is sampled in the completing access phase for writes."
+        error_rule: "pslverr asserted only with pready=1 for unsupported addresses."
       ports:
-        - { name: "PADDR",   width: 12, direction: "input",  description: "APB address" }
+        - { name: "PADDR",   width: 8,  direction: "input",  description: "APB address bus" }
         - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
         - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
-        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write direction" }
         - { name: "PWDATA",  width: 32, direction: "input",  description: "APB write data" }
-        - { name: "PSTRB",   width: 4,  direction: "input",  description: "APB strobes" }
+        - { name: "PSTRB",   width: 4,  direction: "input",  description: "APB write strobes" }
         - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
-        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready" }
-        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB error" }
-    - name: "data_input"
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB transfer ready" }
+        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB slave error" }
+    - name: "data_in"
+      type: "valid-ready"
+      role: "slave"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Streaming data input for parity generation"
+      protocol:
+        valid_rule: "data_valid_i held high until data_ready_o is sampled high on a rising edge."
+        data_rule: "data_i must be stable while data_valid_i is asserted and not yet accepted."
+      ports:
+        - { name: "data_i",       width: "DATA_WIDTH", direction: "input",  description: "Input data word for parity generation" }
+        - { name: "data_valid_i", width: 1,            direction: "input",  description: "Input data valid" }
+        - { name: "data_ready_o", width: 1,            direction: "output", description: "Input data ready (backpressure)" }
+    - name: "data_out"
+      type: "valid-ready"
+      role: "master"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Streaming data+parity output from generation path"
+      protocol:
+        valid_rule: "data_valid_o held high until data_ready_i is sampled high on a rising edge."
+        data_rule: "data_o and parity_o must be stable while data_valid_o is asserted and not yet accepted."
+      ports:
+        - { name: "data_o",       width: "DATA_WIDTH", direction: "output", description: "Output data word (same as input, 1-cycle delayed)" }
+        - { name: "parity_o",     width: 1,            direction: "output", description: "Computed parity bit for data_o" }
+        - { name: "data_valid_o", width: 1,            direction: "output", description: "Output data+parity valid" }
+        - { name: "data_ready_i", width: 1,            direction: "input",  description: "Downstream ready (backpressure)" }
+    - name: "check_in"
+      type: "valid-ready"
+      role: "slave"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Streaming data+parity input for parity checking"
+      protocol:
+        valid_rule: "chk_valid_i held high until chk_ready_o is sampled high on a rising edge."
+        data_rule: "chk_data_i and chk_par_i must be stable while chk_valid_i is asserted and not yet accepted."
+      ports:
+        - { name: "chk_data_i",   width: "DATA_WIDTH", direction: "input",  description: "Input data word for parity check" }
+        - { name: "chk_par_i",    width: 1,            direction: "input",  description: "Input parity bit to verify" }
+        - { name: "chk_valid_i",  width: 1,            direction: "input",  description: "Check input valid" }
+        - { name: "chk_ready_o",  width: 1,            direction: "output", description: "Check input ready (backpressure)" }
+    - name: "check_result"
+      type: "valid-ready"
+      role: "master"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Parity check result output"
+      protocol:
+        valid_rule: "chk_err_valid_o held high until chk_err_ready_i is sampled high on a rising edge."
+        data_rule: "chk_err_o must be stable while chk_err_valid_o is asserted and not yet accepted."
+      ports:
+        - { name: "chk_err_o",        width: 1, direction: "output", description: "Parity error flag: 1=mismatch detected" }
+        - { name: "chk_err_valid_o",  width: 1, direction: "output", description: "Check error valid" }
+        - { name: "chk_err_ready_i",  width: 1, direction: "input",  description: "Downstream ready for check error" }
+    - name: "interrupt"
       type: "custom"
       clock_domain: "PCLK"
       reset_domain: "PRESETn"
-      description: "Parallel data input for parity computation"
+      description: "Parity error interrupt output"
       protocol:
-        sampling: "data_i is sampled when data_valid_i=1 on rising PCLK."
-        stability: "data_i must be stable while data_valid_i=1."
+        assertion: "parity_irq reflects enabled pending parity error status."
+        deassertion: "parity_irq deasserts after the corresponding W1C status clear."
+        reset_value: 0
       ports:
-        - { name: "data_i",        width: "DATA_WIDTH",   direction: "input",  description: "Input data word" }
-        - { name: "data_valid_i",  width: 1,              direction: "input",  description: "Data valid strobe" }
-    - name: "parity_output"
-      type: "custom"
-      clock_domain: "PCLK"
-      reset_domain: "PRESETn"
-      description: "Parity and error outputs"
-      protocol:
-        timing: "parity_o and parity_valid_o are valid 1 cycle after data_valid_i assertion."
-        check_mode: "error_o is valid 1 cycle after data_valid_i when mode=check."
-      ports:
-        - { name: "parity_o",       width: "PARITY_WIDTH", direction: "output", description: "Computed parity" }
-        - { name: "parity_valid_o", width: 1,              direction: "output", description: "Parity output valid" }
-        - { name: "error_o",        width: 1,              direction: "output", description: "Check error flag" }
-    - name: "parity_check_input"
-      type: "custom"
-      clock_domain: "PCLK"
-      reset_domain: "PRESETn"
-      description: "Expected parity input for check mode"
-      protocol:
-        sampling: "parity_in_i is sampled when data_valid_i=1 in check mode."
-      ports:
-        - { name: "parity_in_i", width: "PARITY_WIDTH", direction: "input", description: "Expected parity for check mode" }
-
+        - { name: "parity_irq", width: 1, direction: "output", description: "Parity error interrupt (active-high level)" }
+features:
+  - name: "Parity Generation"
+    trigger: "data_valid_i && data_ready_o handshake on data_in interface when CTRL.enable=1 and CTRL.mode=0 (generate)"
+    datapath: "data_i → XOR-reduce tree → registered parity_o; data_o = data_i delayed 1 cycle"
+    control: "Pipeline passes through one register stage; output presented on data_out interface"
+    output: "data_o (DATA_WIDTH bits, same as input), parity_o (1 bit), via data_out valid-ready interface"
+  - name: "Parity Check"
+    trigger: "chk_valid_i && chk_ready_o handshake on check_in interface when CTRL.enable=1 and CTRL.mode=1 (check)"
+    datapath: "chk_data_i → XOR-reduce tree → compare with chk_par_i → chk_err_o"
+    control: "Single registered stage; compare result on check_result interface"
+    output: "chk_err_o (1=parity mismatch, 0=match) via check_result valid-ready interface"
+  - name: "Runtime Configuration"
+    trigger: "APB write to CTRL register"
+    datapath: "CTRL.enable, CTRL.mode, CTRL.parity_sel, CTRL.irq_en updated immediately on APB write completion"
+    control: "Configuration takes effect on the next data/check handshake cycle after APB write completes"
+    output: "Internal config signals routed to parity_gen_core"
+  - name: "Error Counter and Interrupt"
+    trigger: "chk_err_o assertion on a check-mode handshake"
+    datapath: "ERR_COUNT increments (saturating at 0xFFFF); STATUS.par_err_sticky latched; parity_irq raised if CTRL.irq_en=1"
+    control: "Sticky status cleared by APB W1C write to STATUS; counter cleared by APB write of 0 to ERR_COUNT"
+    output: "parity_irq (level, active-high)"
+dataflow:
+  generate_path:
+    source: "data_i (streaming input via data_in interface)"
+    operation: "XOR-reduce all DATA_WIDTH bits; invert if parity_sel=odd"
+    buffer: "Output pipeline register (1-cycle latency)"
+    sequence: "data_i + data_valid_i → XOR tree → register → data_o + parity_o + data_valid_o"
+  check_path:
+    source: "chk_data_i + chk_par_i (streaming input via check_in interface)"
+    operation: "XOR-reduce chk_data_i; compare result with chk_par_i via XOR; invert if parity_sel=odd"
+    buffer: "Output pipeline register (1-cycle latency)"
+    sequence: "chk_data_i + chk_par_i + chk_valid_i → XOR tree + compare → register → chk_err_o + chk_err_valid_o"
+  config_path:
+    source: "APB write to CTRL register"
+    operation: "Update enable, mode, parity_sel, irq_en signals"
+    sequence: "APB write → register storage → config outputs to parity_gen_core on next cycle"
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what parity_gen computes independent of cycle timing."
+  state_variables:
+    - { name: "ctrl_enable", source: "registers.CTRL.enable", reset: 0, description: "Global enable; data/check paths active only when 1" }
+    - { name: "ctrl_mode", source: "registers.CTRL.mode", reset: 0, description: "0=generate parity, 1=check parity" }
+    - { name: "ctrl_parity_sel", source: "registers.CTRL.parity_sel", reset: "PARITY_TYPE parameter", description: "0=even parity, 1=odd parity" }
+    - { name: "ctrl_irq_en", source: "registers.CTRL.irq_en", reset: 0, description: "Interrupt enable for parity errors" }
+    - { name: "status_par_err_sticky", source: "registers.STATUS.par_err_sticky", reset: 0, description: "Latched parity error flag (W1C clear)" }
+    - { name: "err_count", source: "registers.ERR_COUNT.err_count", reset: 0, description: "Saturating parity error counter" }
+    - { name: "last_parity", source: "registers.PARITY_OUT.par_bit", reset: 0, description: "Last generated parity bit (RO)" }
+  transactions:
+    - id: "FM1"
+      name: "parity_generate"
+      preconditions:
+        - "ctrl_enable == 1"
+        - "ctrl_mode == 0 (generate mode)"
+        - "data_valid_i && data_ready_o handshake completes"
+      inputs:
+        - "data_i[DATA_WIDTH-1:0]"
+      outputs:
+        - "data_o = data_i (1-cycle delayed)"
+        - "parity_o = ^data_i when parity_sel=even, ~(^data_i) when parity_sel=odd"
+        - "data_valid_o asserted 1 cycle after input handshake"
+      output_rules:
+        - { name: "data_out", expr: "data_i (registered passthrough)", width: "DATA_WIDTH", port: "data_o" }
+        - { name: "parity_bit", expr: "^data_i ^ parity_sel (XOR-reduce of data_i, inverted when parity_sel=1)", width: 1, port: "parity_o" }
+        - { name: "valid_out", expr: "1'b1 on cycle N+1 if handshake on cycle N and ctrl_enable=1", width: 1, port: "data_valid_o" }
+      state_updates:
+        - { name: "last_parity", reset: 0, expr: "parity_o (XOR-reduce result stored to PARITY_OUT register)" }
+      side_effects:
+        - "PARITY_OUT register updated with new parity bit"
+      error_cases:
+        - { condition: "ctrl_enable == 0 when data_valid_i asserted", result: "data_ready_o deasserted (backpressure); no output produced" }
+    - id: "FM2"
+      name: "parity_check"
+      preconditions:
+        - "ctrl_enable == 1"
+        - "ctrl_mode == 1 (check mode)"
+        - "chk_valid_i && chk_ready_o handshake completes"
+      inputs:
+        - "chk_data_i[DATA_WIDTH-1:0]"
+        - "chk_par_i (input parity bit)"
+      outputs:
+        - "chk_err_o = (^chk_data_i ^ parity_sel) != chk_par_i ? 1 : 0"
+        - "chk_err_valid_o asserted 1 cycle after input handshake"
+      output_rules:
+        - { name: "parity_error", expr: "(^chk_data_i ^ parity_sel) ^ chk_par_i (1=mismatch)", width: 1, port: "chk_err_o" }
+        - { name: "err_valid", expr: "1'b1 on cycle N+1 if handshake on cycle N and ctrl_enable=1", width: 1, port: "chk_err_valid_o" }
+      state_updates:
+        - { name: "status_par_err_sticky", reset: 0, expr: "status_par_err_sticky | chk_err_o (latched, W1C clear)" }
+        - { name: "err_count", reset: 0, expr: "err_count + chk_err_o (saturating at 0xFFFF)" }
+      side_effects:
+        - "If chk_err_o == 1 and ctrl_irq_en == 1, parity_irq is asserted"
+        - "ERR_COUNT increments on every error"
+        - "STATUS.par_err_sticky latches and holds until W1C clear"
+      error_cases:
+        - { condition: "chk_err_o == 1", result: "ERR_COUNT incremented, STATUS.par_err_sticky latched, parity_irq asserted if enabled" }
+        - { condition: "ctrl_enable == 0 when chk_valid_i asserted", result: "chk_ready_o deasserted (backpressure); no check performed" }
+    - id: "FM3"
+      name: "csr_config"
+      preconditions:
+        - "APB write with PSEL=1, PENABLE=1, PWRITE=1, PREADY=1"
+      inputs:
+        - "PWDATA written to CTRL register"
+      outputs:
+        - "ctrl_enable, ctrl_mode, ctrl_parity_sel, ctrl_irq_en updated"
+      state_updates:
+        - { name: "ctrl_enable", reset: 0, expr: "PWDATA[0]" }
+        - { name: "ctrl_mode", reset: 0, expr: "PWDATA[1]" }
+        - { name: "ctrl_parity_sel", reset: "PARITY_TYPE parameter", expr: "PWDATA[2]" }
+        - { name: "ctrl_irq_en", reset: 0, expr: "PWDATA[3]" }
+      side_effects:
+        - "Config change takes effect on next data/check handshake cycle"
+      error_cases:
+        - { condition: "APB write to unsupported address", result: "PSLVERR asserted with PREADY=1; no side effects" }
+  invariants:
+    - "data_o always equals the input data_i delayed by exactly 1 clock cycle when enabled."
+    - "parity_o reflects the XOR-reduce of data_o (not data_i) when parity_sel=even."
+    - "ERR_COUNT never wraps around; it saturates at 0xFFFF."
+    - "parity_irq reflects (status_par_err_sticky && ctrl_irq_en); it deasserts only after W1C clear."
+    - "When ctrl_enable=0, both generate and check paths apply backpressure (ready_o deasserted) and produce no output."
+  reference_model_hint: "tb-gen should implement a Python scoreboard that XOR-reduces input data, compares with parity bit for check mode, and verifies every output_rules expression, state_update transition, and invariant for each scenario."
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen; describes when state, valid/ready, outputs, and interrupts may change."
+  executable: "pymtl3"
+  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears all architectural state (registers, pipeline flops, error counter, sticky status)"
+    deassertion: "State is usable on the first rising edge after synchronized deassertion"
+  latency:
+    apb_read: { min_cycles: 0, max_cycles: 1, description: "Zero-wait-state APB read: pready=1 on access phase" }
+    apb_write: { min_cycles: 0, max_cycles: 1, description: "Zero-wait-state APB write: pready=1 on access phase" }
+    parity_generate: { min_cycles: 1, max_cycles: null, description: "Fixed 1-cycle compute latency; output duration depends on downstream backpressure" }
+    parity_check: { min_cycles: 1, max_cycles: null, description: "Fixed 1-cycle compute latency; output duration depends on downstream backpressure" }
+  handshake_rules:
+    - { signal: "data_valid_i", rule: "Hold high until data_ready_o is sampled high on a rising PCLK edge." }
+    - { signal: "data_ready_o", rule: "Assert when pipeline can accept a new word; deassert when pipeline is full or disabled." }
+    - { signal: "data_valid_o", rule: "Hold high until data_ready_i is sampled high on a rising PCLK edge." }
+    - { signal: "chk_valid_i", rule: "Hold high until chk_ready_o is sampled high on a rising PCLK edge." }
+    - { signal: "chk_err_valid_o", rule: "Hold high until chk_err_ready_i is sampled high on a rising PCLK edge." }
+  pipeline:
+    - { stage: "S0_SAMPLE", cycle: "N", action: "Sample data_i/chk_data_i+chk_par_i on input handshake; compute XOR-reduce combinational" }
+    - { stage: "S1_OUTPUT", cycle: "N+1", action: "Register and drive data_o+parity_o or chk_err_o on output interface; update status/counter/IRQ" }
+  ordering:
+    - "Output data/parity/check-error is available exactly 1 cycle after the input handshake."
+    - "ERR_COUNT and STATUS updates occur on the same rising edge as the output register stage."
+    - "parity_irq assertion occurs on the same rising edge as the status update."
+  backpressure:
+    - "If downstream ready (data_ready_i or chk_err_ready_i) is deasserted, the output stage holds valid high and pipeline stalls; no new input handshake accepted until stall clears."
+  performance:
+    frequency_mhz: 50
+    throughput: { sustained_words_per_cycle: 1, condition: "No downstream backpressure on output interfaces" }
+    outstanding: { read_max: 1, write_max: 1, description: "Single pipeline stage; one word in flight" }
+    depth: { pipeline_stages: 1, queue_depth: 0, description: "Single registered stage; no internal FIFO" }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+clock_reset_domains:
+  domains:
+    - { name: "PCLK", frequency_mhz: 50, description: "Single system clock domain" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC required"
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No reset domain crossings"
 registers:
   config:
     register_width: 32
-    addr_width: 12
+    addr_width: 8
     byte_addressable: true
   bit_order: "lsb0"
   bits_format: "[msb, lsb]"
@@ -130,250 +328,111 @@ registers:
     rtl_requirement: "Reserved fields read as zero and do not allocate storage."
   register_list:
     - name: "CTRL"
-      offset: 0x000
+      offset: 0x00
       width: 32
       access: "rw"
       reset: 0x00000000
       category: "control"
-      description: "Control Register"
+      description: "Control register — mode, parity select, enable, interrupt enable"
       write_side_effects:
-        - "enable=0 gates data_valid_i propagation; parity_valid_o and error_o hold 0."
-        - "parity_type and mode changes take effect on the next data_valid_i assertion."
+        - "Writing CTRL fields takes effect on the next streaming handshake after the APB write completes."
       fields:
-        - { name: "enable",       bits: [0, 0], access: "rw", reset: 0x0, description: "0=Disabled, 1=Enabled" }
-        - { name: "parity_type",  bits: [1, 1], access: "rw", reset: 0x0, description: "0=Even parity, 1=Odd parity" }
-        - { name: "mode",         bits: [2, 2], access: "rw", reset: 0x0, description: "0=Generate, 1=Check" }
-        - { name: "reserved_31_3", bits: [31, 3], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+        - { name: "enable", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "Enable/disable data and check paths", description: "Global enable: 0=disabled (backpressure applied), 1=enabled" }
+        - { name: "mode", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "Select generate vs check mode", description: "Mode select: 0=parity generate, 1=parity check" }
+        - { name: "parity_sel", bits: [2, 2], access: "rw", reset: 0x0, write_effect: "Select even vs odd parity polarity", description: "Parity polarity: 0=even, 1=odd" }
+        - { name: "irq_en", bits: [3, 3], access: "rw", reset: 0x0, write_effect: "Enable/disable parity error interrupt", description: "Interrupt enable for parity errors" }
+        - { name: "reserved_31_4", bits: [31, 4], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
     - name: "STATUS"
-      offset: 0x004
+      offset: 0x04
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "status"
+      description: "Status register — parity error sticky flag"
+      write_side_effects:
+        - "Writing 1 to par_err_sticky clears it (W1C). Writing 0 has no effect."
+      fields:
+        - { name: "par_err_sticky", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "W1C: write 1 to clear", description: "Sticky parity error flag (latched on any check error, cleared by W1C)" }
+        - { name: "reserved_31_1", bits: [31, 1], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "ERR_COUNT"
+      offset: 0x08
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "status"
+      description: "Parity error counter — saturating at 0xFFFF"
+      write_side_effects:
+        - "Writing 0 clears the error counter. Writing any non-zero value is ignored."
+      fields:
+        - { name: "err_count", bits: [15, 0], access: "rw", reset: 0x0000, write_effect: "Write 0 to clear", description: "Number of parity errors detected (saturating at 0xFFFF)" }
+        - { name: "reserved_31_16", bits: [31, 16], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "PARITY_OUT"
+      offset: 0x0C
       width: 32
       access: "ro"
       reset: 0x00000000
       category: "status"
-      description: "Status Register"
+      description: "Last generated parity bit (read-only)"
       fields:
-        - { name: "error_flag",     bits: [0, 0], access: "ro", reset: 0x0, description: "Sticky check error; cleared on read or reset" }
-        - { name: "reserved_31_1",  bits: [31, 1], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-      read_side_effects:
-        - "Reading STATUS clears error_flag to 0."
-
-features:
-  - name: "Parity Generate"
-    trigger: "data_valid_i=1 with CTRL.mode=0 and CTRL.enable=1"
-    datapath: "data_i → XOR-reduce tree → conditional invert (parity_type) → parity_o register → parity_o port"
-    control: "FSM IDLE→COMPUTE→IDLE"
-    output: "parity_o and parity_valid_o one cycle after data_valid_i"
-  - name: "Parity Check"
-    trigger: "data_valid_i=1 with CTRL.mode=1 and CTRL.enable=1"
-    datapath: "data_i → XOR-reduce → invert per parity_type → compare with parity_in_i → error_o and error_flag"
-    control: "FSM IDLE→COMPUTE→IDLE"
-    output: "error_o one cycle after data_valid_i; sticky error_flag in STATUS"
-  - name: "Register Read Side-Effect"
-    trigger: "APB read from STATUS offset"
-    datapath: "STATUS.error_flag → PRDATA[0]; internal error_flag cleared"
-    control: "APB access-phase completion"
-    output: "PRDATA reflects pre-clear error_flag; next read returns 0"
-dataflow:
-  read_path:
-    source: "APB read from STATUS/CTRL"
-    sequence: "PADDR decode → register mux → PRDATA"
-  write_path:
-    source: "APB write to CTRL"
-    sequence: "PADDR decode → PWDATA → register update"
-  compute_path:
-    source: "data_i, parity_in_i"
-    datapath: "data_i → XOR-reduce → parity_type XOR → parity_o register"
-    check_datapath: "parity_o XOR parity_in_i → error_o (if mode=check)"
-    sequence: "data_i/data_valid_i → register stage → parity_o/parity_valid_o/error_o"
-function_model:
-  purpose: "Executable behavioral contract describing parity generation and checking independent of cycle timing."
-  state_variables:
-    - { name: "parity_val", source: "combinational", reset: 0, description: "Computed parity result (internal)" }
-    - { name: "error_flag", source: "registers.STATUS.error_flag", reset: 0, description: "Sticky check-error indicator" }
-  transactions:
-    - id: "FM_PARITY_GENERATE"
-      name: "parity_generate"
-      preconditions:
-        - "CTRL.enable == 1"
-        - "CTRL.mode == 0 (generate)"
-        - "data_valid_i == 1"
-      inputs:
-        - "data_i (DATA_WIDTH bits)"
-        - "CTRL.parity_type"
-      outputs:
-        - "parity_o = XOR_reduce(data_i) ^ parity_type"
-        - "parity_valid_o = 1"
-        - "error_o = 0"
-      output_rules:
-        - { name: "parity_o",       expr: "XOR_reduce(data_i) ^ parity_type", width: "PARITY_WIDTH", port: "parity_o" }
-        - { name: "parity_valid_o", expr: "1",                                width: 1,              port: "parity_valid_o" }
-        - { name: "error_o",        expr: "0",                                width: 1,              port: "error_o" }
-      state_updates:
-        - { name: "parity_val", reset: 0, expr: "XOR_reduce(data_i) ^ parity_type" }
-        - { name: "error_flag", reset: 0, expr: "error_flag" }
-      side_effects:
-        - "parity_val ← XOR_reduce(data_i) ^ CTRL.parity_type"
-        - "error_flag unchanged"
-      invariants:
-        - "parity_o width equals PARITY_WIDTH"
-        - "For even parity (parity_type=0): parity_o = 1 iff data_i has an odd number of 1s"
-        - "For odd parity (parity_type=1): parity_o = 0 iff data_i has an odd number of 1s"
-    - id: "FM_PARITY_CHECK"
-      name: "parity_check"
-      preconditions:
-        - "CTRL.enable == 1"
-        - "CTRL.mode == 1 (check)"
-        - "data_valid_i == 1"
-      inputs:
-        - "data_i (DATA_WIDTH bits)"
-        - "parity_in_i (PARITY_WIDTH bits)"
-        - "CTRL.parity_type"
-      outputs:
-        - "parity_o = XOR_reduce(data_i) ^ parity_type"
-        - "parity_valid_o = 1"
-        - "error_o = (XOR_reduce(data_i) ^ parity_type) != parity_in_i"
-      output_rules:
-        - { name: "parity_o",       expr: "XOR_reduce(data_i) ^ parity_type", width: "PARITY_WIDTH", port: "parity_o" }
-        - { name: "parity_valid_o", expr: "1",                                width: 1,              port: "parity_valid_o" }
-        - { name: "error_o",        expr: "(XOR_reduce(data_i) ^ parity_type) != parity_in_i", width: 1, port: "error_o" }
-      state_updates:
-        - { name: "parity_val", reset: 0, expr: "XOR_reduce(data_i) ^ parity_type" }
-        - { name: "error_flag", reset: 0, expr: "error_flag | ((XOR_reduce(data_i) ^ parity_type) != parity_in_i)" }
-      side_effects:
-        - "parity_val ← XOR_reduce(data_i) ^ CTRL.parity_type"
-        - "error_flag ← error_flag | (parity_val != parity_in_i)"
-      invariants:
-        - "error_o asserted when computed parity mismatches expected parity_in_i"
-        - "error_flag is sticky OR of all check errors since last STATUS read"
-    - id: "FM_DISABLED"
-      name: "disabled_passthrough"
-      preconditions:
-        - "CTRL.enable == 0"
-      inputs:
-        - "any data_valid_i"
-      output_rules:
-        - { name: "parity_o",       expr: "0", width: "PARITY_WIDTH", port: "parity_o" }
-        - { name: "parity_valid_o", expr: "0", width: 1,              port: "parity_valid_o" }
-        - { name: "error_o",        expr: "0", width: 1,              port: "error_o" }
-      state_updates:
-        - { name: "parity_val", reset: 0, expr: "parity_val" }
-        - { name: "error_flag", reset: 0, expr: "error_flag" }
-      side_effects:
-        - "parity_val unchanged"
-        - "error_flag unchanged"
-  invariants:
-    - "1-cycle latency: outputs valid exactly 1 PCLK cycle after data_valid_i assertion."
-    - "When enable=0, all outputs are driven to 0."
-    - "STATUS read clears error_flag."
-    - "Register read side effects are exactly those listed in registers.register_list."
-  reference_model_hint: "tb-gen should implement a Python scoreboard model from this section and compare expected/got for every scenario."
-cycle_model:
-  purpose: "Cycle/handshake contract for rtl-gen; describes when state, valid/ready, outputs, and status may change."
-  clock: "PCLK"
-  reset:
-    assertion: "PRESETn low asynchronously clears all architectural state"
-    deassertion: "state is usable on the first rising edge after synchronized deassertion"
-  latency:
-    parity_compute: { min_cycles: 1, max_cycles: 1, description: "data_valid_i to parity_valid_o/error_o latency" }
-    register_read: { min_cycles: 0, max_cycles: 1, description: "APB read data and PREADY timing" }
-    register_write: { min_cycles: 0, max_cycles: 1, description: "APB write acceptance timing" }
-  handshake_rules:
-    - { signal: "data_valid_i", rule: "Sampled on rising PCLK edge. data_i and parity_in_i must be stable when data_valid_i=1." }
-    - { signal: "parity_valid_o", rule: "Asserts exactly 1 PCLK cycle after data_valid_i when enable=1; deasserts next cycle." }
-    - { signal: "error_o", rule: "Valid in same cycle as parity_valid_o; 0 in generate mode." }
-  pipeline:
-    - { stage: "S0_IDLE", cycle: 0, action: "Wait for data_valid_i && enable. Latch data_i, parity_in_i, parity_type, mode on PCLK rising edge." }
-    - { stage: "S1_COMPUTE", cycle: 1, action: "Drive parity_o = XOR(data_i_d1) ^ parity_type_d1. Drive parity_valid_o=1. If mode=check, drive error_o = (parity_o != parity_in_i_d1). Update error_flag." }
-    - { stage: "S0_IDLE_NEXT", cycle: 2, action: "Deassert parity_valid_o and error_o. Return to IDLE. Ready for next data_valid_i." }
-  ordering:
-    - "Outputs parity_valid_o and error_o are valid in the cycle immediately following data_valid_i."
-    - "error_flag is updated on the same rising edge as S1_COMPUTE output drive."
-  backpressure:
-    - "No backpressure; single-cycle pipeline always accepts data_valid_i=1 every cycle."
-  performance:
-    frequency_mhz: 50
-    throughput: { sustained_beats_per_cycle: 1, condition: "data_valid_i asserted every cycle" }
-    outstanding: { read_max: 0, write_max: 0, description: "No outstanding transactions" }
-    depth: { pipeline_stages: 2, queue_depth: 0, description: "Single register stage pipeline (IDLE→COMPUTE→IDLE)" }
-  observability:
-    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
-
-clock_reset_domains:
-  domains:
-    - { name: "PCLK", frequency_mhz: 50, description: "Main peripheral clock" }
-  reset_scheme:
-    signal: "PRESETn"
-    polarity: "active_low"
-    type: "async_assert_sync_deassert"
-
-cdc_requirements:
-  crossings: []
-  synchronizers: []
-  note: "Single clock domain — no CDC required"
-
-rdc_requirements:
-  crossings: []
-  synchronizers: []
-  note: "No reset domain crossings"
-
+        - { name: "par_bit", bits: [0, 0], access: "ro", reset: 0x0, description: "Last computed parity bit from generate path" }
+        - { name: "reserved_31_1", bits: [31, 1], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
 memory:
   instances:
-    - { name: "parity_val_reg", type: "register", depth: 1, width: "PARITY_WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "Computed parity register (pipeline stage)" }
-    - { name: "error_flag_reg", type: "register", depth: 1, width: 1, read_ports: 1, write_ports: 1, latency: 0, description: "Sticky error flag" }
-  note: "No SRAM/FIFO required; pure register-based pipeline"
-
+    - { name: "data_reg", type: "register", depth: 1, width: "DATA_WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "Output pipeline data register" }
+    - { name: "parity_reg", type: "register", depth: 1, width: 1, read_ports: 1, write_ports: 1, latency: 0, description: "Output pipeline parity/error register" }
+  note: "No SRAM or FIFO; only pipeline registers."
 interrupts:
-  sources: []
+  sources:
+    - { name: "PARITY_ERR", bit: 0, type: "level", enable_reg: "CTRL.irq_en", status_reg: "STATUS.par_err_sticky", clear: "W1C", description: "Parity error detected in check mode" }
   output:
-    signal: null
-    polarity: null
-    type: null
-  note: "No interrupt output; error status is polled via APB STATUS register"
+    signal: "parity_irq"
+    polarity: "active_high"
+    type: "level"
 fsm:
-  core_fsm:
+  parity_pipeline:
     states:
       - "IDLE"
-      - "COMPUTE"
+      - "SAMPLED"
     transitions:
-      - { from: "IDLE",    to: "COMPUTE", condition: "data_valid_i=1 and enable=1" }
-      - { from: "COMPUTE", to: "IDLE",    condition: "unconditional next cycle" }
-    note: "Single-cycle compute FSM; COMPUTE state drives parity_valid_o=1 and updates parity_o/error_o."
+      - { from: "IDLE", to: "SAMPLED", condition: "input handshake (data_valid_i&&data_ready_o or chk_valid_i&&chk_ready_o) with ctrl_enable=1" }
+      - { from: "SAMPLED", to: "IDLE", condition: "output handshake completes (downstream ready) or no input pending" }
+    note: "Simple 2-state pipeline FSM; not a complex controller — parity compute is combinational between sample and output registers"
+
 rtl_contract:
-  transactions: ["FM_PARITY_GENERATE", "FM_PARITY_CHECK", "FM_DISABLED"]
-  sample_condition: "data_valid_i sampled on rising PCLK when enable=1"
+  transaction: "FM1 and FM2"
+  sample_condition: "input valid/ready handshake completes when enabled"
   input_map:
-    data_word: "data_i [DATA_WIDTH-1:0]"
-    data_valid: "data_valid_i"
-    parity_in: "parity_in_i [PARITY_WIDTH-1:0]"
-    parity_type: "registers.CTRL.parity_type"
-    mode: "registers.CTRL.mode"
-    enable: "registers.CTRL.enable"
+    generate_data: "data_i[DATA_WIDTH-1:0]"
+    check_data: "chk_data_i[DATA_WIDTH-1:0]"
+    check_parity: "chk_par_i"
+    config: "CTRL register fields"
   output_map:
-    parity_out: "parity_o [PARITY_WIDTH-1:0]"
-    parity_valid: "parity_valid_o"
-    error_out: "error_o"
-    error_status: "registers.STATUS.error_flag"
+    generate_data_out: "data_o[DATA_WIDTH-1:0]"
+    generate_parity: "parity_o"
+    check_error: "chk_err_o"
+    interrupt: "parity_irq"
   state_updates:
-    - { name: "parity_val", reset: 0, expr: "enabled & data_valid_i ? (XOR_reduce(data_i) ^ parity_type) : parity_val" }
-    - { name: "error_flag", reset: 0, expr: "status_read ? 0 : (enabled & (mode==check) & data_valid_i_d1 & (parity_val != parity_in_i_d1) ? 1 : error_flag)" }
+    - { name: "last_parity", reset: 0, expr: "^data_i ^ parity_sel (generate path)" }
+    - { name: "status_par_err_sticky", reset: 0, expr: "status_par_err_sticky | chk_err_o (W1C clear)" }
+    - { name: "err_count", reset: 0, expr: "err_count + chk_err_o (saturating at 0xFFFF)" }
+
 timing:
   target_clocks:
-    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.5 }
+    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 1.0 }
   latency_budget:
-    parity_compute_cycles: { min: 1, max: 1, measured_from: "data_valid_i rising edge", measured_to: "parity_valid_o rising edge" }
     register_access_cycles: { min: 1, max: 2, measured_from: "PSEL && PENABLE", measured_to: "PREADY" }
+    parity_compute_cycles: { min: 1, max: 1, measured_from: "input handshake", measured_to: "output data/parity valid" }
+    interrupt_latency_cycles: { min: 1, max: 2, measured_from: "parity error detection", measured_to: "parity_irq assertion" }
   throughput:
-    sustained_beats_per_cycle: 1
-    conditions: "data_valid_i asserted every cycle"
-  timing_exceptions: []
+    sustained_words_per_cycle: 1
+    conditions: "No downstream backpressure"
   io_delays:
     inputs:
-      - { ports: "all_inputs_except_PCLK_PRESETn", clock: "PCLK", delay_ns: 2.0, source: "system-level timing budget at 50 MHz" }
+      - { ports: "all_inputs_except_PCLK_PRESETn", clock: "PCLK", delay_ns: 2.0, source: "50MHz timing budget" }
     outputs:
-      - { ports: "all_outputs", clock: "PCLK", delay_ns: 2.0, source: "system-level timing budget at 50 MHz" }
+      - { ports: "all_outputs", clock: "PCLK", delay_ns: 2.0, source: "50MHz timing budget" }
   false_paths:
     - { from: "PRESETn", to: "all_registers", reason: "async reset assertion" }
-  multicycle_paths: []
   sta_expectations:
     setup_wns_ns_min: 0.0
     hold_wns_ns_min: 0.0
@@ -384,69 +443,76 @@ power:
     - { name: "PD_CORE", voltage: "nominal", clock_domains: ["PCLK"], isolation: "not_required_single_domain" }
   clock_gating:
     required: false
-    rationale: "Tiny IP; no clock gating needed"
+    rationale: "Simple combinational parity; no explicit low-power mode"
   reset_retention:
     retention_required: false
-    reset_value_source: "registers and function_model state_variables"
   power_states:
-    - { name: "ON", entry: "PRESETn deasserted", exit: "PRESETn asserted", guarantees: ["All architectural behavior active"] }
+    - { name: "ON", entry: "PRESETn deasserted", exit: "PRESETn asserted", guarantees: ["All paths active"] }
   upf_required: false
 
 security:
-  classification: "non_secure_peripheral"
+  classification: "non_secure_control_ip"
   assets:
     - { name: "register_map", protection: "APB access control is external to this IP" }
-    - { name: "parity_data", protection: "No security critical data" }
-  threat_model: []
-  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
-  safety_goals: []
+  threat_model:
+    - { threat: "illegal register write", mitigation: "RO/W1C access policy in registers.register_list" }
+    - { threat: "silent parity error", mitigation: "error_handling and interrupt status retain error until software clear" }
+  privilege_model: "External bus fabric enforces privilege"
+  safety_goals:
+    - "No silent data corruption on parity mismatch"
+    - "Parity error state is software-visible and interruptible"
 
 error_handling:
   error_sources:
-    - { id: "ERR_CHECK_MISMATCH", condition: "mode==check and computed_parity != parity_in_i", architectural_effect: "error_o=1 for 1 cycle, error_flag set sticky", recovery: "Read STATUS to clear error_flag" }
+    - { id: "ERR_PARITY_MISMATCH", condition: "XOR-reduce of chk_data_i (adjusted for parity_sel) != chk_par_i", architectural_effect: "chk_err_o=1, STATUS.par_err_sticky latched, ERR_COUNT incremented, parity_irq raised if CTRL.irq_en=1" }
+    - { id: "ERR_DISABLED_ACCESS", condition: "data_valid_i or chk_valid_i asserted when CTRL.enable=0", architectural_effect: "ready_o deasserted (backpressure); no data consumed" }
+    - { id: "ERR_APB_UNSUPPORTED", condition: "APB access to unmapped address", architectural_effect: "PSLVERR asserted with PREADY=1" }
   propagation:
-    - "error_flag is sticky-OR until STATUS read."
+    - "First parity error wins until software W1C clear."
+    - "ERR_COUNT saturates at 0xFFFF and does not wrap."
   recovery:
-    - { action: "Read STATUS register", clears: ["error_flag"], preserves: ["CTRL configuration"] }
+    - { action: "software W1C to STATUS.par_err_sticky", clears: ["STATUS.par_err_sticky", "parity_irq if no other errors"], preserves: ["CTRL", "ERR_COUNT (separate clear)"] }
+    - { action: "software write 0 to ERR_COUNT", clears: ["ERR_COUNT"], preserves: ["all other registers"] }
 
 debug_observability:
   waveform_must_probe:
-    - "fsm state"
-    - "function_model.state_variables"
-    - "cycle_model.handshake_rules signals"
-    - "data_i, data_valid_i"
-    - "parity_o, parity_valid_o, error_o"
-  status_outputs: ["parity_valid_o", "error_o"]
+    - "data_i, data_o, parity_o, data_valid_i, data_ready_o, data_valid_o, data_ready_i"
+    - "chk_data_i, chk_par_i, chk_err_o, chk_valid_i, chk_ready_o, chk_err_valid_o"
+    - "parity_irq"
+  status_outputs:
+    - "STATUS.par_err_sticky (readable via APB)"
+    - "ERR_COUNT.err_count (readable via APB)"
+    - "PARITY_OUT.par_bit (readable via APB)"
   trace_events:
-    - { name: "parity_compute", trigger: "data_valid_i asserted" }
-    - { name: "check_error", trigger: "error_o asserted" }
-  debug_registers: []
+    - { name: "generate_handshake", trigger: "data_valid_i && data_ready_o" }
+    - { name: "check_error", trigger: "chk_err_o == 1" }
+    - { name: "irq_assert", trigger: "parity_irq rising edge" }
+  debug_registers:
+    - "PARITY_OUT"
+    - "ERR_COUNT"
+    - "STATUS"
 
 integration:
   bus_attachment:
-    control: "APB4 slave"
-    data: "custom parallel interface"
+    control: "APB-lite slave (CSR access)"
+    data: "Streaming valid-ready interfaces (data_in, data_out, check_in, check_result)"
   connections:
-    - { module: "parity_gen_regs", port: "PCLK", signal: "PCLK" }
-    - { module: "parity_gen_regs", port: "PRESETn", signal: "PRESETn" }
+    - { module: "parity_gen_regs", port: "clk_i", signal: "PCLK" }
+    - { module: "parity_gen_regs", port: "rst_ni", signal: "PRESETn" }
     - { module: "parity_gen_core", port: "clk_i", signal: "PCLK" }
     - { module: "parity_gen_core", port: "rst_ni", signal: "PRESETn" }
-    - { module: "parity_gen_core", port: "enable_i", signal: "CTRL.enable (from parity_gen_regs)" }
-    - { module: "parity_gen_core", port: "parity_type_i", signal: "CTRL.parity_type (from parity_gen_regs)" }
-    - { module: "parity_gen_core", port: "mode_i", signal: "CTRL.mode (from parity_gen_regs)" }
-    - { module: "parity_gen_core", port: "status_read_i", signal: "STATUS read strobe (from parity_gen_regs)" }
-    - { module: "parity_gen_core", port: "error_flag_o", signal: "STATUS.error_flag (to parity_gen_regs)" }
+    - { module: "parity_gen_regs", port: "irq_o", signal: "parity_irq" }
   address_map_requirements:
     alignment_bytes: 4
-    decode_owner: "parity_gen_regs (internal APB decode)"
-    illegal_access_response: "PSLVERR for offsets not in {0x000, 0x004}"
+    decode_owner: "SoC interconnect"
+    illegal_access_response: "PSLVERR for unsupported APB addresses"
   dependencies:
     external_modules: []
     external_clocks: ["PCLK"]
     external_resets: ["PRESETn"]
   integration_notes:
-    - "SoC must provide APB-compliant PSEL/PENABLE/PADDR/PWDATA timing."
-    - "data_i/parity_in_i/data_valid_i sourced by upstream logic; must meet setup/hold at PCLK."
+    - "SoC interconnect must drive APB-lite protocol correctly."
+    - "Streaming interfaces use standard valid-ready handshake."
 
 dft:
   scan_required: false
@@ -456,30 +522,26 @@ dft:
     reset: "PRESETn must be controllable in test mode"
     clocks: ["PCLK"]
   observability:
-    required_internal_points: ["parity_val", "error_flag", "fsm state"]
+    required_internal_points: ["pipeline registers", "error counter", "sticky status"]
   mbist_required: false
-  notes: "No SRAM; scan insertion optional at SoC level"
+  notes: "No SRAM macro; DFT limited to scan insertion if required by SoC flow."
+
 synthesis:
   dialect: "systemverilog_2012"
   top_module: "parity_gen"
   technology:
-    pdk: "sky130"
-    standard_cell_library: "sky130_fd_sc_hd"
-    liberty_corner: "ss_100C_1v40"
-    liberty_env: "SKY130_LIB"
-    lef_env: "SKY130_LEF"
-    tech_lef_env: "SKY130_TLEF"
-    rcx_rules_env: "SKY130_RCX_RULES"
+    pdk: "generic"
+    standard_cell_library: "generic"
   constraints:
     - "No inferred latches"
-    - "All flops reset according to clock_reset_domains.reset_scheme"
+    - "All flops reset per clock_reset_domains.reset_scheme"
     - "No package/interface/modport/function/task/for/while constructs"
   ppa_targets:
     area_um2_max: null
     power_mw_max: null
     frequency_mhz_min: 50
   required_outputs:
-    - "syn/out/parity_gen.json"
+    - "syn/out/parity_gen.json or syn/out/parity_gen.v"
     - "syn/out/area.rpt"
     - "syn/out/timing_summary.rpt"
 
@@ -488,20 +550,11 @@ pnr:
   aspect_ratio: 1.0
   core_space_um: 2.0
   global_density: 0.65
-  io_layers:
-    horizontal: "met3"
-    vertical: "met2"
-  placement:
-    density_target: 0.65
-    max_displacement_um: null
-  cts:
-    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
-    functional_mode_case_analysis: []
-  routing:
-    signal_layers: { min: "met1", max: "met5" }
-    clock_layers: { min: "met3", max: "met5" }
-    drc_waivers: []
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  cts: { buf_list: [] }
+  routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
   required_outputs:
+    - "pnr/out/placed.def"
     - "pnr/out/routed.def"
     - "pnr/out/routed.v"
     - "pnr/out/routed.spef"
@@ -512,36 +565,33 @@ coding_rules:
   file_extension: ".sv"
   parameter_header: "rtl/parity_gen_param.vh"
   conventions:
-    - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
+    - "nonblocking (<=) in sequential always @(posedge clk …)"
     - "blocking (=) in combinational always @(*)"
-    - "No latches: every combinational branch assigns all outputs (use a default)"
-    - "Active-low async reset: if (!PRESETn) ..."
-    - "Parameterize widths via DATA_WIDTH/PARITY_WIDTH (no hardcoded numbers)"
-    - "Use rtl/parity_gen_param.vh for shared parameter declarations"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset: always @(posedge PCLK or negedge PRESETn)"
+    - "Parameterize widths (no hardcoded numbers)"
     - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
     - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
-    - "Use localparam state encoding with logic [1:0] state/next_state signals"
   lint_waivers:
-    - "UNUSEDSIGNAL: reserved register fields tied to 0"
+    - "UNUSEDSIGNAL: explicit tie-offs only"
+    - "WIDTHEXPAND: DATA_WIDTH parameterized indexing"
 
 reuse_modules: []
 
 custom:
   assumptions:
-    - "DATA_WIDTH and PARITY_WIDTH are parameterized; default 32 and 1 respectively."
-    - "1-cycle latency from data_valid_i to parity_valid_o/error_o is fixed; no backpressure/stall."
-    - "Parity type (even/odd) and mode (generate/check) are runtime-configurable via APB CTRL register."
-    - "STATUS.error_flag is sticky-OR and clears on read."
-    - "When enable=0, all outputs (parity_o, parity_valid_o, error_o) are driven to 0."
-    - "APB PSLVERR asserted for accesses outside {0x000, 0x004}."
-    - "Single 50 MHz PCLK clock domain; no CDC/RDC required."
-    - "PRESETn is async assert, sync deassert."
-    - "No interrupt output; status polled via APB."
-  note: "Assumptions recorded for pipeline mode; review before production signoff."
+    - "DATA_WIDTH must be a positive power of 2 or multiple of 8 for practical parity computation."
+    - "Default PARITY_TYPE parameter (0=even) is assumed unless overridden by runtime CTRL.parity_sel."
+    - "APB-lite interface does not include PPROT or PWAKEUP signals."
+    - "Streaming interfaces use independent valid/ready per direction; no shared bus assumed."
+    - "Error counter saturation at 0xFFFF is sufficient for typical use cases; no overflow interrupt is provided."
+    - "Single pipeline stage means 1 word in-flight maximum; simultaneous generate and check paths are mutually exclusive (selected by CTRL.mode)."
+    - "PCLK frequency of 50MHz is the default target; the XOR tree combinational path must close timing at this frequency."
+  note: "Assumptions recorded in pipeline mode; deferred to human review for validation."
+
 dir_structure:
   template_dirs:
     rtl: "templates/rtl/"
-    sim: "templates/sim/"
   output_dirs:
     rtl: "rtl/"
     sim: "sim/"
@@ -549,6 +599,7 @@ dir_structure:
     docs: "docs/"
   yaml_dir: "yaml/"
   generators_dir: "generators/"
+
 filelist:
   headers:
     - "rtl/parity_gen_param.vh"
@@ -558,122 +609,131 @@ filelist:
     - "rtl/parity_gen.sv"
   sim:
     - "sim/tb_top.sv"
-    - "sim/tb_program.sv"
+    - "sim/parity_gen_model.sv"
   firmware:
     - "firmware/parity_gen_regs.h"
   docs:
     - "docs/register_map.md"
     - "docs/README.md"
+
 test_requirements:
   scenarios:
     - id: "SC1"
-      name: "Basic even parity generate"
-      stimulus: "CTRL.enable=1, CTRL.parity_type=0, CTRL.mode=0. Drive data_i with known patterns and pulse data_valid_i."
-      expected: "parity_o = XOR_reduce(data_i) 1 cycle later; parity_valid_o pulses; error_o=0"
-      checker: "Scoreboard computes expected parity and compares parity_o/parity_valid_o timing"
-      coverage: ["FM_PARITY_GENERATE", "S0_IDLE", "S1_COMPUTE"]
+      name: "Even parity generate"
+      stimulus: "Configure CTRL: enable=1, mode=0 (generate), parity_sel=0 (even); drive data_i=0xA5A5A5A5 with valid/ready handshake"
+      expected: "parity_o = ^0xA5A5A5A5 = 1 (even parity for 16 ones); data_o = 0xA5A5A5A5 1 cycle later"
+      checker: "Scoreboard XOR-reduces input data and compares parity_o"
+      coverage: ["FM1", "FCOV_PARITY_EVEN"]
     - id: "SC2"
-      name: "Basic odd parity generate"
-      stimulus: "CTRL.parity_type=1. Drive data_i patterns."
-      expected: "parity_o = XOR_reduce(data_i) ^ 1"
-      checker: "Scoreboard verifies odd parity output"
-      coverage: ["FM_PARITY_GENERATE", "parity_type=1"]
+      name: "Odd parity generate"
+      stimulus: "Configure CTRL: enable=1, mode=0, parity_sel=1 (odd); drive data_i=0xA5A5A5A5"
+      expected: "parity_o = ~(^0xA5A5A5A5) = 0 (odd parity); data_o = 0xA5A5A5A5 1 cycle later"
+      checker: "Scoreboard verifies inverted parity"
+      coverage: ["FM1", "FCOV_PARITY_ODD"]
     - id: "SC3"
-      name: "Check mode pass"
-      stimulus: "CTRL.mode=1. Drive data_i and matching parity_in_i."
-      expected: "error_o=0, error_flag remains 0"
-      checker: "Scoreboard verifies error_o=0"
-      coverage: ["FM_PARITY_CHECK", "error_o=0"]
+      name: "Parity check pass"
+      stimulus: "Configure CTRL: enable=1, mode=1 (check), parity_sel=0 (even); drive chk_data_i=0xA5A5A5A5, chk_par_i=1 (correct even parity)"
+      expected: "chk_err_o = 0 (no error); ERR_COUNT unchanged; parity_irq not asserted"
+      checker: "Scoreboard checks chk_err_o and verifies ERR_COUNT via APB read"
+      coverage: ["FM2", "FCOV_CHECK_PASS"]
     - id: "SC4"
-      name: "Check mode fail"
-      stimulus: "CTRL.mode=1. Drive data_i and mismatched parity_in_i."
-      expected: "error_o=1, error_flag set to 1 (sticky)"
-      checker: "Scoreboard verifies error_o=1 and error_flag sticky"
-      coverage: ["FM_PARITY_CHECK", "error_o=1", "error_flag"]
+      name: "Parity check fail"
+      stimulus: "Configure CTRL: enable=1, mode=1, parity_sel=0; drive chk_data_i=0xA5A5A5A5, chk_par_i=0 (wrong parity)"
+      expected: "chk_err_o = 1; STATUS.par_err_sticky latched; ERR_COUNT incremented; parity_irq asserted if irq_en=1"
+      checker: "Scoreboard verifies error flag, counter, sticky status, and interrupt"
+      coverage: ["FM2", "FCOV_CHECK_FAIL", "FCOV_ERR_COUNTER"]
     - id: "SC5"
-      name: "Disabled behavior"
-      stimulus: "CTRL.enable=0. Drive data_valid_i."
-      expected: "parity_o=0, parity_valid_o=0, error_o=0"
-      checker: "Scoreboard verifies all outputs zero"
-      coverage: ["FM_DISABLED"]
+      name: "Disabled backpressure"
+      stimulus: "Set CTRL.enable=0; assert data_valid_i"
+      expected: "data_ready_o deasserted; no output produced"
+      checker: "Cycle checker verifies ready_o stays low"
+      coverage: ["FM1 error case", "FCOV_DISABLED"]
     - id: "SC6"
-      name: "STATUS read clears error_flag"
-      stimulus: "Induce check error, then read STATUS register, then read STATUS again."
-      expected: "First read: error_flag=1. Second read: error_flag=0."
-      checker: "APB read checker verifies read-side-effect"
-      coverage: ["STATUS read-side-effect"]
+      name: "CSR configuration"
+      stimulus: "APB write to CTRL changing mode and parity_sel; verify readback and functional effect"
+      expected: "Register values match written data; next data/check operation uses new config"
+      checker: "APB readback + functional verification"
+      coverage: ["FM3", "FCOV_CSR_CONFIG"]
     - id: "SC7"
-      name: "Back-to-back data"
-      stimulus: "Assert data_valid_i every cycle with alternating data_i values."
-      expected: "Each output corresponds to input from 1 cycle earlier; no dropped beats."
-      checker: "Scoreboard checks pipeline depth = 1 register stage"
-      coverage: ["pipeline depth", "throughput"]
+      name: "W1C status clear"
+      stimulus: "Inject parity error to set STATUS.par_err_sticky; write 1 to STATUS via APB; verify cleared"
+      expected: "STATUS.par_err_sticky clears to 0; parity_irq deasserts"
+      checker: "APB readback of STATUS and IRQ signal check"
+      coverage: ["FCOV_W1C_CLEAR"]
     - id: "SC8"
-      name: "Reset assertion"
-      stimulus: "Assert PRESETn during active computation."
-      expected: "All outputs and error_flag cleared asynchronously."
-      checker: "Waveform check: parity_valid_o, error_o, error_flag go to 0"
-      coverage: ["reset assertion"]
+      name: "Error counter saturation"
+      stimulus: "Inject 0x10001 parity errors with irq_en=1"
+      expected: "ERR_COUNT saturates at 0xFFFF; no wrap-around"
+      checker: "APB readback of ERR_COUNT after 0x10001 errors"
+      coverage: ["FCOV_ERR_SATURATION"]
     - id: "SC9"
-      name: "APB illegal address"
-      stimulus: "APB read/write to unmapped offset."
-      expected: "PSLVERR asserted with PREADY."
-      checker: "APB protocol checker"
-      coverage: ["apb_error"]
-  scoreboard_checks: 9
+      name: "Output backpressure"
+      stimulus: "Generate parity with data_ready_i held low for multiple cycles"
+      expected: "data_valid_o held high; pipeline stalls; no new input accepted"
+      checker: "Cycle checker validates stall behavior"
+      coverage: ["CCOV_BACKPRESSURE"]
+    - id: "SC10"
+      name: "APB unsupported address"
+      stimulus: "APB read/write to offset 0x10 (unmapped)"
+      expected: "PSLVERR=1 with PREADY=1; no side effects"
+      checker: "PSLVERR assertion check"
+      coverage: ["FCOV_APB_ERROR"]
+  scoreboard_checks: 10
   coverage_goals:
     function:
       target_pct: 100
       model: "function_model"
-      description: "Behavioral coverage for parity compute, check, and disabled modes."
+      description: "Behavioral coverage for parity computation and error handling"
       bins:
-        - { id: "FCOV_GENERATE_EVEN", source_ref: "function_model.transactions.FM_PARITY_GENERATE", class: "transaction", description: "Even parity generate observed" }
-        - { id: "FCOV_GENERATE_ODD", source_ref: "function_model.transactions.FM_PARITY_GENERATE", class: "transaction", description: "Odd parity generate observed" }
-        - { id: "FCOV_CHECK_PASS", source_ref: "function_model.transactions.FM_PARITY_CHECK", class: "transaction", description: "Check mode with matching parity" }
-        - { id: "FCOV_CHECK_FAIL", source_ref: "function_model.transactions.FM_PARITY_CHECK", class: "transaction", description: "Check mode with mismatched parity" }
-        - { id: "FCOV_DISABLED", source_ref: "function_model.transactions.FM_DISABLED", class: "transaction", description: "Disabled mode passthrough" }
+        - { id: "FCOV_PARITY_EVEN", source_ref: "function_model.transactions.FM1", class: "transaction", description: "Even parity generation observed" }
+        - { id: "FCOV_PARITY_ODD", source_ref: "function_model.transactions.FM1", class: "transaction", description: "Odd parity generation observed" }
+        - { id: "FCOV_CHECK_PASS", source_ref: "function_model.transactions.FM2", class: "transaction", description: "Parity check pass (no error)" }
+        - { id: "FCOV_CHECK_FAIL", source_ref: "function_model.transactions.FM2", class: "error_case", description: "Parity check fail detected" }
+        - { id: "FCOV_ERR_COUNTER", source_ref: "function_model.transactions.FM2.state_updates.err_count", class: "state_update", description: "Error counter incremented" }
+        - { id: "FCOV_ERR_SATURATION", source_ref: "function_model.transactions.FM2.state_updates.err_count", class: "boundary", description: "Error counter saturates at 0xFFFF" }
+        - { id: "FCOV_DISABLED", source_ref: "function_model.transactions.FM1.error_cases", class: "error_case", description: "Disabled (enable=0) backpressure observed" }
+        - { id: "FCOV_CSR_CONFIG", source_ref: "function_model.transactions.FM3", class: "transaction", description: "CSR configuration via APB" }
+        - { id: "FCOV_W1C_CLEAR", source_ref: "function_model.transactions.FM2.state_updates.status_par_err_sticky", class: "state_update", description: "W1C status clear observed" }
+        - { id: "FCOV_APB_ERROR", source_ref: "function_model.transactions.FM3.error_cases", class: "error_case", description: "APB unsupported address error" }
     cycle:
       target_pct: 100
       model: "cycle_model"
-      description: "Cycle/handshake/latency/FSM coverage."
+      description: "Cycle/handshake/latency coverage"
       bins:
-        - { id: "CCOV_IDLE_TO_COMPUTE", source_ref: "cycle_model.pipeline", class: "pipeline_stage", description: "IDLE→COMPUTE transition observed" }
-        - { id: "CCOV_OUTPUT_TIMING", source_ref: "cycle_model.pipeline.S1_COMPUTE", class: "pipeline_stage", description: "parity_valid_o 1 cycle after data_valid_i" }
-        - { id: "CCOV_BACK_TO_BACK", source_ref: "cycle_model.performance.throughput", class: "throughput", description: "Sustained 1 beat/cycle throughput" }
-        - { id: "CCOV_FSM_TRANSITION", source_ref: "fsm.core_fsm.transitions", class: "state_transition", description: "All legal FSM transitions observed" }
-    functional: "Legacy alias: function + cycle coverage must both close."
-    line: ">= 90%"
-    branch: ">= 85%"
+        - { id: "CCOV_GENERATE_LATENCY", source_ref: "cycle_model.latency.parity_generate", class: "latency", description: "Generate path 1-cycle latency observed" }
+        - { id: "CCOV_CHECK_LATENCY", source_ref: "cycle_model.latency.parity_check", class: "latency", description: "Check path 1-cycle latency observed" }
+        - { id: "CCOV_INPUT_HANDSHAKE", source_ref: "cycle_model.handshake_rules", class: "handshake", description: "Input valid/ready handshake rule observed" }
+        - { id: "CCOV_OUTPUT_HANDSHAKE", source_ref: "cycle_model.handshake_rules", class: "handshake", description: "Output valid/ready handshake rule observed" }
+        - { id: "CCOV_BACKPRESSURE", source_ref: "cycle_model.backpressure", class: "backpressure", description: "Downstream backpressure stall observed" }
+        - { id: "CCOV_PIPELINE_S0", source_ref: "cycle_model.pipeline[0]", class: "pipeline_stage", description: "S0_SAMPLE stage observed" }
+        - { id: "CCOV_PIPELINE_S1", source_ref: "cycle_model.pipeline[1]", class: "pipeline_stage", description: "S1_OUTPUT stage observed" }
+        - { id: "CCOV_PERF_THROUGHPUT", source_ref: "cycle_model.performance.throughput", class: "throughput", description: "Sustained 1 word/cycle throughput observed" }
+    functional: "function + cycle coverage both close"
+    code: "line >= 90%, branch >= 85%"
+
 quality_gates:
   ssot:
-    pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
-    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+    pass: "All canonical sections present, substantive, internally consistent, no live TBD placeholders"
+    evidence: ["check_ssot_disk.sh PASS"]
   rtl_gen:
     profile: "standard"
-    target_scale:
-      basis: "Tiny peripheral IP; no structural depth minima"
-      source_files_min: 0
-      modules_min: 0
-      procedural_blocks_min: 0
-      state_updates_min: 0
-      depth_score_min: 0
-      logic_modules_min: 0
-      behavior_owner_logic_modules_min: 0
-    target_scale_waiver:
-      approved: true
-      reason: "Small IP; structural depth gate not applicable"
-      owner: "ssot-gen"
-    pass: "RTL compiles, lints clean, and implements function_model/cycle_model."
-    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "sim/fl_rtl_goal_audit.json"]
+    pass: "RTL compiles, lints clean, and implements function_model and cycle_model contracts"
+    evidence: ["rtl compile report", "lint report"]
   rtl:
-    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches FL authority."
+    pass: "RTL implements function_model and cycle_model, compiles, and lints"
     evidence: ["rtl compile report", "dut lint report"]
   coverage:
-    pass: "SSOT-declared functional/code/FSM coverage goals pass or have approved waivers."
-    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+    pass: "SSOT-declared function/cycle/code coverage goals pass"
+    evidence: ["cov/coverage.json"]
+  dv:
+    pass: "All test_requirements scenarios pass; function and cycle coverage goals met"
+    evidence: ["sim/test_report.md", "cov/coverage.json"]
   eda:
-    pass: "Synthesis meets timing at 50 MHz."
+    pass: "Synthesis meets 50MHz timing target"
     evidence: ["syn report", "sta reports"]
+  signoff:
+    pass: "All quality gates (ssot, rtl, dv, coverage, eda) pass with evidence"
+    evidence: ["check_ssot_disk.sh PASS", "cov/coverage.json", "syn report", "sta reports", "sim/test_report.md"]
 
 traceability:
   yaml_to_output:
@@ -681,41 +741,49 @@ traceability:
     - { yaml: "parameters", output: "parity_gen_param.vh" }
     - { yaml: "io_list.interfaces", output: "parity_gen.sv (port list)" }
     - { yaml: "registers.register_list", output: "parity_gen_regs.sv + firmware + docs" }
-    - { yaml: "function_model", output: "parity_gen_core.sv + tb/cocotb scoreboard" }
-    - { yaml: "cycle_model", output: "parity_gen_core.sv pipeline + waveform checks" }
-    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
-    - { yaml: "fsm", output: "parity_gen_core.sv" }
+    - { yaml: "function_model", output: "parity_gen_core.sv + scoreboard" }
+    - { yaml: "cycle_model", output: "parity_gen_core.sv pipeline/handshake logic" }
+    - { yaml: "timing", output: "SDC constraints and STA pass/fail" }
+    - { yaml: "error_handling", output: "RTL error paths and DV fault scenarios" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_top.sv and test programs" }
+    - { yaml: "quality_gates", output: "ATLAS progress and signoff" }
 
 workflow_todos:
+  fl-model-gen: []
   rtl-gen:
-    - id: "RTL_PARITY_CORE"
-      content: "Implement parity_gen_core.sv from function_model and cycle_model"
-      detail: "Translate FM_PARITY_GENERATE, FM_PARITY_CHECK, FM_DISABLED into RTL datapath and FSM. 1-cycle pipeline with XOR-reduce. Handle enable gating."
+    - id: "RTL_TODO_PARITY_CORE"
+      content: "Implement parity XOR-tree datapath with registered output in parity_gen_core.sv"
+      detail: "Implement generate path (data_i → XOR-reduce → register → data_o/parity_o) and check path (chk_data_i → XOR-reduce → compare with chk_par_i → register → chk_err_o). Use parity_sel to invert for odd parity. Update PARITY_OUT, ERR_COUNT, STATUS on output stage."
       criteria:
-        - "RTL owner logic present in parity_gen_core.sv"
-        - "FunctionalModel expected result matches RTL observed"
-      source_refs: ["function_model.transactions", "cycle_model.pipeline", "fsm.core_fsm"]
+        - "XOR-reduce computes correct even/odd parity"
+        - "1-cycle registered latency"
+        - "Valid/ready handshake follows cycle_model rules"
+        - "Error counter increments on check mismatch"
+      source_refs: ["function_model.transactions.FM1", "function_model.transactions.FM2", "cycle_model.pipeline"]
       owner_module: "parity_gen_core"
       owner_file: "rtl/parity_gen_core.sv"
       priority: "high"
       required: true
-    - id: "RTL_PARITY_REGS"
-      content: "Implement parity_gen_regs.sv APB register block"
-      detail: "APB4 slave decode for CTRL/STATUS registers. STATUS read clears error_flag. PSLVERR for unmapped offsets."
+    - id: "RTL_TODO_REGS"
+      content: "Implement APB-lite register decode and storage in parity_gen_regs.sv"
+      detail: "Implement CTRL, STATUS (W1C), ERR_COUNT (clear-on-write-0), PARITY_OUT (RO). Zero-wait-state APB (pready=1 on access phase). PSLVERR for unsupported addresses."
       criteria:
-        - "All register fields match SSOT access/reset/description"
-        - "STATUS read side-effect implemented"
-      source_refs: ["registers.register_list"]
+        - "APB read/write to all declared register offsets"
+        - "W1C clear on STATUS.par_err_sticky"
+        - "ERR_COUNT clear on write of 0"
+        - "PSLVERR for unmapped addresses"
+      source_refs: ["registers.register_list", "function_model.transactions.FM3"]
       owner_module: "parity_gen_regs"
       owner_file: "rtl/parity_gen_regs.sv"
       priority: "high"
       required: true
-    - id: "RTL_PARITY_TOP"
-      content: "Implement parity_gen.sv top-level wrapper"
-      detail: "Instantiate parity_gen_regs and parity_gen_core; wire ports per integration.connections."
+    - id: "RTL_TODO_TOP"
+      content: "Wire parity_gen top-level instantiation connecting regs and core"
+      detail: "Instantiate parity_gen_regs and parity_gen_core in parity_gen.sv. Connect APB signals to regs, config outputs to core, streaming ports to core, and IRQ output from regs."
       criteria:
-        - "Top port list matches io_list exactly"
-        - "All connection contracts satisfied"
+        - "All io_list ports connected"
+        - "Config signals from regs to core"
+        - "Streaming ports pass-through to core"
       source_refs: ["io_list", "integration.connections"]
       owner_module: "parity_gen"
       owner_file: "rtl/parity_gen.sv"
@@ -727,11 +795,12 @@ workflow_todos:
   syn: []
   pnr: []
   sta: []
+  sta-post: []
 
 generation_flow:
   steps:
-    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh parity_gen", description: "Validate production SSOT structure and quality gates" }
-    - { name: "handoff_rtl", command: "/ssot-rtl parity_gen", description: "Downstream RTL generation from validated SSOT" }
-    - { name: "handoff_tb", command: "/ssot-tb parity_gen", description: "Downstream testbench generation from validated SSOT" }
-    - { name: "handoff_coverage", command: "/coverage parity_gen", description: "Measure SSOT-declared coverage goals" }
-    - { name: "handoff_eda", command: "/syn parity_gen && /sta parity_gen", description: "Synthesis and STA evidence" }
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh parity_gen", description: "Validate production SSOT structure" }
+    - { name: "handoff_rtl", command: "/ssot-rtl parity_gen", description: "Downstream RTL generation" }
+    - { name: "handoff_tb", command: "/ssot-tb parity_gen", description: "Downstream testbench generation" }
+    - { name: "handoff_coverage", command: "/coverage parity_gen", description: "Coverage measurement" }
+    - { name: "handoff_eda", command: "/syn parity_gen && /sta parity_gen", description: "Synthesis and STA" }
