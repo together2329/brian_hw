@@ -27,6 +27,9 @@ module arm_m0_min_if #(
                      HTRANS_NONSEQ = 2'b10;
 
     logic [XLEN-1:0] pc_reg;
+    logic [XLEN-1:0] reset_pc_w;
+
+    assign reset_pc_w = RESET_PC;
 
     always @(posedge clk) begin
         if (rst) begin

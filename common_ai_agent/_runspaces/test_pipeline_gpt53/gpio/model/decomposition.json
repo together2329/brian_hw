@@ -1,0 +1,1081 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "gpio",
+  "source": "gpio/yaml/gpio.ssot.yaml",
+  "units": [
+    {
+      "name": "gpio_regs",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "features",
+        "fsm",
+        "function_model",
+        "memory",
+        "registers",
+        "test_requirements"
+      ],
+      "rtl_candidates": [
+        "gpio_regs"
+      ],
+      "rtl_file": "rtl/gpio_regs.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.hr_input_mask_sample",
+        "cycle_model.handshake_rules.hr_sync_sample",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline.S1_LATCH_CONTROL",
+        "cycle_model.pipeline.s0_reset",
+        "cycle_model.pipeline.s1_latch_control",
+        "cycle_model.pipeline.s3_drive_outputs",
+        "cycle_model.reset",
+        "dataflow",
+        "decomposition",
+        "features",
+        "features.direction_masked_input_sampling",
+        "features.per_bit_direction_control",
+        "features.registered_output_data",
+        "fsm",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables",
+        "function_model.state_variables.din_state",
+        "function_model.state_variables.dir_state",
+        "function_model.state_variables.dout_state",
+        "function_model.transactions.FM1_LATCH_CONTROL",
+        "function_model.transactions.FM2_SAMPLE_INPUTS",
+        "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS",
+        "function_model.transactions.FM4_ASYNC_RESET",
+        "function_model.transactions.fm1_latch_control",
+        "function_model.transactions.fm1_latch_control.inputs.input_0",
+        "function_model.transactions.fm1_latch_control.inputs.input_1",
+        "function_model.transactions.fm1_latch_control.output_rules.dir_q_next",
+        "function_model.transactions.fm1_latch_control.output_rules.dout_q_next",
+        "function_model.transactions.fm1_latch_control.outputs.output_0",
+        "function_model.transactions.fm1_latch_control.outputs.output_1",
+        "function_model.transactions.fm1_latch_control.preconditions.precondition_0",
+        "function_model.transactions.fm1_latch_control.preconditions.precondition_1",
+        "function_model.transactions.fm1_latch_control.side_effects.side_effect_0",
+        "function_model.transactions.fm2_sample_inputs",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_0",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_1",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_2",
+        "function_model.transactions.fm2_sample_inputs.output_rules.din_q_masked_next",
+        "function_model.transactions.fm2_sample_inputs.outputs.output_0",
+        "function_model.transactions.fm2_sample_inputs.outputs.output_1",
+        "function_model.transactions.fm2_sample_inputs.preconditions.precondition_0",
+        "function_model.transactions.fm2_sample_inputs.preconditions.precondition_1",
+        "function_model.transactions.fm2_sample_inputs.side_effects.side_effect_0",
+        "function_model.transactions.fm4_async_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.din_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.dir_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.dout_reset",
+        "function_model.transactions.fm4_async_reset.outputs.output_0",
+        "function_model.transactions.fm4_async_reset.outputs.output_1",
+        "function_model.transactions.fm4_async_reset.outputs.output_2",
+        "function_model.transactions.fm4_async_reset.outputs.output_3",
+        "function_model.transactions.fm4_async_reset.outputs.output_4",
+        "function_model.transactions.fm4_async_reset.preconditions.precondition_0",
+        "function_model.transactions.fm4_async_reset.side_effects.side_effect_0",
+        "memory.instances.dir_q_ff",
+        "memory.instances.dout_q_ff",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.note",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.DIR_Q",
+        "registers.register_list.DOUT_Q",
+        "registers.register_list.dir_q",
+        "registers.register_list.dout_q",
+        "test_requirements"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.din_state",
+        "function_model.state_variables.dir_state",
+        "function_model.state_variables.dout_state",
+        "function_model.transactions.fm1_latch_control",
+        "function_model.transactions.fm1_latch_control.inputs.input_0",
+        "function_model.transactions.fm1_latch_control.inputs.input_1",
+        "function_model.transactions.fm1_latch_control.output_rules.dir_q_next",
+        "function_model.transactions.fm1_latch_control.output_rules.dout_q_next",
+        "function_model.transactions.fm1_latch_control.outputs.output_0",
+        "function_model.transactions.fm1_latch_control.outputs.output_1",
+        "function_model.transactions.fm1_latch_control.preconditions.precondition_0",
+        "function_model.transactions.fm1_latch_control.preconditions.precondition_1",
+        "function_model.transactions.fm1_latch_control.side_effects.side_effect_0",
+        "function_model.transactions.fm2_sample_inputs",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_0",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_1",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_2",
+        "function_model.transactions.fm2_sample_inputs.output_rules.din_q_masked_next",
+        "function_model.transactions.fm2_sample_inputs.outputs.output_0",
+        "function_model.transactions.fm2_sample_inputs.outputs.output_1",
+        "function_model.transactions.fm2_sample_inputs.preconditions.precondition_0",
+        "function_model.transactions.fm2_sample_inputs.preconditions.precondition_1",
+        "function_model.transactions.fm2_sample_inputs.side_effects.side_effect_0",
+        "function_model.transactions.fm4_async_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.din_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.dir_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.dout_reset",
+        "function_model.transactions.fm4_async_reset.outputs.output_0",
+        "function_model.transactions.fm4_async_reset.outputs.output_1",
+        "function_model.transactions.fm4_async_reset.outputs.output_2",
+        "function_model.transactions.fm4_async_reset.outputs.output_3",
+        "function_model.transactions.fm4_async_reset.outputs.output_4",
+        "function_model.transactions.fm4_async_reset.preconditions.precondition_0",
+        "function_model.transactions.fm4_async_reset.side_effects.side_effect_0"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.hr_input_mask_sample",
+        "cycle_model.handshake_rules.hr_sync_sample",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline.s0_reset",
+        "cycle_model.pipeline.s1_latch_control",
+        "cycle_model.pipeline.s3_drive_outputs",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.direction_masked_input_sampling",
+        "features.per_bit_direction_control",
+        "features.registered_output_data",
+        "memory.instances.dir_q_ff",
+        "memory.instances.dout_q_ff",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.note",
+        "registers.config.register_width",
+        "registers.register_list.dir_q",
+        "registers.register_list.dout_q"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gpio_input_sampler",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "function_model",
+        "memory",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "gpio_input_sampler"
+      ],
+      "rtl_file": "rtl/gpio_input_sampler.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.pipeline.S2_SAMPLE_INPUTS",
+        "cycle_model.pipeline.s2_sample_inputs",
+        "function_model",
+        "function_model.transactions.FM2_SAMPLE_INPUTS",
+        "memory.instances.din_q_ff",
+        "registers",
+        "registers.register_list.DIN_Q",
+        "registers.register_list.din_q"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [
+        "cycle_model.pipeline.s2_sample_inputs"
+      ],
+      "structural_refs": [
+        "memory.instances.din_q_ff",
+        "registers.register_list.din_q"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gpio_pad_logic",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "function_model",
+        "io_list",
+        "parameters"
+      ],
+      "rtl_candidates": [
+        "gpio_pad_logic"
+      ],
+      "rtl_file": "rtl/gpio_pad_logic.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules.HR_COMB_OUTPUTS",
+        "cycle_model.handshake_rules.hr_comb_outputs",
+        "function_model",
+        "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS",
+        "function_model.transactions.fm3_drive_pad_outputs",
+        "function_model.transactions.fm3_drive_pad_outputs.inputs.input_0",
+        "function_model.transactions.fm3_drive_pad_outputs.inputs.input_1",
+        "function_model.transactions.fm3_drive_pad_outputs.output_rules.oe_comb",
+        "function_model.transactions.fm3_drive_pad_outputs.output_rules.pad_comb",
+        "function_model.transactions.fm3_drive_pad_outputs.outputs.output_0",
+        "function_model.transactions.fm3_drive_pad_outputs.outputs.output_1",
+        "function_model.transactions.fm3_drive_pad_outputs.preconditions.precondition_0",
+        "function_model.transactions.fm3_drive_pad_outputs.side_effects.side_effect_0",
+        "io_list",
+        "io_list.interfaces.gpio_pad",
+        "parameters.width"
+      ],
+      "function_model_refs": [
+        "function_model.transactions.fm3_drive_pad_outputs",
+        "function_model.transactions.fm3_drive_pad_outputs.inputs.input_0",
+        "function_model.transactions.fm3_drive_pad_outputs.inputs.input_1",
+        "function_model.transactions.fm3_drive_pad_outputs.output_rules.oe_comb",
+        "function_model.transactions.fm3_drive_pad_outputs.output_rules.pad_comb",
+        "function_model.transactions.fm3_drive_pad_outputs.outputs.output_0",
+        "function_model.transactions.fm3_drive_pad_outputs.outputs.output_1",
+        "function_model.transactions.fm3_drive_pad_outputs.preconditions.precondition_0",
+        "function_model.transactions.fm3_drive_pad_outputs.side_effects.side_effect_0"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.handshake_rules.hr_comb_outputs"
+      ],
+      "structural_refs": [
+        "parameters.width"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gpio",
+      "kind": "rtl_module",
+      "source_sections": [
+        "integration",
+        "rtl_contract"
+      ],
+      "rtl_candidates": [
+        "gpio"
+      ],
+      "rtl_file": "rtl/gpio.sv",
+      "ssot_refs": [
+        "integration",
+        "integration.connections",
+        "rtl_contract"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gpio_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "gpio_axi_slv",
+        "gpio_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "gpio_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "gpio_regs",
+        "gpio_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "gpio_memory_model",
+      "kind": "memory",
+      "source_sections": [
+        "memory",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "gpio_mem",
+        "gpio_core"
+      ],
+      "verification_impact": [
+        "address retention",
+        "byte strobes",
+        "boundary coverage"
+      ]
+    },
+    {
+      "name": "gpio_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "gpio_core",
+        "gpio_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "gpio_fsm_model",
+      "kind": "fsm",
+      "source_sections": [
+        "fsm",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "gpio_core"
+      ],
+      "verification_impact": [
+        "state transition coverage",
+        "waveform debug"
+      ]
+    },
+    {
+      "name": "gpio_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "gpio_core",
+        "gpio_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    },
+    {
+      "name": "gpio_security_model",
+      "kind": "security",
+      "source_sections": [
+        "security",
+        "debug_observability"
+      ],
+      "rtl_candidates": [
+        "gpio_security",
+        "gpio_core"
+      ],
+      "verification_impact": [
+        "security bins",
+        "debug observability checks"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "gpio_regs",
+      "kind": "rtl_module",
+      "rtl_module": "gpio_regs",
+      "rtl_file": "rtl/gpio_regs.sv",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "features",
+        "fsm",
+        "function_model",
+        "memory",
+        "registers",
+        "test_requirements"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.hr_input_mask_sample",
+        "cycle_model.handshake_rules.hr_sync_sample",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline.S1_LATCH_CONTROL",
+        "cycle_model.pipeline.s0_reset",
+        "cycle_model.pipeline.s1_latch_control",
+        "cycle_model.pipeline.s3_drive_outputs",
+        "cycle_model.reset",
+        "dataflow",
+        "decomposition",
+        "features",
+        "features.direction_masked_input_sampling",
+        "features.per_bit_direction_control",
+        "features.registered_output_data",
+        "fsm",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables",
+        "function_model.state_variables.din_state",
+        "function_model.state_variables.dir_state",
+        "function_model.state_variables.dout_state",
+        "function_model.transactions.FM1_LATCH_CONTROL",
+        "function_model.transactions.FM2_SAMPLE_INPUTS",
+        "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS",
+        "function_model.transactions.FM4_ASYNC_RESET",
+        "function_model.transactions.fm1_latch_control",
+        "function_model.transactions.fm1_latch_control.inputs.input_0",
+        "function_model.transactions.fm1_latch_control.inputs.input_1",
+        "function_model.transactions.fm1_latch_control.output_rules.dir_q_next",
+        "function_model.transactions.fm1_latch_control.output_rules.dout_q_next",
+        "function_model.transactions.fm1_latch_control.outputs.output_0",
+        "function_model.transactions.fm1_latch_control.outputs.output_1",
+        "function_model.transactions.fm1_latch_control.preconditions.precondition_0",
+        "function_model.transactions.fm1_latch_control.preconditions.precondition_1",
+        "function_model.transactions.fm1_latch_control.side_effects.side_effect_0",
+        "function_model.transactions.fm2_sample_inputs",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_0",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_1",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_2",
+        "function_model.transactions.fm2_sample_inputs.output_rules.din_q_masked_next",
+        "function_model.transactions.fm2_sample_inputs.outputs.output_0",
+        "function_model.transactions.fm2_sample_inputs.outputs.output_1",
+        "function_model.transactions.fm2_sample_inputs.preconditions.precondition_0",
+        "function_model.transactions.fm2_sample_inputs.preconditions.precondition_1",
+        "function_model.transactions.fm2_sample_inputs.side_effects.side_effect_0",
+        "function_model.transactions.fm4_async_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.din_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.dir_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.dout_reset",
+        "function_model.transactions.fm4_async_reset.outputs.output_0",
+        "function_model.transactions.fm4_async_reset.outputs.output_1",
+        "function_model.transactions.fm4_async_reset.outputs.output_2",
+        "function_model.transactions.fm4_async_reset.outputs.output_3",
+        "function_model.transactions.fm4_async_reset.outputs.output_4",
+        "function_model.transactions.fm4_async_reset.preconditions.precondition_0",
+        "function_model.transactions.fm4_async_reset.side_effects.side_effect_0",
+        "memory.instances.dir_q_ff",
+        "memory.instances.dout_q_ff",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.note",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.DIR_Q",
+        "registers.register_list.DOUT_Q",
+        "registers.register_list.dir_q",
+        "registers.register_list.dout_q",
+        "test_requirements"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.din_state",
+        "function_model.state_variables.dir_state",
+        "function_model.state_variables.dout_state",
+        "function_model.transactions.fm1_latch_control",
+        "function_model.transactions.fm1_latch_control.inputs.input_0",
+        "function_model.transactions.fm1_latch_control.inputs.input_1",
+        "function_model.transactions.fm1_latch_control.output_rules.dir_q_next",
+        "function_model.transactions.fm1_latch_control.output_rules.dout_q_next",
+        "function_model.transactions.fm1_latch_control.outputs.output_0",
+        "function_model.transactions.fm1_latch_control.outputs.output_1",
+        "function_model.transactions.fm1_latch_control.preconditions.precondition_0",
+        "function_model.transactions.fm1_latch_control.preconditions.precondition_1",
+        "function_model.transactions.fm1_latch_control.side_effects.side_effect_0",
+        "function_model.transactions.fm2_sample_inputs",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_0",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_1",
+        "function_model.transactions.fm2_sample_inputs.inputs.input_2",
+        "function_model.transactions.fm2_sample_inputs.output_rules.din_q_masked_next",
+        "function_model.transactions.fm2_sample_inputs.outputs.output_0",
+        "function_model.transactions.fm2_sample_inputs.outputs.output_1",
+        "function_model.transactions.fm2_sample_inputs.preconditions.precondition_0",
+        "function_model.transactions.fm2_sample_inputs.preconditions.precondition_1",
+        "function_model.transactions.fm2_sample_inputs.side_effects.side_effect_0",
+        "function_model.transactions.fm4_async_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.din_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.dir_reset",
+        "function_model.transactions.fm4_async_reset.output_rules.dout_reset",
+        "function_model.transactions.fm4_async_reset.outputs.output_0",
+        "function_model.transactions.fm4_async_reset.outputs.output_1",
+        "function_model.transactions.fm4_async_reset.outputs.output_2",
+        "function_model.transactions.fm4_async_reset.outputs.output_3",
+        "function_model.transactions.fm4_async_reset.outputs.output_4",
+        "function_model.transactions.fm4_async_reset.preconditions.precondition_0",
+        "function_model.transactions.fm4_async_reset.side_effects.side_effect_0"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.hr_input_mask_sample",
+        "cycle_model.handshake_rules.hr_sync_sample",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline.s0_reset",
+        "cycle_model.pipeline.s1_latch_control",
+        "cycle_model.pipeline.s3_drive_outputs",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.direction_masked_input_sampling",
+        "features.per_bit_direction_control",
+        "features.registered_output_data",
+        "memory.instances.dir_q_ff",
+        "memory.instances.dout_q_ff",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.note",
+        "registers.config.register_width",
+        "registers.register_list.dir_q",
+        "registers.register_list.dout_q"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.dir_state",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.dout_state",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.din_state",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.transactions.fm1_latch_control",
+          "matched_ref": "function_model.transactions.FM1_LATCH_CONTROL"
+        },
+        {
+          "ref": "function_model.transactions.fm1_latch_control.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM1_LATCH_CONTROL"
+        },
+        {
+          "ref": "function_model.transactions.fm1_latch_control.preconditions.precondition_1",
+          "matched_ref": "function_model.transactions.FM1_LATCH_CONTROL"
+        },
+        {
+          "ref": "function_model.transactions.fm1_latch_control.inputs.input_0",
+          "matched_ref": "function_model.transactions.FM1_LATCH_CONTROL"
+        },
+        {
+          "ref": "function_model.transactions.fm1_latch_control.inputs.input_1",
+          "matched_ref": "function_model.transactions.FM1_LATCH_CONTROL"
+        },
+        {
+          "ref": "function_model.transactions.fm1_latch_control.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM1_LATCH_CONTROL"
+        },
+        {
+          "ref": "function_model.transactions.fm1_latch_control.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM1_LATCH_CONTROL"
+        },
+        {
+          "ref": "function_model.transactions.fm1_latch_control.output_rules.dir_q_next",
+          "matched_ref": "function_model.transactions.FM1_LATCH_CONTROL"
+        },
+        {
+          "ref": "function_model.transactions.fm1_latch_control.output_rules.dout_q_next",
+          "matched_ref": "function_model.transactions.FM1_LATCH_CONTROL"
+        },
+        {
+          "ref": "function_model.transactions.fm1_latch_control.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM1_LATCH_CONTROL"
+        },
+        {
+          "ref": "function_model.transactions.fm2_sample_inputs",
+          "matched_ref": "function_model.transactions.FM2_SAMPLE_INPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm2_sample_inputs.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM2_SAMPLE_INPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm2_sample_inputs.preconditions.precondition_1",
+          "matched_ref": "function_model.transactions.FM2_SAMPLE_INPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm2_sample_inputs.inputs.input_0",
+          "matched_ref": "function_model.transactions.FM2_SAMPLE_INPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm2_sample_inputs.inputs.input_1",
+          "matched_ref": "function_model.transactions.FM2_SAMPLE_INPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm2_sample_inputs.inputs.input_2",
+          "matched_ref": "function_model.transactions.FM2_SAMPLE_INPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm2_sample_inputs.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM2_SAMPLE_INPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm2_sample_inputs.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM2_SAMPLE_INPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm2_sample_inputs.output_rules.din_q_masked_next",
+          "matched_ref": "function_model.transactions.FM2_SAMPLE_INPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm2_sample_inputs.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM2_SAMPLE_INPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm4_async_reset",
+          "matched_ref": "function_model.transactions.FM4_ASYNC_RESET"
+        },
+        {
+          "ref": "function_model.transactions.fm4_async_reset.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM4_ASYNC_RESET"
+        },
+        {
+          "ref": "function_model.transactions.fm4_async_reset.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM4_ASYNC_RESET"
+        },
+        {
+          "ref": "function_model.transactions.fm4_async_reset.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM4_ASYNC_RESET"
+        },
+        {
+          "ref": "function_model.transactions.fm4_async_reset.outputs.output_2",
+          "matched_ref": "function_model.transactions.FM4_ASYNC_RESET"
+        },
+        {
+          "ref": "function_model.transactions.fm4_async_reset.outputs.output_3",
+          "matched_ref": "function_model.transactions.FM4_ASYNC_RESET"
+        },
+        {
+          "ref": "function_model.transactions.fm4_async_reset.outputs.output_4",
+          "matched_ref": "function_model.transactions.FM4_ASYNC_RESET"
+        },
+        {
+          "ref": "function_model.transactions.fm4_async_reset.output_rules.dir_reset",
+          "matched_ref": "function_model.transactions.FM4_ASYNC_RESET"
+        },
+        {
+          "ref": "function_model.transactions.fm4_async_reset.output_rules.dout_reset",
+          "matched_ref": "function_model.transactions.FM4_ASYNC_RESET"
+        },
+        {
+          "ref": "function_model.transactions.fm4_async_reset.output_rules.din_reset",
+          "matched_ref": "function_model.transactions.FM4_ASYNC_RESET"
+        },
+        {
+          "ref": "function_model.transactions.fm4_async_reset.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM4_ASYNC_RESET"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.hr_sync_sample",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.hr_input_mask_sample",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.s0_reset",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.s1_latch_control",
+          "matched_ref": "cycle_model.pipeline.S1_LATCH_CONTROL"
+        },
+        {
+          "ref": "cycle_model.pipeline.s3_drive_outputs",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_1",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_0",
+          "matched_ref": "cycle_model"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "memory.instances.dir_q_ff",
+          "matched_ref": "semantic_terms:dir,register"
+        },
+        {
+          "ref": "memory.instances.dout_q_ff",
+          "matched_ref": "semantic_terms:dout,register"
+        },
+        {
+          "ref": "registers.register_list.dir_q",
+          "matched_ref": "registers.register_list.DIR_Q"
+        },
+        {
+          "ref": "registers.register_list.dout_q",
+          "matched_ref": "registers.register_list.DOUT_Q"
+        },
+        {
+          "ref": "registers.config.register_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.addr_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.byte_addressable",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.note",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "features.per_bit_direction_control",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.registered_output_data",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.direction_masked_input_sampling",
+          "matched_ref": "features"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gpio_input_sampler",
+      "kind": "rtl_module",
+      "rtl_module": "gpio_input_sampler",
+      "rtl_file": "rtl/gpio_input_sampler.sv",
+      "source_sections": [
+        "cycle_model",
+        "function_model",
+        "memory",
+        "registers"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.pipeline.S2_SAMPLE_INPUTS",
+        "cycle_model.pipeline.s2_sample_inputs",
+        "function_model",
+        "function_model.transactions.FM2_SAMPLE_INPUTS",
+        "memory.instances.din_q_ff",
+        "registers",
+        "registers.register_list.DIN_Q",
+        "registers.register_list.din_q"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [
+        "cycle_model.pipeline.s2_sample_inputs"
+      ],
+      "structural_refs": [
+        "memory.instances.din_q_ff",
+        "registers.register_list.din_q"
+      ],
+      "owner_matches": [
+        {
+          "ref": "cycle_model.pipeline.s2_sample_inputs",
+          "matched_ref": "cycle_model.pipeline.S2_SAMPLE_INPUTS"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "memory.instances.din_q_ff",
+          "matched_ref": "semantic_terms:din,register,sample"
+        },
+        {
+          "ref": "registers.register_list.din_q",
+          "matched_ref": "registers.register_list.DIN_Q"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gpio_pad_logic",
+      "kind": "rtl_module",
+      "rtl_module": "gpio_pad_logic",
+      "rtl_file": "rtl/gpio_pad_logic.sv",
+      "source_sections": [
+        "cycle_model",
+        "function_model",
+        "io_list",
+        "parameters"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules.HR_COMB_OUTPUTS",
+        "cycle_model.handshake_rules.hr_comb_outputs",
+        "function_model",
+        "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS",
+        "function_model.transactions.fm3_drive_pad_outputs",
+        "function_model.transactions.fm3_drive_pad_outputs.inputs.input_0",
+        "function_model.transactions.fm3_drive_pad_outputs.inputs.input_1",
+        "function_model.transactions.fm3_drive_pad_outputs.output_rules.oe_comb",
+        "function_model.transactions.fm3_drive_pad_outputs.output_rules.pad_comb",
+        "function_model.transactions.fm3_drive_pad_outputs.outputs.output_0",
+        "function_model.transactions.fm3_drive_pad_outputs.outputs.output_1",
+        "function_model.transactions.fm3_drive_pad_outputs.preconditions.precondition_0",
+        "function_model.transactions.fm3_drive_pad_outputs.side_effects.side_effect_0",
+        "io_list",
+        "io_list.interfaces.gpio_pad",
+        "parameters.width"
+      ],
+      "function_model_refs": [
+        "function_model.transactions.fm3_drive_pad_outputs",
+        "function_model.transactions.fm3_drive_pad_outputs.inputs.input_0",
+        "function_model.transactions.fm3_drive_pad_outputs.inputs.input_1",
+        "function_model.transactions.fm3_drive_pad_outputs.output_rules.oe_comb",
+        "function_model.transactions.fm3_drive_pad_outputs.output_rules.pad_comb",
+        "function_model.transactions.fm3_drive_pad_outputs.outputs.output_0",
+        "function_model.transactions.fm3_drive_pad_outputs.outputs.output_1",
+        "function_model.transactions.fm3_drive_pad_outputs.preconditions.precondition_0",
+        "function_model.transactions.fm3_drive_pad_outputs.side_effects.side_effect_0"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.handshake_rules.hr_comb_outputs"
+      ],
+      "structural_refs": [
+        "parameters.width"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.transactions.fm3_drive_pad_outputs",
+          "matched_ref": "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm3_drive_pad_outputs.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm3_drive_pad_outputs.inputs.input_0",
+          "matched_ref": "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm3_drive_pad_outputs.inputs.input_1",
+          "matched_ref": "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm3_drive_pad_outputs.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm3_drive_pad_outputs.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm3_drive_pad_outputs.output_rules.oe_comb",
+          "matched_ref": "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm3_drive_pad_outputs.output_rules.pad_comb",
+          "matched_ref": "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS"
+        },
+        {
+          "ref": "function_model.transactions.fm3_drive_pad_outputs.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.hr_comb_outputs",
+          "matched_ref": "cycle_model.handshake_rules.HR_COMB_OUTPUTS"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.width",
+          "matched_ref": "semantic_terms:gpio_pad_logic,logic,pad"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gpio",
+      "kind": "rtl_module",
+      "rtl_module": "gpio",
+      "rtl_file": "rtl/gpio.sv",
+      "source_sections": [
+        "integration",
+        "rtl_contract"
+      ],
+      "ssot_refs": [
+        "integration",
+        "integration.connections",
+        "rtl_contract"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 61,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "gpio/req/",
+      "gpio/yaml/gpio.ssot.yaml",
+      "gpio/model/functional_model.py",
+      "gpio/cov/fcov_plan.json",
+      "gpio/yaml/gpio.ssot.yaml#io_list",
+      "gpio/yaml/gpio.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "gpio/rtl/",
+      "gpio/tb/",
+      "gpio/sim/",
+      "gpio/vectors/",
+      "gpio/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

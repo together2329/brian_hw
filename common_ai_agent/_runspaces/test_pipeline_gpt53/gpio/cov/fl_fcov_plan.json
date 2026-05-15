@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "type": "fl_functional_coverage_plan",
+  "ip": "gpio",
+  "source": "gpio/yaml/gpio.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "fl",
+  "summary": {
+    "total_bins": 15,
+    "by_class": {
+      "scenario": 9,
+      "transaction_type": 4,
+      "state_transition": 1,
+      "error": 1
+    }
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "primary approved behavior"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "cycle handshake and backpressure"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "error and recovery policy"
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC05",
+      "description": "debug and trace observability"
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC06",
+      "description": "function_model transaction FM1_LATCH_CONTROL"
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC07",
+      "description": "function_model transaction FM2_SAMPLE_INPUTS"
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC08",
+      "description": "function_model transaction FM3_DRIVE_PAD_OUTPUTS"
+    },
+    {
+      "id": "SC09_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC09",
+      "description": "function_model transaction FM4_ASYNC_RESET"
+    },
+    {
+      "id": "function_latch_direction_and_output_data",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "latch_direction_and_output_data"
+    },
+    {
+      "id": "function_sample_pad_inputs_for_input_bits_only",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "sample_pad_inputs_for_input_bits_only"
+    },
+    {
+      "id": "function_derive_output_enable_and_pad_drive",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "derive_output_enable_and_pad_drive"
+    },
+    {
+      "id": "function_asynchronous_reset_clears_state",
+      "class": "transaction_type",
+      "source": "function_model.transactions[3]",
+      "description": "asynchronous_reset_clears_state"
+    },
+    {
+      "id": "fsm_control_active_to_active_0",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[0]",
+      "description": "normal operation each cycle"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'x_propagation_from_pad', 'condition': 'pad_in contains unknown in simulation', 'architectural_effect': 'unknown may propagate into din_q for sampled input bits'}"
+    }
+  ]
+}

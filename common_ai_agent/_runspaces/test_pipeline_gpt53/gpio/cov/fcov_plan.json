@@ -1,0 +1,390 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "gpio",
+  "source": "gpio/yaml/gpio.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "gpio/req/",
+      "gpio/yaml/gpio.ssot.yaml",
+      "gpio/model/functional_model.py",
+      "gpio/cov/fcov_plan.json",
+      "gpio/yaml/gpio.ssot.yaml#io_list",
+      "gpio/yaml/gpio.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "gpio/rtl/",
+      "gpio/tb/",
+      "gpio/sim/",
+      "gpio/vectors/",
+      "gpio/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "primary approved behavior"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "cycle handshake and backpressure"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "error and recovery policy"
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC05",
+      "description": "debug and trace observability"
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC06",
+      "description": "function_model transaction FM1_LATCH_CONTROL"
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC07",
+      "description": "function_model transaction FM2_SAMPLE_INPUTS"
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC08",
+      "description": "function_model transaction FM3_DRIVE_PAD_OUTPUTS"
+    },
+    {
+      "id": "SC09_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC09",
+      "description": "function_model transaction FM4_ASYNC_RESET"
+    },
+    {
+      "id": "fcov_fm1",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM1_LATCH_CONTROL",
+      "source_ref": "function_model.transactions.FM1_LATCH_CONTROL",
+      "description": "latch transaction observed"
+    },
+    {
+      "id": "fcov_fm2",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM2_SAMPLE_INPUTS",
+      "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS",
+      "description": "sample transaction observed"
+    },
+    {
+      "id": "fcov_fm3",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS",
+      "source_ref": "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS",
+      "description": "drive transaction observed"
+    },
+    {
+      "id": "fcov_fm4",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM4_ASYNC_RESET",
+      "source_ref": "function_model.transactions.FM4_ASYNC_RESET",
+      "description": "reset transaction observed"
+    },
+    {
+      "id": "ccov_s1",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S1_LATCH_CONTROL",
+      "source_ref": "cycle_model.pipeline.S1_LATCH_CONTROL",
+      "description": "latch stage hit"
+    },
+    {
+      "id": "ccov_s2",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S2_SAMPLE_INPUTS",
+      "source_ref": "cycle_model.pipeline.S2_SAMPLE_INPUTS",
+      "description": "sample stage hit"
+    },
+    {
+      "id": "ccov_s3",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S3_DRIVE_OUTPUTS",
+      "source_ref": "cycle_model.pipeline.S3_DRIVE_OUTPUTS",
+      "description": "drive stage hit"
+    },
+    {
+      "id": "ccov_rule_mask",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.HR_INPUT_MASK_SAMPLE",
+      "source_ref": "cycle_model.handshake_rules.HR_INPUT_MASK_SAMPLE",
+      "description": "mask rule exercised"
+    },
+    {
+      "id": "function_latch_direction_and_output_data",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm1_latch_control",
+      "description": "latch_direction_and_output_data"
+    },
+    {
+      "id": "function_sample_pad_inputs_for_input_bits_only",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm2_sample_inputs",
+      "description": "sample_pad_inputs_for_input_bits_only"
+    },
+    {
+      "id": "function_derive_output_enable_and_pad_drive",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.fm3_drive_pad_outputs",
+      "description": "derive_output_enable_and_pad_drive"
+    },
+    {
+      "id": "function_asynchronous_reset_clears_state",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[3]",
+      "source_ref": "function_model.transactions.fm4_async_reset",
+      "description": "asynchronous_reset_clears_state"
+    },
+    {
+      "id": "cycle_hr_sync_sample",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'id': 'HR_SYNC_SAMPLE', 'signal': 'clk', 'rule': 'Inputs sampled only on rising edge'}"
+    },
+    {
+      "id": "cycle_hr_input_mask_sample",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'id': 'HR_INPUT_MASK_SAMPLE', 'signal': 'din_q', 'rule': 'din_q bit updates only when corresponding dir_q bit is 0'}"
+    },
+    {
+      "id": "cycle_hr_comb_outputs",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'id': 'HR_COMB_OUTPUTS', 'signal': 'oe_o/pad_o', 'rule': 'Outputs are pure combinational functions of registered state'}"
+    },
+    {
+      "id": "cycle_latency_control_to_state",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.control_to_state",
+      "source_ref": "cycle_model.latency.control_to_state",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'dir_in/dout_in sampled on next rising edge'}"
+    },
+    {
+      "id": "cycle_latency_state_to_outputs",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.state_to_outputs",
+      "source_ref": "cycle_model.latency.state_to_outputs",
+      "description": "{'min_cycles': 0, 'max_cycles': 0, 'description': 'oe_o and pad_o combinational from state'}"
+    },
+    {
+      "id": "cycle_latency_pad_to_din",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.pad_to_din",
+      "source_ref": "cycle_model.latency.pad_to_din",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'input bits sample pad_in on rising edge'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_reset",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Clear dir_q/dout_q/din_q when rst_n=0"
+    },
+    {
+      "id": "cycle_pipeline_s1_latch_control",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Latch dir_in->dir_q and dout_in->dout_q at rising edge"
+    },
+    {
+      "id": "cycle_pipeline_s2_sample_inputs",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Sample pad_in into din_q only for dir_q=0 bits"
+    },
+    {
+      "id": "cycle_pipeline_s3_drive_outputs",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[3]",
+      "source_ref": "cycle_model.pipeline[3]",
+      "description": "Drive oe_o/pad_o from registered state"
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "sequential updates occur at edge, combinational outputs settle after edge"
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "reset dominates non-reset behavior"
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "no ready/valid protocol in this GPIO fixture"
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'max': 1, 'description': 'Default one accepted operation until the SSOT declares deeper buffering'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 3, 'queue_depth': 1, 'description': 'Default accept/evaluate/observe cycle model depth'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "200"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_beats_per_cycle': 1, 'condition': 'No backpressure on the active interface'}"
+    },
+    {
+      "id": "fsm_control_active_to_active_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[0]",
+      "source_ref": "fsm.control.transitions[0]",
+      "description": "normal operation each cycle"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'x_propagation_from_pad', 'condition': 'pad_in contains unknown in simulation', 'architectural_effect': 'unknown may propagate into din_q for sampled input bits'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 40,
+    "scenario_bins": 9,
+    "transaction_bins": 4,
+    "protocol_bins": 3,
+    "state_transition_bins": 1,
+    "error_bins": 1
+  }
+}

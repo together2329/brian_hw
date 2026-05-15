@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "type": "cl_functional_coverage_plan",
+  "ip": "gpio",
+  "source": "gpio/yaml/gpio.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "cl",
+  "summary": {
+    "total_bins": 14,
+    "by_class": {
+      "protocol_handshake": 3,
+      "latency_bin": 11
+    }
+  },
+  "bins": [
+    {
+      "id": "cycle_hr_sync_sample",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "hr_sync_sample"
+    },
+    {
+      "id": "cycle_hr_input_mask_sample",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "hr_input_mask_sample"
+    },
+    {
+      "id": "cycle_hr_comb_outputs",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "description": "hr_comb_outputs"
+    },
+    {
+      "id": "latency_control_to_state_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.control_to_state",
+      "description": "control_to_state latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_control_to_state_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.control_to_state",
+      "description": "control_to_state latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_control_to_state_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.control_to_state",
+      "description": "control_to_state latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_control_to_state_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.control_to_state",
+      "description": "control_to_state latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_state_to_outputs_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.state_to_outputs",
+      "description": "state_to_outputs latency == 0 cycles",
+      "bucket": "min",
+      "cycles": 0
+    },
+    {
+      "id": "latency_state_to_outputs_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.state_to_outputs",
+      "description": "state_to_outputs latency == 0 cycles",
+      "bucket": "max",
+      "cycles": 0
+    },
+    {
+      "id": "latency_state_to_outputs_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.state_to_outputs",
+      "description": "state_to_outputs latency > 0 cycles",
+      "bucket": ">max",
+      "threshold": 0
+    },
+    {
+      "id": "latency_pad_to_din_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.pad_to_din",
+      "description": "pad_to_din latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_pad_to_din_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.pad_to_din",
+      "description": "pad_to_din latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_pad_to_din_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.pad_to_din",
+      "description": "pad_to_din latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_pad_to_din_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.pad_to_din",
+      "description": "pad_to_din latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    }
+  ]
+}
