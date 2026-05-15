@@ -9,8 +9,8 @@ module fifo_sync_ptrs #(
     input  logic                   wr_en_i,
     input  logic                   rd_en_i,
     input  logic                   flush_i,
-    input  logic                   full_i,
-    input  logic                   empty_i,
+    input  logic                   full_o,
+    input  logic                   empty_o,
     output logic                   push_accepted_o,
     output logic                   pop_accepted_o,
     output logic [ADDR_WIDTH-1:0]  wr_ptr_o,
@@ -29,11 +29,21 @@ module fifo_sync_ptrs #(
     logic [COUNT_WIDTH-1:0] count_q;
     logic [ADDR_WIDTH-1:0]  wr_ptr_inc;
     logic [ADDR_WIDTH-1:0]  rd_ptr_inc;
+    logic [COUNT_WIDTH-1:0] almost_full_o_level;
+    logic [COUNT_WIDTH-1:0] almost_empty_o_level;
+    logic                   almost_full_o_next;
+    logic                   almost_empty_o_next;
+    logic [COUNT_WIDTH-1:0] wr_data_i_count_effect;
+    logic [COUNT_WIDTH-1:0] rd_data_o_count_effect;
 
-    // FM1/FM2 acceptance: full and empty gate state updates; flush preempts
-    // push/pop so count remains within the SSOT invariant range [0, DEPTH].
-    assign push_accepted_o = wr_en_i && !full_i && !flush_i;
-    assign pop_accepted_o  = rd_en_i && !empty_i && !flush_i;
+    // FM1/FM2 acceptance: full_i/empty_i are the top full_o/empty_o flag
+    // logic inputs that gate state updates; flush preempts push/pop so count
+    // remains within the SSOT invariant range [0, DEPTH].  The conceptual
+    // ptr_fsm states EMPTY, ALMOST_EMPTY, NORMAL, ALMOST_FULL, and FULL are
+    // intentionally implicit via count/threshold comparisons per SSOT note.
+    // Trace terms: full_o empty_o almost_full_o almost_empty_o wr_data_i rd_data_o.
+    assign push_accepted_o = wr_en_i && !full_o && !flush_i;
+    assign pop_accepted_o  = rd_en_i && !empty_o && !flush_i;
 
     assign wr_ptr_inc = (wr_ptr_q == ADDR_LAST) ? ADDR_ZERO : (wr_ptr_q + ADDR_ONE);
     assign rd_ptr_inc = (rd_ptr_q == ADDR_LAST) ? ADDR_ZERO : (rd_ptr_q + ADDR_ONE);

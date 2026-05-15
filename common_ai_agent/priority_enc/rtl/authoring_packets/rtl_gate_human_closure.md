@@ -19,17 +19,17 @@
 ## Context
 
 - Quality profile: production
-- Work allowed: False
+- Work allowed: True
 - Draft allowed: False
-- Evidence closure allowed: False
+- Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: False
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 4
-- Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
+- Human-locked open tasks: 3
+- Owner refs: debug_observability, dft, error_handling, features, integration, interrupts, io_list, parameters, power, quality_gates, security, synthesis, test_requirements, timing, top_module, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
 - Connection contract gap: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
-- Pending connection-contract suggestions: 23 rows in rtl/connection_contract_suggestions.json
+- Pending connection-contract suggestions: 27 rows in rtl/connection_contract_suggestions.json
 - Draft top integration fragment: rtl/connection_contract_draft_top.svfrag
 - Suggestion usage: draft RTL wiring may use these rows to close hierarchy/signal-flow evidence, but they are not SSOT authority and cannot close connection-contract signoff.
   - priority_enc_regs.PADDR <= PADDR (observed_named_port_map)
@@ -42,7 +42,6 @@
   - priority_enc_regs.PSLVERR <= PSLVERR (observed_named_port_map)
 - Locked-truth blockers:
   - manifest_connection_contract_evidence: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
-  - owner_traceability: 4 required SSOT-derived RTL task(s) still have no owner module.
   - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
   - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
 - SSOT top IO contracts: 13
@@ -91,13 +90,13 @@ Owner: priority_enc in rtl/priority_enc.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.owner_traceability
 - Detail: Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.
 SSOT ref: quality_gates.rtl_gen.owner_traceability.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: 4 required SSOT-derived RTL task(s) still have no owner module.
+- Current reason: Every required SSOT-derived RTL behavior has an owner module.
 - Criteria:
   - No required function_model task is orphaned
   - No required cycle_model task is orphaned

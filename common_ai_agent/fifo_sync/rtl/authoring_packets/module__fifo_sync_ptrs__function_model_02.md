@@ -19,16 +19,16 @@
 ## Context
 
 - Quality profile: production
-- Work allowed: False
-- Draft allowed: False
+- Work allowed: True
+- Draft allowed: True
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 18
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, decomposition.units.pointer_control, function_model, function_model.state_variables, function_model.state_variables.count, function_model.state_variables.rd_ptr, function_model.state_variables.wr_ptr
-- Module slice: 2/5 section=function_model task_limit=48
-- Slice rule: Owner module fifo_sync_ptrs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, decomposition.units.pointer_control, fsm.ptr_fsm, function_model, function_model.state_variables, function_model.state_variables.count, function_model.state_variables.rd_ptr, function_model.state_variables.wr_ptr
+- Module slice: 2/6 section=function_model task_limit=48
+- Slice rule: Owner module fifo_sync_ptrs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - fifo_sync_ptrs.clk_i <= PCLK (integration.connections[0])
   - fifo_sync_ptrs.rst_ni <= PRESETn (integration.connections[1])

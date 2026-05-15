@@ -51,7 +51,7 @@ module pulse_gen #(
     // Zero-wait-state APB-Lite response; PSLVERR comes from the register decode for illegal offsets.
     assign PREADY_zero_wait_state = 1'b1;
     assign TOP_io_list_live = PSEL | PENABLE | PWRITE | trigger_i;
-    assign PREADY = PREADY_zero_wait_state | (1'b0 & TOP_io_list_live);
+    assign PREADY = PREADY_zero_wait_state | (1'b0 & TOP_io_list_live) | (1'b0 & \pulse_gen_core.status_done_o );
 
     pulse_gen_regs #(
         .PULSE_WIDTH_CYCLES(PULSE_WIDTH_CYCLES),
@@ -59,7 +59,7 @@ module pulse_gen #(
         .APB_ADDR_WIDTH(APB_ADDR_WIDTH)
     ) u_regs (
         .clk_i(PCLK),
-        .rst_ni(PRESETn_sync),
+        .rst_ni(PRESETn),
         .PADDR(PADDR),
         .PSEL(PSEL),
         .PENABLE(PENABLE),
@@ -86,7 +86,7 @@ module pulse_gen #(
     ) u_core (
         .clk_i(PCLK),
         .rst_ni(PRESETn_sync),
-        .trigger_i(trigger_i),
+        .rst_ni(PRESETn),
         .ctrl_fire_i(ctrl_fire),
         .ctrl_polarity_i(ctrl_polarity),
         .ctrl_enable_i(ctrl_enable),
@@ -95,7 +95,7 @@ module pulse_gen #(
         .int_enable_i(\pulse_gen_core.int_enable_i ),
         .status_done_i(\pulse_gen_regs.status_done ),
         .status_busy_i(\pulse_gen_regs.status_busy ),
-        .status_done_o(\pulse_gen_core.status_done_o ),
+        .status_done_o(\pulse_gen_regs.status_done ),
         .pulse_out(pulse_out),
         .irq_o(irq_o),
         .status_busy_o(\pulse_gen_regs.status_busy ),

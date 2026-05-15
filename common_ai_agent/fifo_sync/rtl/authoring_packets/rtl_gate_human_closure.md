@@ -19,16 +19,15 @@
 ## Context
 
 - Quality profile: production
-- Work allowed: False
+- Work allowed: True
 - Draft allowed: False
-- Evidence closure allowed: False
+- Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 3
+- Human-locked open tasks: 2
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Locked-truth blockers:
-  - owner_traceability: 14 required SSOT-derived RTL task(s) still have no owner module.
   - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
   - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
 - SSOT connection contracts:
@@ -90,13 +89,13 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.owner_traceability
 - Detail: Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.
 SSOT ref: quality_gates.rtl_gen.owner_traceability.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: 14 required SSOT-derived RTL task(s) still have no owner module.
+- Current reason: Every required SSOT-derived RTL behavior has an owner module.
 - Criteria:
   - No required function_model task is orphaned
   - No required cycle_model task is orphaned

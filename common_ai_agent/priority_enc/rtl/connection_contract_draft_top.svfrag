@@ -15,6 +15,13 @@ priority_enc_core u_priority_enc_core (
   .valid_out(core_valid) // observed_named_port_map; review_status=pending
 );
 
+priority_enc_fsm u_priority_enc_fsm (
+  .PCLK(PCLK), // observed_named_port_map; review_status=pending
+  .PRESETn(PRESETn), // observed_named_port_map; review_status=pending
+  .active_o(fsm_active), // observed_named_port_map; review_status=pending
+  .ctrl_enable_i(ctrl_enable) // observed_named_port_map; review_status=pending
+);
+
 priority_enc_regs u_priority_enc_regs (
   .PADDR(PADDR), // observed_named_port_map; review_status=pending
   .PCLK(PCLK), // observed_named_port_map; review_status=pending

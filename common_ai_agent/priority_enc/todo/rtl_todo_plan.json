@@ -416,20 +416,92 @@
           "core_valid"
         ],
         "source_ref": "rtl.connection_contract_suggestions.priority_enc_core.valid_out"
+      },
+      {
+        "applied_to_ssot": false,
+        "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+        "approval_target": "integration.connections",
+        "confidence": "observed_named_port_map",
+        "direction": "input",
+        "instance": "u_priority_enc_fsm",
+        "machine_readable": false,
+        "module": "priority_enc_fsm",
+        "port": "PCLK",
+        "range": "",
+        "review_status": "pending",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "rtl.connection_contract_suggestions.priority_enc_fsm.PCLK"
+      },
+      {
+        "applied_to_ssot": false,
+        "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+        "approval_target": "integration.connections",
+        "confidence": "observed_named_port_map",
+        "direction": "input",
+        "instance": "u_priority_enc_fsm",
+        "machine_readable": false,
+        "module": "priority_enc_fsm",
+        "port": "PRESETn",
+        "range": "",
+        "review_status": "pending",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "rtl.connection_contract_suggestions.priority_enc_fsm.PRESETn"
+      },
+      {
+        "applied_to_ssot": false,
+        "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+        "approval_target": "integration.connections",
+        "confidence": "observed_named_port_map",
+        "direction": "output",
+        "instance": "u_priority_enc_fsm",
+        "machine_readable": false,
+        "module": "priority_enc_fsm",
+        "port": "active_o",
+        "range": "",
+        "review_status": "pending",
+        "signal": "fsm_active",
+        "signal_terms": [
+          "fsm_active"
+        ],
+        "source_ref": "rtl.connection_contract_suggestions.priority_enc_fsm.active_o"
+      },
+      {
+        "applied_to_ssot": false,
+        "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+        "approval_target": "integration.connections",
+        "confidence": "observed_named_port_map",
+        "direction": "input",
+        "instance": "u_priority_enc_fsm",
+        "machine_readable": false,
+        "module": "priority_enc_fsm",
+        "port": "ctrl_enable_i",
+        "range": "",
+        "review_status": "pending",
+        "signal": "ctrl_enable",
+        "signal_terms": [
+          "ctrl_enable"
+        ],
+        "source_ref": "rtl.connection_contract_suggestions.priority_enc_fsm.ctrl_enable_i"
       }
     ],
     "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
     "schema_version": 1,
     "summary": {
       "applied_to_ssot": false,
-      "child_modules": 2,
+      "child_modules": 3,
       "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
-      "observed_named_port_map_rows": 23,
-      "pending_review": 23,
+      "observed_named_port_map_rows": 27,
+      "pending_review": 27,
       "proposed_rows": 0,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "status": "pending_review",
-      "suggested_rows": 23,
+      "suggested_rows": 27,
       "top": "priority_enc",
       "top_module": "priority_enc"
     },
@@ -465,12 +537,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 13,
-    "orphan_tasks": 4,
+    "open_required_todos": 8,
+    "orphan_tasks": 0,
     "static_missing": 0,
-    "status": "blocked"
+    "status": "fail"
   },
-  "generated_at": "2026-05-15T02:25:11Z",
+  "generated_at": "2026-05-15T02:31:19Z",
   "ip": "priority_enc",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -522,8 +594,8 @@
     "status": "pass"
   },
   "manifest_signal_flow_evidence": {
-    "checked_inputs": 16,
-    "checked_outputs": 7,
+    "checked_inputs": 19,
+    "checked_outputs": 8,
     "issues": [],
     "reachable_modules": [
       "priority_enc",
@@ -536,34 +608,9 @@
     ],
     "status": "pass"
   },
-  "orphans": [
-    {
-      "category": "fsm.state",
-      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-      "source_ref": "fsm.encoder_fsm.states.state_0",
-      "task_id": "RTL-0084"
-    },
-    {
-      "category": "fsm.state",
-      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-      "source_ref": "fsm.encoder_fsm.states.state_1",
-      "task_id": "RTL-0085"
-    },
-    {
-      "category": "fsm.transition",
-      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-      "source_ref": "fsm.encoder_fsm.transitions.transition_0",
-      "task_id": "RTL-0086"
-    },
-    {
-      "category": "fsm.transition",
-      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-      "source_ref": "fsm.encoder_fsm.transitions.transition_1",
-      "task_id": "RTL-0087"
-    }
-  ],
+  "orphans": [],
   "owner_logic_evidence": {
-    "checked": 3,
+    "checked": 4,
     "issues": [],
     "status": "pass"
   },
@@ -593,7 +640,7 @@
   "reference_scale_gap": {},
   "rtl_implementation_depth_evidence": {
     "aggregate": {
-      "behavior_owner_logic_modules": 3,
+      "behavior_owner_logic_modules": 4,
       "control_flow": 22,
       "depth_score": 125,
       "instances": 3,
@@ -679,12 +726,12 @@
       "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
     },
     "thresholds": {
-      "behavior_owners": 3,
+      "behavior_owners": 4,
       "behavior_tasks": 46,
       "machine_connection_contracts": 0,
-      "manifest_rtl_files": 3,
+      "manifest_rtl_files": 4,
       "min_behavior_owner_logic_modules": 2,
-      "min_depth_score": 28,
+      "min_depth_score": 32,
       "min_logic_modules": 3,
       "min_modules": 3,
       "min_procedural_blocks": 4,
@@ -893,7 +940,7 @@
       "cycle_model.ordering": 2,
       "cycle_model.pipeline": 2,
       "cycle_model.reset": 1,
-      "equivalence.module": 3,
+      "equivalence.module": 4,
       "error_handling.recovery": 1,
       "features.item": 3,
       "fsm.state": 2,
@@ -922,7 +969,7 @@
     },
     "by_section": {
       "cycle_model": 10,
-      "equivalence": 3,
+      "equivalence": 4,
       "error_handling": 1,
       "features": 3,
       "fsm": 4,
@@ -937,8 +984,31 @@
       "test_requirements": 7,
       "workflow_todo": 3
     },
-    "orphan_tasks": 4,
+    "orphan_tasks": 0,
     "owner_modules": [
+      {
+        "file": "rtl/priority_enc.sv",
+        "name": "priority_enc",
+        "refs": [
+          "debug_observability",
+          "dft",
+          "error_handling",
+          "features",
+          "integration",
+          "interrupts",
+          "io_list",
+          "parameters",
+          "power",
+          "quality_gates",
+          "security",
+          "synthesis",
+          "test_requirements",
+          "timing",
+          "top_module",
+          "workflow_todos"
+        ],
+        "wiring_only": false
+      },
       {
         "file": "rtl/priority_enc_regs.sv",
         "name": "priority_enc_regs",
@@ -954,6 +1024,11 @@
         "refs": [
           "cycle_model",
           "cycle_model.pipeline",
+          "dataflow",
+          "dataflow.control_path",
+          "dataflow.input_path",
+          "decomposition",
+          "decomposition.units",
           "function_model",
           "function_model.state_updates",
           "function_model.transactions"
@@ -961,38 +1036,25 @@
         "wiring_only": false
       },
       {
-        "file": "rtl/priority_enc.sv",
-        "name": "priority_enc",
+        "file": "rtl/priority_enc_fsm.sv",
+        "name": "priority_enc_fsm",
         "refs": [
-          "top_module",
-          "io_list",
-          "parameters",
-          "interrupts",
-          "features",
-          "error_handling",
-          "security",
-          "debug_observability",
-          "integration",
-          "timing",
-          "power",
-          "synthesis",
-          "dft",
-          "test_requirements",
-          "quality_gates",
-          "workflow_todos",
-          "next_step_todos"
+          "fsm",
+          "fsm.encoder_fsm",
+          "fsm.encoder_fsm.states",
+          "fsm.encoder_fsm.transitions"
         ],
         "wiring_only": false
       }
     ],
     "reference_profile_present": false,
-    "required_tasks": 108,
+    "required_tasks": 109,
     "rtl_gate_todos": 24,
     "rtl_quality_profile": "production",
     "ssot_workflow_todos": 3,
     "target_scale_present": true,
     "target_scale_waived": false,
-    "total_tasks": 108
+    "total_tasks": 109
   },
   "target_scale": {
     "basis": "Small peripheral IP: 3 RTL files, priority logic + APB regs",
@@ -1231,9 +1293,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 required SSOT-derived RTL task(s) still have no owner module.",
+        "reason": "Every required SSOT-derived RTL behavior has an owner module.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1902,7 +1964,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "12 required non-closure TODO(s) remain open.",
+        "reason": "7 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -2051,7 +2113,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=125, required=28).",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=125, required=32).",
         "required": true,
         "status": "pass"
       }
@@ -5331,16 +5393,17 @@
         "Reset/entry/exit behavior matches SSOT",
         "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
         "Coverage can observe the state or equivalent condition",
-        "Traceability keeps source_ref fsm.encoder_fsm.states.state_0"
+        "Traceability keeps source_ref fsm.encoder_fsm.states.state_0",
+        "Primary implementation evidence is in rtl/priority_enc_fsm.sv"
       ],
-      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.encoder_fsm.states.state_0.\nSSOT item context: value=IDLE.",
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.encoder_fsm.states.state_0.\nOwner: priority_enc_fsm in rtl/priority_enc_fsm.sv via fsm.encoder_fsm.states.\nSSOT item context: value=IDLE.",
       "evidence_terms": [
         "IDLE"
       ],
       "id": "RTL-0084",
-      "owner_file": "",
-      "owner_match": "",
-      "owner_module": "",
+      "owner_file": "rtl/priority_enc_fsm.sv",
+      "owner_match": "fsm.encoder_fsm.states",
+      "owner_module": "priority_enc_fsm",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -5356,26 +5419,26 @@
         "matched_terms": [
           "IDLE"
         ],
-        "owner_file_scoped": false,
+        "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
         "required_terms": [
           "IDLE"
         ],
-        "source_scope": "all_sources_without_owner",
+        "source_scope": "rtl/priority_enc_fsm.sv",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 5,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task has no RTL owner file.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5386,16 +5449,17 @@
         "Reset/entry/exit behavior matches SSOT",
         "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
         "Coverage can observe the state or equivalent condition",
-        "Traceability keeps source_ref fsm.encoder_fsm.states.state_1"
+        "Traceability keeps source_ref fsm.encoder_fsm.states.state_1",
+        "Primary implementation evidence is in rtl/priority_enc_fsm.sv"
       ],
-      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.encoder_fsm.states.state_1.\nSSOT item context: value=ACTIVE.",
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.encoder_fsm.states.state_1.\nOwner: priority_enc_fsm in rtl/priority_enc_fsm.sv via fsm.encoder_fsm.states.\nSSOT item context: value=ACTIVE.",
       "evidence_terms": [
         "ACTIVE"
       ],
       "id": "RTL-0085",
-      "owner_file": "",
-      "owner_match": "",
-      "owner_module": "",
+      "owner_file": "rtl/priority_enc_fsm.sv",
+      "owner_match": "fsm.encoder_fsm.states",
+      "owner_module": "priority_enc_fsm",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -5411,26 +5475,26 @@
         "matched_terms": [
           "ACTIVE"
         ],
-        "owner_file_scoped": false,
+        "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
         "required_terms": [
           "ACTIVE"
         ],
-        "source_scope": "all_sources_without_owner",
+        "source_scope": "rtl/priority_enc_fsm.sv",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 5,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task has no RTL owner file.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5441,19 +5505,20 @@
         "Transition action/state update is implemented",
         "Illegal/missing transition behavior is handled per SSOT",
         "Traceability keeps source_ref fsm.encoder_fsm.transitions.transition_0",
+        "Primary implementation evidence is in rtl/priority_enc_fsm.sv",
         "fsm.encoder_fsm.transitions.transition_0 condition is implemented as RTL control logic: CTRL.enable == 1",
         "fsm.encoder_fsm.transitions.transition_0 transition path IDLE -> ACTIVE is encoded or explicitly proven equivalent"
       ],
-      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.encoder_fsm.transitions.transition_0.\nSSOT item context: from=IDLE; to=ACTIVE; condition=CTRL.enable == 1.",
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.encoder_fsm.transitions.transition_0.\nOwner: priority_enc_fsm in rtl/priority_enc_fsm.sv via fsm.encoder_fsm.transitions.\nSSOT item context: from=IDLE; to=ACTIVE; condition=CTRL.enable == 1.",
       "evidence_terms": [
         "ACTIVE",
         "CTRL",
         "IDLE"
       ],
       "id": "RTL-0086",
-      "owner_file": "",
-      "owner_match": "",
-      "owner_module": "",
+      "owner_file": "rtl/priority_enc_fsm.sv",
+      "owner_match": "fsm.encoder_fsm.transitions",
+      "owner_module": "priority_enc_fsm",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -5473,7 +5538,7 @@
           "CTRL",
           "IDLE"
         ],
-        "owner_file_scoped": false,
+        "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -5481,20 +5546,20 @@
           "CTRL",
           "IDLE"
         ],
-        "source_scope": "all_sources_without_owner",
+        "source_scope": "rtl/priority_enc_fsm.sv",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 6,
+        "criteria_total": 7,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task has no RTL owner file.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5505,19 +5570,20 @@
         "Transition action/state update is implemented",
         "Illegal/missing transition behavior is handled per SSOT",
         "Traceability keeps source_ref fsm.encoder_fsm.transitions.transition_1",
+        "Primary implementation evidence is in rtl/priority_enc_fsm.sv",
         "fsm.encoder_fsm.transitions.transition_1 condition is implemented as RTL control logic: CTRL.enable == 0",
         "fsm.encoder_fsm.transitions.transition_1 transition path ACTIVE -> IDLE is encoded or explicitly proven equivalent"
       ],
-      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.encoder_fsm.transitions.transition_1.\nSSOT item context: from=ACTIVE; to=IDLE; condition=CTRL.enable == 0.",
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.encoder_fsm.transitions.transition_1.\nOwner: priority_enc_fsm in rtl/priority_enc_fsm.sv via fsm.encoder_fsm.transitions.\nSSOT item context: from=ACTIVE; to=IDLE; condition=CTRL.enable == 0.",
       "evidence_terms": [
         "ACTIVE",
         "CTRL",
         "IDLE"
       ],
       "id": "RTL-0087",
-      "owner_file": "",
-      "owner_match": "",
-      "owner_module": "",
+      "owner_file": "rtl/priority_enc_fsm.sv",
+      "owner_match": "fsm.encoder_fsm.transitions",
+      "owner_module": "priority_enc_fsm",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -5537,7 +5603,7 @@
           "CTRL",
           "IDLE"
         ],
-        "owner_file_scoped": false,
+        "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -5545,20 +5611,20 @@
           "CTRL",
           "IDLE"
         ],
-        "source_scope": "all_sources_without_owner",
+        "source_scope": "rtl/priority_enc_fsm.sv",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 6,
+        "criteria_total": 7,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task has no RTL owner file.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6086,6 +6152,49 @@
     },
     {
       "category": "equivalence.module",
+      "content": "Prove module priority_enc is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.priority_enc.module_equivalence",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.priority_enc.module_equivalence.\nOwner: priority_enc in rtl/priority_enc.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0099",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_match": "module_equivalence",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "requires_static_rtl_evidence": false,
+      "source_ref": "sub_modules.priority_enc.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.priority_enc.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
       "content": "Prove module priority_enc_regs is functionally equivalent to FL",
       "criteria": [
         "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
@@ -6098,7 +6207,7 @@
       ],
       "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.priority_enc_regs.module_equivalence.\nOwner: priority_enc_regs in rtl/priority_enc_regs.sv via module_equivalence.",
       "evidence_terms": [],
-      "id": "RTL-0099",
+      "id": "RTL-0100",
       "owner_file": "rtl/priority_enc_regs.sv",
       "owner_match": "module_equivalence",
       "owner_module": "priority_enc_regs",
@@ -6141,7 +6250,7 @@
       ],
       "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.priority_enc_core.module_equivalence.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via module_equivalence.",
       "evidence_terms": [],
-      "id": "RTL-0100",
+      "id": "RTL-0101",
       "owner_file": "rtl/priority_enc_core.sv",
       "owner_match": "module_equivalence",
       "owner_module": "priority_enc_core",
@@ -6172,29 +6281,29 @@
     },
     {
       "category": "equivalence.module",
-      "content": "Prove module priority_enc is functionally equivalent to FL",
+      "content": "Prove module priority_enc_fsm is functionally equivalent to FL",
       "criteria": [
         "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
         "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
         "scoreboard row fl_expected.model_api is FunctionalModel.apply",
         "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
         "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
-        "Traceability keeps source_ref sub_modules.priority_enc.module_equivalence",
-        "Primary implementation evidence is in rtl/priority_enc.sv"
+        "Traceability keeps source_ref sub_modules.priority_enc_fsm.module_equivalence",
+        "Primary implementation evidence is in rtl/priority_enc_fsm.sv"
       ],
-      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.priority_enc.module_equivalence.\nOwner: priority_enc in rtl/priority_enc.sv via module_equivalence.",
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.priority_enc_fsm.module_equivalence.\nOwner: priority_enc_fsm in rtl/priority_enc_fsm.sv via module_equivalence.",
       "evidence_terms": [],
-      "id": "RTL-0101",
-      "owner_file": "rtl/priority_enc.sv",
+      "id": "RTL-0102",
+      "owner_file": "rtl/priority_enc_fsm.sv",
       "owner_match": "module_equivalence",
-      "owner_module": "priority_enc",
+      "owner_module": "priority_enc_fsm",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
-      "source_ref": "sub_modules.priority_enc.module_equivalence",
+      "source_ref": "sub_modules.priority_enc_fsm.module_equivalence",
       "ssot_context": {},
       "ssot_refs": [
-        "sub_modules.priority_enc.module_equivalence"
+        "sub_modules.priority_enc_fsm.module_equivalence"
       ],
       "static_evidence": {
         "required": false,
@@ -6226,7 +6335,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC1.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC1; name=Basic priority encode; expected=index_out = bit position, valid_out = 1.",
       "evidence_terms": [],
-      "id": "RTL-0102",
+      "id": "RTL-0103",
       "owner_file": "rtl/priority_enc.sv",
       "owner_match": "test_requirements",
       "owner_module": "priority_enc",
@@ -6272,7 +6381,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC2.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC2; name=Multiple inputs priority resolution; expected=index_out reflects highest-numbered asserted bit.",
       "evidence_terms": [],
-      "id": "RTL-0103",
+      "id": "RTL-0104",
       "owner_file": "rtl/priority_enc.sv",
       "owner_match": "test_requirements",
       "owner_module": "priority_enc",
@@ -6318,7 +6427,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC3.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC3; name=Mask functionality; expected=Masked bits ignored in index_out/valid_out computation.",
       "evidence_terms": [],
-      "id": "RTL-0104",
+      "id": "RTL-0105",
       "owner_file": "rtl/priority_enc.sv",
       "owner_match": "test_requirements",
       "owner_module": "priority_enc",
@@ -6364,7 +6473,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC4.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC4; name=Enable gating; expected=index_out=0, valid_out=0 regardless of inputs.",
       "evidence_terms": [],
-      "id": "RTL-0105",
+      "id": "RTL-0106",
       "owner_file": "rtl/priority_enc.sv",
       "owner_match": "test_requirements",
       "owner_module": "priority_enc",
@@ -6410,7 +6519,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC5.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC5; name=APB CSR read/write; expected=Register values match writes; STATUS reflects current core output.",
       "evidence_terms": [],
-      "id": "RTL-0106",
+      "id": "RTL-0107",
       "owner_file": "rtl/priority_enc.sv",
       "owner_match": "test_requirements",
       "owner_module": "priority_enc",
@@ -6456,7 +6565,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC6.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC6; name=Reset behavior; expected=CTRL=0x1, MASK=0x0, STATUS=0x0, index_out=0, valid_out=0.",
       "evidence_terms": [],
-      "id": "RTL-0107",
+      "id": "RTL-0108",
       "owner_file": "rtl/priority_enc.sv",
       "owner_match": "test_requirements",
       "owner_module": "priority_enc",
@@ -6502,7 +6611,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC7.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC7; name=APB bad address; expected=PSLVERR=1, PRDATA=0, no register state change.",
       "evidence_terms": [],
-      "id": "RTL-0108",
+      "id": "RTL-0109",
       "owner_file": "rtl/priority_enc.sv",
       "owner_match": "test_requirements",
       "owner_module": "priority_enc",
@@ -6539,14 +6648,8 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 13,
+    "open_required_tasks": 8,
     "open_tasks": [
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "4 required SSOT-derived RTL task(s) still have no owner module.",
-        "source_ref": "quality_gates.rtl_gen.owner_traceability",
-        "task_id": "RTL-0005"
-      },
       {
         "category": "rtl_gate.rtl_gen",
         "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
@@ -6561,7 +6664,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "12 required non-closure TODO(s) remain open.",
+        "reason": "7 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -6594,34 +6697,10 @@
         "reason": "Missing coverage closure artifact: cov/coverage.json.",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "task_id": "RTL-0026"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "Task has no RTL owner file.",
-        "source_ref": "fsm.encoder_fsm.states.state_0",
-        "task_id": "RTL-0084"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "Task has no RTL owner file.",
-        "source_ref": "fsm.encoder_fsm.states.state_1",
-        "task_id": "RTL-0085"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Task has no RTL owner file.",
-        "source_ref": "fsm.encoder_fsm.transitions.transition_0",
-        "task_id": "RTL-0086"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Task has no RTL owner file.",
-        "source_ref": "fsm.encoder_fsm.transitions.transition_1",
-        "task_id": "RTL-0087"
       }
     ],
-    "required_passed": 95,
-    "required_total": 108,
+    "required_passed": 101,
+    "required_total": 109,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
   "top": "priority_enc",

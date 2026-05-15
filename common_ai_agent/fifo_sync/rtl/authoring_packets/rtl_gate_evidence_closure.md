@@ -19,9 +19,9 @@
 ## Context
 
 - Quality profile: production
-- Work allowed: False
+- Work allowed: True
 - Draft allowed: False
-- Evidence closure allowed: False
+- Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 2
@@ -54,7 +54,7 @@
 - Detail: After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.
 SSOT ref: quality_gates.rtl_gen.static_rtl_evidence.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: 27 static-evidence-required task(s) still lack DUT RTL evidence.
+- Current reason: 29 static-evidence-required task(s) still lack DUT RTL evidence.
 - Criteria:
   - derive_rtl_todos.py --audit-rtl ran after the final RTL edit
   - rtl_todo_plan.json static_rtl_evidence.missing is zero

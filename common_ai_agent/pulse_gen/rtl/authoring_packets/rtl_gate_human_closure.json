@@ -437,7 +437,7 @@
       {
         "gate_kind": "manifest_connection_contract_evidence",
         "owner_module": "pulse_gen",
-        "reason": "4 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: SSOT connection contract port is not connected by the RTL named port map",
+        "reason": "3 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
         "status": "open",
@@ -676,7 +676,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: SSOT connection contract port is not connected by the RTL named port map",
+        "reason": "3 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms",
         "required": true,
         "status": "open"
       }

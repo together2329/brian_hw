@@ -19,17 +19,17 @@
 ## Context
 
 - Quality profile: production
-- Work allowed: False
-- Draft allowed: False
+- Work allowed: True
+- Draft allowed: True
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: False
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
+- Owner refs: debug_observability, dft, error_handling, features, integration, interrupts, io_list, parameters, power, quality_gates, security, synthesis, test_requirements, timing, top_module, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
 - Connection contract gap: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
-- Pending connection-contract suggestions: 23 rows in rtl/connection_contract_suggestions.json
+- Pending connection-contract suggestions: 27 rows in rtl/connection_contract_suggestions.json
 - Draft top integration fragment: rtl/connection_contract_draft_top.svfrag
 - Suggestion usage: draft RTL wiring may use these rows to close hierarchy/signal-flow evidence, but they are not SSOT authority and cannot close connection-contract signoff.
   - priority_enc_regs.PADDR <= PADDR (observed_named_port_map)
@@ -324,7 +324,7 @@ SSOT item context: name=timing_met; value=True.
   - Primary implementation evidence is in rtl/priority_enc.sv
 - SSOT refs: synthesis.ppa_targets.timing_met
 
-### RTL-0101: Prove module priority_enc is functionally equivalent to FL
+### RTL-0099: Prove module priority_enc is functionally equivalent to FL
 
 - Priority: high
 - Required: True
@@ -711,7 +711,7 @@ SSOT item context: name=PSLVERR; width=1; direction=output.
   - PSLVERR port direction remains output
 - SSOT refs: io_list.interfaces.apb_csr.ports.PSLVERR
 
-### RTL-0102: Keep RTL observable for scenario SC1
+### RTL-0103: Keep RTL observable for scenario SC1
 
 - Priority: normal
 - Required: True
@@ -732,7 +732,7 @@ SSOT item context: id=SC1; name=Basic priority encode; expected=index_out = bit 
   - Downstream checker compares RTL-observed behavior against expected result: index_out = bit position, valid_out = 1
 - SSOT refs: test_requirements.scenarios.SC1
 
-### RTL-0103: Keep RTL observable for scenario SC2
+### RTL-0104: Keep RTL observable for scenario SC2
 
 - Priority: normal
 - Required: True
@@ -753,7 +753,7 @@ SSOT item context: id=SC2; name=Multiple inputs priority resolution; expected=in
   - Downstream checker compares RTL-observed behavior against expected result: index_out reflects highest-numbered asserted bit
 - SSOT refs: test_requirements.scenarios.SC2
 
-### RTL-0104: Keep RTL observable for scenario SC3
+### RTL-0105: Keep RTL observable for scenario SC3
 
 - Priority: normal
 - Required: True
@@ -774,7 +774,7 @@ SSOT item context: id=SC3; name=Mask functionality; expected=Masked bits ignored
   - Downstream checker compares RTL-observed behavior against expected result: Masked bits ignored in index_out/valid_out computation
 - SSOT refs: test_requirements.scenarios.SC3
 
-### RTL-0105: Keep RTL observable for scenario SC4
+### RTL-0106: Keep RTL observable for scenario SC4
 
 - Priority: normal
 - Required: True
@@ -795,7 +795,7 @@ SSOT item context: id=SC4; name=Enable gating; expected=index_out=0, valid_out=0
   - Downstream checker compares RTL-observed behavior against expected result: index_out=0, valid_out=0 regardless of inputs
 - SSOT refs: test_requirements.scenarios.SC4
 
-### RTL-0106: Keep RTL observable for scenario SC5
+### RTL-0107: Keep RTL observable for scenario SC5
 
 - Priority: normal
 - Required: True
@@ -816,7 +816,7 @@ SSOT item context: id=SC5; name=APB CSR read/write; expected=Register values mat
   - Downstream checker compares RTL-observed behavior against expected result: Register values match writes; STATUS reflects current core output
 - SSOT refs: test_requirements.scenarios.SC5
 
-### RTL-0107: Keep RTL observable for scenario SC6
+### RTL-0108: Keep RTL observable for scenario SC6
 
 - Priority: normal
 - Required: True
@@ -837,7 +837,7 @@ SSOT item context: id=SC6; name=Reset behavior; expected=CTRL=0x1, MASK=0x0, STA
   - Downstream checker compares RTL-observed behavior against expected result: CTRL=0x1, MASK=0x0, STATUS=0x0, index_out=0, valid_out=0
 - SSOT refs: test_requirements.scenarios.SC6
 
-### RTL-0108: Keep RTL observable for scenario SC7
+### RTL-0109: Keep RTL observable for scenario SC7
 
 - Priority: normal
 - Required: True

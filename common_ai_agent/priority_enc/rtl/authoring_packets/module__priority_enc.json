@@ -215,15 +215,51 @@
           "port": "valid_out",
           "review_status": "pending",
           "signal": "core_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_fsm",
+          "module": "priority_enc_fsm",
+          "port": "PCLK",
+          "review_status": "pending",
+          "signal": "PCLK"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_fsm",
+          "module": "priority_enc_fsm",
+          "port": "PRESETn",
+          "review_status": "pending",
+          "signal": "PRESETn"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_fsm",
+          "module": "priority_enc_fsm",
+          "port": "active_o",
+          "review_status": "pending",
+          "signal": "fsm_active"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_fsm",
+          "module": "priority_enc_fsm",
+          "port": "ctrl_enable_i",
+          "review_status": "pending",
+          "signal": "ctrl_enable"
         }
       ],
       "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
       "summary": {
         "applied_to_ssot": false,
         "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
-        "pending_review": 23,
+        "pending_review": 27,
         "status": "pending_review",
-        "suggested_rows": 23
+        "suggested_rows": 27
       }
     },
     "module_slice": {
@@ -238,27 +274,31 @@
       "file": "rtl/priority_enc.sv",
       "name": "priority_enc",
       "refs": [
-        "top_module",
+        "debug_observability",
+        "dft",
+        "error_handling",
+        "features",
+        "integration",
+        "interrupts",
         "io_list",
         "parameters",
-        "interrupts",
-        "features",
-        "error_handling",
-        "security",
-        "debug_observability",
-        "integration",
-        "timing",
         "power",
-        "synthesis",
-        "dft",
-        "test_requirements",
         "quality_gates",
-        "workflow_todos",
-        "next_step_todos"
+        "security",
+        "synthesis",
+        "test_requirements",
+        "timing",
+        "top_module",
+        "workflow_todos"
       ],
       "wiring_only": false
     },
     "peer_modules": [
+      {
+        "file": "rtl/priority_enc.sv",
+        "name": "priority_enc",
+        "wiring_only": false
+      },
       {
         "file": "rtl/priority_enc_regs.sv",
         "name": "priority_enc_regs",
@@ -270,8 +310,8 @@
         "wiring_only": false
       },
       {
-        "file": "rtl/priority_enc.sv",
-        "name": "priority_enc",
+        "file": "rtl/priority_enc_fsm.sv",
+        "name": "priority_enc_fsm",
         "wiring_only": false
       }
     ],
@@ -449,8 +489,8 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": false,
-    "draft_allowed": false,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": false,
@@ -465,7 +505,7 @@
     ],
     "tool_evidence_open_count": 0,
     "tool_evidence_plan": [],
-    "work_allowed": false
+    "work_allowed": true
   },
   "ip": "priority_enc",
   "kind": "module",
@@ -1223,7 +1263,7 @@
       ],
       "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.priority_enc.module_equivalence.\nOwner: priority_enc in rtl/priority_enc.sv via module_equivalence.",
       "evidence_terms": [],
-      "id": "RTL-0101",
+      "id": "RTL-0099",
       "owner_file": "rtl/priority_enc.sv",
       "owner_module": "priority_enc",
       "priority": "high",
@@ -2012,7 +2052,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC1.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC1; name=Basic priority encode; expected=index_out = bit position, valid_out = 1.",
       "evidence_terms": [],
-      "id": "RTL-0102",
+      "id": "RTL-0103",
       "owner_file": "rtl/priority_enc.sv",
       "owner_module": "priority_enc",
       "priority": "normal",
@@ -2056,7 +2096,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC2.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC2; name=Multiple inputs priority resolution; expected=index_out reflects highest-numbered asserted bit.",
       "evidence_terms": [],
-      "id": "RTL-0103",
+      "id": "RTL-0104",
       "owner_file": "rtl/priority_enc.sv",
       "owner_module": "priority_enc",
       "priority": "normal",
@@ -2100,7 +2140,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC3.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC3; name=Mask functionality; expected=Masked bits ignored in index_out/valid_out computation.",
       "evidence_terms": [],
-      "id": "RTL-0104",
+      "id": "RTL-0105",
       "owner_file": "rtl/priority_enc.sv",
       "owner_module": "priority_enc",
       "priority": "normal",
@@ -2144,7 +2184,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC4.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC4; name=Enable gating; expected=index_out=0, valid_out=0 regardless of inputs.",
       "evidence_terms": [],
-      "id": "RTL-0105",
+      "id": "RTL-0106",
       "owner_file": "rtl/priority_enc.sv",
       "owner_module": "priority_enc",
       "priority": "normal",
@@ -2188,7 +2228,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC5.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC5; name=APB CSR read/write; expected=Register values match writes; STATUS reflects current core output.",
       "evidence_terms": [],
-      "id": "RTL-0106",
+      "id": "RTL-0107",
       "owner_file": "rtl/priority_enc.sv",
       "owner_module": "priority_enc",
       "priority": "normal",
@@ -2232,7 +2272,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC6.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC6; name=Reset behavior; expected=CTRL=0x1, MASK=0x0, STATUS=0x0, index_out=0, valid_out=0.",
       "evidence_terms": [],
-      "id": "RTL-0107",
+      "id": "RTL-0108",
       "owner_file": "rtl/priority_enc.sv",
       "owner_module": "priority_enc",
       "priority": "normal",
@@ -2276,7 +2316,7 @@
       ],
       "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC7.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC7; name=APB bad address; expected=PSLVERR=1, PRDATA=0, no register state change.",
       "evidence_terms": [],
-      "id": "RTL-0108",
+      "id": "RTL-0109",
       "owner_file": "rtl/priority_enc.sv",
       "owner_module": "priority_enc",
       "priority": "normal",
@@ -2308,7 +2348,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "2b9a35fd3e966b1920ee4faef1bd87236f4b185ca6d2360d3f99daadce69230a",
+  "todo_plan_sha256": "c19d6a166b843437e6d6feffe074217fad3a1627c90c29f7c0d9235074502cb2",
   "top": "priority_enc",
   "type": "rtl_authoring_packet"
 }

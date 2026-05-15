@@ -10,5 +10,5 @@ command: verilator --lint-only -Wall -Irtl -f list/pulse_gen.f --top-module puls
 returncode: 0
 errors: 0 warnings: 0
 - V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
-- Verilator: Built from 0.093 MB sources in 4 modules, into 0.035 MB in 3 C++ files needing 0.000 MB
-- Verilator: Walltime 0.078 s (elab=0.003, cvt=0.025, bld=0.000); cpu 0.032 s on 1 threads; allocated 11.172 MB
+- Verilator: Built from 0.094 MB sources in 4 modules, into 0.035 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.091 s (elab=0.013, cvt=0.034, bld=0.000); cpu 0.048 s on 1 threads; allocated 11.297 MB

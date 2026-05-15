@@ -414,20 +414,92 @@
         "core_valid"
       ],
       "source_ref": "rtl.connection_contract_suggestions.priority_enc_core.valid_out"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_priority_enc_fsm",
+      "machine_readable": false,
+      "module": "priority_enc_fsm",
+      "port": "PCLK",
+      "range": "",
+      "review_status": "pending",
+      "signal": "PCLK",
+      "signal_terms": [
+        "PCLK"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.priority_enc_fsm.PCLK"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_priority_enc_fsm",
+      "machine_readable": false,
+      "module": "priority_enc_fsm",
+      "port": "PRESETn",
+      "range": "",
+      "review_status": "pending",
+      "signal": "PRESETn",
+      "signal_terms": [
+        "PRESETn"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.priority_enc_fsm.PRESETn"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "output",
+      "instance": "u_priority_enc_fsm",
+      "machine_readable": false,
+      "module": "priority_enc_fsm",
+      "port": "active_o",
+      "range": "",
+      "review_status": "pending",
+      "signal": "fsm_active",
+      "signal_terms": [
+        "fsm_active"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.priority_enc_fsm.active_o"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_priority_enc_fsm",
+      "machine_readable": false,
+      "module": "priority_enc_fsm",
+      "port": "ctrl_enable_i",
+      "range": "",
+      "review_status": "pending",
+      "signal": "ctrl_enable",
+      "signal_terms": [
+        "ctrl_enable"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.priority_enc_fsm.ctrl_enable_i"
     }
   ],
   "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
   "schema_version": 1,
   "summary": {
     "applied_to_ssot": false,
-    "child_modules": 2,
+    "child_modules": 3,
     "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
-    "observed_named_port_map_rows": 23,
-    "pending_review": 23,
+    "observed_named_port_map_rows": 27,
+    "pending_review": 27,
     "proposed_rows": 0,
     "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
     "status": "pending_review",
-    "suggested_rows": 23,
+    "suggested_rows": 27,
     "top": "priority_enc",
     "top_module": "priority_enc"
   },

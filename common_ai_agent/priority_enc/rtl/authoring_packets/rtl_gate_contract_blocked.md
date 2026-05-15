@@ -19,17 +19,17 @@
 ## Context
 
 - Quality profile: production
-- Work allowed: False
+- Work allowed: True
 - Draft allowed: False
-- Evidence closure allowed: False
+- Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: False
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 2
-- Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
+- Owner refs: debug_observability, dft, error_handling, features, integration, interrupts, io_list, parameters, power, quality_gates, security, synthesis, test_requirements, timing, top_module, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
 - Connection contract gap: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
-- Pending connection-contract suggestions: 23 rows in rtl/connection_contract_suggestions.json
+- Pending connection-contract suggestions: 27 rows in rtl/connection_contract_suggestions.json
 - Draft top integration fragment: rtl/connection_contract_draft_top.svfrag
 - Suggestion usage: draft RTL wiring may use these rows to close hierarchy/signal-flow evidence, but they are not SSOT authority and cannot close connection-contract signoff.
   - priority_enc_regs.PADDR <= PADDR (observed_named_port_map)

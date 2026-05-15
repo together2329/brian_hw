@@ -174,8 +174,8 @@ function_model:
         - "prev_sync updates to last stage of sync_chain"
       error_cases: []
       output_rules:
-        - { name: "edge_o", expr: "(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}", width: "WIDTH", port: "edge_o", description: "One-cycle pulse per detected edge, masked by mode and enable" }
-        - { name: "irq_o", expr: "|edge_o && irq_enable", width: 1, port: "irq_o", description: "Interrupt asserted when any edge detected and irq_enable set" }
+       - { name: "edge_o", expr: "(curr_sync ^ prev_sync) & mode_mask & enable", width: "WIDTH", port: "edge_o", description: "One-cycle pulse per detected edge, masked by mode and enable" }
+       - { name: "irq_o", expr: "edge_o and irq_enable", width: 1, port: "irq_o", description: "Interrupt asserted when any edge detected and irq_enable set" }
   invariants:
     - "edge_o is asserted for exactly one PCLK cycle per qualifying edge transition."
     - "No edge_o pulse occurs when enable == 0."
@@ -313,8 +313,8 @@ rtl_contract:
     status: "registers.STATUS"
     interrupt: "irq_o"
   output_rules:
-    - { name: "edge_o", expr: "(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}", width: "WIDTH", port: "edge_o", description: "One-cycle pulse per detected edge, masked by mode and enable" }
-    - { name: "irq_o", expr: "|edge_o && irq_enable", width: 1, port: "irq_o", description: "Interrupt asserted when any edge detected and irq_enable set" }
+   - { name: "edge_o", expr: "(curr_sync ^ prev_sync) & mode_mask & enable", width: "WIDTH", port: "edge_o", description: "One-cycle pulse per detected edge, masked by mode and enable" }
+   - { name: "irq_o", expr: "edge_o and irq_enable", width: 1, port: "irq_o", description: "Interrupt asserted when any edge detected and irq_enable set" }
   state_updates:
     - { name: "sync_chain", reset: 0, expr: "{sync_chain[SYNC_STAGES-2:0], signal_i}" }
     - { name: "prev_sync", reset: 0, expr: "sync_chain[SYNC_STAGES-1]" }

@@ -4,18 +4,14 @@
 
 - Top: priority_enc
 - Packets: 8
-- LLM-actionable tasks: 4
-- Human-locked tasks: 6
+- LLM-actionable tasks: 0
+- Human-locked tasks: 5
 - Tool-evidence tasks: 5
-- Deferred human QA allowed: False
+- Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: True
-- Pending connection-contract suggestions: 23
+- Pending connection-contract suggestions: 27
 - Recommended packet batch limit: 4
-
-## Next LLM Packets
-
-- unowned_tasks: rtl/authoring_packets/unowned_tasks.json (llm_open=4, human_locked=0)
 
 ## Tool Evidence Queue
 
@@ -24,7 +20,7 @@
 ## Human-Locked Queue
 
 - rtl_gate_contract_blocked: human_locked=2, json=rtl/authoring_packets/rtl_gate_contract_blocked.json
-- rtl_gate_human_closure: human_locked=4, json=rtl/authoring_packets/rtl_gate_human_closure.json
+- rtl_gate_human_closure: human_locked=3, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

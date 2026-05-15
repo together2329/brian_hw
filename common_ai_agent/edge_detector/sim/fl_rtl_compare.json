@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "fl_rtl_compare",
   "ip": "edge_detector",
-  "generated_at": "2026-05-15T02:19:58Z",
+  "generated_at": "2026-05-15T02:30:43Z",
   "status": "pending",
   "sources": {
     "equivalence_goals": "edge_detector/verify/equivalence_goals.json",

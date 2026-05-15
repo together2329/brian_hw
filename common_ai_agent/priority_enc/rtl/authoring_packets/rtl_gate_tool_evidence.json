@@ -215,42 +215,82 @@
           "port": "valid_out",
           "review_status": "pending",
           "signal": "core_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_fsm",
+          "module": "priority_enc_fsm",
+          "port": "PCLK",
+          "review_status": "pending",
+          "signal": "PCLK"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_fsm",
+          "module": "priority_enc_fsm",
+          "port": "PRESETn",
+          "review_status": "pending",
+          "signal": "PRESETn"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_fsm",
+          "module": "priority_enc_fsm",
+          "port": "active_o",
+          "review_status": "pending",
+          "signal": "fsm_active"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_fsm",
+          "module": "priority_enc_fsm",
+          "port": "ctrl_enable_i",
+          "review_status": "pending",
+          "signal": "ctrl_enable"
         }
       ],
       "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
       "summary": {
         "applied_to_ssot": false,
         "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
-        "pending_review": 23,
+        "pending_review": 27,
         "status": "pending_review",
-        "suggested_rows": 23
+        "suggested_rows": 27
       }
     },
     "owner": {
       "file": "rtl/priority_enc.sv",
       "name": "priority_enc",
       "refs": [
-        "top_module",
+        "debug_observability",
+        "dft",
+        "error_handling",
+        "features",
+        "integration",
+        "interrupts",
         "io_list",
         "parameters",
-        "interrupts",
-        "features",
-        "error_handling",
-        "security",
-        "debug_observability",
-        "integration",
-        "timing",
         "power",
-        "synthesis",
-        "dft",
-        "test_requirements",
         "quality_gates",
-        "workflow_todos",
-        "next_step_todos"
+        "security",
+        "synthesis",
+        "test_requirements",
+        "timing",
+        "top_module",
+        "workflow_todos"
       ],
       "wiring_only": false
     },
     "peer_modules": [
+      {
+        "file": "rtl/priority_enc.sv",
+        "name": "priority_enc",
+        "wiring_only": false
+      },
       {
         "file": "rtl/priority_enc_regs.sv",
         "name": "priority_enc_regs",
@@ -262,8 +302,8 @@
         "wiring_only": false
       },
       {
-        "file": "rtl/priority_enc.sv",
-        "name": "priority_enc",
+        "file": "rtl/priority_enc_fsm.sv",
+        "name": "priority_enc_fsm",
         "wiring_only": false
       }
     ],
@@ -452,7 +492,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "priority_enc",
-        "reason": "12 required non-closure TODO(s) remain open.",
+        "reason": "7 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -487,9 +527,9 @@
       }
     ],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": false,
+    "deferred_human_qa_allowed": true,
     "draft_allowed": false,
-    "evidence_closure_allowed": false,
+    "evidence_closure_allowed": true,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": false,
     "llm_actionable": false,
@@ -540,7 +580,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "12 required non-closure TODO(s) remain open.",
+        "reason": "7 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -624,7 +664,7 @@
         "task_id": "RTL-0026"
       }
     ],
-    "work_allowed": false
+    "work_allowed": true
   },
   "ip": "priority_enc",
   "kind": "gate",
@@ -849,7 +889,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "12 required non-closure TODO(s) remain open.",
+        "reason": "7 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1003,7 +1043,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "2b9a35fd3e966b1920ee4faef1bd87236f4b185ca6d2360d3f99daadce69230a",
+  "todo_plan_sha256": "c19d6a166b843437e6d6feffe074217fad3a1627c90c29f7c0d9235074502cb2",
   "top": "priority_enc",
   "type": "rtl_authoring_packet"
 }

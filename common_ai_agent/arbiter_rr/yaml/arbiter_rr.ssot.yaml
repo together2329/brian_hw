@@ -367,15 +367,19 @@ fsm:
 # =============================================================================
 rtl_contract:
   transaction: "FM1"
-  sample_condition: "Rising PCLK edge when PRESETn is high"
+  clock: "PCLK"
+  reset: "PRESETn"
+  reset_active: "low"
+  sample_condition: "PRESETn == 1"
   input_map:
-    requests: "req_i[NUM_REQ-1:0]"
+    requests: "req_i"
+  csr_input_map:
     mask: "registers.REQ_MASK.mask"
     enable: "registers.CTRL.enable"
   output_map:
-    grant: "gnt_o[NUM_REQ-1:0]"
+    grant: "gnt_o"
     grant_valid: "gnt_valid_o"
-    grant_index: "gnt_idx_o[IDX_WIDTH-1:0]"
+    grant_index: "gnt_idx_o"
   output_rules:
     - { name: "grant", expr: "one_hot(selected_index)", width: "NUM_REQ", port: "gnt_o" }
     - { name: "grant_valid", expr: "enable && (masked_reqs != 0)", width: 1, port: "gnt_valid_o" }

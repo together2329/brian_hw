@@ -35,12 +35,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 3,
+    "open_required_todos": 2,
     "orphan_tasks": 0,
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:27:18Z",
+  "generated_at": "2026-05-15T02:30:24Z",
   "ip": "pulse_gen",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 18,
@@ -66,15 +66,13 @@
         "source_ref": "integration.connections[6]"
       },
       {
-        "issue": "SSOT connection contract port is not connected by the RTL named port map",
-        "module": "pulse_gen_core",
-        "port": "status_busy_i",
-        "source_ref": "integration.connections[14]"
-      },
-      {
-        "issue": "SSOT connection contract port is not connected by the RTL named port map",
+        "expected_signal": "pulse_gen_regs.status_done",
+        "issue": "RTL named port-map expression does not match SSOT connection signal terms",
         "module": "pulse_gen_core",
         "port": "status_done_o",
+        "rtl_exprs": [
+          "\\pulse_gen_core.status_done_o"
+        ],
         "source_ref": "integration.connections[15]"
       }
     ],
@@ -112,8 +110,8 @@
     "status": "pass"
   },
   "manifest_signal_flow_evidence": {
-    "checked_inputs": 21,
-    "checked_outputs": 14,
+    "checked_inputs": 22,
+    "checked_outputs": 15,
     "issues": [],
     "reachable_modules": [
       "pulse_gen",
@@ -150,16 +148,16 @@
     "aggregate": {
       "behavior_owner_logic_modules": 3,
       "control_flow": 25,
-      "depth_score": 232,
+      "depth_score": 234,
       "instances": 2,
-      "lines": 422,
+      "lines": 428,
       "logic_modules": 3,
       "modules": 3,
-      "nonconstant_assigns": 36,
+      "nonconstant_assigns": 37,
       "procedural_blocks": 13,
       "source_files": 3,
       "state_updates": 37,
-      "storage_decls": 54
+      "storage_decls": 55
     },
     "issues": [],
     "modules": [
@@ -178,12 +176,12 @@
         "module": "pulse_gen_regs"
       },
       {
-        "depth_score": 94,
+        "depth_score": 95,
         "file": "rtl/pulse_gen_core.sv",
         "metrics": {
           "control_flow": 12,
           "instances": 0,
-          "nonconstant_assigns": 13,
+          "nonconstant_assigns": 14,
           "placeholder_tokens": false,
           "procedural_blocks": 6,
           "state_updates": 17,
@@ -192,7 +190,7 @@
         "module": "pulse_gen_core"
       },
       {
-        "depth_score": 33,
+        "depth_score": 34,
         "file": "rtl/pulse_gen.sv",
         "metrics": {
           "control_flow": 1,
@@ -201,7 +199,7 @@
           "placeholder_tokens": false,
           "procedural_blocks": 1,
           "state_updates": 4,
-          "storage_decls": 15
+          "storage_decls": 16
         },
         "module": "pulse_gen"
       }
@@ -1055,9 +1053,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1529,7 +1527,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: SSOT connection contract port is not connected by the RTL named port map",
+        "reason": "3 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms",
         "required": true,
         "status": "open"
       }
@@ -1675,7 +1673,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "2 required non-closure TODO(s) remain open.",
+        "reason": "1 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -10494,28 +10492,22 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 3,
+    "open_required_tasks": 2,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "4 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: SSOT connection contract port is not connected by the RTL named port map",
+        "reason": "3 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
         "task_id": "RTL-0016"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "2 required non-closure TODO(s) remain open.",
+        "reason": "1 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       }
     ],
-    "required_passed": 180,
+    "required_passed": 181,
     "required_total": 183,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

@@ -523,8 +523,8 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": false,
-    "draft_allowed": false,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
@@ -539,7 +539,7 @@
     ],
     "tool_evidence_open_count": 0,
     "tool_evidence_plan": [],
-    "work_allowed": false
+    "work_allowed": true
   },
   "ip": "fifo_sync",
   "kind": "module",
@@ -957,7 +957,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "5a8c1a9f79737e2d3ee1b4d3bb79dc93d2c2a726816e73ecd8c792be5d6badad",
+  "todo_plan_sha256": "f38558b8207c051bf329000b6ab7b51407ec116bcc6539c945c38594602a92bc",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }
