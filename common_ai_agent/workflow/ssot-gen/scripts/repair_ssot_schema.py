@@ -864,6 +864,8 @@ def _normalize_rule_expr(expr: Any) -> Any:
     if not text:
         return expr
     text = re.sub(r"\b(\d+)?'[sS]?([bBoOdDhH])([0-9a-fA-F_xXzZ?]+)\b", _verilog_literal_to_int, text)
+    text = re.sub(r"(?<![0-9A-Za-z_])'([01])(?![0-9A-Za-z_])", r"\1", text)
+    text = re.sub(r"(?<![0-9A-Za-z_])'[xXzZ?](?![0-9A-Za-z_])", "0", text)
     text = _convert_c_ternary_expr(text)
     concat_shift = re.fullmatch(r"\(?\s*\{\s*0\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\s*<<\s*(\d+)\s*\)?", text)
     if concat_shift:
