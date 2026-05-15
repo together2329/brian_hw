@@ -1,23 +1,36 @@
 ===== pyslang =====
 command: pyslang rtl/arm_m0_min_if.sv rtl/arm_m0_min_id.sv rtl/arm_m0_min_alu.sv rtl/arm_m0_min_branch.sv rtl/arm_m0_min_mem_if.sv rtl/arm_m0_min_ex.sv rtl/arm_m0_min_rf.sv rtl/arm_m0_min.sv
 returncode: 0
-errors: 0 warnings: 1
+errors: 0 warnings: 2
 pyslang files: 8
-errors=0 warnings=1
-warning: arm_m0_min/rtl/arm_m0_min_alu.sv:36 implicit conversion changes signedness from 'logic signed[31:0]' to 'logic[31:0]'
+errors=0 warnings=2
+warning: arm_m0_min/rtl/arm_m0_min_alu.sv:26 implicit conversion changes signedness from 'logic[31:0]' to 'logic signed[31:0]'
+warning: arm_m0_min/rtl/arm_m0_min_alu.sv:40 implicit conversion changes signedness from 'logic signed[31:0]' to 'logic[31:0]'
 
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/arm_m0_min.f --top-module arm_m0_min
 returncode: 1
-errors: 0 warnings: 2
-%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_id.sv:4:30: Signal is not used: 'clk'
-                                                : ... note: In instance 'arm_m0_min.u_id'
-    4 |     input  logic             clk,
-      |                              ^~~
+errors: 0 warnings: 5
+%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_if.sv:24:30: Signal is not used: 'd_hready'
+                                                 : ... note: In instance 'arm_m0_min.u_if'
+   24 |     input  logic             d_hready,
+      |                              ^~~~~~~~
                        ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
                        ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
-%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_id.sv:5:30: Signal is not used: 'rst'
-                                                : ... note: In instance 'arm_m0_min.u_id'
-    5 |     input  logic             rst,
-      |                              ^~~
-%Error: Exiting due to 2 warning(s)
+%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_if.sv:25:30: Signal is not used: 'd_hwdata'
+                                                 : ... note: In instance 'arm_m0_min.u_if'
+   25 |     input  logic [XLEN-1:0]  d_hwdata,
+      |                              ^~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_if.sv:26:30: Signal is not used: 'd_htrans'
+                                                 : ... note: In instance 'arm_m0_min.u_if'
+   26 |     input  logic [1:0]       d_htrans
+      |                              ^~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_id.sv:63:17: Signal is not used: 'fsm_state_obs'
+                                                 : ... note: In instance 'arm_m0_min.u_id'
+   63 |     logic [2:0] fsm_state_obs;
+      |                 ^~~~~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_id.sv:64:22: Signal is not used: 'branch_target_hint'
+                                                 : ... note: In instance 'arm_m0_min.u_id'
+   64 |     logic [XLEN-1:0] branch_target_hint;
+      |                      ^~~~~~~~~~~~~~~~~~
+%Error: Exiting due to 5 warning(s)

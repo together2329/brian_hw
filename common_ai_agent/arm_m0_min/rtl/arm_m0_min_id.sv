@@ -75,7 +75,7 @@ module arm_m0_min_id #(
         if (fault_halt || i_hresp || d_hresp) fsm_state_obs = FAULT_HALT;
         else if (!i_hready) fsm_state_obs = STALL_IF;
         else if (!d_hready) fsm_state_obs = STALL_MEM;
-        else if (rst) fsm_state_obs = RESET;
+        else if (!if_valid) fsm_state_obs = RESET;
     end
 
     always @(*) begin

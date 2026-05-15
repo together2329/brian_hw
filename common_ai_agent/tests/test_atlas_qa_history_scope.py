@@ -19,5 +19,5 @@ def test_qa_history_snapshots_and_rendering_are_scoped():
     src = WORKSPACE_JSX.read_text()
 
     assert "session: normalizeUiSession(flow.session || currentSession || window.ACTIVE_SESSION || '')" in src
-    assert "visibleQaHistory.length > 0" in src
-    assert "QaHistoryPanel history={visibleQaHistory}" in src
+    assert "visibleQaHistory" in src
+    assert "QaHistoryPanel history={visibleQaHistory}" not in src

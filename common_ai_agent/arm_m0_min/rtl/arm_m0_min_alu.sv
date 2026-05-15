@@ -20,11 +20,15 @@ module arm_m0_min_alu #(
                      ALU_ASR = 4'd8;
 
     logic [4:0] shamt;
-    logic signed [XLEN-1:0] op_a_s;
-    logic signed [XLEN-1:0] asr_res_s;
+    logic [XLEN-1:0] asr_res_u;
+    logic [XLEN-1:0] sign_fill;
     assign shamt = op_b[4:0];
-    assign op_a_s = op_a;
-    assign asr_res_s = op_a_s >>> shamt;
+    assign sign_fill = {XLEN{op_a[XLEN-1]}};
+
+    always @(*) begin
+        if (shamt == 5'd0) asr_res_u = op_a;
+        else asr_res_u = (op_a >> shamt) | (sign_fill << (6'd32 - {1'b0, shamt}));
+    end
 
     always @(*) begin
         alu_res = {XLEN{1'b0}};
