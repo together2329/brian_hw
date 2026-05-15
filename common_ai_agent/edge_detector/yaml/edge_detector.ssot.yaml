@@ -163,10 +163,6 @@ function_model:
     - "edge_o is asserted for exactly one PCLK cycle per qualifying edge transition."
     - "No edge_o pulse occurs when enable == 0."
     - "status_sticky persists until software W1C clear."
-  output_rules:
-    - { name: "edge_o", expr: "(|detected_edges) & ~edge_o_prev", width: 1, port: "edge_o", description: "Single-cycle pulse on any detected edge" }
-    - { name: "status.edge_count", expr: "edge_count_reg", width: 8, port: "internal", description: "Cumulative edge count (up to 255)" }
-    - { name: "status.last_edge", expr: "last_detected_polarity", width: 1, port: "internal", description: "0=falling, 1=rising" }
   reference_model_hint: "tb-gen should implement a Python scoreboard model from this section and compare expected/got for every scenario."
 cycle_model:
   purpose: "Cycle/handshake contract for rtl-gen; describes when state, outputs, and interrupts may change."
