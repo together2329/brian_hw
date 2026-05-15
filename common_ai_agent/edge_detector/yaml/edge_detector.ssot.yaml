@@ -394,8 +394,23 @@ integration:
     - "SoC must provide APB-compliant PREADY behavior."
     - "signal_i may be asynchronous to PCLK; IP handles synchronization internally."
     - "Interrupt controller samples irq_o as active-high level."
-coding_rules: TBD
-reuse_modules: TBD
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/edge_detector_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset"
+    - "Parameterize widths (no hardcoded numbers)"
+    - "Use rtl/edge_detector_param.vh for shared parameter declarations when needed; include it inside consuming modules"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+  lint_waivers:
+    - "UNUSEDSIGNAL: reserved bits in registers"
+    - "WIDTHEXPAND: signal_i indexing when WIDTH < 8"
+reuse_modules: []
 custom: TBD
 dir_structure: TBD
 filelist: TBD
