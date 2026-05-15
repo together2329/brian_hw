@@ -84,7 +84,17 @@ io_list:
       ports:
         - { name: "REQ",  width: "NUM_REQ", direction: "input",  description: "Request inputs" }
         - { name: "GNT",  width: "NUM_REQ", direction: "output", description: "Grant outputs (one-hot)" }
-features: TBD
+features:
+  - name: "Round-robin arbitration"
+    trigger: "One or more REQ inputs asserted"
+    datapath: "REQ sampled -> mask generation -> priority encode -> grant assert"
+    control: "Grant is combinational from current state (1-cycle latency)"
+    output: "One-hot GNT for highest-priority requesting input after last granted"
+  - name: "APB-lite CSR access"
+    trigger: "PSEL=1 && PENABLE=1"
+    datapath: "PADDR decode -> register read/write -> PRDATA/PREADY response"
+    control: "Zero-wait-state APB-lite decode"
+    output: "Register value or status on PRDATA; PSLVERR on illegal access"
 dataflow: TBD
 function_model: TBD
 cycle_model: TBD

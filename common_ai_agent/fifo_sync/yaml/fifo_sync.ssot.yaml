@@ -1,35 +1,1142 @@
 # =============================================================================
-# fifo_sync — Synchronous FIFO SSOT
+# SSOT — fifo_sync: Parameterized Synchronous FIFO
 # =============================================================================
-# IP: Parameterized synchronous FIFO, single PCLK domain 50MHz
-# =============================================================================
-
 ip: fifo_sync
 version: "1.0"
-purpose: "Parameterized synchronous FIFO with APB-lite CSR interface for status/config, single PCLK clock domain, active-low async assert sync deassert reset, 1-cycle latency push/pop, full/empty flags, overflow/underflow error detection."
-type: TBD
-io_list: TBD
-registers: TBD
-fsm: TBD
-submodules: TBD
-cycle_model: TBD
-function_model: TBD
-test_requirements: TBD
-timing: TBD
-power: TBD
-security: TBD
-error_handling: TBD
-debug_observability: TBD
-integration: TBD
-dft: TBD
-synthesis: TBD
-pnr: TBD
-coding_rules: TBD
-reuse_modules: TBD
-custom: TBD
-dir_structure: TBD
-filelist: TBD
-quality_gates: TBD
-traceability: TBD
-workflow_todos: TBD
-generation_flow: TBD
+
+# =============================================================================
+# SECTION 0: Top Module Identity
+# =============================================================================
+top_module:
+  name: "fifo_sync"
+  file: "rtl/fifo_sync.sv"
+  version: "1.0"
+  type: "memory"
+  description: "Parameterized synchronous FIFO with optional APB-lite CSR, single-clock domain, 1-cycle latency"
+  reference_spec: "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
+
+# =============================================================================
+# SECTION 1: Sub-Module List (Hierarchy)
+# =============================================================================
+sub_modules:
+  - { name: "fifo_sync_mem", file: "rtl/fifo_sync_mem.sv", ownership: "manifest", ssot_gen: true, implements: ["memory.instances", "dataflow.write_path", "dataflow.read_path"], source_sections: ["memory", "dataflow"], memory_refs: ["memory.instances.fifo_ram"], dataflow_refs: ["dataflow.write_path", "dataflow.read_path"], description: "Dual-port SRAM array and pointer-based storage" }
+  - { name: "fifo_sync_ptrs", file: "rtl/fifo_sync_ptrs.sv", ownership: "manifest", ssot_gen: true, implements: ["function_model.state_variables", "cycle_model.pipeline", "fsm.ptr_fsm"], source_sections: ["function_model", "cycle_model", "fsm"], function_model_refs: ["function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"], fsm_refs: ["fsm.ptr_fsm"], description: "Read/write pointer management and fill counter" }
+  - { name: "fifo_sync_flags", file: "rtl/fifo_sync_flags.sv", ownership: "manifest", ssot_gen: true, implements: ["function_model.transactions.output_rules", "cycle_model.latency"], source_sections: ["function_model", "cycle_model"], function_model_refs: ["function_model.transactions"], cycle_model_refs: ["cycle_model.latency"], description: "Combinational flag generation: full, empty, almost_full, almost_empty, count" }
+  - { name: "fifo_sync_regs", file: "rtl/fifo_sync_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list", "io_list.interfaces.apb_csr"], source_sections: ["registers", "io_list"], register_refs: ["registers.register_list"], description: "APB-lite CSR decode for status/config/control registers (parameterized by USE_APB)" }
+  - { name: "fifo_sync_output_reg", file: "rtl/fifo_sync_output_reg.sv", ownership: "manifest", ssot_gen: true, implements: ["cycle_model.latency.registered_read", "parameters.USE_OUTPUT_REGISTER"], source_sections: ["cycle_model", "parameters"], cycle_model_refs: ["cycle_model.latency"], description: "Optional output register stage for 1-cycle pipelined read latency (parameterized)" }
+
+decomposition:
+  units:
+    - { id: "storage", kind: "datapath", source_refs: ["memory.instances.fifo_ram"], rtl_candidates: ["fifo_sync_mem"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "pointer_control", kind: "control", source_refs: ["function_model.state_variables", "cycle_model.pipeline"], rtl_candidates: ["fifo_sync_ptrs"], verification_impact: ["test_requirements.scenarios", "coverage_goals.function"] }
+    - { id: "flag_generation", kind: "datapath", source_refs: ["function_model.transactions.output_rules"], rtl_candidates: ["fifo_sync_flags"], verification_impact: ["test_requirements.scenarios", "coverage_goals.function"] }
+    - { id: "csr_access", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["fifo_sync_regs"], verification_impact: ["test_requirements.scenarios"] }
+
+# =============================================================================
+# SECTION 2: Parameters
+# =============================================================================
+parameters:
+  - { name: "DATA_WIDTH", default: 32, type: int, description: "Width of each FIFO entry in bits", drives: ["fifo_sync_mem.sv", "fifo_sync_flags.sv", "fifo_sync_output_reg.sv"] }
+  - { name: "DEPTH", default: 16, type: int, description: "Number of FIFO entries (must be power-of-2 for binary-pointer optimization)", drives: ["fifo_sync_mem.sv", "fifo_sync_ptrs.sv", "fifo_sync_flags.sv"] }
+  - { name: "ALMOST_FULL_THRESHOLD", default: 15, type: int, description: "Fill level at which almost_full asserts; default DEPTH-1", drives: ["fifo_sync_flags.sv", "fifo_sync_regs.sv"] }
+  - { name: "ALMOST_EMPTY_THRESHOLD", default: 1, type: int, description: "Fill level at which almost_empty asserts; default 1", drives: ["fifo_sync_flags.sv", "fifo_sync_regs.sv"] }
+  - { name: "USE_OUTPUT_REGISTER", default: 0, type: int, description: "0=combinational read (0-cycle latency), 1=registered read (1-cycle latency)", drives: ["fifo_sync_output_reg.sv", "fifo_sync.sv"] }
+  - { name: "USE_APB", default: 1, type: int, description: "0=no CSR interface, 1=instantiate APB-lite CSR block", drives: ["fifo_sync_regs.sv", "fifo_sync.sv"] }
+  - { name: "USE_ECC", default: 0, type: int, description: "0=no ECC, 1=generate parity per entry for single-bit error detection", drives: ["fifo_sync_mem.sv"] }
+  - { name: "CLOCK_FREQ_MHZ", default: 50, type: int, description: "Target clock frequency in MHz for timing analysis", drives: ["sdc/fifo_sync.sdc", "timing"] }
+
+# =============================================================================
+# SECTION 3: IO List (Ports)
+# =============================================================================
+io_list:
+  clock_domains:
+    - name: "pclk"
+      frequency_mhz: 50
+      description: "Single synchronous clock domain"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
+  resets:
+    - name: "PRESETn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Asynchronous assert, synchronous deassert reset"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low async reset" }
+  interfaces:
+    - name: "fifo_write"
+      type: "valid-ready"
+      role: "slave"
+      description: "Push/write data interface"
+      protocol:
+        valid_rule: "wr_en_i is sampled on rising PCLK edge when PRESETn is high."
+        full_rule: "full_o deasserts when count < DEPTH; writes when full_o=1 are silently ignored."
+        almost_full_rule: "almost_full_o asserts when count >= ALMOST_FULL_THRESHOLD."
+      ports:
+        - { name: "wr_en_i", width: 1, direction: "input", description: "Write/push enable" }
+        - { name: "wr_data_i", width: "DATA_WIDTH", direction: "input", description: "Write data input" }
+        - { name: "full_o", width: 1, direction: "output", description: "FIFO full flag" }
+        - { name: "almost_full_o", width: 1, direction: "output", description: "FIFO almost-full flag" }
+    - name: "fifo_read"
+      type: "valid-ready"
+      role: "master"
+      description: "Pop/read data interface"
+      protocol:
+        valid_rule: "rd_en_i is sampled on rising PCLK edge when PRESETn is high."
+        empty_rule: "empty_o asserts when count == 0; reads when empty_o=1 return undefined data and are silently ignored."
+        almost_empty_rule: "almost_empty_o asserts when count <= ALMOST_EMPTY_THRESHOLD."
+        latency_rule: "When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from memory. When USE_OUTPUT_REGISTER=1, rd_data_o is registered with 1-cycle latency."
+      ports:
+        - { name: "rd_en_i", width: 1, direction: "input", description: "Read/pop enable" }
+        - { name: "rd_data_o", width: "DATA_WIDTH", direction: "output", description: "Read data output" }
+        - { name: "empty_o", width: 1, direction: "output", description: "FIFO empty flag" }
+        - { name: "almost_empty_o", width: 1, direction: "output", description: "FIFO almost-empty flag" }
+    - name: "fifo_status"
+      type: "custom"
+      description: "Fill-level status outputs"
+      ports:
+        - { name: "count_o", width: "$clog2(DEPTH+1)", direction: "output", description: "Current fill count (0..DEPTH)" }
+    - name: "fifo_control"
+      type: "custom"
+      description: "Optional flush/reset control"
+      ports:
+        - { name: "flush_i", width: 1, direction: "input", description: "Synchronous flush: clears all pointers and count to zero" }
+    - name: "apb_csr"
+      type: "APB-lite"
+      role: "slave"
+      description: "APB-lite CSR interface for status/config/control (active when USE_APB=1)"
+      protocol:
+        setup_phase: "psel=1, penable=0 captures address."
+        access_phase: "psel=1, penable=1 completes when pready=1."
+        read_rule: "prdata valid in completing access phase."
+        write_rule: "pwdata sampled in completing access phase."
+        error_rule: "pslverr=1 for unsupported offset access."
+      ports:
+        - { name: "paddr", width: 4, direction: "input", description: "APB address (word-aligned, 4-bit decode)" }
+        - { name: "psel", width: 1, direction: "input", description: "APB select" }
+        - { name: "penable", width: 1, direction: "input", description: "APB enable" }
+        - { name: "pwrite", width: 1, direction: "input", description: "APB write (1=write, 0=read)" }
+        - { name: "pwdata", width: 32, direction: "input", description: "APB write data" }
+        - { name: "prdata", width: 32, direction: "output", description: "APB read data" }
+        - { name: "pready", width: 1, direction: "output", description: "APB ready (always 1, no wait states)" }
+        - { name: "pslverr", width: 1, direction: "output", description: "APB slave error" }
+
+# =============================================================================
+# SECTION 4: Main Features
+# =============================================================================
+features:
+  - name: "Synchronous Push"
+    trigger: "wr_en_i asserted while full_o==0"
+    datapath: "wr_data_i captured into mem[wr_ptr], wr_ptr increments, count increments"
+    control: "Pointer FSM in fifo_sync_ptrs; combinational flag decode"
+    output: "full_o and almost_full_o update combinationally after pointer advance"
+  - name: "Synchronous Pop"
+    trigger: "rd_en_i asserted while empty_o==0"
+    datapath: "rd_data_o driven from mem[rd_ptr] (combinational) or output register, rd_ptr increments, count decrements"
+    control: "Pointer FSM in fifo_sync_ptrs; USE_OUTPUT_REGISTER selects registered vs combinational path"
+    output: "empty_o and almost_empty_o update combinationally after pointer advance"
+  - name: "Simultaneous Push/Pop"
+    trigger: "wr_en_i && !full_o && rd_en_i && !empty_o in the same cycle"
+    datapath: "Write to mem[wr_ptr] and read from mem[rd_ptr] occur in parallel; count unchanged (net zero change)"
+    control: "Both pointers advance; count stays constant"
+    output: "All flags remain stable when simultaneous push/pop maintains the same fill level"
+  - name: "Overflow Protection"
+    trigger: "wr_en_i asserted while full_o==1"
+    datapath: "Write ignored; wr_data_i not captured; wr_ptr unchanged"
+    control: "full_o gates write acceptance"
+    output: "No state change; count unchanged"
+  - name: "Underflow Protection"
+    trigger: "rd_en_i asserted while empty_o==1"
+    datapath: "Read ignored; rd_data_o holds previous or reset value; rd_ptr unchanged"
+    control: "empty_o gates read acceptance"
+    output: "No state change; count unchanged"
+  - name: "Synchronous Flush"
+    trigger: "flush_i pulse (or CSR flush bit written)"
+    datapath: "wr_ptr, rd_ptr, count all reset to 0; memory contents undefined after flush"
+    control: "Takes precedence over concurrent push/pop in the same cycle"
+    output: "empty_o=1, full_o=0, almost_full_o=0, almost_empty_o=1 immediately after flush"
+  - name: "APB CSR Access"
+    trigger: "psel && penable with valid address"
+    datapath: "Read returns FIFO_STATUS/FIFO_CONFIG; write updates FIFO_CONFIG or triggers FIFO_CONTROL actions"
+    control: "0-cycle wait state (pready always 1 when USE_APB=1)"
+    output: "prdata/pslverr driven per register decode"
+
+# =============================================================================
+# SECTION 5: Data Flow
+# =============================================================================
+dataflow:
+  write_path:
+    source: "wr_data_i input port"
+    acceptance: "Accepted when wr_en_i=1 and full_o=0 on rising PCLK edge"
+    buffer: "mem[wr_ptr] (DATA_WIDTH-wide SRAM entry)"
+    sequence: "wr_data_i -> mem[wr_ptr] -> wr_ptr increments -> count_o increments"
+  read_path:
+    source: "mem[rd_ptr] or output register"
+    acceptance: "Accepted when rd_en_i=1 and empty_o=0 on rising PCLK edge"
+    output: "rd_data_o (combinational from mem when USE_OUTPUT_REGISTER=0; registered when USE_OUTPUT_REGISTER=1)"
+    sequence: "mem[rd_ptr] -> rd_data_o -> rd_ptr increments -> count_o decrements"
+  simultaneous_path:
+    sequence: "wr_data_i -> mem[wr_ptr] AND mem[rd_ptr] -> rd_data_o in the same cycle; count_o unchanged"
+  flush_path:
+    sequence: "flush_i asserted -> wr_ptr=0, rd_ptr=0, count=0; memory contents invalidated"
+
+# =============================================================================
+# SECTION 6: Function Model
+# =============================================================================
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the synchronous FIFO computes independent of cycle timing."
+  state_variables:
+    - { name: "wr_ptr", source: "fifo_sync_ptrs", reset: 0, description: "Binary write pointer; wraps at DEPTH" }
+    - { name: "rd_ptr", source: "fifo_sync_ptrs", reset: 0, description: "Binary read pointer; wraps at DEPTH" }
+    - { name: "count", source: "fifo_sync_ptrs", reset: 0, description: "Current number of valid entries (0..DEPTH)" }
+    - { name: "mem", source: "fifo_sync_mem", reset: "0x0 per entry", description: "Storage array [0..DEPTH-1] each DATA_WIDTH wide" }
+  transactions:
+    - id: "FM1"
+      name: "push"
+      preconditions:
+        - "wr_en_i == 1"
+        - "full_o == 0 (count < DEPTH)"
+        - "flush_i == 0"
+      inputs:
+        - "wr_data_i[DATA_WIDTH-1:0]"
+      output_rules:
+        - { name: "full_o", expr: "(count + 1 - pop_accepted) == DEPTH", width: 1, port: "full_o" }
+        - { name: "almost_full_o", expr: "(count + 1 - pop_accepted) >= ALMOST_FULL_THRESHOLD", width: 1, port: "almost_full_o" }
+        - { name: "count_o", expr: "count + 1 - pop_accepted", width: "$clog2(DEPTH+1)", port: "count_o" }
+      state_updates:
+        - { name: "mem[wr_ptr]", reset: 0, expr: "wr_data_i" }
+        - { name: "wr_ptr", reset: 0, expr: "(wr_ptr + 1) % DEPTH" }
+        - { name: "count", reset: 0, expr: "count + 1 - pop_accepted" }
+      side_effects: []
+      error_cases: []
+    - id: "FM2"
+      name: "pop"
+      preconditions:
+        - "rd_en_i == 1"
+        - "empty_o == 0 (count > 0)"
+        - "flush_i == 0"
+      inputs:
+        - "mem[rd_ptr]"
+      output_rules:
+        - { name: "rd_data_o", expr: "mem[rd_ptr]", width: "DATA_WIDTH", port: "rd_data_o" }
+        - { name: "empty_o", expr: "(count - 1 + push_accepted) == 0", width: 1, port: "empty_o" }
+        - { name: "almost_empty_o", expr: "(count - 1 + push_accepted) <= ALMOST_EMPTY_THRESHOLD", width: 1, port: "almost_empty_o" }
+        - { name: "count_o", expr: "count - 1 + push_accepted", width: "$clog2(DEPTH+1)", port: "count_o" }
+      state_updates:
+        - { name: "rd_ptr", reset: 0, expr: "(rd_ptr + 1) % DEPTH" }
+        - { name: "count", reset: 0, expr: "count - 1 + push_accepted" }
+      side_effects:
+        - "Popped entry storage is invalidated (no read-again guarantee)"
+      error_cases: []
+    - id: "FM3"
+      name: "simultaneous_push_pop"
+      preconditions:
+        - "wr_en_i == 1 and rd_en_i == 1"
+        - "full_o == 0 and empty_o == 0"
+        - "flush_i == 0"
+      inputs:
+        - "wr_data_i[DATA_WIDTH-1:0]"
+        - "mem[rd_ptr]"
+      output_rules:
+        - { name: "rd_data_o", expr: "mem[rd_ptr]", width: "DATA_WIDTH", port: "rd_data_o" }
+        - { name: "full_o", expr: "count == DEPTH - 1", width: 1, port: "full_o" }
+        - { name: "empty_o", expr: "count == 1", width: 1, port: "empty_o" }
+        - { name: "count_o", expr: "count", width: "$clog2(DEPTH+1)", port: "count_o" }
+      state_updates:
+        - { name: "mem[wr_ptr]", reset: 0, expr: "wr_data_i" }
+        - { name: "wr_ptr", reset: 0, expr: "(wr_ptr + 1) % DEPTH" }
+        - { name: "rd_ptr", reset: 0, expr: "(rd_ptr + 1) % DEPTH" }
+        - { name: "count", reset: 0, expr: "count" }
+      side_effects:
+        - "count is unchanged because push and pop cancel"
+      error_cases: []
+    - id: "FM4"
+      name: "overflow_reject"
+      preconditions:
+        - "wr_en_i == 1"
+        - "full_o == 1 (count == DEPTH)"
+      inputs: []
+      output_rules:
+        - { name: "full_o", expr: "1", width: 1, port: "full_o" }
+        - { name: "count_o", expr: "DEPTH", width: "$clog2(DEPTH+1)", port: "count_o" }
+      state_updates: []
+      side_effects:
+        - "Write rejected silently; no data corruption"
+      error_cases: []
+    - id: "FM5"
+      name: "underflow_reject"
+      preconditions:
+        - "rd_en_i == 1"
+        - "empty_o == 1 (count == 0)"
+      inputs: []
+      output_rules:
+        - { name: "empty_o", expr: "1", width: 1, port: "empty_o" }
+        - { name: "rd_data_o", expr: "previous_value_or_zero", width: "DATA_WIDTH", port: "rd_data_o" }
+        - { name: "count_o", expr: "0", width: "$clog2(DEPTH+1)", port: "count_o" }
+      state_updates: []
+      side_effects:
+        - "Read rejected silently; rd_data_o holds previous value (not guaranteed)"
+      error_cases: []
+    - id: "FM6"
+      name: "flush"
+      preconditions:
+        - "flush_i == 1"
+      inputs: []
+      output_rules:
+        - { name: "empty_o", expr: "1", width: 1, port: "empty_o" }
+        - { name: "full_o", expr: "0", width: 1, port: "full_o" }
+        - { name: "almost_full_o", expr: "0", width: 1, port: "almost_full_o" }
+        - { name: "almost_empty_o", expr: "1", width: 1, port: "almost_empty_o" }
+        - { name: "count_o", expr: "0", width: "$clog2(DEPTH+1)", port: "count_o" }
+      state_updates:
+        - { name: "wr_ptr", reset: 0, expr: "0" }
+        - { name: "rd_ptr", reset: 0, expr: "0" }
+        - { name: "count", reset: 0, expr: "0" }
+      side_effects:
+        - "All FIFO entries invalidated; memory contents become undefined"
+        - "Flush takes precedence over concurrent push/pop"
+      error_cases: []
+  invariants:
+    - "count is always in range [0, DEPTH]."
+    - "full_o == 1 if and only if count == DEPTH."
+    - "empty_o == 1 if and only if count == 0."
+    - "wr_ptr and rd_ptr are always in range [0, DEPTH-1]."
+    - "No read data changes unless rd_en_i is accepted or flush occurs."
+    - "Simultaneous push/pop leaves count unchanged."
+    - "Overflow and underflow are silently rejected with no state corruption."
+  reference_model_hint: "tb-gen should implement a Python deque-based scoreboard model; push/pop/flush map directly to deque.append()/popleft()/clear()."
+
+# =============================================================================
+# SECTION 7: Cycle Model
+# =============================================================================
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen; describes when FIFO state, flags, and data outputs may change relative to PCLK edges."
+  executable: "pymtl3"
+  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears wr_ptr, rd_ptr, count to 0; all flags reflect empty state."
+    deassertion: "State is usable on the first rising PCLK edge after synchronized deassertion."
+  latency:
+    push_accept: { min_cycles: 1, max_cycles: 1, description: "Data written on the rising edge when wr_en_i && !full_o; flags update on the same edge." }
+    pop_combinational: { min_cycles: 0, max_cycles: 0, description: "When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from mem[rd_ptr]; flags update 1 cycle after rd_en_i acceptance." }
+    pop_registered: { min_cycles: 1, max_cycles: 1, description: "When USE_OUTPUT_REGISTER=1, rd_data_o appears 1 cycle after rd_en_i acceptance; flags update on the acceptance edge." }
+    flush: { min_cycles: 1, max_cycles: 1, description: "All pointers and count cleared on the rising edge when flush_i=1; flags update on the same edge." }
+    register_read: { min_cycles: 0, max_cycles: 1, description: "APB CSR read: pready always 1 (0 wait states)." }
+    register_write: { min_cycles: 0, max_cycles: 1, description: "APB CSR write: pready always 1 (0 wait states)." }
+  handshake_rules:
+    - { signal: "wr_en_i", rule: "Sampled on rising PCLK; data accepted only when full_o=0. Full flag gates write acceptance." }
+    - { signal: "rd_en_i", rule: "Sampled on rising PCLK; data consumed only when empty_o=0. Empty flag gates read acceptance." }
+    - { signal: "full_o", rule: "Combinational function of count and push/pop acceptance in the current cycle. Updates after each clock edge." }
+    - { signal: "empty_o", rule: "Combinational function of count and push/pop acceptance in the current cycle. Updates after each clock edge." }
+    - { signal: "flush_i", rule: "Synchronous; takes precedence over push/pop. Clears all pointers and count on the rising edge." }
+  pipeline:
+    - { stage: "S0_SAMPLE_INPUTS", cycle: 0, action: "Sample wr_en_i, rd_en_i, flush_i, wr_data_i on rising PCLK edge" }
+    - { stage: "S1_EVAL_ACCEPT", cycle: 0, action: "Combinational: determine push_accepted = wr_en_i && !full_o && !flush_i; pop_accepted = rd_en_i && !empty_o && !flush_i" }
+    - { stage: "S2_UPDATE_PTRS", cycle: 0, action: "Update wr_ptr, rd_ptr, count registers based on push/pop acceptance" }
+    - { stage: "S3_WRITE_MEM", cycle: 0, action: "Write wr_data_i to mem[wr_ptr] when push_accepted" }
+    - { stage: "S4_UPDATE_FLAGS", cycle: 1, action: "Flags (full, empty, almost_full, almost_empty, count) reflect new pointer state" }
+  ordering:
+    - "Push data is captured into memory in the same cycle as pointer update."
+    - "Pop data is available combinationally from memory (USE_OUTPUT_REGISTER=0) or one cycle later (USE_OUTPUT_REGISTER=1)."
+    - "Flush clears all state in the cycle it is sampled; concurrent push/pop are ignored."
+    - "Flag updates are visible on the cycle after pointer/count changes."
+  backpressure:
+    - "full_o provides natural backpressure to the writer; the writer must deassert wr_en_i or accept rejection."
+    - "empty_o provides natural backpressure to the reader; the reader must deassert rd_en_i or accept undefined data."
+  performance:
+    frequency_mhz: 50
+    throughput: { sustained_ops_per_cycle: 1, condition: "At least one of push or pop accepted per cycle; simultaneous push/pop sustains 2 ops/cycle" }
+    outstanding: { read_max: 1, write_max: 1, description: "Single-port push and single-port pop per cycle" }
+    depth: { pipeline_stages: 1, queue_depth: "DEPTH parameter", description: "Single pipeline stage; storage depth equals DEPTH parameter" }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+
+# =============================================================================
+# SECTION 8: Clock & Reset Domain
+# =============================================================================
+clock_reset_domains:
+  domains:
+    - { name: "pclk", frequency_mhz: 50, description: "Single synchronous clock domain" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+# =============================================================================
+# SECTION 9: CDC Requirements
+# =============================================================================
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain (PCLK) — no CDC required"
+
+# =============================================================================
+# SECTION 10: RDC Requirements
+# =============================================================================
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain (PRESETn) — no RDC crossings"
+
+# =============================================================================
+# SECTION 11: Registers
+# =============================================================================
+registers:
+  config:
+    register_width: 32
+    addr_width: 4
+    byte_addressable: true
+    num_channels: 1
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+  register_list:
+    - name: "FIFO_STATUS"
+      offset: 0x0
+      width: 32
+      access: "ro"
+      reset: 0x00000005
+      category: "status"
+      description: "FIFO status flags and fill count"
+      fields:
+        - { name: "empty", bits: [0, 0], access: "ro", reset: 0x1, description: "1=FIFO empty" }
+        - { name: "full", bits: [1, 1], access: "ro", reset: 0x0, description: "1=FIFO full" }
+        - { name: "almost_empty", bits: [2, 2], access: "ro", reset: 0x1, description: "1=FIFO at or below almost-empty threshold" }
+        - { name: "almost_full", bits: [3, 3], access: "ro", reset: 0x0, description: "1=FIFO at or above almost-full threshold" }
+        - { name: "count", bits: [11, 4], access: "ro", reset: 0x0, description: "Current fill count (0..DEPTH)" }
+        - { name: "reserved_31_12", bits: [31, 12], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "FIFO_CONFIG"
+      offset: 0x4
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "config"
+      description: "FIFO threshold configuration"
+      write_side_effects:
+        - "Writing almost_full_thresh updates ALMOST_FULL_THRESHOLD comparison value."
+        - "Writing almost_empty_thresh updates ALMOST_EMPTY_THRESHOLD comparison value."
+        - "Thresholds take effect on the next clock edge after write acceptance."
+      fields:
+        - { name: "almost_full_thresh", bits: [7, 0], access: "rw", reset: 0x0, write_effect: "Update almost-full threshold", description: "Almost-full threshold (default set by parameter ALMOST_FULL_THRESHOLD)" }
+        - { name: "almost_empty_thresh", bits: [15, 8], access: "rw", reset: 0x0, write_effect: "Update almost-empty threshold", description: "Almost-empty threshold (default set by parameter ALMOST_EMPTY_THRESHOLD)" }
+        - { name: "reserved_31_16", bits: [31, 16], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "FIFO_CONTROL"
+      offset: 0x8
+      width: 32
+      access: "wo"
+      reset: 0x00000000
+      category: "control"
+      description: "FIFO control actions"
+      write_side_effects:
+        - "Writing flush=1 triggers a synchronous flush; self-clearing after one cycle."
+      fields:
+        - { name: "flush", bits: [0, 0], access: "wo", reset: 0x0, write_effect: "Pulse flush; clears all pointers and count", description: "Flush command (write 1 to trigger, auto-clears)" }
+        - { name: "reserved_31_1", bits: [31, 1], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+# =============================================================================
+# SECTION 12: Memory Requirements
+# =============================================================================
+memory:
+  instances:
+    - { name: "fifo_ram", type: "register_array", depth: "DEPTH", width: "DATA_WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "Simple dual-port register array for FIFO storage; implemented as behavioral reg array" }
+  note: "Memory is implemented as a behavioral register array (not SRAM macro) for portability and parameterization."
+
+# =============================================================================
+# SECTION 13: Interrupt
+# =============================================================================
+interrupts:
+  sources: []
+  output:
+    signal: null
+    polarity: null
+    type: null
+  note: "No interrupt outputs in this FIFO IP. Status is available via direct flag outputs (full_o, empty_o, etc.) and optional APB CSR reads."
+
+# =============================================================================
+# SECTION 14: FSM
+# =============================================================================
+fsm:
+  ptr_fsm:
+    description: "Not a traditional state machine; operational behavior is determined by pointer arithmetic and count comparisons. Conceptual states correspond to fill-level regions."
+    states:
+      - "EMPTY"
+      - "ALMOST_EMPTY"
+      - "NORMAL"
+      - "ALMOST_FULL"
+      - "FULL"
+    transitions:
+      - { from: "EMPTY", to: "NORMAL", condition: "push_accepted && count becomes > ALMOST_EMPTY_THRESHOLD" }
+      - { from: "EMPTY", to: "ALMOST_EMPTY", condition: "push_accepted && count becomes <= ALMOST_EMPTY_THRESHOLD && count > 0" }
+      - { from: "ALMOST_EMPTY", to: "EMPTY", condition: "pop_accepted && count becomes 0" }
+      - { from: "ALMOST_EMPTY", to: "NORMAL", condition: "push_accepted && count > ALMOST_EMPTY_THRESHOLD" }
+      - { from: "NORMAL", to: "ALMOST_FULL", condition: "push_accepted && count >= ALMOST_FULL_THRESHOLD" }
+      - { from: "NORMAL", to: "ALMOST_EMPTY", condition: "pop_accepted && count <= ALMOST_EMPTY_THRESHOLD" }
+      - { from: "ALMOST_FULL", to: "FULL", condition: "push_accepted && count == DEPTH" }
+      - { from: "ALMOST_FULL", to: "NORMAL", condition: "pop_accepted && count < ALMOST_FULL_THRESHOLD" }
+      - { from: "FULL", to: "ALMOST_FULL", condition: "pop_accepted && count == DEPTH-1" }
+    note: "FSM is implicit via count comparisons; no explicit state register. RTL uses wr_ptr/rd_ptr/count directly."
+
+# =============================================================================
+# SECTION 15: RTL Contract
+# =============================================================================
+rtl_contract:
+  transaction: "FM1, FM2, FM3, FM4, FM5, FM6"
+  sample_condition: "Rising PCLK edge when PRESETn is high"
+  input_map:
+    push_enable: "wr_en_i"
+    push_data: "wr_data_i"
+    pop_enable: "rd_en_i"
+    flush: "flush_i"
+  output_map:
+    pop_data: "rd_data_o"
+    full_flag: "full_o"
+    empty_flag: "empty_o"
+    almost_full_flag: "almost_full_o"
+    almost_empty_flag: "almost_empty_o"
+    fill_count: "count_o"
+  state_updates:
+    - { name: "wr_ptr", reset: 0, expr: "(wr_ptr + 1) % DEPTH when push_accepted, else wr_ptr" }
+    - { name: "rd_ptr", reset: 0, expr: "(rd_ptr + 1) % DEPTH when pop_accepted, else rd_ptr" }
+    - { name: "count", reset: 0, expr: "count + push_accepted - pop_accepted (clamped 0..DEPTH)" }
+    - { name: "mem[wr_ptr]", reset: 0, expr: "wr_data_i when push_accepted" }
+
+# =============================================================================
+# SECTION 16: Timing & Performance
+# =============================================================================
+timing:
+  target_clocks:
+    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.2 }
+  latency_budget:
+    push_acceptance: { min: 1, max: 1, measured_from: "wr_en_i rising PCLK edge", measured_to: "data stored in mem and flags updated" }
+    pop_combinational: { min: 0, max: 0, measured_from: "rd_en_i rising PCLK edge", measured_to: "rd_data_o valid (USE_OUTPUT_REGISTER=0)", note: "Combinational read from memory array" }
+    pop_registered: { min: 1, max: 1, measured_from: "rd_en_i rising PCLK edge", measured_to: "rd_data_o valid (USE_OUTPUT_REGISTER=1)", note: "Registered read output" }
+    flush_latency: { min: 1, max: 1, measured_from: "flush_i rising PCLK edge", measured_to: "all pointers cleared and flags reflect empty" }
+    csr_access: { min: 1, max: 2, measured_from: "psel && penable", measured_to: "pready && prdata/pslverr valid" }
+  throughput:
+    sustained_ops_per_cycle: 1
+    conditions: "At least one of push or pop accepted per cycle; simultaneous push/pop achieves 2 ops/cycle"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "wr_en_i, rd_en_i, wr_data_i, flush_i", clock: "PCLK", delay_ns: 2.0, source: "system-level timing budget at 50MHz" }
+    outputs:
+      - { ports: "rd_data_o, full_o, empty_o, almost_full_o, almost_empty_o, count_o", clock: "PCLK", delay_ns: 2.0, source: "system-level timing budget at 50MHz" }
+  false_paths:
+    - { from: "PRESETn", to: "all_registers", reason: "async reset assertion path" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+
+# =============================================================================
+# SECTION 17: Power Intent
+# =============================================================================
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["pclk"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "Simple FIFO; no explicit low-power mode in this revision"
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers and function_model state_variables"
+  power_states:
+    - { name: "ACTIVE", entry: "PRESETn deasserted", exit: "PRESETn asserted", guarantees: ["All FIFO behavior active"] }
+  upf_required: false
+
+# =============================================================================
+# SECTION 18: Security & Safety
+# =============================================================================
+security:
+  classification: "non_secure_data_buffer"
+  assets:
+    - { name: "fifo_data", protection: "No internal access control; external bus fabric enforces privilege" }
+    - { name: "fifo_config", protection: "APB CSR writes are gated by external psel; no internal privilege check" }
+  threat_model:
+    - { threat: "unauthorized flush", mitigation: "External APB fabric controls psel/penable; flush_i is a direct port controlled by surrounding logic" }
+    - { threat: "data read from uninitialized memory", mitigation: "empty_o deasserts only after valid push; pop when empty is rejected (FM5)" }
+  privilege_model: "No internal privilege levels; access control is external"
+  safety_goals:
+    - "Overflow and underflow are silently rejected with no data corruption"
+    - "Flush is deterministic and completes in exactly 1 cycle"
+
+# =============================================================================
+# SECTION 19: Error Handling
+# =============================================================================
+error_handling:
+  error_sources:
+    - { id: "ERR_OVERFLOW", condition: "wr_en_i=1 while full_o=1", architectural_effect: "Write rejected silently; no state change", propagation: "full_o remains 1; no error flag or interrupt" }
+    - { id: "ERR_UNDERFLOW", condition: "rd_en_i=1 while empty_o=1", architectural_effect: "Read rejected silently; rd_data_o holds previous value (undefined)", propagation: "empty_o remains 1; no error flag or interrupt" }
+    - { id: "ERR_APB_UNSUPPORTED", condition: "APB access to unmapped offset", architectural_effect: "pslverr=1, prdata=0", propagation: "Single-cycle error response on APB" }
+  propagation:
+    - "Overflow and underflow are silently rejected; no error status is latched."
+    - "APB error is a single-cycle pslverr response."
+  recovery:
+    - { action: "none required for overflow/underflow", clears: [], preserves: ["all FIFO state"] }
+    - { action: "APB master must retry or handle pslverr", clears: ["pslverr deasserts next cycle"], preserves: ["all FIFO state"] }
+
+# =============================================================================
+# SECTION 20: Debug & Observability
+# =============================================================================
+debug_observability:
+  waveform_must_probe:
+    - "wr_ptr, rd_ptr, count"
+    - "wr_en_i, rd_en_i, flush_i"
+    - "full_o, empty_o, almost_full_o, almost_empty_o"
+    - "rd_data_o, wr_data_i"
+    - "push_accepted, pop_accepted (internal)"
+  status_outputs:
+    - "count_o (fill level)"
+    - "full_o, empty_o, almost_full_o, almost_empty_o"
+  trace_events:
+    - { name: "push_accepted", trigger: "wr_en_i && !full_o on rising PCLK" }
+    - { name: "pop_accepted", trigger: "rd_en_i && !empty_o on rising PCLK" }
+    - { name: "overflow_reject", trigger: "wr_en_i && full_o on rising PCLK" }
+    - { name: "underflow_reject", trigger: "rd_en_i && empty_o on rising PCLK" }
+    - { name: "flush_executed", trigger: "flush_i on rising PCLK" }
+  debug_registers:
+    - "FIFO_STATUS"
+    - "FIFO_CONTROL"
+
+# =============================================================================
+# SECTION 21: Integration Contract
+# =============================================================================
+integration:
+  bus_attachment:
+    data: "Direct push/pop ports (valid-ready style)"
+    control: "APB-lite CSR (when USE_APB=1)"
+  connections:
+    - { module: "fifo_sync_ptrs", port: "clk_i", signal: "PCLK" }
+    - { module: "fifo_sync_ptrs", port: "rst_ni", signal: "PRESETn" }
+    - { module: "fifo_sync_mem", port: "clk_i", signal: "PCLK" }
+    - { module: "fifo_sync_mem", port: "wr_en_i", signal: "push_accepted" }
+    - { module: "fifo_sync_mem", port: "wr_addr_i", signal: "wr_ptr" }
+    - { module: "fifo_sync_mem", port: "wr_data_i", signal: "wr_data_i" }
+    - { module: "fifo_sync_mem", port: "rd_addr_i", signal: "rd_ptr" }
+    - { module: "fifo_sync_mem", port: "rd_data_o", signal: "mem_rd_data" }
+    - { module: "fifo_sync_flags", port: "count_i", signal: "count" }
+    - { module: "fifo_sync_flags", port: "full_o", signal: "full_o" }
+    - { module: "fifo_sync_flags", port: "empty_o", signal: "empty_o" }
+    - { module: "fifo_sync_flags", port: "almost_full_o", signal: "almost_full_o" }
+    - { module: "fifo_sync_flags", port: "almost_empty_o", signal: "almost_empty_o" }
+    - { module: "fifo_sync_output_reg", port: "din_i", signal: "mem_rd_data" }
+    - { module: "fifo_sync_output_reg", port: "load_i", signal: "pop_accepted" }
+    - { module: "fifo_sync_output_reg", port: "dout_o", signal: "rd_data_o" }
+    - { module: "fifo_sync_regs", port: "clk_i", signal: "PCLK" }
+    - { module: "fifo_sync_regs", port: "rst_ni", signal: "PRESETn" }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "SoC interconnect"
+    illegal_access_response: "pslverr for unsupported APB offset"
+  dependencies:
+    external_modules: []
+    external_clocks: ["PCLK"]
+    external_resets: ["PRESETn"]
+  integration_notes:
+    - "Writer must sample full_o and deassert wr_en_i or accept silent rejection."
+    - "Reader must sample empty_o and deassert rd_en_i or accept undefined data."
+    - "flush_i can be driven from external logic or APB CSR FIFO_CONTROL.flush bit."
+
+# =============================================================================
+# SECTION 22: DFT / DFD
+# =============================================================================
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "PRESETn must be controllable in test mode"
+    clocks: ["PCLK"]
+    flush: "flush_i provides full state reset for test initialization"
+  observability:
+    required_internal_points: ["wr_ptr", "rd_ptr", "count"]
+    status_flags: ["full_o", "empty_o", "almost_full_o", "almost_empty_o", "count_o"]
+  mbist_required: false
+  notes: "No SRAM macro; behavioral register array only. Update if macro replacement is needed."
+
+# =============================================================================
+# SECTION 23: Synthesis / Implementation Constraints
+# =============================================================================
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "fifo_sync"
+  technology:
+    pdk: "generic"
+    standard_cell_library: "generic"
+    liberty_corner: "default"
+    liberty_env: "GENERIC_LIB"
+    lef_env: "GENERIC_LEF"
+    tech_lef_env: "GENERIC_TLEF"
+    rcx_rules_env: "GENERIC_RCX_RULES"
+  constraints:
+    - "No inferred latches"
+    - "All flops reset according to clock_reset_domains.reset_scheme"
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 50
+  required_outputs:
+    - "syn/out/fifo_sync.json or syn/out/fifo_sync.v"
+    - "syn/out/area.rpt"
+    - "syn/out/timing_summary.rpt"
+
+# =============================================================================
+# SECTION 24: Physical Implementation / PnR
+# =============================================================================
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: "met3"
+    vertical: "met2"
+  placement:
+    density_target: 0.65
+    max_displacement_um: null
+  cts:
+    buf_list: ["CLKBUF_4", "CLKBUF_8"]
+    functional_mode_case_analysis: []
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    clock_layers: { min: "met3", max: "met5" }
+    drc_waivers: []
+  required_outputs:
+    - "pnr/out/floorplan.def"
+    - "pnr/out/placed.def"
+    - "pnr/out/cts.def"
+    - "pnr/out/routed.def"
+    - "pnr/out/routed.v"
+    - "pnr/out/routed.spef"
+    - "pnr/out/pnr.report.md"
+
+# =============================================================================
+# SECTION 25: Coding Rules
+# =============================================================================
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/fifo_sync_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge clk …)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs (use a default)"
+    - "Active-low async reset: always @(posedge PCLK or negedge PRESETn) with if (!PRESETn)"
+    - "Parameterize widths (no hardcoded numbers except in localparam declarations for pointer width calculation)"
+    - "Use rtl/fifo_sync_param.vh for shared parameter declarations when needed; include it inside consuming modules"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "Use localparam for $clog2-derived constants"
+  lint_waivers:
+    - "UNUSEDSIGNAL: explicit approved tie-offs only"
+    - "WIDTHEXPAND: count_o wider than minimum when DEPTH+1 is not a power of 2"
+
+# =============================================================================
+# SECTION 26: Reuse Modules
+# =============================================================================
+reuse_modules: []
+
+# =============================================================================
+# SECTION 27: Custom Extensions (Assumptions)
+# =============================================================================
+custom:
+  assumptions:
+    - { id: "ASM_DEPTH_POWER2", description: "DEPTH is assumed to be a power of 2 for binary wrap-around optimization. Non-power-of-2 DEPTH requires explicit modular arithmetic and is not yet modeled.", impact: "wr_ptr and rd_ptr use binary wrapping; count clamping logic may differ for non-power-of-2", resolved: false }
+    - { id: "ASM_SINGLE_CLOCK", description: "All interfaces are synchronous to PCLK. No CDC is required. Writer and reader are in the same clock domain.", impact: "No synchronizers or gray-code pointers needed", resolved: true }
+    - { id: "ASM_ECC_OPTIONAL", description: "USE_ECC parameter is declared but the ECC encoding/decoding logic is not fully specified. Default USE_ECC=0 disables ECC.", impact: "When USE_ECC=1, parity bits per entry and error detection logic must be defined", resolved: false }
+    - { id: "ASM_APB_OPTIONAL", description: "APB CSR interface is parameterized via USE_APB. When USE_APB=0, the CSR block is not instantiated and APB ports are absent.", impact: "Top-level port list varies by USE_APB parameter; rtl-gen must handle conditional port presence", resolved: true }
+    - { id: "ASM_NO_INTERRUPT", description: "No interrupt outputs. Status is provided via direct flag ports and optional APB CSR.", impact: "No interrupt controller connection required", resolved: true }
+    - { id: "ASM_BEHAVIORAL_MEM", description: "FIFO storage uses a behavioral register array, not an SRAM macro.", impact: "No MBIST, no SRAM compiler integration", resolved: true }
+    - { id: "ASM_UNDERFLOW_READ_VALUE", description: "When pop is attempted on empty FIFO, rd_data_o holds its previous value which is undefined after reset.", impact: "Testbench must not check rd_data_o during underflow", resolved: true }
+    - { id: "ASM_FLUSH_PRIORITY", description: "Flush takes precedence over concurrent push and pop in the same cycle.", impact: "FM6 flush preempts FM1/FM2/FM3", resolved: true }
+
+# =============================================================================
+# SECTION 28: Dir Structure
+# =============================================================================
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+# =============================================================================
+# SECTION 29: Filelist
+# =============================================================================
+filelist:
+  headers:
+    - "rtl/fifo_sync_param.vh"
+  rtl:
+    - "rtl/fifo_sync_mem.sv"
+    - "rtl/fifo_sync_ptrs.sv"
+    - "rtl/fifo_sync_flags.sv"
+    - "rtl/fifo_sync_output_reg.sv"
+    - "rtl/fifo_sync_regs.sv"
+    - "rtl/fifo_sync.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_fifo_sync_scoreboard.sv"
+    - "sim/tb_program.sv"
+  firmware:
+    - "firmware/fifo_sync_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/README.md"
+
+# =============================================================================
+# SECTION 30: Test Requirements / DV Plan
+# =============================================================================
+test_requirements:
+  scenarios:
+    - id: "SC1"
+      name: "Push single entry"
+      stimulus: "Assert wr_en_i with wr_data_i=pattern_A while empty (count=0, full_o=0)"
+      expected: "Data stored; count=1; full_o=0; empty_o=0"
+      checker: "Scoreboard verifies count_o increments and readback returns pattern_A"
+      coverage: ["FM1", "S0_SAMPLE_INPUTS", "S3_WRITE_MEM"]
+    - id: "SC2"
+      name: "Pop single entry"
+      stimulus: "Assert rd_en_i when count=1, rd_ptr=0, mem[0]=pattern_A"
+      expected: "rd_data_o=pattern_A; count=0; empty_o=1"
+      checker: "Scoreboard verifies rd_data_o matches pushed pattern and count_o decrements"
+      coverage: ["FM2", "S4_UPDATE_FLAGS"]
+    - id: "SC3"
+      name: "Fill to full"
+      stimulus: "Push DEPTH entries sequentially with incrementing data patterns"
+      expected: "full_o=1 after DEPTH pushes; count_o=DEPTH; all entries stored correctly"
+      checker: "Scoreboard verifies full_o assertion timing and FIFO integrity via sequential pop"
+      coverage: ["FM1", "FULL state"]
+    - id: "SC4"
+      name: "Overflow rejection"
+      stimulus: "Assert wr_en_i when full_o=1"
+      expected: "No state change; count unchanged; previously stored data intact"
+      checker: "Scoreboard verifies count stability and post-overflow pop integrity"
+      coverage: ["FM4"]
+    - id: "SC5"
+      name: "Underflow rejection"
+      stimulus: "Assert rd_en_i when empty_o=1"
+      expected: "No state change; count remains 0; rd_data_o holds previous value"
+      checker: "Scoreboard verifies count stability and empty_o persistence"
+      coverage: ["FM5"]
+    - id: "SC6"
+      name: "Simultaneous push and pop"
+      stimulus: "Assert wr_en_i and rd_en_i simultaneously when 0 < count < DEPTH"
+      expected: "Both accepted; count unchanged; new data pushed; old data popped correctly"
+      checker: "Scoreboard verifies count stability and data integrity for both operations"
+      coverage: ["FM3"]
+    - id: "SC7"
+      name: "Simultaneous push and pop at boundary"
+      stimulus: "Assert wr_en_i and rd_en_i simultaneously when count=DEPTH (full)"
+      expected: "Push rejected (full), pop accepted; count decrements to DEPTH-1"
+      checker: "Scoreboard verifies count decrement and full_o deassertion"
+      coverage: ["FM3", "FM4", "boundary"]
+    - id: "SC8"
+      name: "Flush when partially full"
+      stimulus: "Push N entries (0 < N < DEPTH), then assert flush_i"
+      expected: "wr_ptr=0; rd_ptr=0; count=0; empty_o=1; full_o=0; all entries invalidated"
+      checker: "Scoreboard verifies complete state reset and flag correctness"
+      coverage: ["FM6"]
+    - id: "SC9"
+      name: "Flush when full"
+      stimulus: "Fill FIFO to DEPTH, then assert flush_i"
+      expected: "All pointers and count cleared; full_o deasserts; empty_o asserts"
+      checker: "Scoreboard verifies flush-from-full transitions"
+      coverage: ["FM6", "FULL state"]
+    - id: "SC10"
+      name: "Flush during simultaneous push/pop"
+      stimulus: "Assert wr_en_i, rd_en_i, and flush_i simultaneously"
+      expected: "Flush takes precedence; push and pop ignored; state reset to empty"
+      checker: "Scoreboard verifies flush priority over concurrent operations"
+      coverage: ["FM6", "priority"]
+    - id: "SC11"
+      name: "Almost full threshold"
+      stimulus: "Push entries until count reaches ALMOST_FULL_THRESHOLD"
+      expected: "almost_full_o asserts at threshold; full_o not yet asserted"
+      checker: "Scoreboard verifies almost_full_o assertion timing"
+      coverage: ["almost_full"]
+    - id: "SC12"
+      name: "Almost empty threshold"
+      stimulus: "Pop entries until count reaches ALMOST_EMPTY_THRESHOLD"
+      expected: "almost_empty_o asserts at threshold; empty_o not yet asserted"
+      checker: "Scoreboard verifies almost_empty_o assertion timing"
+      coverage: ["almost_empty"]
+    - id: "SC13"
+      name: "APB CSR read status"
+      stimulus: "Push 3 entries, then read FIFO_STATUS register via APB"
+      expected: "FIFO_STATUS.count=3, full=0, empty=0, almost flags per threshold config"
+      checker: "Scoreboard verifies CSR read matches flag/count outputs"
+      coverage: ["FM1", "CSR access"]
+    - id: "SC14"
+      name: "APB CSR write config"
+      stimulus: "Write new thresholds via FIFO_CONFIG, push entries to new threshold"
+      expected: "almost_full_o and almost_empty_o reflect updated thresholds"
+      checker: "Scoreboard verifies dynamic threshold update"
+      coverage: ["FIFO_CONFIG write"]
+    - id: "SC15"
+      name: "APB CSR flush"
+      stimulus: "Push entries, then write FIFO_CONTROL.flush=1 via APB"
+      expected: "FIFO flushed; pointers cleared; FIFO_STATUS reflects empty state"
+      checker: "Scoreboard verifies CSR-triggered flush matches flush_i behavior"
+      coverage: ["FM6", "CSR control"]
+    - id: "SC16"
+      name: "APB error response"
+      stimulus: "APB read/write to unmapped offset"
+      expected: "pslverr=1; prdata=0 for reads; no FIFO state change"
+      checker: "Scoreboard verifies error response and state preservation"
+      coverage: ["ERR_APB_UNSUPPORTED"]
+    - id: "SC17"
+      name: "Wrap-around pointer"
+      stimulus: "Push DEPTH entries, pop DEPTH entries, push again (wr_ptr wraps)"
+      expected: "Pointers wrap correctly; data integrity maintained; count accurate"
+      checker: "Scoreboard verifies pointer wrap-around and data correctness"
+      coverage: ["wr_ptr wrap", "rd_ptr wrap"]
+    - id: "SC18"
+      name: "Output register mode"
+      stimulus: "Configure USE_OUTPUT_REGISTER=1; push entry, pop entry"
+      expected: "rd_data_o valid 1 cycle after rd_en_i acceptance; not combinationally"
+      checker: "Scoreboard verifies 1-cycle read latency vs combinational timing"
+      coverage: ["USE_OUTPUT_REGISTER=1"]
+    - id: "SC19"
+      name: "Reset behavior"
+      stimulus: "Push entries, then assert PRESETn low asynchronously"
+      expected: "All pointers/count cleared; flags reflect empty; rd_data_o undefined"
+      checker: "Scoreboard verifies async reset clears all architectural state"
+      coverage: ["reset assertion"]
+    - id: "SC20"
+      name: "Reset deassertion"
+      stimulus: "Deassert PRESETn (sync deassert); immediate push on first valid edge"
+      expected: "Push accepted normally; count=1; no glitch on flags"
+      checker: "Scoreboard verifies clean behavior after reset deassertion"
+      coverage: ["reset deassertion"]
+  scoreboard_checks: 20
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Cycle-independent behavioral coverage for FIFO push/pop/flush/reject operations."
+      bins:
+        - { id: "FCOV_FM1_PUSH", source_ref: "function_model.transactions.FM1", class: "transaction", description: "Legal push (FM1) observed by scoreboard with correct output_rules" }
+        - { id: "FCOV_FM2_POP", source_ref: "function_model.transactions.FM2", class: "transaction", description: "Legal pop (FM2) observed by scoreboard with correct rd_data_o" }
+        - { id: "FCOV_FM3_SIMUL", source_ref: "function_model.transactions.FM3", class: "transaction", description: "Simultaneous push/pop (FM3) with count unchanged" }
+        - { id: "FCOV_FM4_OVERFLOW", source_ref: "function_model.transactions.FM4", class: "error_case", description: "Overflow rejection (FM4) observed" }
+        - { id: "FCOV_FM5_UNDERFLOW", source_ref: "function_model.transactions.FM5", class: "error_case", description: "Underflow rejection (FM5) observed" }
+        - { id: "FCOV_FM6_FLUSH", source_ref: "function_model.transactions.FM6", class: "transaction", description: "Flush (FM6) clears all state" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/latency/pipeline coverage for FIFO timing behavior."
+      bins:
+        - { id: "CCOV_PUSH_1CYCLE", source_ref: "cycle_model.latency.push_accept", class: "latency", description: "Push acceptance completes in exactly 1 cycle" }
+        - { id: "CCOV_POP_COMB", source_ref: "cycle_model.latency.pop_combinational", class: "latency", description: "Combinational pop read (USE_OUTPUT_REGISTER=0) observed" }
+        - { id: "CCOV_POP_REG", source_ref: "cycle_model.latency.pop_registered", class: "latency", description: "Registered pop read (USE_OUTPUT_REGISTER=1) observed" }
+        - { id: "CCOV_FLUSH_1CYCLE", source_ref: "cycle_model.latency.flush", class: "latency", description: "Flush completes in exactly 1 cycle" }
+        - { id: "CCOV_CSR_0WAIT", source_ref: "cycle_model.latency.register_read", class: "latency", description: "APB CSR read with 0 wait states observed" }
+        - { id: "CCOV_SIMUL_SAME_CYCLE", source_ref: "cycle_model.pipeline", class: "pipeline_stage", description: "Simultaneous push/pop completes in same cycle" }
+        - { id: "CCOV_FLUSH_PRIORITY", source_ref: "cycle_model.handshake_rules.flush_i", class: "handshake", description: "Flush priority over concurrent push/pop observed" }
+        - { id: "CCOV_PTR_WRAP", source_ref: "function_model.state_variables.wr_ptr", class: "boundary", description: "Pointer wrap-around observed (wr_ptr and rd_ptr)" }
+    functional: "Legacy alias: function + cycle coverage must both close."
+    line: ">= 90% instrumented line coverage or explicit project waiver"
+    branch: ">= 85% instrumented branch coverage or explicit project waiver"
+    fsm: "100% declared FSM conceptual states and transitions covered"
+    assertions: "All protocol/order/error assertions pass"
+
+# =============================================================================
+# SECTION 31: Quality Gates / Pass Criteria
+# =============================================================================
+quality_gates:
+  ssot:
+    pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
+    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+  rtl_gen:
+    profile: "production"
+    target_scale:
+      basis: "calibrated from approved architecture; small IP with ~5 RTL source files"
+      source_files_min: 0
+      modules_min: 0
+      procedural_blocks_min: 0
+      state_updates_min: 0
+      depth_score_min: 0
+      logic_modules_min: 0
+      behavior_owner_logic_modules_min: 0
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "SSOT-derived rtl_todo_plan has no blockers/orphans; all implementation TODOs close with fresh compile/lint evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "rtl/rtl_compile.json", "lint/dut_lint.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, and has no unwaived lint warnings."
+    evidence: ["rtl filelist", "compile log", "lint report"]
+  dv:
+    pass: "Every test_requirements scenario has an executable test, expected/got checker, and coverage bin."
+    evidence: ["results.xml", "coverage.json", "VCD/FST waveform"]
+  coverage:
+    pass: "Functional coverage goals pass and code/FSM/assertion coverage meets thresholds or has approved waiver."
+    evidence: ["instrumented coverage report", "coverage_report.md"]
+  eda:
+    pass: "Synthesis and STA meet SSOT timing/area/power targets or have explicit signed-off waivers."
+    evidence: ["syn report", "sta setup/hold report", "wns.json"]
+  signoff:
+    pass: "SSOT, RTL, lint, DV, simulation, coverage, and required EDA gates pass with fresh evidence."
+    evidence: ["ATLAS progress signoff pass", "artifact timestamps newer than final source edits"]
+
+# =============================================================================
+# SECTION 32: Traceability
+# =============================================================================
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "rtl/fifo_sync_param.vh (shared parameter include)" }
+    - { yaml: "io_list.interfaces", output: "rtl/fifo_sync.sv (port list)" }
+    - { yaml: "registers.register_list", output: "rtl/fifo_sync_regs.sv + firmware/fifo_sync_regs.h + docs/register_map.md" }
+    - { yaml: "function_model", output: "rtl/fifo_sync_ptrs.sv + tb/cocotb scoreboard/reference model" }
+    - { yaml: "cycle_model", output: "rtl/fifo_sync_ptrs.sv pointer/handshake logic + waveform checks" }
+    - { yaml: "timing", output: "sdc/fifo_sync.sdc STA constraints" }
+    - { yaml: "pnr", output: "floorplan/place/CTS/route TCL and reports" }
+    - { yaml: "power", output: "UPF/power-state assumptions (none required for this IP)" }
+    - { yaml: "security", output: "overflow/underflow protection verification" }
+    - { yaml: "error_handling", output: "RTL silent-reject paths + DV rejection scenarios" }
+    - { yaml: "quality_gates", output: "ATLAS progress/signoff criteria" }
+    - { yaml: "fsm", output: "rtl/fifo_sync_ptrs.sv pointer/count logic + docs/README.md" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
+  change_impact_example:
+    change: "parameters.DATA_WIDTH from 32 to 64"
+    affected_files:
+      - "rtl/fifo_sync_param.vh (DATA_WIDTH=64)"
+      - "rtl/fifo_sync_mem.sv (mem array width)"
+      - "rtl/fifo_sync_output_reg.sv (register width)"
+      - "rtl/fifo_sync.sv (port widths)"
+      - "sim/tb_top.sv (signal widths)"
+
+# =============================================================================
+# SECTION 33: Workflow TODOs / Downstream Task Contract
+# =============================================================================
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_TODO_FIFO_PTRS"
+      content: "Implement pointer management and fill counter"
+      detail: "Translate function_model state_variables (wr_ptr, rd_ptr, count) and cycle_model pipeline stages into sequential always block with push/pop acceptance logic. Wrapping is modular at DEPTH. Count increments on push, decrements on pop, clamped to [0..DEPTH]."
+      criteria:
+        - "wr_ptr and rd_ptr are declared with correct width ($clog2(DEPTH))"
+        - "count is declared with width $clog2(DEPTH+1)"
+        - "Push increments wr_ptr and count when wr_en_i && !full_o && !flush_i"
+        - "Pop increments rd_ptr and decrements count when rd_en_i && !empty_o && !flush_i"
+        - "Simultaneous push/pop: both pointers advance, count unchanged"
+        - "Flush: all three reset to 0, priority over push/pop"
+      source_refs: ["function_model.state_variables", "cycle_model.pipeline", "fsm.ptr_fsm"]
+      owner_module: "fifo_sync_ptrs"
+      owner_file: "rtl/fifo_sync_ptrs.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_FIFO_MEM"
+      content: "Implement dual-port register array storage"
+      detail: "Behavioral reg array of DEPTH entries x DATA_WIDTH bits. Write port: mem[wr_ptr] <= wr_data_i on push acceptance. Read port: combinational rd_data_o = mem[rd_ptr] (or routed through output register)."
+      criteria:
+        - "Memory array declared as reg [DATA_WIDTH-1:0] mem [0:DEPTH-1]"
+        - "Write occurs when push_accepted"
+        - "Read port drives mem[rd_ptr] combinationally or to output register"
+        - "Memory resets to 0 on async reset"
+      source_refs: ["memory.instances.fifo_ram", "dataflow.write_path", "dataflow.read_path"]
+      owner_module: "fifo_sync_mem"
+      owner_file: "rtl/fifo_sync_mem.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_FIFO_FLAGS"
+      content: "Implement combinational flag generation"
+      detail: "full_o = (count == DEPTH), empty_o = (count == 0), almost_full_o = (count >= ALMOST_FULL_THRESHOLD), almost_empty_o = (count <= ALMOST_EMPTY_THRESHOLD), count_o = count. Flags are combinational functions of registered count."
+      criteria:
+        - "All 5 flags/count outputs match function_model output_rules expressions"
+        - "Flags are combinational functions of count"
+        - "Threshold comparisons use parameterized thresholds (runtime-writable via APB when USE_APB=1)"
+      source_refs: ["function_model.transactions.FM1.output_rules", "function_model.transactions.FM2.output_rules"]
+      owner_module: "fifo_sync_flags"
+      owner_file: "rtl/fifo_sync_flags.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_FIFO_OUTPUT_REG"
+      content: "Implement optional output register stage"
+      detail: "When USE_OUTPUT_REGISTER=1, insert a pipeline register between mem[rd_ptr] and rd_data_o. Register loads on pop_accepted. When USE_OUTPUT_REGISTER=0, bypass directly."
+      criteria:
+        - "Output register is conditionally instantiated based on USE_OUTPUT_REGISTER parameter"
+        - "Registered path: rd_data_o updated 1 cycle after pop_accepted"
+        - "Bypass path: rd_data_o = mem[rd_ptr] combinationally"
+      source_refs: ["parameters.USE_OUTPUT_REGISTER", "cycle_model.latency.pop_registered", "cycle_model.latency.pop_combinational"]
+      owner_module: "fifo_sync_output_reg"
+      owner_file: "rtl/fifo_sync_output_reg.sv"
+      priority: "medium"
+      required: true
+    - id: "RTL_TODO_FIFO_REGS_APB"
+      content: "Implement APB-lite CSR decode block"
+      detail: "Decode paddr into FIFO_STATUS (RO), FIFO_CONFIG (RW), and FIFO_CONTROL (WO). pready always 1. pslverr asserted for unmapped offsets. Flush pulse generated on FIFO_CONTROL.flush write. Threshold registers feed into flag comparison."
+      criteria:
+        - "3 registers decoded per registers.register_list"
+        - "FIFO_STATUS reflects live flags and count"
+        - "FIFO_CONFIG allows dynamic threshold update"
+        - "FIFO_CONTROL.flush generates a 1-cycle flush pulse"
+        - "pready always 1; pslverr for unmapped addresses"
+        - "Conditionally instantiated based on USE_APB parameter"
+      source_refs: ["registers.register_list", "io_list.interfaces.apb_csr"]
+      owner_module: "fifo_sync_regs"
+      owner_file: "rtl/fifo_sync_regs.sv"
+      priority: "medium"
+      required: true
+    - id: "RTL_TODO_FIFO_TOP"
+      content: "Implement top-level integration and wiring"
+      detail: "Instantiate fifo_sync_mem, fifo_sync_ptrs, fifo_sync_flags, fifo_sync_output_reg, and fifo_sync_regs (conditional) with named port connections matching integration.connections. Wire top-level ports to sub-module ports."
+      criteria:
+        - "All sub_modules instantiated with correct port maps per integration.connections"
+        - "USE_APB controls whether fifo_sync_regs is instantiated"
+        - "USE_OUTPUT_REGISTER controls output register path"
+        - "Top-level ports match io_list exactly"
+      source_refs: ["integration.connections", "io_list.interfaces", "sub_modules"]
+      owner_module: "fifo_sync"
+      owner_file: "rtl/fifo_sync.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+# =============================================================================
+# SECTION 34: Generation Flow
+# =============================================================================
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh fifo_sync", description: "Validate production SSOT structure, function_model, cycle_model, DV plan, and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model fifo_sync", description: "fl-model-gen writes FunctionalModel, decomposition, and FCOV plan from SSOT" }
+    - { name: "handoff_equivalence_goals", command: "/ssot-equiv-goals fifo_sync", description: "fl-model-gen derives FL-vs-RTL equivalence goals for TB scoreboards and sim_debug" }
+    - { name: "handoff_rtl", command: "/ssot-rtl fifo_sync", description: "rtl-gen writes RTL directly from the SSOT and proves compile/lint gates" }
+    - { name: "handoff_tb", command: "/ssot-tb fifo_sync", description: "tb-gen writes pyuvm/cocotb tests, runs simulation, emits results XML, VCD, and functional coverage" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "sim_debug inspects waveform, failures, coverage evidence, and escalation ownership" }
+    - { name: "handoff_coverage", command: "/coverage fifo_sync", description: "coverage workflow measures SSOT-declared functional/code/toggle/FSM/assertion goals" }
+    - { name: "handoff_eda", command: "/syn fifo_sync && /sta fifo_sync && /pnr fifo_sync && /sta-post fifo_sync", description: "EDA workflows produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence when quality_gates require it" }
+  atlas_workflows:
+    - "ssot-gen"
+    - "rtl-gen"
+    - "tb-gen"
+    - "sim_debug"
+    - "coverage"
+    - "syn"
+    - "pnr"
+    - "sta"
+    - "sta-post"

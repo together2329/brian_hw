@@ -44,12 +44,68 @@ parameters:
     type: enum
     values: ["active_low", "active_high"]
     drives: ["ALL .sv files"]
-io_list: TBD
+io_list:
+  clock_domains:
+    - name: "PCLK"
+      frequency_mhz: 50
+      description: "Single system clock"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
+  resets:
+    - name: "PRESETn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Active-low asynchronous reset with synchronous deassertion"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low reset" }
+  interfaces:
+    - name: "signal_in"
+      type: "custom"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Input signal to be edge-detected"
+      ports:
+        - { name: "signal_i", width: "WIDTH", direction: "input", description: "Input signal vector" }
+    - name: "edge_out"
+      type: "custom"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Edge detection output pulses"
+      ports:
+        - { name: "edge_o", width: "WIDTH", direction: "output", description: "One-cycle pulse per detected edge" }
+    - name: "apb_csr"
+      type: "APB4"
+      role: "slave"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "APB-lite CSR interface for configuration and status"
+      protocol:
+        setup_phase: "PSEL=1, PENABLE=0 captures address/control."
+        access_phase: "PSEL=1, PENABLE=1 completes when PREADY=1."
+        read_rule: "PRDATA is valid in the completing access phase for reads."
+        write_rule: "PWDATA/PSTRB are sampled in the completing access phase for writes."
+        error_rule: "PSLVERR is asserted only with PREADY=1 for illegal or unsupported access."
+      ports:
+        - { name: "PADDR",   width: 12, direction: "input",  description: "APB address" }
+        - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "PWDATA",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "PSTRB",   width: 4,  direction: "input",  description: "APB byte strobes" }
+        - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB error" }
 features: TBD
 dataflow: TBD
 function_model: TBD
 cycle_model: TBD
-clock_reset_domains: TBD
+clock_reset_domains:
+  domains:
+    - { name: "PCLK", frequency_mhz: 50, description: "Single system clock" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
 cdc_requirements: TBD
 rdc_requirements: TBD
 registers: TBD
