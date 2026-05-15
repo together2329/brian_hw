@@ -1,0 +1,333 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 12,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "",
+      "name": "",
+      "refs": [],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/arm_m0_min_if.sv",
+        "name": "arm_m0_min_if",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_id.sv",
+        "name": "arm_m0_min_id",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_ex.sv",
+        "name": "arm_m0_min_ex",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_rf.sv",
+        "name": "arm_m0_min_rf",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min.sv",
+        "name": "arm_m0_min",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_haddr",
+        "signal": "i_haddr",
+        "signal_terms": [
+          "i_haddr"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_htrans",
+        "signal": "i_htrans",
+        "signal_terms": [
+          "i_htrans"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_hready",
+        "signal": "i_hready",
+        "signal_terms": [
+          "i_hready"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_hrdata",
+        "signal": "i_hrdata",
+        "signal_terms": [
+          "i_hrdata"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_hresp",
+        "signal": "i_hresp",
+        "signal_terms": [
+          "i_hresp"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_haddr",
+        "signal": "d_haddr",
+        "signal_terms": [
+          "d_haddr"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_htrans",
+        "signal": "d_htrans",
+        "signal_terms": [
+          "d_htrans"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_hwrite",
+        "signal": "d_hwrite",
+        "signal_terms": [
+          "d_hwrite"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_hwdata",
+        "signal": "d_hwdata",
+        "signal_terms": [
+          "d_hwdata"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_hready",
+        "signal": "d_hready",
+        "signal_terms": [
+          "d_hready"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_hrdata",
+        "signal": "d_hrdata",
+        "signal_terms": [
+          "d_hrdata"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_hresp",
+        "signal": "d_hresp",
+        "signal_terms": [
+          "d_hresp"
+        ],
+        "source_ref": "integration.connections[11]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 2,
+    "open_required_count": 2,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "arm_m0_min",
+  "kind": "unowned",
+  "owner_file": "",
+  "owner_module": "",
+  "packet_id": "unowned_tasks",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "memory.instances": 2
+    },
+    "module_slice": {},
+    "open_required_count": 2,
+    "required_count": 2,
+    "source_refs": [
+      "memory.instances.if_id_instr",
+      "memory.instances.id_ex_ctrl"
+    ],
+    "status_counts": {
+      "open": 2
+    },
+    "task_count": 2
+  },
+  "tasks": [
+    {
+      "category": "memory.instances",
+      "content": "Implement memory item if_id_instr",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref memory.instances.if_id_instr",
+        "if_id_instr width matches SSOT value 32",
+        "if_id_instr timing uses SSOT cycle/latency 0",
+        "if_id_instr storage depth matches SSOT value 1"
+      ],
+      "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.if_id_instr.\nSSOT item context: name=if_id_instr; width=32; depth=1; latency=0.",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "",
+      "owner_module": "",
+      "priority": "high",
+      "required": true,
+      "source_ref": "memory.instances.if_id_instr",
+      "ssot_context": {
+        "depth": "1",
+        "latency": "0",
+        "name": "if_id_instr",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "memory.instances.if_id_instr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task has no RTL owner file.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "memory.instances",
+      "content": "Implement memory item id_ex_ctrl",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref memory.instances.id_ex_ctrl",
+        "id_ex_ctrl width matches SSOT value 64",
+        "id_ex_ctrl timing uses SSOT cycle/latency 0",
+        "id_ex_ctrl storage depth matches SSOT value 1"
+      ],
+      "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.id_ex_ctrl.\nSSOT item context: name=id_ex_ctrl; width=64; depth=1; latency=0.",
+      "evidence_terms": [],
+      "id": "RTL-0103",
+      "owner_file": "",
+      "owner_module": "",
+      "priority": "high",
+      "required": true,
+      "source_ref": "memory.instances.id_ex_ctrl",
+      "ssot_context": {
+        "depth": "1",
+        "latency": "0",
+        "name": "id_ex_ctrl",
+        "width": "64"
+      },
+      "ssot_refs": [
+        "memory.instances.id_ex_ctrl"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task has no RTL owner file.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a70eeedfb17c143e2e962a82c44a8b0edf3adcdded649e82f935de86a45a7092",
+  "top": "arm_m0_min",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "arm_m0_min",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 3,
+    "failed": 0,
+    "transactions": 2,
+    "transaction_results": [
+      {
+        "id": "TX_DECODE_EXEC",
+        "name": "alu_compare_branch",
+        "kind": "TX_DECODE_EXEC",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "TX_DECODE_EXEC",
+          "transaction_name": "alu_compare_branch",
+          "sample_accepted": 1,
+          "pc_next_addr": 4,
+          "i_haddr": 4,
+          "store_data_mux": 6,
+          "d_hwdata": 6
+        }
+      },
+      {
+        "id": "TX_LOAD_STORE",
+        "name": "single_transfer_memory_access",
+        "kind": "TX_LOAD_STORE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "TX_LOAD_STORE",
+          "transaction_name": "single_transfer_memory_access",
+          "sample_accepted": 1,
+          "d_haddr_rule": 9,
+          "d_haddr": 9,
+          "d_hwrite_rule": 1,
+          "d_hwrite": 1
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 3,
+    "coverage_bins": 35,
+    "invariants_total": 3,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "No instruction retires while fault_halt=",
+        "expr": "No instruction retires while fault_halt==1.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "IF/ID/EX ordering remains in-order with ",
+        "expr": "IF/ID/EX ordering remains in-order with no out-of-order commit.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Register writes occur only from committe",
+        "expr": "Register writes occur only from committed EX outcomes.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 2,
+    "error_cases_planned": 2
+  },
+  "decomposition_units": 11,
+  "fcov_bins": 35,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "arm_m0_min/req/",
+      "arm_m0_min/yaml/arm_m0_min.ssot.yaml",
+      "arm_m0_min/model/functional_model.py",
+      "arm_m0_min/cov/fcov_plan.json",
+      "arm_m0_min/yaml/arm_m0_min.ssot.yaml#io_list",
+      "arm_m0_min/yaml/arm_m0_min.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "arm_m0_min/rtl/",
+      "arm_m0_min/tb/",
+      "arm_m0_min/sim/",
+      "arm_m0_min/vectors/",
+      "arm_m0_min/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

@@ -1,0 +1,1280 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 12,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 23,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/arm_m0_min_if.sv",
+      "name": "arm_m0_min_if",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "io_list",
+        "io_list.interfaces.ahb_i_master",
+        "timing",
+        "timing.fetch_path"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/arm_m0_min_if.sv",
+        "name": "arm_m0_min_if",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_id.sv",
+        "name": "arm_m0_min_id",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_ex.sv",
+        "name": "arm_m0_min_ex",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_rf.sv",
+        "name": "arm_m0_min_rf",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min.sv",
+        "name": "arm_m0_min",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_haddr",
+        "signal": "i_haddr",
+        "signal_terms": [
+          "i_haddr"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_htrans",
+        "signal": "i_htrans",
+        "signal_terms": [
+          "i_htrans"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_hready",
+        "signal": "i_hready",
+        "signal_terms": [
+          "i_hready"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_hrdata",
+        "signal": "i_hrdata",
+        "signal_terms": [
+          "i_hrdata"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_hresp",
+        "signal": "i_hresp",
+        "signal_terms": [
+          "i_hresp"
+        ],
+        "source_ref": "integration.connections[4]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 23,
+    "open_required_count": 23,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "arm_m0_min",
+  "kind": "module",
+  "owner_file": "rtl/arm_m0_min_if.sv",
+  "owner_module": "arm_m0_min_if",
+  "packet_id": "module__arm_m0_min_if",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 2,
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 3,
+      "cycle_model.observability": 1,
+      "cycle_model.pipeline": 2,
+      "cycle_model.reset": 1,
+      "equivalence.module": 1,
+      "io_list.port": 12
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 23,
+      "task_limit": 48
+    },
+    "open_required_count": 23,
+    "required_count": 23,
+    "source_refs": [
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.handshake_rules.i_htrans",
+      "cycle_model.handshake_rules.d_htrans",
+      "cycle_model.handshake_rules.d_hwdata",
+      "cycle_model.pipeline.IF",
+      "cycle_model.pipeline.ID",
+      "cycle_model.backpressure.backpressure_rule_0",
+      "cycle_model.backpressure.backpressure_rule_1",
+      "cycle_model.observability.observability_signal_0",
+      "sub_modules.arm_m0_min_if.module_equivalence",
+      "io_list.clock_domains.clk.ports.clk",
+      "io_list.resets.rst.ports.rst",
+      "io_list.interfaces.ahb_i_master.ports.i_haddr",
+      "io_list.interfaces.ahb_i_master.ports.i_htrans",
+      "io_list.interfaces.ahb_i_master.ports.i_hwrite",
+      "io_list.interfaces.ahb_i_master.ports.i_hsize",
+      "io_list.interfaces.ahb_i_master.ports.i_hburst",
+      "io_list.interfaces.ahb_i_master.ports.i_hprot",
+      "io_list.interfaces.ahb_i_master.ports.i_hmastlock",
+      "io_list.interfaces.ahb_i_master.ports.i_hready",
+      "io_list.interfaces.ahb_i_master.ports.i_hrdata",
+      "io_list.interfaces.ahb_i_master.ports.i_hresp"
+    ],
+    "status_counts": {
+      "open": 23
+    },
+    "task_count": 23
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.\nSSOT item context: value=clk.",
+      "evidence_terms": [],
+      "id": "RTL-0088",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "clk"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0089",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: i_htrans",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.i_htrans",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "cycle_model.handshake_rules.i_htrans appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.i_htrans.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.handshake_rules.\nSSOT item context: signal=i_htrans.",
+      "evidence_terms": [
+        "htrans",
+        "i_htrans"
+      ],
+      "id": "RTL-0091",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.i_htrans",
+      "ssot_context": {
+        "signal": "i_htrans"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.i_htrans"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "htrans",
+          "i_htrans"
+        ],
+        "source_scope": "rtl/arm_m0_min_if.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: d_htrans",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.d_htrans",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "cycle_model.handshake_rules.d_htrans appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.d_htrans.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.handshake_rules.\nSSOT item context: signal=d_htrans.",
+      "evidence_terms": [
+        "d_htrans",
+        "htrans"
+      ],
+      "id": "RTL-0092",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.d_htrans",
+      "ssot_context": {
+        "signal": "d_htrans"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.d_htrans"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "d_htrans",
+          "htrans"
+        ],
+        "source_scope": "rtl/arm_m0_min_if.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: d_hwdata",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.d_hwdata",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "cycle_model.handshake_rules.d_hwdata appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.d_hwdata.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.handshake_rules.\nSSOT item context: signal=d_hwdata.",
+      "evidence_terms": [
+        "d_hwdata",
+        "hwdata"
+      ],
+      "id": "RTL-0093",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.d_hwdata",
+      "ssot_context": {
+        "signal": "d_hwdata"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.d_hwdata"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "d_hwdata",
+          "hwdata"
+        ],
+        "source_scope": "rtl/arm_m0_min_if.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: IF",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.IF",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "cycle_model.pipeline.IF timing uses SSOT cycle/latency n",
+        "cycle_model.pipeline.IF appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.IF.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.pipeline.\nSSOT item context: stage=IF; action=Drive instruction address/control and capture instruction on ready; cycle=n.",
+      "evidence_terms": [],
+      "id": "RTL-0094",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.IF",
+      "ssot_context": {
+        "action": "Drive instruction address/control and capture instruction on ready",
+        "cycle": "n",
+        "stage": "IF"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.IF"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: ID",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.ID",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "cycle_model.pipeline.ID timing uses SSOT cycle/latency n+1",
+        "cycle_model.pipeline.ID appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.ID.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.pipeline.\nSSOT item context: stage=ID; action=Decode instruction and read source operands; cycle=n+1.",
+      "evidence_terms": [],
+      "id": "RTL-0095",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.ID",
+      "ssot_context": {
+        "action": "Decode instruction and read source operands",
+        "cycle": "n+1",
+        "stage": "ID"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.ID"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.\nSSOT item context: value=i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state..",
+      "evidence_terms": [
+        "hready",
+        "i_hready"
+      ],
+      "id": "RTL-0099",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "hready",
+          "i_hready"
+        ],
+        "source_scope": "rtl/arm_m0_min_if.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_1",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "cycle_model.backpressure.backpressure_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_1.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.\nSSOT item context: value=d_hready=0 stalls memory operation in EX; no duplicate commit allowed..",
+      "evidence_terms": [
+        "d_hready",
+        "hready"
+      ],
+      "id": "RTL-0100",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_1",
+      "ssot_context": {
+        "value": "d_hready=0 stalls memory operation in EX; no duplicate commit allowed."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "d_hready",
+          "hready"
+        ],
+        "source_scope": "rtl/arm_m0_min_if.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.\nSSOT item context: value=Expose stage valid/stall indicators, pc, decode class, bus handshakes, and fault_halt for waveform and checker correl....",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "ssot_context": {
+        "value": "Expose stage valid/stall indicators, pc, decode class, bus handshakes, and fault_halt for waveform and checker correl..."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module arm_m0_min_if is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.arm_m0_min_if.module_equivalence",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.arm_m0_min_if.module_equivalence.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0142",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.arm_m0_min_if.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.arm_m0_min_if.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port clk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.clk.ports.clk",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "clk width matches SSOT value 1",
+        "clk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.clk.ports.clk.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.\nSSOT item context: name=clk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.clk.ports.clk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "clk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.clk.ports.clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.rst.ports.rst",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "rst width matches SSOT value 1",
+        "rst port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.rst.ports.rst.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.\nSSOT item context: name=rst; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.rst.ports.rst",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rst",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.rst.ports.rst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port i_haddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_i_master.ports.i_haddr",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "i_haddr width matches SSOT value 32",
+        "i_haddr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_i_master.ports.i_haddr.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.\nSSOT item context: name=i_haddr; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_haddr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "i_haddr",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_i_master.ports.i_haddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port i_htrans",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_i_master.ports.i_htrans",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "i_htrans width matches SSOT value 2",
+        "i_htrans port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_i_master.ports.i_htrans.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.\nSSOT item context: name=i_htrans; width=2; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_htrans",
+      "ssot_context": {
+        "direction": "output",
+        "name": "i_htrans",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_i_master.ports.i_htrans"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port i_hwrite",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_i_master.ports.i_hwrite",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "i_hwrite width matches SSOT value 1",
+        "i_hwrite port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_i_master.ports.i_hwrite.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.\nSSOT item context: name=i_hwrite; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hwrite",
+      "ssot_context": {
+        "direction": "output",
+        "name": "i_hwrite",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_i_master.ports.i_hwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port i_hsize",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_i_master.ports.i_hsize",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "i_hsize width matches SSOT value 3",
+        "i_hsize port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_i_master.ports.i_hsize.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.\nSSOT item context: name=i_hsize; width=3; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hsize",
+      "ssot_context": {
+        "direction": "output",
+        "name": "i_hsize",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_i_master.ports.i_hsize"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port i_hburst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_i_master.ports.i_hburst",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "i_hburst width matches SSOT value 3",
+        "i_hburst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_i_master.ports.i_hburst.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.\nSSOT item context: name=i_hburst; width=3; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hburst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "i_hburst",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_i_master.ports.i_hburst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port i_hprot",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_i_master.ports.i_hprot",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "i_hprot width matches SSOT value 4",
+        "i_hprot port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_i_master.ports.i_hprot.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.\nSSOT item context: name=i_hprot; width=4; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hprot",
+      "ssot_context": {
+        "direction": "output",
+        "name": "i_hprot",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_i_master.ports.i_hprot"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port i_hmastlock",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_i_master.ports.i_hmastlock",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "i_hmastlock width matches SSOT value 1",
+        "i_hmastlock port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_i_master.ports.i_hmastlock.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.\nSSOT item context: name=i_hmastlock; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hmastlock",
+      "ssot_context": {
+        "direction": "output",
+        "name": "i_hmastlock",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_i_master.ports.i_hmastlock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port i_hready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_i_master.ports.i_hready",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "i_hready width matches SSOT value 1",
+        "i_hready port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_i_master.ports.i_hready.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.\nSSOT item context: name=i_hready; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hready",
+      "ssot_context": {
+        "direction": "input",
+        "name": "i_hready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_i_master.ports.i_hready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port i_hrdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_i_master.ports.i_hrdata",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "i_hrdata width matches SSOT value 32",
+        "i_hrdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_i_master.ports.i_hrdata.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.\nSSOT item context: name=i_hrdata; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hrdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "i_hrdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_i_master.ports.i_hrdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port i_hresp",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_i_master.ports.i_hresp",
+        "Primary implementation evidence is in rtl/arm_m0_min_if.sv",
+        "i_hresp width matches SSOT value 1",
+        "i_hresp port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_i_master.ports.i_hresp.\nOwner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.\nSSOT item context: name=i_hresp; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hresp",
+      "ssot_context": {
+        "direction": "input",
+        "name": "i_hresp",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_i_master.ports.i_hresp"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arm_m0_min_if.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a70eeedfb17c143e2e962a82c44a8b0edf3adcdded649e82f935de86a45a7092",
+  "top": "arm_m0_min",
+  "type": "rtl_authoring_packet"
+}
