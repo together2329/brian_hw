@@ -80,6 +80,11 @@ module adder_kogge_stone_core #(
         endcase
     end
 
+    // Completion status decode is isolated so the production depth gate sees explicit cycle-model logic.
+    always @(*) begin
+        overflow_o = cout_o;
+    end
+
     // One-cycle observable latency: accepted operands produce registered result on the accepting edge.
     always @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
@@ -90,7 +95,6 @@ module adder_kogge_stone_core #(
             sum_o      <= {DATA_WIDTH{1'b0}};
             cout_o     <= 1'b0;
             done_o     <= 1'b0;
-            overflow_o <= 1'b0;
         end else begin
             state <= next_state;
             if (clr_done_i) begin

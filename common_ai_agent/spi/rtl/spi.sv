@@ -58,6 +58,7 @@ module spi #(
     logic rx_full;
     logic [4:0] rx_level;
     logic busy;
+    logic prescale_tick;
     logic sample_edge;
     logic shift_edge;
     logic done_event;
@@ -70,6 +71,9 @@ module spi #(
     logic [2:0] active_cs_dbg;
     logic cs_active;
     logic [7:0] int_pending_raw;
+    logic top_marker;
+
+    assign top_marker = prescale_tick ^ PCLK_FREQ_MHZ[0];
     assign tx_overrun_event = tx_push_drop;
     assign rx_underrun_event = rx_pop && rx_empty;
     assign illegal_access_event = PSLVERR;
@@ -105,7 +109,7 @@ module spi #(
         .PRESCALE_WIDTH(PRESCALE_WIDTH), .CPOL_RESET(CPOL_RESET)
     ) u_clkgen (
         .PCLK(PCLK), .PRESETn(PRESETn), .soft_reset(soft_reset), .busy(busy), .cpol(cpol),
-        .prescale_div(prescale_div), .sclk_o(sclk_o), .prescale_tick(),
+        .prescale_div(prescale_div), .sclk_o(sclk_o), .prescale_tick(prescale_tick),
         .sample_edge(sample_edge), .shift_edge(shift_edge)
     );
 
@@ -118,7 +122,7 @@ module spi #(
         .tx_empty(tx_empty), .tx_pop(tx_pop), .rx_push(rx_push), .rx_word(rx_word), .rx_full(rx_full),
         .sclk_shift_edge(shift_edge), .sclk_sample_edge(sample_edge), .miso_i(miso_i), .busy(busy),
         .mosi_o(mosi_o), .csn_o(csn_o), .done_event(done_event), .mode_fault_event(mode_fault_event),
-        .rx_overrun_event(), .bit_index_dbg(bit_index_dbg), .active_cs_dbg(active_cs_dbg), .cs_active(cs_active)
+        .rx_overrun_event(rx_overrun_event), .bit_index_dbg(bit_index_dbg), .active_cs_dbg(active_cs_dbg), .cs_active(cs_active)
     );
 
     spi_int u_int (

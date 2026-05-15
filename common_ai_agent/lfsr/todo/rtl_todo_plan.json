@@ -35,12 +35,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 4,
+    "open_required_todos": 2,
     "orphan_tasks": 0,
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:13:09Z",
+  "generated_at": "2026-05-15T02:16:41Z",
   "ip": "lfsr",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 3,
@@ -112,7 +112,7 @@
       "control_flow": 15,
       "depth_score": 150,
       "instances": 0,
-      "lines": 199,
+      "lines": 200,
       "logic_modules": 1,
       "modules": 1,
       "nonconstant_assigns": 23,
@@ -724,9 +724,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -916,9 +916,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 top IO contract issue(s) remain. PADDR: RTL top port width/range does not match SSOT; PWDATA: RTL top port width/range does not match SSOT; PRDATA: RTL top port width/range does not match SSOT",
+        "reason": "SSOT top IO contracts match the RTL top declaration.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1344,7 +1344,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 required non-closure TODO(s) remain open.",
+        "reason": "1 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -6819,20 +6819,8 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 4,
+    "open_required_tasks": 2,
     "open_tasks": [
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "4 top IO contract issue(s) remain. PADDR: RTL top port width/range does not match SSOT; PWDATA: RTL top port width/range does not match SSOT; PRDATA: RTL top port width/range does not match SSOT",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "task_id": "RTL-0010"
-      },
       {
         "category": "rtl_gate.rtl_gen",
         "reason": "1 SSOT connection contract issue(s) remain. lfsr_regs: SSOT connection contract targets a module not declared in RTL",
@@ -6841,12 +6829,12 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "3 required non-closure TODO(s) remain open.",
+        "reason": "1 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       }
     ],
-    "required_passed": 120,
+    "required_passed": 122,
     "required_total": 124,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
@@ -6877,41 +6865,16 @@
       "prbs_out",
       "prbs_valid"
     ],
-    "issues": [
-      {
-        "actual_range": "[7:0]",
-        "expected_width": "APB_ADDR_WIDTH",
-        "issue": "RTL top port width/range does not match SSOT",
-        "port": "PADDR",
-        "source_ref": "io_list.interfaces[0].ports[0]"
-      },
-      {
-        "actual_range": "[31:0]",
-        "expected_width": "APB_DATA_WIDTH",
-        "issue": "RTL top port width/range does not match SSOT",
-        "port": "PWDATA",
-        "source_ref": "io_list.interfaces[0].ports[4]"
-      },
-      {
-        "actual_range": "[31:0]",
-        "expected_width": "APB_DATA_WIDTH",
-        "issue": "RTL top port width/range does not match SSOT",
-        "port": "PRDATA",
-        "source_ref": "io_list.interfaces[0].ports[5]"
-      },
-      {
-        "actual_range": "[31:0]",
-        "expected_width": "LFSR_WIDTH",
-        "issue": "RTL top port width/range does not match SSOT",
-        "port": "prbs_out",
-        "source_ref": "io_list.interfaces[1].ports[0]"
-      }
-    ],
+    "issues": [],
     "roots": [
       "lfsr"
     ],
-    "status": "fail",
-    "top_parameters": {}
+    "status": "pass",
+    "top_parameters": {
+      "APB_ADDR_WIDTH": 8,
+      "APB_DATA_WIDTH": 32,
+      "LFSR_WIDTH": 32
+    }
   },
   "top_output_drive_evidence": {
     "checked": 6,

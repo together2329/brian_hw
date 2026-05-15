@@ -62,8 +62,10 @@ module priority_enc #(
         .PCLK(PCLK),
         .PRESETn(PRESETn),
         .data_in(data_in),
-        .enable_i(ctrl_enable),
+        .enable_i(fsm_active),
         .mask_i(mask),
+        .PADDR(PADDR),
+        .PWRITE(PWRITE),
         .index_out(core_index),
         .valid_out(core_valid)
     );

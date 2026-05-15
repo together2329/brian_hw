@@ -7,7 +7,7 @@
   "ip": "lfsr",
   "ssot": "lfsr/yaml/lfsr.ssot.yaml",
   "todo_plan": "lfsr/rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "3a9e6fb31d70f2b14edb5fc51ad59d506e97586d8c5c57c6bd0d7167c92318e4",
+  "todo_plan_sha256": "14a7352fdb74fca48fa0b1eca32de7467de9d2df7240a600292059629b27c486",
   "rtl_files": [
     "lfsr/rtl/lfsr.sv"
   ],

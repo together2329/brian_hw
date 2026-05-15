@@ -19,9 +19,6 @@ module lfsr #(
     output logic                      prbs_bit,
     output logic                      prbs_valid
 );
-    localparam integer LFSR_WIDTH = 32;
-    localparam integer APB_ADDR_WIDTH = 8;
-    localparam integer APB_DATA_WIDTH = 32;
     localparam [LFSR_WIDTH-1:0] DEFAULT_POLY = 32'h80000057;
     localparam [LFSR_WIDTH-1:0] DEFAULT_SEED = 32'h00000001;
 

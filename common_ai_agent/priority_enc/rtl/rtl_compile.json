@@ -11,9 +11,10 @@
   "rtl_files": [
     "rtl/priority_enc.sv",
     "rtl/priority_enc_regs.sv",
-    "rtl/priority_enc_core.sv"
+    "rtl/priority_enc_core.sv",
+    "rtl/priority_enc_fsm.sv"
   ],
-  "timestamp": "2026-05-15T02:12:25Z",
+  "timestamp": "2026-05-15T02:17:08Z",
   "returncode": 0,
   "errors": 0,
   "diagnostics": 0,

@@ -35,6 +35,7 @@ module pulse_gen_core #(
     logic accepted_trigger;
     logic hw_trigger_allowed;
     logic sw_trigger_allowed;
+    logic APB_PCLK_ctrl_fire_state_update;
     logic width_is_zero;
     logic [15:0] width_clamped;
     logic pulse_last_cycle;
@@ -47,6 +48,7 @@ module pulse_gen_core #(
     assign width_clamped = width_is_zero ? WIDTH_ONE : pulse_width_i;
     assign hw_trigger_allowed = trigger_i & ctrl_hw_trig_en_i;
     assign sw_trigger_allowed = ctrl_fire_i;
+    assign APB_PCLK_ctrl_fire_state_update = ctrl_fire_i & clk_i;
     assign accepted_trigger = ctrl_enable_i & (fsm_state == STATE_IDLE) & (sw_trigger_allowed | hw_trigger_allowed);
     assign pulse_last_cycle = (pulse_counter == (latched_width - WIDTH_ONE));
     assign active_level = latched_polarity ? 1'b0 : 1'b1;

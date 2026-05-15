@@ -32,6 +32,8 @@ sub_modules:
   dataflow_refs:
   - dataflow.write_path
   - dataflow.read_path
+  decomposition_refs:
+  - decomposition.units.storage
   description: Dual-port SRAM array and pointer-based storage
 - name: fifo_sync_ptrs
   file: rtl/fifo_sync_ptrs.sv
@@ -47,6 +49,8 @@ sub_modules:
   - fsm
   function_model_refs:
   - function_model.state_variables
+  decomposition_refs:
+  - decomposition.units.pointer_control
   cycle_model_refs:
   - cycle_model.pipeline
   - cycle_model.handshake_rules
@@ -65,6 +69,8 @@ sub_modules:
   - cycle_model
   function_model_refs:
   - function_model.transactions
+  decomposition_refs:
+  - decomposition.units.flag_generation
   cycle_model_refs:
   - cycle_model.latency
   description: 'Combinational flag generation: full, empty, almost_full, almost_empty, count'
@@ -80,6 +86,8 @@ sub_modules:
   - io_list
   register_refs:
   - registers.register_list
+  decomposition_refs:
+  - decomposition.units.csr_access
   description: APB-lite CSR decode for status/config/control registers (parameterized by USE_APB)
 - name: fifo_sync_output_reg
   file: rtl/fifo_sync_output_reg.sv

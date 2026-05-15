@@ -4,22 +4,18 @@
 
 - Top: lfsr
 - Packets: 16
-- LLM-actionable tasks: 1
+- LLM-actionable tasks: 0
 - Human-locked tasks: 1
-- Tool-evidence tasks: 2
+- Tool-evidence tasks: 1
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: False
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
 
-## Next LLM Packets
-
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=1, human_locked=0)
-
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=2, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=1, next_tool=audit-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 

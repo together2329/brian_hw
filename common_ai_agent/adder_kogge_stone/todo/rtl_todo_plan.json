@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 16,
+    "open_required_todos": 14,
     "orphan_tasks": 6,
-    "static_missing": 1,
+    "static_missing": 0,
     "status": "blocked"
   },
-  "generated_at": "2026-05-15T02:12:23Z",
+  "generated_at": "2026-05-15T02:16:27Z",
   "ip": "adder_kogge_stone",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 4,
@@ -169,21 +169,21 @@
   "rtl_implementation_depth_evidence": {
     "aggregate": {
       "behavior_owner_logic_modules": 3,
-      "control_flow": 10,
-      "depth_score": 163,
+      "control_flow": 11,
+      "depth_score": 154,
       "instances": 2,
-      "lines": 349,
+      "lines": 353,
       "logic_modules": 3,
       "modules": 3,
       "nonconstant_assigns": 27,
-      "procedural_blocks": 4,
+      "procedural_blocks": 5,
       "source_files": 3,
-      "state_updates": 33,
-      "storage_decls": 44
+      "state_updates": 26,
+      "storage_decls": 45
     },
     "issues": [
       {
-        "actual": 4,
+        "actual": 5,
         "issue": "Production RTL procedural block count is below the SSOT-locked target scale",
         "required": 6,
         "source": "quality_gates.rtl_gen.target_scale"
@@ -191,7 +191,7 @@
     ],
     "modules": [
       {
-        "depth_score": 70,
+        "depth_score": 71,
         "file": "rtl/adder_kogge_stone_core.sv",
         "metrics": {
           "control_flow": 6,
@@ -200,20 +200,20 @@
           "placeholder_tokens": false,
           "procedural_blocks": 2,
           "state_updates": 17,
-          "storage_decls": 15
+          "storage_decls": 16
         },
         "module": "adder_kogge_stone_core"
       },
       {
-        "depth_score": 65,
+        "depth_score": 55,
         "file": "rtl/adder_kogge_stone_regs.sv",
         "metrics": {
-          "control_flow": 4,
+          "control_flow": 5,
           "instances": 0,
           "nonconstant_assigns": 11,
           "placeholder_tokens": false,
-          "procedural_blocks": 2,
-          "state_updates": 16,
+          "procedural_blocks": 3,
+          "state_updates": 9,
           "storage_decls": 12
         },
         "module": "adder_kogge_stone_regs"
@@ -514,23 +514,9 @@
   ],
   "static_rtl_evidence": {
     "checked": 26,
-    "missing": 1,
-    "missing_tasks": [
-      {
-        "category": "function_model.error_case",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "APB"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.error_cases.error_case_1",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0072"
-      }
-    ],
-    "passed": 25,
+    "missing": 0,
+    "missing_tasks": [],
+    "passed": 26,
     "sources": [
       "rtl/adder_kogge_stone.sv",
       "rtl/adder_kogge_stone_core.sv",
@@ -992,9 +978,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1564,7 +1550,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "15 required non-closure TODO(s) remain open.",
+        "reason": "13 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1713,7 +1699,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 production RTL implementation-depth issue(s) remain. Production RTL procedural block count is below the SSOT-locked target scale: actual=4 required=6",
+        "reason": "1 production RTL implementation-depth issue(s) remain. Production RTL procedural block count is below the SSOT-locked target scale: actual=5 required=6",
         "required": true,
         "status": "open"
       }
@@ -4435,8 +4421,10 @@
         "function_model.transactions.FM_ADD.error_cases.error_case_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "APB"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -4444,7 +4432,7 @@
           "APB"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -4454,9 +4442,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8138,7 +8126,7 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 16,
+    "open_required_tasks": 14,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
@@ -8148,13 +8136,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "task_id": "RTL-0007"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "15 required non-closure TODO(s) remain open.",
+        "reason": "13 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -8166,7 +8148,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "1 production RTL implementation-depth issue(s) remain. Production RTL procedural block count is below the SSOT-locked target scale: actual=4 required=6",
+        "reason": "1 production RTL implementation-depth issue(s) remain. Production RTL procedural block count is below the SSOT-locked target scale: actual=5 required=6",
         "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
         "task_id": "RTL-0022"
       },
@@ -8193,12 +8175,6 @@
         "reason": "Missing coverage closure artifact: cov/coverage.json.",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "task_id": "RTL-0026"
-      },
-      {
-        "category": "function_model.error_case",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.FM_ADD.error_cases.error_case_1",
-        "task_id": "RTL-0072"
       },
       {
         "category": "fsm.state",
@@ -8237,7 +8213,7 @@
         "task_id": "RTL-0119"
       }
     ],
-    "required_passed": 130,
+    "required_passed": 132,
     "required_total": 146,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

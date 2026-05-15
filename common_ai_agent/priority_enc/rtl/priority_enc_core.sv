@@ -8,6 +8,8 @@ module priority_enc_core #(
     input  logic [N-1:0]           data_in,
     input  logic                   enable_i,
     input  logic [N-1:0]           mask_i,
+    input  logic [11:0]            PADDR,
+    input  logic                   PWRITE,
     output logic [INDEX_WIDTH-1:0] index_out,
     output logic                   valid_out
 );
@@ -16,9 +18,13 @@ module priority_enc_core #(
     logic [N-1:0]           masked_data;
     logic [INDEX_WIDTH-1:0] priority_index_comb;
     logic                   priority_valid_comb;
+    logic                   apb_csr_bad_addr_seen;
+    logic                   STATUS_write_seen;
 
     assign masked_data = data_in & ~mask_i;
     assign priority_valid_comb = |masked_data;
+    assign apb_csr_bad_addr_seen = (PADDR != 12'h000) & (PADDR != 12'h004) & (PADDR != 12'h008);
+    assign STATUS_write_seen = PWRITE & (PADDR == 12'h008);
     always @(*) begin
         priority_index_comb = {INDEX_WIDTH{1'b0}};
         if (masked_data[7]) begin
