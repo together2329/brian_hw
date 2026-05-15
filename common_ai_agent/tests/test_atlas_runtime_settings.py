@@ -96,6 +96,43 @@ def test_model_endpoint_uses_non_empty_dropdown_slots(tmp_path, monkeypatch):
     assert "LLM_ACTIVE_BASE_NAME=model-b" in saved
 
 
+def test_healthz_keeps_cli_model_override_over_stale_dropdown(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    import src.config as config
+
+    _clear_runtime_env(monkeypatch)
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("LLM_MODEL_NAME", "gpt-5.3-codex")
+    monkeypatch.setenv("MODEL_NAME", "gpt-5.3-codex")
+    monkeypatch.setenv("LLM_BASE_URL", "https://chatgpt.com/backend-api/codex")
+    monkeypatch.setenv("LLM_RUNTIME_MODEL_OVERRIDE", "1")
+    monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    env_path = tmp_path / ".env"
+    env_path.write_text(
+        "\n".join([
+            "LLM_BASE_NAME=glm-5.1",
+            "LLM_MODEL_NAME=glm-5.1",
+            "LLM_SELECTED_MODEL_KEY=LLM_BASE_NAME",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(config, "_env_search_paths", lambda: [env_path])
+    config._ENV_MTIME_CACHE.clear()
+    config._refresh_runtime_globals()
+
+    client = TestClient(atlas_ui.create_app())
+    response = client.get("/healthz")
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["model"] == "gpt-5.3-codex"
+    assert payload["base_model"] == "gpt-5.3-codex"
+    assert os.environ["LLM_MODEL_NAME"] == "gpt-5.3-codex"
+
+
 def test_config_resolves_pdk_paths_from_source_root(monkeypatch):
     import src.config as config
 

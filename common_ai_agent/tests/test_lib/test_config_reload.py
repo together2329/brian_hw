@@ -97,6 +97,43 @@ class TestReloadEnv(unittest.TestCase):
         cfg.reload_env()
         self.assertEqual(os.environ["ACTIVE_WORKSPACE"], "tb-gen")
 
+    def test_reload_env_does_not_rollback_runtime_model_override(self):
+        """CLI/slash model switches must not be reverted by .env hot reload.
+
+        This covers `textual_main.py --model gpt-5.3-codex`: healthz calls
+        reload_env(), but the UI must keep showing the runtime model instead
+        of a stale dropdown selection from .env.
+        """
+        import tempfile
+
+        os.environ["LLM_MODEL_NAME"] = "gpt-5.3-codex"
+        os.environ["MODEL_NAME"] = "gpt-5.3-codex"
+        os.environ["LLM_BASE_URL"] = "https://chatgpt.com/backend-api/codex"
+        os.environ["LLM_RUNTIME_MODEL_OVERRIDE"] = "1"
+        cfg = _fresh_config(os.environ)
+        self.assertEqual(cfg.MODEL_NAME, "gpt-5.3-codex")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            env_path = Path(tmp) / ".env"
+            env_path.write_text(
+                "\n".join([
+                    "LLM_MODEL_NAME=glm-5.1",
+                    "LLM_SELECTED_MODEL_KEY=LLM_MODEL_NAME",
+                    "LLM_PROFILE=glm",
+                    "PROFILE_glm_MODEL=glm-5.1",
+                    "PROFILE_glm_BASE_URL=https://api.z.ai/api/coding/paas/v4",
+                    "",
+                ]),
+                encoding="utf-8",
+            )
+            with mock.patch.object(cfg, "_env_search_paths", return_value=[env_path]):
+                cfg._ENV_MTIME_CACHE.clear()
+                cfg.reload_env()
+
+        self.assertEqual(cfg.MODEL_NAME, "gpt-5.3-codex")
+        self.assertEqual(os.environ["LLM_MODEL_NAME"], "gpt-5.3-codex")
+        self.assertEqual(os.environ["LLM_BASE_URL"], "https://chatgpt.com/backend-api/codex")
+
 
 class TestProfileSystem(unittest.TestCase):
     """list_profiles / get_profile / set_active_profile contract."""

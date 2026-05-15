@@ -2441,11 +2441,17 @@ def chat_loop():
                     elif result.startswith("MODEL_SWITCH:"):
                         target = result.split(":", 1)[1]
                         if target == "1":
+                            _mark_override = getattr(config, "mark_runtime_model_override", None)
+                            if callable(_mark_override):
+                                _mark_override()
                             config.MODEL_NAME = config.PRIMARY_MODEL
                             os.environ["LLM_MODEL_NAME"] = config.MODEL_NAME
                             os.environ["MODEL_NAME"] = config.MODEL_NAME
                             print(Color.success(f"\n✅ Model switched to: {config.MODEL_NAME}\n"))
                         elif target == "2":
+                            _mark_override = getattr(config, "mark_runtime_model_override", None)
+                            if callable(_mark_override):
+                                _mark_override()
                             config.MODEL_NAME = config.SECONDARY_MODEL
                             os.environ["LLM_MODEL_NAME"] = config.MODEL_NAME
                             os.environ["MODEL_NAME"] = config.MODEL_NAME
@@ -2491,6 +2497,9 @@ def chat_loop():
                             _deact_cli = getattr(config, "deactivate_cli_backends", None)
                             if callable(_deact_cli):
                                 _deact_cli()
+                            _mark_override = getattr(config, "mark_runtime_model_override", None)
+                            if callable(_mark_override):
+                                _mark_override()
                             config.MODEL_NAME = target
                             os.environ["LLM_MODEL_NAME"] = config.MODEL_NAME
                             os.environ["MODEL_NAME"] = config.MODEL_NAME
@@ -2863,6 +2872,9 @@ if __name__ == "__main__":
             _deact_cli = getattr(config, "deactivate_cli_backends", None)
             if callable(_deact_cli):
                 _deact_cli()
+            _mark_override = getattr(config, "mark_runtime_model_override", None)
+            if callable(_mark_override):
+                _mark_override()
             config.MODEL_NAME = _m
             os.environ['LLM_MODEL_NAME'] = _m
             os.environ['MODEL_NAME'] = _m

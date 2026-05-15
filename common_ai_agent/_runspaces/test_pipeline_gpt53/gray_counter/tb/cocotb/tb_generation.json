@@ -3,7 +3,7 @@
   "type": "generic_goal_scoreboard_cocotb_generation",
   "status": "pass",
   "ip": "gray_counter",
-  "generated_at": "2026-05-15T09:17:34Z",
+  "generated_at": "2026-05-15T09:29:52Z",
   "manifest": "gray_counter/tb/cocotb/tb_manifest.json",
   "test": "gray_counter/tb/cocotb/test_gray_counter.py",
   "runner": "gray_counter/tb/cocotb/test_runner.py",

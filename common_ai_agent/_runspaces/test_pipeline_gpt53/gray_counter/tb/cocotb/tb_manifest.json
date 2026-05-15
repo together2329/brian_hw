@@ -3,7 +3,7 @@
   "type": "generic_goal_scoreboard_cocotb_manifest",
   "ip": "gray_counter",
   "top": "gray_counter",
-  "generated_at": "2026-05-15T09:17:34Z",
+  "generated_at": "2026-05-15T09:29:52Z",
   "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
   "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
   "ssot": "gray_counter/yaml/gray_counter.ssot.yaml",

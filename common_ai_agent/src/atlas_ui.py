@@ -96,6 +96,7 @@ _REASONING_EFFORT_ALIASES = {
 _MODEL_OPTION_KEYS = ("LLM_MODEL_NAME", "LLM_MODEL_NAME_2", "LLM_MODEL_NAME_3")
 _BASE_MODEL_OPTION_KEYS = ("LLM_BASE_NAME", "LLM_BASE_NAME_2", "LLM_BASE_NAME_3")
 _LEGACY_MODEL_OPTION_KEYS = ("LLM_BASE_MODEL", "LLM_BASE_MODEL_2", "LLM_BASE_MODEL_3")
+_RUNTIME_MODEL_OPTION_KEY = "__runtime_model__"
 
 _atlas_active_session_cv = contextvars.ContextVar("atlas_active_session", default="")
 _atlas_active_ip_cv = contextvars.ContextVar("atlas_active_ip", default="")
@@ -269,6 +270,13 @@ def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
         if not selected and active_model and row["model"] == active_model:
             selected = row["key"]
             break
+    if active_model and not selected and not active_model.lower().startswith("default"):
+        rows.insert(0, {
+            "key": _RUNTIME_MODEL_OPTION_KEY,
+            "model": active_model,
+            "runtime": "true",
+        })
+        selected = _RUNTIME_MODEL_OPTION_KEY
     if not selected and rows:
         selected = rows[0]["key"]
     for row in rows:
@@ -278,6 +286,7 @@ def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
 
 def _set_runtime_model(model: str, selected_key: str = "") -> None:
     activated_cli = False
+    os.environ["LLM_RUNTIME_MODEL_OVERRIDE"] = "1"
     os.environ["LLM_MODEL_NAME"] = model
     os.environ["MODEL_NAME"] = model
     os.environ["LLM_ACTIVE_MODEL_NAME"] = model
@@ -875,6 +884,13 @@ def create_app():
                 "error": "unknown or empty model option",
                 "model_options": options,
             }, status_code=400)
+        if selected.get("runtime") == "true":
+            return JSONResponse({
+                "ok": True,
+                "model": selected["model"],
+                "selected_model_key": selected["key"],
+                "model_options": options,
+            })
 
         model = selected["model"]
         try:

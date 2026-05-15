@@ -294,6 +294,9 @@ if __name__ == "__main__":
             _deact_cli = getattr(config, "deactivate_cli_backends", None)
             if callable(_deact_cli):
                 _deact_cli()
+            _mark_override = getattr(config, "mark_runtime_model_override", None)
+            if callable(_mark_override):
+                _mark_override()
             config.MODEL_NAME = _m
             os.environ['LLM_MODEL_NAME'] = _m
             os.environ['MODEL_NAME'] = _m

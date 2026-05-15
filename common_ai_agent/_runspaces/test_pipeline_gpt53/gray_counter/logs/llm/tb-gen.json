@@ -1,31 +1,31 @@
 {
   "error": "model output did not contain expected JSON object with files[] tb-gen artifact",
   "finish_reason": "",
-  "finished_at": "2026-05-15T09:17:34Z",
+  "finished_at": "2026-05-15T09:29:51Z",
   "input_hash": "ce6f6e524a0148f3c4d1bf38123bf26cae7439a53d6bafdcde45f20c757f1cba",
   "model": "gpt-5.3-codex",
-  "output_hash": "bd74fd24eb44507cb3942590da05fd23693b260b06cc13f3b9cf7c02c46024f7",
+  "output_hash": "1dca7386a4b936e8967ff67b8808e987b2c59aa63c17c4e414559ecf7b3ccee0",
   "parsed_artifacts": [],
   "prompt_hash": "429715b6d38c6d12db29d639e6cbb6b6c2d0b038740844015bfb8289dc6464b9",
-  "raw_response": "{\n  \"module\": \"gray_counter\",\n  \"request\": \"Prepare tb-gen using equivalence goals + FunctionalModel + RTL contract, with scoreboard calling FunctionalModel (no handwritten expected behavior).\",\n  \"status\": \"prepared\",\n  \"backend\": \"ssot-tb-cocotb\",\n  \"inputs\": {\n    \"equivalence_goals\": \"gray_counter/verify/equivalence_goals.json\",\n    \"functional_model\": \"gray_counter/model/functional_model.py\",\n    \"rtl_contract\": \"gray_counter/rtl/rtl_contract.json\"\n  },\n  \"tb_architecture\": {\n    \"directory\": \"gray_counter/tb/cocotb\",\n    \"files\": [\n      \"transactions.py\",\n      \"sequences.py\",\n      \"agents.py\",\n      \"scoreboard.py\",\n      \"coverage.py\",\n      \"uvm_env.py\",\n      \"test_gray_counter.py\",\n      \"test_runner.py\"\n    ],\n    \"artifacts\": [\n      \"gray_counter/sim/scoreboard_events.jsonl\",\n      \"gray_counter/sim/results.xml\",\n      \"gray_counter/sim/gray_counter.vcd\",\n      \"gray_counter/cov/coverage_functional.json\"\n    ]\n  },\n  \"scoreboard_contract\": {\n    \"implementation\": \"Use EquivalenceScoreboard from workflow/tb-gen/runtime/equivalence_scoreboard.py (or equivalent imported adapter).\",\n    \"expected_source\": \"FunctionalModel.apply from gray_counter/model/functional_model.py\",\n    \"forbidden\": [\n      \"Hardcoded expected-value logic in scoreboard\",\n      \"Re-implementing gray-counter behavior in checker\",\n      \"Adapting expected values to observed DUT output\"\n    ],\n    \"required_event_fields\": [\n      \"goal_id\",\n      \"scenario_id\",\n      \"cycle\",\n      \"stimulus\",\n      \"fl_expected\",\n      \"rtl_observed\",\n      \"passed\",\n      \"mismatch\",\n      \"coverage_refs\"\n    ]\n  },\n  \"scenario_derivation\": {\n    \"source_priority\": [\n      \"equivalence_goals.json\",\n      \"rtl_contract.json\"\n    ],\n    \"mapping_rule\": \"Each equivalence goal becomes at least one scenario/check with explicit DUT stimulus and module-boundary observation.\"\n  },\n  \"checks_to_run\": [\n    {\n      \"name\": \"equivalence_scoreboard_self_check\",\n      \"command_linux_macos\": \"python3 workflow/tb-gen/runtime/equivalence_scoreboard.py gray_counter --root . --self-check\",\n      \"command_windows\": \"python workflow/tb-gen/runtime/equivalence_scoreboard.py gray_counter --root . --self-check\"\n    }\n  ],\n  \"compliance\": {\n    \"functional_model_used_for_expected\": true,\n    \"handwritten_expected_behavior\": false,\n    \"module_scope_observation_required\": true\n  },\n  \"ssot_tbd_report\": [\n    \"No SSOT YAML file path was provided in this request; if SSOT-only signoff is required, provide gray_counter/yaml/*.yaml with test_requirements and coverage_goals.\"\n  ]\n}",
+  "raw_response": "{\n  \"module\": \"gray_counter\",\n  \"request\": \"Prepare tb-gen using equivalence goals + FunctionalModel without duplicating expected behavior\",\n  \"status\": \"blocked_pending_ssot\",\n  \"backend\": \"ssot-tb-cocotb\",\n  \"inputs\": {\n    \"equivalence_goals\": \"gray_counter/verify/equivalence_goals.json\",\n    \"functional_model\": \"gray_counter/model/functional_model.py\",\n    \"rtl_contract\": \"gray_counter/rtl/rtl_contract.json\"\n  },\n  \"tb_strategy\": {\n    \"scoreboard_source_of_truth\": \"FunctionalModel.apply via EquivalenceScoreboard\",\n    \"no_hand_coded_expected_behavior\": true,\n    \"required_scoreboard_artifact\": \"gray_counter/sim/scoreboard_events.jsonl\",\n    \"required_row_fields\": [\n      \"goal_id\",\n      \"scenario_id\",\n      \"cycle\",\n      \"stimulus\",\n      \"fl_expected\",\n      \"rtl_observed\",\n      \"passed\",\n      \"mismatch\",\n      \"coverage_refs\"\n    ],\n    \"goal_id_source\": \"gray_counter/verify/equivalence_goals.json\",\n    \"scope_requirement\": \"For any scope.level=module goal, rtl_observed must be DUT boundary observations (not copied FL outputs).\"\n  },\n  \"required_tb_layout\": [\n    \"gray_counter/tb/cocotb/test_gray_counter.py\",\n    \"gray_counter/tb/cocotb/test_runner.py\",\n    \"gray_counter/tb/cocotb/transactions.py\",\n    \"gray_counter/tb/cocotb/sequences.py\",\n    \"gray_counter/tb/cocotb/agents.py\",\n    \"gray_counter/tb/cocotb/scoreboard.py\",\n    \"gray_counter/tb/cocotb/coverage.py\",\n    \"gray_counter/tb/cocotb/uvm_env.py\"\n  ],\n  \"runtime_requirements\": {\n    \"equivalence_self_check\": \"python3 workflow/tb-gen/runtime/equivalence_scoreboard.py gray_counter --root . --self-check\",\n    \"bounded_execution_policy\": [\n      \"Run single reset/default testcase first using COCOTB_TESTCASE=<single_test>\",\n      \"Run one representative transfer testcase second\",\n      \"Enable full regression only after both bounded probes pass\"\n    ],\n    \"pass_fail_enforcement\": \"Any failed SSOT/equivalence check must raise AssertionError (no log-only failures).\"\n  },\n  \"ssot_tbd_report\": [\n    {\n      \"tag\": \"[SSOT TBD REPORT] -> ssot-gen\",\n      \"missing\": \"SSOT YAML not provided under gray_counter/yaml/\",\n      \"required_fields\": [\n        \"test_requirements.scenarios\",\n        \"test_requirements.scoreboard_checks\",\n        \"function_model section linkage\",\n        \"cycle_model latency/handshake rules\",\n        \"coverage_goals\",\n        \"quality_gates pass criteria\"\n      ],\n      \"impact\": \"Cannot declare TB DONE or scenario-complete verification without SSOT-derived stimulus/expected/coverage authority.\"\n    }\n  ],\n  \"acceptance_constraints\": {\n    \"ssot_tbd_must_be_none_for_done\": true,\n    \"no_expected_value_reimplementation\": true,\n    \"sim_failures_require_escalation\": \"[SIM ESCALATE] -> rtl-gen with expected/got evidence\"\n  },\n  \"next_action_needed\": \"Provide gray_counter SSOT YAML (e.g., gray_counter/yaml/gray_counter.ssot.yaml) so tb-gen can generate scenario-complete cocotb/pyuvm tests and run signoff.\"\n}",
   "stage": "tb-gen",
-  "started_at": "2026-05-15T09:17:08Z",
+  "started_at": "2026-05-15T09:29:30Z",
   "status": "blocked",
   "usage": {
     "cache_created": 0,
-    "cache_read": 0,
+    "cache_read": 6400,
     "cost": {
       "pricing_per_1m": {
         "cache": 0.26,
         "input": 1.4,
         "output": 4.4
       },
-      "usd": 0.012901999999999999
+      "usd": 0.006257200000000001
     },
     "input": 6604,
-    "output": 831,
-    "total": 7435,
+    "output": 979,
+    "total": 7583,
     "total_cache_created": 0,
-    "total_cache_read": 0
+    "total_cache_read": 6400
   }
 }

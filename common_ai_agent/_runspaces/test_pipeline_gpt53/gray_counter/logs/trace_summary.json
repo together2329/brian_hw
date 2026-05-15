@@ -30,35 +30,40 @@
         "total_tokens": 86610
       },
       "tb-gen": {
-        "cache_read_tokens": 0,
+        "cache_read_tokens": 6400,
         "calls": 1,
-        "cost_usd": 0.012901999999999999,
+        "cost_usd": 0.006257200000000001,
         "input_tokens": 6604,
         "models": [
           "gpt-5.3-codex"
         ],
-        "output_tokens": 831,
+        "output_tokens": 979,
         "repair_calls": 0,
         "repair_rate": 0.0,
-        "total_tokens": 7435
+        "total_tokens": 7583
       }
     },
     "totals": {
-      "cache_read_tokens": 157696,
+      "cache_read_tokens": 164096,
       "calls": 16,
-      "cost_usd": 0.73143076,
+      "cost_usd": 0.72478596,
       "input_tokens": 515337,
-      "output_tokens": 43121,
+      "output_tokens": 43269,
       "repair_calls": 10,
       "repair_rate": 0.625,
-      "total_tokens": 558458
+      "total_tokens": 558606
     }
   },
   "llm_log_files": 16,
   "run_status": "fail",
   "stage_engine_order": [
     {
-      "created_at": "2026-05-15T09:17:36Z",
+      "created_at": "2026-05-15T09:21:56Z",
+      "stage_engine": "sim-debug",
+      "status": "fail"
+    },
+    {
+      "created_at": "2026-05-15T09:29:55Z",
       "stage_engine": "sim",
       "status": "fail"
     },
@@ -83,12 +88,12 @@
       "status": "fail"
     },
     {
-      "created_at": "2026-05-15T09:13:01Z",
+      "created_at": "2026-05-15T09:22:45Z",
       "stage_engine": "ssot-rtl",
       "status": "pass"
     },
     {
-      "created_at": "2026-05-15T09:17:34Z",
+      "created_at": "2026-05-15T09:29:52Z",
       "stage_engine": "ssot-tb-cocotb",
       "status": "pass"
     }

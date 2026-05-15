@@ -569,18 +569,112 @@ class AtlasDB:
             conn.commit()
 
     def _preflight_legacy_schema(self, conn: sqlite3.Connection) -> None:
-        """Add columns needed by indexes before running idempotent DDL."""
-        exists = conn.execute(
-            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
-            ("users",),
-        ).fetchone()
-        if not exists:
-            return
-        self._ensure_column(conn, "users", "email", "TEXT")
-        self._ensure_column(conn, "users", "password_reset_token_hash", "TEXT")
-        self._ensure_column(conn, "users", "password_reset_expires_at", "REAL")
-        self._ensure_column(conn, "users", "password_reset_requested_at", "REAL")
-        self._ensure_column(conn, "users", "password_reset_used_at", "REAL")
+        """Add columns needed by indexes before running idempotent DDL.
+
+        SQLite does not alter existing tables for ``CREATE TABLE IF NOT EXISTS``.
+        Any new index in ``SCHEMA_SQL`` that references a newly-added column can
+        therefore fail before the normal migration pass runs. Keep this preflight
+        limited to additive columns that DDL indexes depend on.
+        """
+        def table_exists(table: str) -> bool:
+            return bool(conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+                (table,),
+            ).fetchone())
+
+        def ensure_if_exists(table: str, column: str, definition: str) -> None:
+            if table_exists(table):
+                self._ensure_column(conn, table, column, definition)
+
+        ddl_index_columns = {
+            "users": {
+                "email": "TEXT",
+                "password_reset_token_hash": "TEXT",
+                "password_reset_expires_at": "REAL",
+                "password_reset_requested_at": "REAL",
+                "password_reset_used_at": "REAL",
+            },
+            "sessions": {"user_id": "TEXT", "status": "TEXT"},
+            "messages": {"session_id": "TEXT", "created_at": "REAL"},
+            "parts": {"message_id": "TEXT"},
+            "feedback": {"user_id": "TEXT", "status": "TEXT", "created_at": "REAL"},
+            "session_queue": {
+                "session_id": "TEXT",
+                "direction": "TEXT",
+                "created_at": "REAL",
+            },
+            "workspaces": {"owner_user_id": "TEXT", "updated_at": "REAL"},
+            "ip_blocks": {"workspace_id": "TEXT", "ip_name": "TEXT"},
+            "ip_permissions": {
+                "grantee_user_id": "TEXT",
+                "ip_id": "TEXT",
+                "permission": "TEXT",
+            },
+            "rtl_versions": {
+                "artifact_version_id": "TEXT",
+                "git_tag": "TEXT",
+                "ip_id": "TEXT",
+                "workspace_id": "TEXT",
+                "created_at": "REAL",
+            },
+            "workflow_runs": {
+                "session_id": "TEXT",
+                "workspace_id": "TEXT",
+                "ip_id": "TEXT",
+                "rtl_version_id": "TEXT",
+                "workflow": "TEXT",
+                "started_at": "REAL",
+            },
+            "workflow_stages": {
+                "run_id": "TEXT",
+                "rtl_version_id": "TEXT",
+                "stage_name": "TEXT",
+                "attempt": "INT DEFAULT 1",
+                "started_at": "REAL",
+            },
+            "workflow_events": {"run_id": "TEXT", "created_at": "REAL"},
+            "workflow_todos": {
+                "run_id": "TEXT",
+                "status": "TEXT",
+                "updated_at": "REAL",
+                "notes": "TEXT",
+            },
+            "todo_events": {"todo_id": "TEXT", "created_at": "REAL"},
+            "trace_events": {
+                "session_id": "TEXT",
+                "workspace_id": "TEXT",
+                "ip_id": "TEXT",
+                "workflow": "TEXT",
+                "run_id": "TEXT",
+                "stage_id": "TEXT",
+                "todo_id": "TEXT",
+                "correlation_id": "TEXT",
+                "event_type": "TEXT",
+                "created_at": "REAL",
+            },
+            "llm_calls": {
+                "session_id": "TEXT",
+                "workspace_id": "TEXT",
+                "ip_id": "TEXT",
+                "workflow": "TEXT",
+                "todo_id": "TEXT",
+                "created_at": "REAL",
+            },
+            "artifacts": {
+                "run_id": "TEXT",
+                "rtl_version_id": "TEXT",
+                "kind": "TEXT",
+                "created_at": "REAL",
+            },
+        }
+
+        for table, columns in ddl_index_columns.items():
+            for column, definition in columns.items():
+                ensure_if_exists(table, column, definition)
+
+        # Older DBs may have run/workflow tables but not the generic artifact
+        # lineage tables. They are created by SCHEMA_SQL after this preflight, so
+        # no column backfill is needed here for those brand-new tables.
 
     def _run_lightweight_migrations(self, conn: sqlite3.Connection) -> None:
         """Apply additive SQLite migrations for existing local databases."""

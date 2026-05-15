@@ -74,6 +74,27 @@ _PROTECTED_ENV_KEYS = frozenset({
     'ACTIVE_WORKSPACE', 'WORKSPACE', 'ACTIVE_PROJECT',
 })
 
+_RUNTIME_MODEL_OVERRIDE_FLAG = 'LLM_RUNTIME_MODEL_OVERRIDE'
+_RUNTIME_MODEL_ENV_KEYS = frozenset({
+    'LLM_MODEL_NAME',
+    'MODEL_NAME',
+    'LLM_ACTIVE_MODEL_NAME',
+    'LLM_ACTIVE_BASE_NAME',
+    'LLM_ACTIVE_BASE_MODEL',
+    'LLM_BASE_URL',
+    'LLM_API_KEY',
+    'LLM_PROVIDER',
+    'LLM_PROFILE',
+    'USE_RESPONSES_API',
+    'USE_OPENCODE_OAUTH',
+    'OPENCODE_ACCOUNT_ID',
+    'CURSOR_AGENT_ENABLE',
+    'CURSOR_AGENT_MODEL',
+    'CLAUDE_CLI_ENABLE',
+    'CLAUDE_CLI_MODEL',
+    'ENABLE_NATIVE_TOOL_CALLS',
+})
+
 _ALLOW_EMPTY_ENV_KEYS = frozenset({
     'LLM_MODEL_NAME_2', 'LLM_MODEL_NAME_3',
     'LLM_BASE_NAME_2', 'LLM_BASE_NAME_3',
@@ -87,6 +108,17 @@ _LEGACY_MODEL_DROPDOWN_KEYS = ('LLM_BASE_MODEL', 'LLM_BASE_MODEL_2', 'LLM_BASE_M
 # mtime cache: path -> last seen mtime. reload_env() only does I/O when at
 # least one .env file has changed since the previous successful reload.
 _ENV_MTIME_CACHE: dict = {}
+
+
+def runtime_model_override_active() -> bool:
+    return os.getenv(_RUNTIME_MODEL_OVERRIDE_FLAG, "").strip().lower() in (
+        "1", "true", "yes", "on"
+    )
+
+
+def mark_runtime_model_override() -> None:
+    """Protect a CLI/slash/UI model switch from .env hot-reload rollback."""
+    os.environ[_RUNTIME_MODEL_OVERRIDE_FLAG] = "1"
 
 
 def _env_search_paths() -> list:
@@ -135,6 +167,12 @@ def load_env_file(force_reload: bool = False):
             if not key or (not value and key not in _ALLOW_EMPTY_ENV_KEYS):
                 continue
             if key in _PROTECTED_ENV_KEYS:
+                continue
+            if (
+                force_reload
+                and runtime_model_override_active()
+                and key in _RUNTIME_MODEL_ENV_KEYS
+            ):
                 continue
             if force_reload or key not in os.environ:
                 os.environ[key] = value
@@ -246,6 +284,8 @@ def _model_dropdown_value(index: int) -> str:
 
 
 def _apply_model_dropdown_selection() -> None:
+    if runtime_model_override_active():
+        return
     if (
         "MODEL_NAME" in _INITIAL_ENV_KEYS
         or "LLM_PROFILE" in _INITIAL_ENV_KEYS
@@ -268,6 +308,8 @@ def _apply_model_dropdown_selection() -> None:
 
 
 def _should_apply_env_profile() -> bool:
+    if runtime_model_override_active():
+        return False
     if "LLM_PROFILE" in _INITIAL_ENV_KEYS:
         return True
     explicit_single_model = (
@@ -522,6 +564,7 @@ def set_active_profile(name: str) -> bool:
     """
     ok = _apply_profile(name)
     if ok:
+        mark_runtime_model_override()
         _deact_cli = globals().get("deactivate_cli_backends")
         if callable(_deact_cli):
             _deact_cli()
@@ -628,6 +671,7 @@ def activate_cli_backend(name: str) -> bool:
     parsed = _parse_cli_backend_model(name)
     if parsed is None:
         return False
+    mark_runtime_model_override()
     backend, requested_model = parsed
 
     global CURSOR_AGENT_ENABLE, CURSOR_AGENT_MODEL
@@ -726,7 +770,7 @@ _PRE_OAUTH_API_KEY = API_KEY
 _PRE_OAUTH_LLM_PROVIDER = LLM_PROVIDER
 
 
-def activate_opencode_oauth(model: str = "") -> bool:
+def activate_opencode_oauth(model: str = "", runtime_override: bool = True) -> bool:
     """Switch the live config to ChatGPT-OAuth / Codex routing.
 
     Idempotent — safe to call repeatedly (e.g. when `--model gpt-5.5` is
@@ -753,6 +797,8 @@ def activate_opencode_oauth(model: str = "") -> bool:
         print("[opencode-oauth] no credential — run "
               "`python -m src.opencode_backend login`")
         return False
+    if runtime_override:
+        mark_runtime_model_override()
     API_KEY = cred["access"]
     BASE_URL = CODEX_BASE_URL
     LLM_PROVIDER = "openai"
@@ -771,6 +817,7 @@ def activate_opencode_oauth(model: str = "") -> bool:
     os.environ["OPENCODE_ACCOUNT_ID"] = OPENCODE_ACCOUNT_ID
     os.environ["USE_RESPONSES_API"] = "true"
     os.environ["USE_OPENCODE_OAUTH"] = "true"
+    os.environ.pop("LLM_PROFILE", None)
     return True
 
 
@@ -806,7 +853,7 @@ def is_opencode_model(name: str) -> bool:
 
 
 if USE_OPENCODE_OAUTH and not (CURSOR_AGENT_ENABLE or CLAUDE_CLI_ENABLE):
-    if not activate_opencode_oauth():
+    if not activate_opencode_oauth(runtime_override=False):
         USE_OPENCODE_OAUTH = False
 
 # ============================================================

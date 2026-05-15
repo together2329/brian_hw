@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "functional_coverage",
   "status": "pass",
-  "timestamp_iso": "2026-05-15T09:17:36Z",
+  "timestamp_iso": "2026-05-15T09:29:54Z",
   "functional": {
     "hit": 43,
     "total": 43,

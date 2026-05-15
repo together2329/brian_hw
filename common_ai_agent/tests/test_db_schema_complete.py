@@ -142,6 +142,83 @@ def test_legacy_user_schema_migrates_before_email_indexes(tmp_path: Path) -> Non
     assert "idx_users_password_reset_token" in indexes
 
 
+def test_legacy_workflow_schema_migrates_before_version_indexes(tmp_path: Path) -> None:
+    db_path = tmp_path / "legacy-workflow.db"
+    conn = sqlite3.connect(db_path)
+    try:
+        conn.executescript(
+            """
+            CREATE TABLE users (
+                id TEXT PRIMARY KEY,
+                username TEXT UNIQUE,
+                display_name TEXT,
+                password_hash TEXT,
+                role TEXT DEFAULT 'user',
+                created_at REAL,
+                last_login_at REAL
+            );
+            CREATE TABLE rtl_versions (
+                id TEXT PRIMARY KEY,
+                ip_id TEXT NOT NULL,
+                workspace_id TEXT,
+                version TEXT NOT NULL,
+                git_commit TEXT,
+                status TEXT DEFAULT 'active',
+                metadata TEXT,
+                created_at REAL
+            );
+            CREATE TABLE workflow_runs (
+                id TEXT PRIMARY KEY,
+                session_id TEXT,
+                workspace_id TEXT,
+                ip_id TEXT,
+                workflow TEXT,
+                status TEXT,
+                started_at REAL
+            );
+            CREATE TABLE workflow_stages (
+                id TEXT PRIMARY KEY,
+                run_id TEXT NOT NULL,
+                stage_name TEXT NOT NULL,
+                status TEXT,
+                started_at REAL
+            );
+            CREATE TABLE workflow_todos (
+                id TEXT PRIMARY KEY,
+                run_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                status TEXT
+            );
+            CREATE TABLE artifacts (
+                id TEXT PRIMARY KEY,
+                run_id TEXT,
+                stage_id TEXT,
+                ip_id TEXT,
+                workflow TEXT,
+                kind TEXT,
+                path TEXT,
+                created_at REAL
+            );
+            """
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    with AtlasDB(str(db_path)) as db:
+        assert "rtl_version_id" in _table_columns(db, "workflow_runs")
+        assert "rtl_version_id" in _table_columns(db, "workflow_stages")
+        assert "rtl_version_id" in _table_columns(db, "artifacts")
+        assert "artifact_version_id" in _table_columns(db, "rtl_versions")
+        assert "git_tag" in _table_columns(db, "rtl_versions")
+        assert "notes" in _table_columns(db, "workflow_todos")
+        indexes = _all_indexes(db)
+
+    assert "idx_workflow_runs_rtl_version" in indexes
+    assert "idx_workflow_stages_rtl_version" in indexes
+    assert "idx_artifacts_rtl_version" in indexes
+
+
 def test_all_expected_indexes_present(db):
     have = _all_indexes(db)
     missing = _EXPECTED_INDEXES - have
