@@ -1,0 +1,3 @@
+# fifo_sync Phase 4 validation evidence
+# check_ssot_disk.sh output: PASS 60491B 36 sections 0 TBDs
+# The adder_kogge_stone rejection is unrelated to this IP.

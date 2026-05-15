@@ -185,7 +185,10 @@ cycle_model:
     register_read: { min_cycles: 0, max_cycles: 1, description: "APB read data and PREADY timing" }
     register_write: { min_cycles: 0, max_cycles: 1, description: "APB write acceptance timing" }
     interrupt_latency: { min_cycles: 0, max_cycles: 1, description: "irq_o asserts same cycle as edge_o when irq_enable set" }
-  handshake_rules: []
+  handshake_rules:
+    - { signal: "PSEL", rule: "PSEL must be asserted before PENABLE rises; transaction begins in SETUP phase (PSEL=1, PENABLE=0)." }
+    - { signal: "PENABLE", rule: "PENABLE rises one cycle after PSEL to enter ACCESS phase; sampled with PREADY to complete." }
+    - { signal: "PREADY", rule: "PREADY must be asserted by slave to complete the ACCESS phase; PREADY may deassert to extend wait states." }
   pipeline:
     - { stage: "S0_SYNC", cycle: "0..SYNC_STAGES-1", action: "Propagate signal_i through sync_chain flops" }
     - { stage: "S1_EDGE_DECODE", cycle: "SYNC_STAGES", action: "Compare prev_sync vs curr_sync; decode per EDGE_MODE" }
