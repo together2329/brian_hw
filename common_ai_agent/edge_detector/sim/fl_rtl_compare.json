@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_compare",
+  "ip": "edge_detector",
+  "generated_at": "2026-05-15T02:19:58Z",
+  "status": "pending",
+  "sources": {
+    "equivalence_goals": "edge_detector/verify/equivalence_goals.json",
+    "scoreboard_events": "edge_detector/sim/scoreboard_events.jsonl",
+    "results_xml": "edge_detector/sim/results.xml",
+    "coverage": "edge_detector/cov/coverage.json",
+    "fl_model_check": "edge_detector/model/fl_model_check.json"
+  },
+  "summary": {
+    "total": 0,
+    "goals_checked": 0,
+    "goals_passed": 0,
+    "goals_failed": 0,
+    "goals_blocked": 0,
+    "goals_untested": 0,
+    "scoreboard_events": 0,
+    "orphan_scoreboard_events": 0,
+    "missing_evidence": [
+      "edge_detector/verify/equivalence_goals.json",
+      "edge_detector/sim/scoreboard_events.jsonl",
+      "edge_detector/sim/results.xml"
+    ],
+    "stale_evidence": [],
+    "sim_results": {
+      "exists": false,
+      "total": 0,
+      "fail": 0,
+      "errors": 0,
+      "source": ""
+    }
+  },
+  "goals": []
+}

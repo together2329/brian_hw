@@ -5,17 +5,17 @@
   "stages": [
     {
       "artifacts": [
-        "arbiter_rr/sim/fl_rtl_compare.json",
-        "arbiter_rr/sim/mismatch_classification.json",
-        "arbiter_rr/sim/scoreboard_events.jsonl",
-        "arbiter_rr/verify/equivalence_goals.json"
+        "arbiter_rr/lint/dut_lint.json",
+        "arbiter_rr/lint/lint_todo_plan.json",
+        "arbiter_rr/todo/lint_todo_tracker.json",
+        "arbiter_rr/lint/lint_todo_tracker.json"
       ],
       "blocker": "",
-      "message": "[sim-debug] FL-vs-RTL compare\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/sim_debug/scripts/compare_fl_rtl_results.py\nmodule: arbiter_rr\nexit: 1\nsummary: status=pending total=34 checked=0 passed=0 failed=0 blocked=0 untested=34\n\nruns:\n- sim_debug: exit 1\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/sim_debug/scripts/compare_fl_rtl_results.py arbiter_rr --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[compare_fl_rtl_results] wrote arbiter_rr/sim/fl_rtl_compare.json\n[compare_fl_rtl_results] wrote arbiter_rr/sim/mismatch_classification.json\n[compare_fl_rtl_results] status=pending total=34 checked=0 passed=0 failed=0 blocked=0 untested=34 classifications=34\n\nexpected artifacts:\n- arbiter_rr/sim/fl_rtl_compare.json\n- arbiter_rr/sim/mismatch_classification.json\n- arbiter_rr/sim/scoreboard_events.jsonl\n- arbiter_rr/verify/equivalence_goals.json\n\nnext: repair classified owner or answer human-gate questions from mismatch_classification.json",
-      "returncode": 1,
-      "stage": "sim-debug",
-      "status": "fail"
+      "message": "[lint] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py\nmodule: arbiter_rr\ntop: arbiter_rr\n\nruns:\n- dut_lint: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py arbiter_rr --top arbiter_rr\n  stdout:\n[dut_lint_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/arbiter_rr/lint/dut_lint.json\n[dut_lint_report] pyslang+verilator: errors=0 warnings=0 suppression_violations=0 style_violations=0 returncode=0\n[dut_lint_report]   pyslang: errors=0 warnings=0 returncode=0\n[dut_lint_report]   verilator: errors=0 warnings=0 returncode=0\n\nexpected artifacts:\n- arbiter_rr/lint/dut_lint.json\n- arbiter_rr/lint/lint_todo_plan.json\n- arbiter_rr/todo/lint_todo_tracker.json\n- arbiter_rr/lint/lint_todo_tracker.json",
+      "returncode": 0,
+      "stage": "lint",
+      "status": "pass"
     }
   ],
-  "status": "fail"
+  "status": "pass"
 }
