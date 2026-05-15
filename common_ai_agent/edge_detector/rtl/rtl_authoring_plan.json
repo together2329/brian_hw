@@ -9,70 +9,16 @@
       {
         "gate_kind": "static_rtl_evidence",
         "owner_module": "edge_detector",
-        "reason": "23 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "status": "open",
         "task_id": "RTL-0007"
       },
       {
-        "gate_kind": "owner_logic_structure_evidence",
-        "owner_module": "edge_detector",
-        "reason": "1 owner logic structure issue(s) remain. edge_detector: Behavior-owner module is not declared in its owner file",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "status": "open",
-        "task_id": "RTL-0008"
-      },
-      {
-        "gate_kind": "rtl_placeholder_free_evidence",
-        "owner_module": "edge_detector",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "status": "open",
-        "task_id": "RTL-0009"
-      },
-      {
-        "gate_kind": "top_io_contract_evidence",
-        "owner_module": "edge_detector",
-        "reason": "1 top IO contract issue(s) remain. edge_detector: SSOT top module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "status": "open",
-        "task_id": "RTL-0010"
-      },
-      {
-        "gate_kind": "top_output_drive_evidence",
-        "owner_module": "edge_detector",
-        "reason": "1 top output drive issue(s) remain. edge_detector: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "status": "open",
-        "task_id": "RTL-0011"
-      },
-      {
-        "gate_kind": "top_input_consumption_evidence",
-        "owner_module": "edge_detector",
-        "reason": "1 top input consumption issue(s) remain. edge_detector: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "status": "open",
-        "task_id": "RTL-0012"
-      },
-      {
-        "gate_kind": "manifest_hierarchy_integration",
-        "owner_module": "edge_detector",
-        "reason": "1 manifest hierarchy integration issue(s) remain. edge_detector: SSOT top module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "status": "open",
-        "task_id": "RTL-0013"
-      },
-      {
         "gate_kind": "rtl_implementation_depth_evidence",
         "owner_module": "edge_detector",
-        "reason": "8 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL source-file count is below the SSOT-locked target scale: actual=0 required=2; Production RTL module count is below the SSOT-locked target scale: actual=0 required=2",
+        "reason": "1 production RTL implementation-depth issue(s) remain. Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=2",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
         "status": "open",
@@ -103,34 +49,16 @@
       {
         "gate_kind": "common_ai_agent_authoring",
         "owner_module": "edge_detector",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: type, todo_plan_sha256",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "status": "open",
         "task_id": "RTL-0006"
       },
       {
-        "gate_kind": "dut_compile",
-        "owner_module": "edge_detector",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "gate_kind": "dut_lint",
-        "owner_module": "edge_detector",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "edge_detector",
-        "reason": "119 required non-closure TODO(s) remain open.",
+        "reason": "9 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -185,7 +113,7 @@
     "draft_allowed": true,
     "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 120,
+    "open_required_todos": 10,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -209,60 +137,13 @@
         "prerequisites": [
           "An LLM authoring pass emitted or repaired DUT RTL files."
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: type, todo_plan_sha256",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "stage_sequence": [
           "ssot-rtl"
         ],
         "status": "open",
         "task_id": "RTL-0006"
-      },
-      {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "edge_detector/rtl/rtl_compile.json",
-          "edge_detector/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py edge_detector --top edge_detector --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py edge_detector --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "edge_detector/list/edge_detector.f covers the current DUT RTL sources."
-        ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "artifact": "lint/dut_lint.json",
-        "artifacts": [
-          "edge_detector/lint/dut_lint.json"
-        ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-        "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py edge_detector --top edge_detector",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py edge_detector --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_lint",
-        "prerequisites": [
-          "edge_detector/list/edge_detector.f covers the current DUT RTL/header sources."
-        ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "stage_sequence": [
-          "lint",
-          "dut_lint"
-        ],
-        "status": "open",
-        "task_id": "RTL-0018"
       },
       {
         "artifact": "rtl/rtl_todo_plan.json",
@@ -278,7 +159,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "119 required non-closure TODO(s) remain open.",
+        "reason": "9 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -377,8 +258,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 20,
-        "open_required_count": 20,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -418,7 +299,7 @@
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 20,
+        "open_required_count": 1,
         "required_count": 20,
         "source_refs": [
           "function_model.state_variables.sync_chain",
@@ -443,981 +324,10 @@
           "function_model.invariants.invariant_2"
         ],
         "status_counts": {
-          "open": 20
+          "open": 1,
+          "pass": 19
         },
         "task_count": 20
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 14,
-        "open_required_count": 14,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__io_list.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__io_list.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__io_list",
-      "summary": {
-        "categories": {
-          "io_list.port": 14
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 2,
-          "key": "io_list",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "io_list",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 14,
-        "required_count": 14,
-        "source_refs": [
-          "io_list.clock_domains.PCLK.ports.PCLK",
-          "io_list.resets.PRESETn.ports.PRESETn",
-          "io_list.interfaces.signal_in.ports.signal_i",
-          "io_list.interfaces.edge_out.ports.edge_o",
-          "io_list.interfaces.interrupt.ports.irq_o",
-          "io_list.interfaces.apb_csr.ports.PADDR",
-          "io_list.interfaces.apb_csr.ports.PSEL",
-          "io_list.interfaces.apb_csr.ports.PENABLE",
-          "io_list.interfaces.apb_csr.ports.PWRITE",
-          "io_list.interfaces.apb_csr.ports.PWDATA",
-          "io_list.interfaces.apb_csr.ports.PSTRB",
-          "io_list.interfaces.apb_csr.ports.PRDATA",
-          "io_list.interfaces.apb_csr.ports.PREADY",
-          "io_list.interfaces.apb_csr.ports.PSLVERR"
-        ],
-        "status_counts": {
-          "open": 14
-        },
-        "task_count": 14
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 13,
-        "open_required_count": 13,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__cycle_model.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__cycle_model.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__cycle_model",
-      "summary": {
-        "categories": {
-          "cycle_model.backpressure": 1,
-          "cycle_model.clock": 1,
-          "cycle_model.handshake_rules": 3,
-          "cycle_model.latency": 1,
-          "cycle_model.observability": 1,
-          "cycle_model.ordering": 2,
-          "cycle_model.pipeline": 3,
-          "cycle_model.reset": 1
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 6,
-          "key": "cycle_model",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "cycle_model",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 13,
-        "required_count": 13,
-        "source_refs": [
-          "cycle_model.clock",
-          "cycle_model.reset",
-          "cycle_model.latency",
-          "cycle_model.handshake_rules.PSEL",
-          "cycle_model.handshake_rules.PENABLE",
-          "cycle_model.handshake_rules.PREADY",
-          "cycle_model.pipeline.S0_SYNC",
-          "cycle_model.pipeline.S1_EDGE_DECODE",
-          "cycle_model.pipeline.S2_OUTPUT",
-          "cycle_model.ordering.ordering_rule_0",
-          "cycle_model.ordering.ordering_rule_1",
-          "cycle_model.backpressure.backpressure_rule_0",
-          "cycle_model.observability.observability_signal_0"
-        ],
-        "status_counts": {
-          "open": 13
-        },
-        "task_count": 13
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 12,
-        "open_required_count": 12,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__registers.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__registers.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__registers",
-      "summary": {
-        "categories": {
-          "registers.field": 9,
-          "registers.register": 3
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 8,
-          "key": "registers",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "registers",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 12,
-        "required_count": 12,
-        "source_refs": [
-          "registers.register_list.CONTROL",
-          "registers.register_list.CONTROL.fields.edge_mode",
-          "registers.register_list.CONTROL.fields.enable",
-          "registers.register_list.CONTROL.fields.irq_enable",
-          "registers.register_list.CONTROL.fields.reserved_31_4",
-          "registers.register_list.STATUS",
-          "registers.register_list.STATUS.fields.edge_sticky",
-          "registers.register_list.STATUS.fields.overflow",
-          "registers.register_list.STATUS.fields.reserved_31_9",
-          "registers.register_list.RAW_STATUS",
-          "registers.register_list.RAW_STATUS.fields.edge_raw",
-          "registers.register_list.RAW_STATUS.fields.reserved_31_8"
-        ],
-        "status_counts": {
-          "open": 12
-        },
-        "task_count": 12
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 12,
-        "open_required_count": 12,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__test_requirements.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__test_requirements.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__test_requirements",
-      "summary": {
-        "categories": {
-          "test_requirements.scenario": 12
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 14,
-          "key": "test_requirements",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "test_requirements",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 12,
-        "required_count": 12,
-        "source_refs": [
-          "test_requirements.scenarios.SC1",
-          "test_requirements.scenarios.SC2",
-          "test_requirements.scenarios.SC3",
-          "test_requirements.scenarios.SC4",
-          "test_requirements.scenarios.SC5",
-          "test_requirements.scenarios.SC6",
-          "test_requirements.scenarios.SC7",
-          "test_requirements.scenarios.SC8",
-          "test_requirements.scenarios.SC9",
-          "test_requirements.scenarios.SC10",
-          "test_requirements.scenarios.SC11",
-          "test_requirements.scenarios.SC12"
-        ],
-        "status_counts": {
-          "open": 12
-        },
-        "task_count": 12
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 8,
-        "open_required_count": 8,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__integration.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__integration.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__integration",
-      "summary": {
-        "categories": {
-          "integration.connections": 5,
-          "integration.dependencies": 3
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 4,
-          "key": "integration",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "integration",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 8,
-        "required_count": 8,
-        "source_refs": [
-          "integration.dependencies.external_modules",
-          "integration.dependencies.external_clocks",
-          "integration.dependencies.external_resets",
-          "integration.connections.PCLK",
-          "integration.connections.PRESETn",
-          "integration.connections.signal_i",
-          "integration.connections.edge_o",
-          "integration.connections.irq_o"
-        ],
-        "status_counts": {
-          "open": 8
-        },
-        "task_count": 8
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 7,
-        "open_required_count": 7,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__synthesis.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__synthesis.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__synthesis",
-      "summary": {
-        "categories": {
-          "synthesis.constraints": 4,
-          "synthesis.ppa_targets": 3
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 13,
-          "key": "synthesis",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "synthesis",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 7,
-        "required_count": 7,
-        "source_refs": [
-          "synthesis.constraints.sdc_source",
-          "synthesis.constraints.clock_groups",
-          "synthesis.constraints.io_constraints",
-          "synthesis.constraints.timing_targets",
-          "synthesis.ppa_targets.area_um2",
-          "synthesis.ppa_targets.power_mw",
-          "synthesis.ppa_targets.timing_wns_ns"
-        ],
-        "status_counts": {
-          "open": 7
-        },
-        "task_count": 7
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 5,
-        "open_required_count": 5,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__parameters.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__parameters.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__parameters",
-      "summary": {
-        "categories": {
-          "parameters.item": 5
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 3,
-          "key": "parameters",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "parameters",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 5,
-        "required_count": 5,
-        "source_refs": [
-          "parameters.SYNC_STAGES",
-          "parameters.EDGE_MODE",
-          "parameters.WIDTH",
-          "parameters.CLOCK_FREQ_MHZ",
-          "parameters.RESET_POLARITY"
-        ],
-        "status_counts": {
-          "open": 5
-        },
-        "task_count": 5
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 3,
-        "open_required_count": 3,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__features.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__features.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__features",
-      "summary": {
-        "categories": {
-          "features.item": 3
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 9,
-          "key": "features",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "features",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 3,
-        "required_count": 3,
-        "source_refs": [
-          "features.Input_Synchronization",
-          "features.Edge_Detection",
-          "features.APB_lite_CSR"
-        ],
-        "status_counts": {
-          "open": 3
-        },
-        "task_count": 3
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__fsm.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__fsm.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__fsm",
-      "summary": {
-        "categories": {
-          "fsm.transition": 2
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 7,
-          "key": "fsm",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "fsm",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 2,
-        "required_count": 2,
-        "source_refs": [
-          "fsm.fsm.transitions.transition_0",
-          "fsm.fsm.transitions.transition_1"
-        ],
-        "status_counts": {
-          "open": 2
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__equivalence.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__equivalence.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__equivalence",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 15,
-          "key": "equivalence",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "equivalence",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.edge_detector.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__error_handling.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__error_handling.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__error_handling",
-      "summary": {
-        "categories": {
-          "error_handling.recovery": 1
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 10,
-          "key": "error_handling",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "error_handling",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "error_handling.recovery.recovery_0"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__interrupts.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__interrupts.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__interrupts",
-      "summary": {
-        "categories": {
-          "interrupts.sources": 1
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 11,
-          "key": "interrupts",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "interrupts",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "interrupts.sources.EDGE_DETECTED"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__rtl_flow.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__rtl_flow.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__rtl_flow",
-      "summary": {
-        "categories": {
-          "rtl_flow.seed": 1,
-          "rtl_flow.top": 1
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 1,
-          "key": "rtl_flow",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "rtl_flow",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 2,
-        "source_refs": [
-          "top_module",
-          "io_list"
-        ],
-        "status_counts": {
-          "open": 1,
-          "pass": 1
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__security.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__security.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__security",
-      "summary": {
-        "categories": {
-          "security.assets": 1
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 12,
-          "key": "security",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "security",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "security.assets.register_map"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector__workflow_todo.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector__workflow_todo.md",
-      "owner_file": "rtl/edge_detector.sv",
-      "owner_module": "edge_detector",
-      "packet_id": "module__edge_detector__workflow_todo",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 16,
-          "enabled": true,
-          "index": 16,
-          "key": "workflow_todo",
-          "module_task_count": 103,
-          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "workflow_todo",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "workflow_todos.rtl-gen[0]"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__edge_detector_regs.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__edge_detector_regs.md",
-      "owner_file": "rtl/edge_detector_regs.sv",
-      "owner_module": "edge_detector_regs",
-      "packet_id": "module__edge_detector_regs",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "workflow_todos.rtl-gen[1]"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
       }
     },
     {
@@ -1431,8 +341,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 8,
-        "open_required_count": 8,
+        "llm_actionable_open_count": 2,
+        "open_required_count": 2,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1454,7 +364,7 @@
           "rtl_gate.rtl_gen": 10
         },
         "module_slice": {},
-        "open_required_count": 8,
+        "open_required_count": 2,
         "required_count": 10,
         "source_refs": [
           "quality_gates.rtl_gen.static_rtl_evidence",
@@ -1469,8 +379,8 @@
           "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
         ],
         "status_counts": {
-          "open": 8,
-          "pass": 2
+          "open": 2,
+          "pass": 8
         },
         "task_count": 10
       }
@@ -1553,34 +463,16 @@
           {
             "gate_kind": "common_ai_agent_authoring",
             "owner_module": "edge_detector",
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
+            "reason": "RTL authoring provenance is incomplete: type, todo_plan_sha256",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
             "status": "open",
             "task_id": "RTL-0006"
           },
           {
-            "gate_kind": "dut_compile",
-            "owner_module": "edge_detector",
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "gate_kind": "dut_lint",
-            "owner_module": "edge_detector",
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "status": "open",
-            "task_id": "RTL-0018"
-          },
-          {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "edge_detector",
-            "reason": "119 required non-closure TODO(s) remain open.",
+            "reason": "9 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -1622,14 +514,14 @@
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 7,
+        "open_required_count": 5,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
           "Never use a fixed RTL template as the implementation."
         ],
-        "tool_evidence_open_count": 7,
+        "tool_evidence_open_count": 5,
         "tool_evidence_plan": [
           {
             "artifact": "rtl/rtl_authoring_provenance.json",
@@ -1646,60 +538,13 @@
             "prerequisites": [
               "An LLM authoring pass emitted or repaired DUT RTL files."
             ],
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
+            "reason": "RTL authoring provenance is incomplete: type, todo_plan_sha256",
             "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
             "stage_sequence": [
               "ssot-rtl"
             ],
             "status": "open",
             "task_id": "RTL-0006"
-          },
-          {
-            "artifact": "rtl/rtl_compile.json",
-            "artifacts": [
-              "edge_detector/rtl/rtl_compile.json",
-              "edge_detector/rtl/rtl_compile.log"
-            ],
-            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-            "commands": [
-              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py edge_detector --top edge_detector --project-root .",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py edge_detector --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_compile",
-            "prerequisites": [
-              "edge_detector/list/edge_detector.f covers the current DUT RTL sources."
-            ],
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "stage_sequence": [
-              "ssot-rtl",
-              "dut_compile"
-            ],
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "artifact": "lint/dut_lint.json",
-            "artifacts": [
-              "edge_detector/lint/dut_lint.json"
-            ],
-            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-            "commands": [
-              "python3 workflow/lint/scripts/dut_lint_report.py edge_detector --top edge_detector",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py edge_detector --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_lint",
-            "prerequisites": [
-              "edge_detector/list/edge_detector.f covers the current DUT RTL/header sources."
-            ],
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "stage_sequence": [
-              "lint",
-              "dut_lint"
-            ],
-            "status": "open",
-            "task_id": "RTL-0018"
           },
           {
             "artifact": "rtl/rtl_todo_plan.json",
@@ -1715,7 +560,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "119 required non-closure TODO(s) remain open.",
+            "reason": "9 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -1812,7 +657,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 7,
+        "open_required_count": 5,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -1824,9 +669,981 @@
           "quality_gates.rtl_gen.coverage_closure"
         ],
         "status_counts": {
-          "open": 7
+          "open": 5,
+          "pass": 2
         },
         "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__cycle_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__cycle_model.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__cycle_model",
+      "summary": {
+        "categories": {
+          "cycle_model.backpressure": 1,
+          "cycle_model.clock": 1,
+          "cycle_model.handshake_rules": 3,
+          "cycle_model.latency": 1,
+          "cycle_model.observability": 1,
+          "cycle_model.ordering": 2,
+          "cycle_model.pipeline": 3,
+          "cycle_model.reset": 1
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 6,
+          "key": "cycle_model",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 13,
+        "source_refs": [
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency",
+          "cycle_model.handshake_rules.PSEL",
+          "cycle_model.handshake_rules.PENABLE",
+          "cycle_model.handshake_rules.PREADY",
+          "cycle_model.pipeline.S0_SYNC",
+          "cycle_model.pipeline.S1_EDGE_DECODE",
+          "cycle_model.pipeline.S2_OUTPUT",
+          "cycle_model.ordering.ordering_rule_0",
+          "cycle_model.ordering.ordering_rule_1",
+          "cycle_model.backpressure.backpressure_rule_0",
+          "cycle_model.observability.observability_signal_0"
+        ],
+        "status_counts": {
+          "pass": 13
+        },
+        "task_count": 13
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__equivalence.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 15,
+          "key": "equivalence",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.edge_detector.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__error_handling.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__error_handling.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__error_handling",
+      "summary": {
+        "categories": {
+          "error_handling.recovery": 1
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 10,
+          "key": "error_handling",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "error_handling",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "error_handling.recovery.recovery_0"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__features.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__features.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__features",
+      "summary": {
+        "categories": {
+          "features.item": 3
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 9,
+          "key": "features",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "features",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "features.Input_Synchronization",
+          "features.Edge_Detection",
+          "features.APB_lite_CSR"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__fsm.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__fsm.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__fsm",
+      "summary": {
+        "categories": {
+          "fsm.transition": 2
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 7,
+          "key": "fsm",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "fsm",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "fsm.fsm.transitions.transition_0",
+          "fsm.fsm.transitions.transition_1"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__integration.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__integration.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__integration",
+      "summary": {
+        "categories": {
+          "integration.connections": 5,
+          "integration.dependencies": 3
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 4,
+          "key": "integration",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "integration",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 8,
+        "source_refs": [
+          "integration.dependencies.external_modules",
+          "integration.dependencies.external_clocks",
+          "integration.dependencies.external_resets",
+          "integration.connections.PCLK",
+          "integration.connections.PRESETn",
+          "integration.connections.signal_i",
+          "integration.connections.edge_o",
+          "integration.connections.irq_o"
+        ],
+        "status_counts": {
+          "pass": 8
+        },
+        "task_count": 8
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__interrupts.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__interrupts.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__interrupts",
+      "summary": {
+        "categories": {
+          "interrupts.sources": 1
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 11,
+          "key": "interrupts",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "interrupts",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "interrupts.sources.EDGE_DETECTED"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__io_list.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__io_list.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__io_list",
+      "summary": {
+        "categories": {
+          "io_list.port": 14
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 2,
+          "key": "io_list",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "io_list",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 14,
+        "source_refs": [
+          "io_list.clock_domains.PCLK.ports.PCLK",
+          "io_list.resets.PRESETn.ports.PRESETn",
+          "io_list.interfaces.signal_in.ports.signal_i",
+          "io_list.interfaces.edge_out.ports.edge_o",
+          "io_list.interfaces.interrupt.ports.irq_o",
+          "io_list.interfaces.apb_csr.ports.PADDR",
+          "io_list.interfaces.apb_csr.ports.PSEL",
+          "io_list.interfaces.apb_csr.ports.PENABLE",
+          "io_list.interfaces.apb_csr.ports.PWRITE",
+          "io_list.interfaces.apb_csr.ports.PWDATA",
+          "io_list.interfaces.apb_csr.ports.PSTRB",
+          "io_list.interfaces.apb_csr.ports.PRDATA",
+          "io_list.interfaces.apb_csr.ports.PREADY",
+          "io_list.interfaces.apb_csr.ports.PSLVERR"
+        ],
+        "status_counts": {
+          "pass": 14
+        },
+        "task_count": 14
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__parameters.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__parameters.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__parameters",
+      "summary": {
+        "categories": {
+          "parameters.item": 5
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 3,
+          "key": "parameters",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "parameters",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 5,
+        "source_refs": [
+          "parameters.SYNC_STAGES",
+          "parameters.EDGE_MODE",
+          "parameters.WIDTH",
+          "parameters.CLOCK_FREQ_MHZ",
+          "parameters.RESET_POLARITY"
+        ],
+        "status_counts": {
+          "pass": 5
+        },
+        "task_count": 5
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__registers.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__registers.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__registers",
+      "summary": {
+        "categories": {
+          "registers.field": 9,
+          "registers.register": 3
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 8,
+          "key": "registers",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "registers",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 12,
+        "source_refs": [
+          "registers.register_list.CONTROL",
+          "registers.register_list.CONTROL.fields.edge_mode",
+          "registers.register_list.CONTROL.fields.enable",
+          "registers.register_list.CONTROL.fields.irq_enable",
+          "registers.register_list.CONTROL.fields.reserved_31_4",
+          "registers.register_list.STATUS",
+          "registers.register_list.STATUS.fields.edge_sticky",
+          "registers.register_list.STATUS.fields.overflow",
+          "registers.register_list.STATUS.fields.reserved_31_9",
+          "registers.register_list.RAW_STATUS",
+          "registers.register_list.RAW_STATUS.fields.edge_raw",
+          "registers.register_list.RAW_STATUS.fields.reserved_31_8"
+        ],
+        "status_counts": {
+          "pass": 12
+        },
+        "task_count": 12
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__rtl_flow.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__rtl_flow.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__rtl_flow",
+      "summary": {
+        "categories": {
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 1,
+          "key": "rtl_flow",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "rtl_flow",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "top_module",
+          "io_list"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__security.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__security.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__security",
+      "summary": {
+        "categories": {
+          "security.assets": 1
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 12,
+          "key": "security",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "security",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "security.assets.register_map"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__synthesis.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__synthesis.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__synthesis",
+      "summary": {
+        "categories": {
+          "synthesis.constraints": 4,
+          "synthesis.ppa_targets": 3
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 13,
+          "key": "synthesis",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "synthesis",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 7,
+        "source_refs": [
+          "synthesis.constraints.sdc_source",
+          "synthesis.constraints.clock_groups",
+          "synthesis.constraints.io_constraints",
+          "synthesis.constraints.timing_targets",
+          "synthesis.ppa_targets.area_um2",
+          "synthesis.ppa_targets.power_mw",
+          "synthesis.ppa_targets.timing_wns_ns"
+        ],
+        "status_counts": {
+          "pass": 7
+        },
+        "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__test_requirements.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__test_requirements.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__test_requirements",
+      "summary": {
+        "categories": {
+          "test_requirements.scenario": 12
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 14,
+          "key": "test_requirements",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "test_requirements",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 12,
+        "source_refs": [
+          "test_requirements.scenarios.SC1",
+          "test_requirements.scenarios.SC2",
+          "test_requirements.scenarios.SC3",
+          "test_requirements.scenarios.SC4",
+          "test_requirements.scenarios.SC5",
+          "test_requirements.scenarios.SC6",
+          "test_requirements.scenarios.SC7",
+          "test_requirements.scenarios.SC8",
+          "test_requirements.scenarios.SC9",
+          "test_requirements.scenarios.SC10",
+          "test_requirements.scenarios.SC11",
+          "test_requirements.scenarios.SC12"
+        ],
+        "status_counts": {
+          "pass": 12
+        },
+        "task_count": 12
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector__workflow_todo.md",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "packet_id": "module__edge_detector__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 16,
+          "enabled": true,
+          "index": 16,
+          "key": "workflow_todo",
+          "module_task_count": 103,
+          "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[0]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__edge_detector_regs.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__edge_detector_regs.md",
+      "owner_file": "rtl/edge_detector_regs.sv",
+      "owner_module": "edge_detector_regs",
+      "packet_id": "module__edge_detector_regs",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[1]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
       }
     }
   ],
@@ -1874,19 +1691,13 @@
     "gate_packets": 3,
     "human_locked_packets": 1,
     "human_locked_tasks": 2,
-    "llm_actionable_packets": 18,
-    "llm_actionable_tasks": 111,
+    "llm_actionable_packets": 2,
+    "llm_actionable_tasks": 3,
     "max_packet_required_tasks": 20,
     "module_packets": 17,
     "next_llm_packets": [
       "module__edge_detector__function_model",
-      "module__edge_detector__io_list",
-      "module__edge_detector__cycle_model",
-      "module__edge_detector__registers",
-      "module__edge_detector__test_requirements",
-      "module__edge_detector__integration",
-      "module__edge_detector__synthesis",
-      "module__edge_detector__parameters"
+      "rtl_gate_evidence_closure"
     ],
     "packet_task_limit": 48,
     "packets": 20,
@@ -1899,7 +1710,7 @@
     "sliced_module_packets": 16,
     "target_scale_present": true,
     "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 7,
+    "tool_evidence_tasks": 5,
     "total_tasks": 128,
     "unowned_packets": 0
   },

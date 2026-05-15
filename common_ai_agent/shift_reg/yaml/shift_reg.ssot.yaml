@@ -454,9 +454,48 @@ synthesis:
     - "syn/out/shift_reg.json or syn/out/shift_reg.v"
     - "syn/out/area.rpt"
     - "syn/out/timing_summary.rpt"
-pnr: TBD
-coding_rules: TBD
-reuse_modules: TBD
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: "met3"
+    vertical: "met2"
+  placement:
+    density_target: 0.65
+    max_displacement_um: null
+  cts:
+    buf_list: []
+    functional_mode_case_analysis: []
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    clock_layers: { min: "met3", max: "met5" }
+    drc_waivers: []
+  required_outputs:
+    - "pnr/out/floorplan.def"
+    - "pnr/out/placed.def"
+    - "pnr/out/cts.def"
+    - "pnr/out/routed.def"
+    - "pnr/out/routed.v"
+    - "pnr/out/routed.spef"
+    - "pnr/out/pnr.report.md"
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/shift_reg_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge clk or negedge rst_n) blocks"
+    - "blocking (=) in combinational always @(*) blocks"
+    - "No latches: every combinational branch assigns all outputs."
+    - "Active-low async reset: if (!rst_n) assign RESET_VALUE."
+    - "Parameterize WIDTH and RESET_VALUE."
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic."
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+  lint_waivers:
+    - "UNUSEDPARAM: SHIFT_DIRECTION branch parameters only if configured away by elaboration."
+    - "UNUSEDSIGNAL: none expected for production RTL."
+reuse_modules: []
 custom: TBD
 dir_structure: TBD
 filelist: TBD

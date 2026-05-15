@@ -56,6 +56,7 @@ module adder_kogge_stone_core #(
     // SSOT adder_fsm: IDLE waits for start or continuous hold_mode=0, COMPUTE captures, DONE returns.
     always @(*) begin
         next_state = state;
+        busy_o = (state == COMPUTE);
         case (state)
             IDLE: begin
                 if (shadow_valid) begin
@@ -87,7 +88,6 @@ module adder_kogge_stone_core #(
             cin_reg    <= 1'b0;
             sum_o      <= {DATA_WIDTH{1'b0}};
             cout_o     <= 1'b0;
-            busy_o     <= 1'b0;
             done_o     <= 1'b0;
             overflow_o <= 1'b0;
         end else begin
@@ -101,7 +101,6 @@ module adder_kogge_stone_core #(
                 cin_reg    <= cin_i;
                 sum_o      <= sum_next;
                 cout_o     <= cout_next;
-                busy_o     <= 1'b0;
                 done_o     <= 1'b1;
                 overflow_o <= cout_next;
             end else begin

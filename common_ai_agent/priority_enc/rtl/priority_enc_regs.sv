@@ -69,7 +69,7 @@ module priority_enc_regs #(
             PRDATA     <= 32'h00000000;
         end else begin
             if (apb_write & (PADDR == PRIORITY_ENC_CTRL_ADDR)) begin
-                enable_reg <= pwdata_consumed[0];
+                enable_reg <= pwdata_enable_field;
             end
             if (apb_write & (PADDR == PRIORITY_ENC_MASK_ADDR)) begin
                 mask_reg <= pwdata_mask_field;

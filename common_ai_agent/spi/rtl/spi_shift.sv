@@ -139,7 +139,7 @@ module spi_shift #(
         if (lsb_first) begin
             rx_shift_next[bit_index_sel] = serial_sample_bit;
         end else begin
-            rx_shift_next[frame_bits - 6'd1 - bit_index] = serial_sample_bit;
+            rx_shift_next[reverse_bit_index_sel] = serial_sample_bit;
         end
     end
 
@@ -181,8 +181,8 @@ module spi_shift #(
                 rx_shift_reg <= rx_shift_next;
                 if (!bit_index_last) bit_index <= bit_index + 6'd1;
             end else if (state == SHIFT_EDGE) begin
-                if (lsb_first) mosi_o <= tx_shift_reg[bit_index];
-                else mosi_o <= tx_shift_reg[frame_bits - 6'd1 - bit_index];
+                if (lsb_first) mosi_o <= tx_shift_reg[bit_index_sel];
+                else mosi_o <= tx_shift_reg[reverse_bit_index_sel];
             end else if (state == COMPLETE) begin
                 if (continuous_cs && enable && !tx_empty && !illegal_cs_or_width) begin
                     busy <= 1'b1;

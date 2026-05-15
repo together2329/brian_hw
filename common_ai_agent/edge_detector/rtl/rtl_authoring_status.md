@@ -4,9 +4,9 @@
 
 - Top: edge_detector
 - Packets: 20
-- LLM-actionable tasks: 111
+- LLM-actionable tasks: 3
 - Human-locked tasks: 2
-- Tool-evidence tasks: 7
+- Tool-evidence tasks: 5
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: True
@@ -15,18 +15,12 @@
 
 ## Next LLM Packets
 
-- module__edge_detector__function_model: rtl/authoring_packets/module__edge_detector__function_model.json (llm_open=20, human_locked=0)
-- module__edge_detector__io_list: rtl/authoring_packets/module__edge_detector__io_list.json (llm_open=14, human_locked=0)
-- module__edge_detector__cycle_model: rtl/authoring_packets/module__edge_detector__cycle_model.json (llm_open=13, human_locked=0)
-- module__edge_detector__registers: rtl/authoring_packets/module__edge_detector__registers.json (llm_open=12, human_locked=0)
-- module__edge_detector__test_requirements: rtl/authoring_packets/module__edge_detector__test_requirements.json (llm_open=12, human_locked=0)
-- module__edge_detector__integration: rtl/authoring_packets/module__edge_detector__integration.json (llm_open=8, human_locked=0)
-- module__edge_detector__synthesis: rtl/authoring_packets/module__edge_detector__synthesis.json (llm_open=7, human_locked=0)
-- module__edge_detector__parameters: rtl/authoring_packets/module__edge_detector__parameters.json (llm_open=5, human_locked=0)
+- module__edge_detector__function_model: rtl/authoring_packets/module__edge_detector__function_model.json (llm_open=1, human_locked=0)
+- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
 
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=7, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=5, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 

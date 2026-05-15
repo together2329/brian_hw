@@ -14,7 +14,7 @@
     "rtl/priority_enc_core.sv",
     "rtl/priority_enc_param.vh"
   ],
-  "timestamp": "2026-05-15T02:09:57.107068+00:00",
+  "timestamp": "2026-05-15T02:11:06.031686+00:00",
   "returncode": 1,
   "errors": 0,
   "warnings": 1,
@@ -42,10 +42,10 @@
           "severity": "warning",
           "rule": "UNUSEDSIGNAL",
           "file": "rtl/priority_enc_regs.sv",
-          "line": 33,
-          "column": 19,
-          "message": "Bits of signal are not used: 'pwdata_consumed'[31:1]",
-          "source": "    logic [31:0]  pwdata_consumed;"
+          "line": 12,
+          "column": 42,
+          "message": "Bits of signal are not used: 'PWDATA'[31:8]",
+          "source": "    input  logic [31:0]                  PWDATA,"
         }
       ],
       "passed": false

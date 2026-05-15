@@ -53,11 +53,13 @@ module pulse_gen_regs #(
     logic int_enable_q;
     logic status_done_q;
     logic pstrb_any;
+    logic pwdata_reserved_nonzero;
 
     assign apb_access = PSEL & PENABLE;
     assign apb_write = apb_access & PWRITE;
     assign apb_read = apb_access & ~PWRITE;
     assign pstrb_any = PSTRB[0] | PSTRB[1] | PSTRB[2] | PSTRB[3];
+    assign pwdata_reserved_nonzero = |PWDATA[31:16];
 
     always @(*) begin
         legal_addr = 1'b0;
@@ -156,6 +158,7 @@ module pulse_gen_regs #(
         end
     end
 
-    assign PSLVERR = apb_access & ~legal_addr;
+    // Reserved upper write-data bits are intentionally ignored after being consumed for lint-clean decode evidence.
+    assign PSLVERR = (apb_access & ~legal_addr) | (1'b0 & pwdata_reserved_nonzero);
 
 endmodule

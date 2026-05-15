@@ -543,9 +543,24 @@ coding_rules:
   lint_waivers:
     - "UNUSEDSIGNAL: explicit approved tie-offs only"
     - "UNUSEDPARAM: none expected"
-reuse_modules: TBD
-custom: TBD
-dir_structure: TBD
+reuse_modules: []
+custom:
+  assumptions:
+    - "No external clkdiv requirements file was present; this SSOT defines a baseline APB-controlled programmable divider contract."
+    - "Default target clock is 100 MHz because no user clock target was supplied."
+    - "DIVISOR write value 0 is coerced to 1 as safe RTL semantics."
+  note: "Pending user review may refine frequency, divisor width, and register map."
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
 filelist: TBD
 test_requirements: TBD
 quality_gates: TBD

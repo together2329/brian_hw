@@ -209,6 +209,8 @@ registers:
     register_width: 0
     addr_width: 0
     byte_addressable: false
+  no_registers: true
+  no_csr: true
   register_list: []
   reserved_field_policy:
     read_value: 0

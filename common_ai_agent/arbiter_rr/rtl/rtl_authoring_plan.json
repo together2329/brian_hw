@@ -37,18 +37,9 @@
     ],
     "blocked_by_tool_evidence": [
       {
-        "gate_kind": "common_ai_agent_authoring",
-        "owner_module": "arbiter_rr",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "arbiter_rr",
-        "reason": "8 required non-closure TODO(s) remain open.",
+        "reason": "7 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -57,7 +48,7 @@
       {
         "gate_kind": "protocol_assertion_evidence",
         "owner_module": "arbiter_rr",
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "status": "open",
@@ -120,7 +111,7 @@
         "task_id": "RTL-0005"
       }
     ],
-    "open_required_todos": 9,
+    "open_required_todos": 8,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -129,29 +120,6 @@
       "Do not sign off top integration while required connection contracts are missing."
     ],
     "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_authoring_provenance.json",
-        "artifacts": [
-          "arbiter_rr/rtl/rtl_authoring_provenance.json",
-          "arbiter_rr/rtl/rtl_todo_plan.json"
-        ],
-        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-        "commands": [
-          "python3 src/headless_workflow.py --root . --ip arbiter_rr --stages rtl-gen",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py arbiter_rr --root . --audit-rtl"
-        ],
-        "gate_kind": "common_ai_agent_authoring",
-        "prerequisites": [
-          "An LLM authoring pass emitted or repaired DUT RTL files."
-        ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "stage_sequence": [
-          "ssot-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
       {
         "artifact": "rtl/rtl_todo_plan.json",
         "artifacts": [
@@ -166,7 +134,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "8 required non-closure TODO(s) remain open.",
+        "reason": "7 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -191,7 +159,7 @@
           "SSOT cycle_model/protocol rules are machine-checkable.",
           "Simulation has run after RTL edits."
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "stage_sequence": [
           "ssot-protocol-assertions",
@@ -384,18 +352,9 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [
           {
-            "gate_kind": "common_ai_agent_authoring",
-            "owner_module": "arbiter_rr",
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
-          {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "arbiter_rr",
-            "reason": "8 required non-closure TODO(s) remain open.",
+            "reason": "7 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -404,7 +363,7 @@
           {
             "gate_kind": "protocol_assertion_evidence",
             "owner_module": "arbiter_rr",
-            "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+            "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
             "status": "open",
@@ -437,38 +396,15 @@
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 5,
+        "open_required_count": 4,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
           "Never use a fixed RTL template as the implementation."
         ],
-        "tool_evidence_open_count": 5,
+        "tool_evidence_open_count": 4,
         "tool_evidence_plan": [
-          {
-            "artifact": "rtl/rtl_authoring_provenance.json",
-            "artifacts": [
-              "arbiter_rr/rtl/rtl_authoring_provenance.json",
-              "arbiter_rr/rtl/rtl_todo_plan.json"
-            ],
-            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-            "commands": [
-              "python3 src/headless_workflow.py --root . --ip arbiter_rr --stages rtl-gen",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py arbiter_rr --root . --audit-rtl"
-            ],
-            "gate_kind": "common_ai_agent_authoring",
-            "prerequisites": [
-              "An LLM authoring pass emitted or repaired DUT RTL files."
-            ],
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "stage_sequence": [
-              "ssot-rtl"
-            ],
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
           {
             "artifact": "rtl/rtl_todo_plan.json",
             "artifacts": [
@@ -483,7 +419,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "8 required non-closure TODO(s) remain open.",
+            "reason": "7 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -508,7 +444,7 @@
               "SSOT cycle_model/protocol rules are machine-checkable.",
               "Simulation has run after RTL edits."
             ],
-            "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+            "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
             "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
             "stage_sequence": [
               "ssot-protocol-assertions",
@@ -580,7 +516,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 5,
+        "open_required_count": 4,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -592,8 +528,8 @@
           "quality_gates.rtl_gen.coverage_closure"
         ],
         "status_counts": {
-          "open": 5,
-          "pass": 2
+          "open": 4,
+          "pass": 3
         },
         "task_count": 7
       }
@@ -1739,7 +1675,7 @@
     "sliced_module_packets": 15,
     "target_scale_present": true,
     "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 5,
+    "tool_evidence_tasks": 4,
     "total_tasks": 169,
     "unowned_packets": 1
   },

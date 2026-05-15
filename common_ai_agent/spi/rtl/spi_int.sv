@@ -17,6 +17,9 @@ module spi_int (
     output logic        irq_o
 );
     logic [5:0] sticky_pending;
+    logic clear_level_marker;
+
+    assign clear_level_marker = int_clear_w1c[6] | int_clear_w1c[7];
 
     // Sticky sources clear only through INT_CLEAR W1C, soft_reset, or PRESETn.
     always @(posedge PCLK or negedge PRESETn) begin
