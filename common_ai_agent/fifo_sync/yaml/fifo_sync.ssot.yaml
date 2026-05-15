@@ -1276,6 +1276,26 @@ coding_rules:
   - 'WIDTHEXPAND: count_o wider than minimum when DEPTH+1 is not a power of 2'
 reuse_modules: []
 custom:
+  optional_behavior_policy:
+    resolution: Parameterized optional behavior is explicit in SSOT parameters; USE_APB controls APB CSR behavior with reset/default 1, USE_OUTPUT_REGISTER controls read-data register behavior with reset/default 0, and USE_ECC is disabled for this revision with default 0 until ECC encode/decode semantics are specified.
+    controlled_features:
+    - feature: APB CSR Access
+      parameter: USE_APB
+      default: 1
+      policy: implemented_when_1_disabled_when_0
+    - feature: output register read path
+      parameter: USE_OUTPUT_REGISTER
+      default: 0
+      policy: registered_path_when_1_bypass_when_0
+    - feature: ECC storage protection
+      parameter: USE_ECC
+      default: 0
+      policy: disabled_in_this_revision_until_semantics_are_specified
+    source: rtl_blocked.json OPTIONAL_BEHAVIOR_POLICY
+  rtl_blocker_resolutions:
+  - id: OPTIONAL_BEHAVIOR_POLICY
+    answer: Optional prose is resolved into explicit parameter-controlled policy: USE_APB default 1 implements APB CSR behavior, USE_OUTPUT_REGISTER default 0 selects read-data bypass versus register, and USE_ECC default 0 is disabled for this revision because ECC behavior is not specified.
+    source: rtl-gen repair
   assumptions:
   - id: ASM_DEPTH_POWER2
     description: DEPTH is assumed to be a power of 2 for binary wrap-around optimization. Non-power-of-2 DEPTH requires explicit modular arithmetic and is not yet modeled.

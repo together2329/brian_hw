@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "clkdiv",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 2,
+    "failed": 0,
+    "transactions": 1,
+    "transaction_results": [
+      {
+        "id": "FM_DIVIDE",
+        "name": "integer_clock_divide",
+        "kind": "FM_DIVIDE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_DIVIDE",
+          "transaction_name": "integer_clock_divide",
+          "sample_accepted": 1,
+          "divided_clock": 1,
+          "clk_o": 1,
+          "lock_indicator": 0,
+          "locked_o": 0,
+          "interrupt": 0,
+          "irq_o": 0
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 2,
+    "coverage_bins": 42,
+    "invariants_total": 4,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "clk_o changes only on clk_i rising edges",
+        "expr": "clk_o changes only on clk_i rising edges while rst_ni is deasserted.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "DIVISOR writes do not directly toggle cl",
+        "expr": "DIVISOR writes do not directly toggle clk_o.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Reserved register fields read as zero an",
+        "expr": "Reserved register fields read as zero and ignore writes.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "irq_pending remains set until INTCLR.cle",
+        "expr": "irq_pending remains set until INTCLR.clear_irq is written as 1.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 2,
+    "error_cases_planned": 2
+  },
+  "decomposition_units": 8,
+  "fcov_bins": 42,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "clkdiv/req/",
+      "clkdiv/yaml/clkdiv.ssot.yaml",
+      "clkdiv/model/functional_model.py",
+      "clkdiv/cov/fcov_plan.json",
+      "clkdiv/yaml/clkdiv.ssot.yaml#io_list",
+      "clkdiv/yaml/clkdiv.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "clkdiv/rtl/",
+      "clkdiv/tb/",
+      "clkdiv/sim/",
+      "clkdiv/vectors/",
+      "clkdiv/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}
