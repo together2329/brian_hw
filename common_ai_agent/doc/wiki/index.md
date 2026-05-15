@@ -8,13 +8,14 @@ follow the source docs for implementation detail.
 
 1. [[common-ai-agent-map]] — mental model and source-of-truth hierarchy.
 2. [[workflow-ownership-and-boundaries]] — who owns each artifact and what must not be edited directly.
-3. [[full-flow-pipeline]] — SSOT to signoff stage order and commands.
-4. [[rtl-gen-ssot-contract]] — why rtl-gen must follow SSOT exactly before downstream stages run.
-5. [[workflow-feedback-and-scheduling]] — worker-aware serial/DAG scheduling and workflow repair feedback.
-6. [[rtl-version-run-history]] — SSOT/RTL/TB artifact version anchors for workflow evidence.
-7. [[golden-todo-evidence]] — TodoTracker, evidence approval, and human review states.
-8. [[provider-and-llm-call-accounting]] — provider normalization and how to count one LLM call.
-9. [[human-review-and-escalation]] — when to stop automation and ask for product/spec authority.
+3. [[ssot-qa-workbench]] — SSOT authoring UX: import, interview, requirement progress, and To SSOT.
+4. [[full-flow-pipeline]] — SSOT to signoff stage order and commands.
+5. [[rtl-gen-ssot-contract]] — why rtl-gen must follow SSOT exactly before downstream stages run.
+6. [[workflow-feedback-and-scheduling]] — worker-aware serial/DAG scheduling and workflow repair feedback.
+7. [[rtl-version-run-history]] — SSOT/RTL/TB artifact version anchors for workflow evidence.
+8. [[golden-todo-evidence]] — TodoTracker, evidence approval, and human review states.
+9. [[provider-and-llm-call-accounting]] — provider normalization and how to count one LLM call.
+10. [[human-review-and-escalation]] — when to stop automation and ask for product/spec authority.
 
 ## Hard Rules
 

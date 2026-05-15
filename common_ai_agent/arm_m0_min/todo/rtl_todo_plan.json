@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 11,
+    "open_required_todos": 8,
     "orphan_tasks": 0,
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T09:58:27Z",
+  "generated_at": "2026-05-15T10:42:04Z",
   "ip": "arm_m0_min",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 12,
@@ -153,17 +153,17 @@
   "rtl_implementation_depth_evidence": {
     "aggregate": {
       "behavior_owner_logic_modules": 5,
-      "control_flow": 44,
-      "depth_score": 253,
+      "control_flow": 45,
+      "depth_score": 260,
       "instances": 7,
-      "lines": 625,
+      "lines": 634,
       "logic_modules": 8,
       "modules": 8,
-      "nonconstant_assigns": 19,
-      "procedural_blocks": 11,
+      "nonconstant_assigns": 20,
+      "procedural_blocks": 12,
       "source_files": 8,
       "state_updates": 44,
-      "storage_decls": 55
+      "storage_decls": 57
     },
     "issues": [],
     "modules": [
@@ -196,16 +196,16 @@
         "module": "arm_m0_min_ex"
       },
       {
-        "depth_score": 29,
+        "depth_score": 33,
         "file": "rtl/arm_m0_min_if.sv",
         "metrics": {
           "control_flow": 5,
           "instances": 0,
-          "nonconstant_assigns": 4,
+          "nonconstant_assigns": 6,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
           "state_updates": 7,
-          "storage_decls": 3
+          "storage_decls": 5
         },
         "module": "arm_m0_min_if"
       },
@@ -238,14 +238,14 @@
         "module": "arm_m0_min"
       },
       {
-        "depth_score": 13,
+        "depth_score": 16,
         "file": "rtl/arm_m0_min_alu.sv",
         "metrics": {
-          "control_flow": 1,
+          "control_flow": 2,
           "instances": 0,
-          "nonconstant_assigns": 5,
+          "nonconstant_assigns": 4,
           "placeholder_tokens": false,
-          "procedural_blocks": 1,
+          "procedural_blocks": 2,
           "state_updates": 0,
           "storage_decls": 4
         },
@@ -1193,9 +1193,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1716,9 +1716,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_id.sv; rerun DUT compile after the final RTL edit.",
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1766,9 +1766,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "DUT lint artifact is not clean.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1813,7 +1813,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "10 required non-closure TODO(s) remain open.",
+        "reason": "7 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1962,7 +1962,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=253, required=66).",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=260, required=66).",
         "required": true,
         "status": "pass"
       }
@@ -8485,29 +8485,11 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 11,
+    "open_required_tasks": 8,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_id.sv; rerun DUT compile after the final RTL edit.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "task_id": "RTL-0017"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "DUT lint artifact is not clean.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "task_id": "RTL-0018"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "10 required non-closure TODO(s) remain open.",
+        "reason": "7 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -8554,7 +8536,7 @@
         "task_id": "RTL-0103"
       }
     ],
-    "required_passed": 140,
+    "required_passed": 143,
     "required_total": 151,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

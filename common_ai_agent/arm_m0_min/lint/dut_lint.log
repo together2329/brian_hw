@@ -1,36 +1,14 @@
 ===== pyslang =====
 command: pyslang rtl/arm_m0_min_if.sv rtl/arm_m0_min_id.sv rtl/arm_m0_min_alu.sv rtl/arm_m0_min_branch.sv rtl/arm_m0_min_mem_if.sv rtl/arm_m0_min_ex.sv rtl/arm_m0_min_rf.sv rtl/arm_m0_min.sv
 returncode: 0
-errors: 0 warnings: 2
+errors: 0 warnings: 0
 pyslang files: 8
-errors=0 warnings=2
-warning: arm_m0_min/rtl/arm_m0_min_alu.sv:26 implicit conversion changes signedness from 'logic[31:0]' to 'logic signed[31:0]'
-warning: arm_m0_min/rtl/arm_m0_min_alu.sv:40 implicit conversion changes signedness from 'logic signed[31:0]' to 'logic[31:0]'
+errors=0 warnings=0
 
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/arm_m0_min.f --top-module arm_m0_min
-returncode: 1
-errors: 0 warnings: 5
-%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_if.sv:24:30: Signal is not used: 'd_hready'
-                                                 : ... note: In instance 'arm_m0_min.u_if'
-   24 |     input  logic             d_hready,
-      |                              ^~~~~~~~
-                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
-                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
-%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_if.sv:25:30: Signal is not used: 'd_hwdata'
-                                                 : ... note: In instance 'arm_m0_min.u_if'
-   25 |     input  logic [XLEN-1:0]  d_hwdata,
-      |                              ^~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_if.sv:26:30: Signal is not used: 'd_htrans'
-                                                 : ... note: In instance 'arm_m0_min.u_if'
-   26 |     input  logic [1:0]       d_htrans
-      |                              ^~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_id.sv:63:17: Signal is not used: 'fsm_state_obs'
-                                                 : ... note: In instance 'arm_m0_min.u_id'
-   63 |     logic [2:0] fsm_state_obs;
-      |                 ^~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_id.sv:64:22: Signal is not used: 'branch_target_hint'
-                                                 : ... note: In instance 'arm_m0_min.u_id'
-   64 |     logic [XLEN-1:0] branch_target_hint;
-      |                      ^~~~~~~~~~~~~~~~~~
-%Error: Exiting due to 5 warning(s)
+returncode: 0
+errors: 0 warnings: 0
+- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
+- Verilator: Built from 0.231 MB sources in 9 modules, into 0.081 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.039 s (elab=0.009, cvt=0.014, bld=0.000); cpu 0.023 s on 1 threads; allocated 11.078 MB

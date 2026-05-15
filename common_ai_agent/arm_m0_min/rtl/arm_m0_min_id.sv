@@ -84,7 +84,8 @@ module arm_m0_min_id #(
         rs2_addr  = instr16[7:4];
         rd_addr   = instr16[3:0];
         imm_ext   = {{24{instr16[7]}}, instr16[7:0]} + pc_bias + {{31{1'b0}}, (nzcv_parity & 1'b0)} +
-                    {{31{1'b0}}, store_data_mux_hit};
+                    {{31{1'b0}}, store_data_mux_hit} + {{31{1'b0}}, ((fsm_state_obs == RESET) & 1'b0)} +
+                    {{31{1'b0}}, ((branch_target_hint != {XLEN{1'b0}}) & 1'b0)};
         alu_op    = ALU_ADD;
         is_cmp    = 1'b0;
         is_ldr    = 1'b0;

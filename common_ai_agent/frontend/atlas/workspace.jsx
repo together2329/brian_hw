@@ -1448,14 +1448,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     [activeSession, resolveSession],
   );
 
-  const activeIp = React.useMemo(() => {
+  const activeIp = (() => {
     const parts = normalizeUiSession(currentSession || window.ACTIVE_SESSION).split('/').filter(Boolean);
     if (parts.length >= 3 && parts[1] && parts[1] !== 'default') return parts[1];
     const explicit = String(window.ACTIVE_IP || '').trim();
     if (explicit && explicit !== 'default') return explicit;
     const scoped = String(window.SCOPE_PATH || '').split('/').filter(Boolean).pop() || '';
     return /^[A-Za-z][A-Za-z0-9_]*$/.test(scoped) && scoped !== 'default' ? scoped : '';
-  }, [currentSession]);
+  })();
 
   const activeSsotIp = React.useCallback(() => {
     if (activeIp) return activeIp;
@@ -1620,6 +1620,27 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       return null;
     }
   }, []);
+
+  React.useEffect(() => {
+    if (workflow !== 'ssot-gen') return;
+    const ip = activeSsotIp();
+    if (!ip) return;
+    const loadedIp = String(ssotQa?.ip || '').trim();
+    const session = normalizeUiSession(currentSession || window.ACTIVE_SESSION || '');
+    const loadedSession = normalizeUiSession(ssotQa?.session || '');
+    const sameSession = !session || !loadedSession || session === loadedSession;
+    if (loadedIp === ip && sameSession) return;
+    refreshSsotQa(session);
+    refreshSsotQaSessions();
+  }, [
+    activeSsotIp,
+    currentSession,
+    refreshSsotQa,
+    refreshSsotQaSessions,
+    ssotQa?.ip,
+    ssotQa?.session,
+    workflow,
+  ]);
 
   const activateSsotQaSession = React.useCallback((row) => {
     const sid = normalizeUiSession(row?.session || '');
@@ -1883,6 +1904,20 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const showCoverageTab = workflow === 'coverage';
   const workflowReportMeta = WORKFLOW_REPORT_TABS[workflow] || null;
   const showWorkflowReportTab = !!workflowReportMeta;
+  const ssotQaBoardData = React.useMemo(() => {
+    if (ssotQa?.ip) return ssotQa;
+    const ip = activeSsotIp();
+    if (!ip) return ssotQa;
+    return {
+      ip,
+      workflow: 'ssot-gen',
+      session: currentSession || window.ACTIVE_SESSION || '',
+      toc: [],
+      sections: [],
+      summary: { total: 0, approved: 0, pending: 0 },
+      requirements: { total: 0, filled: 0, missing: 0, items: [], missing_keys: [] },
+    };
+  }, [activeSsotIp, currentSession, ssotQa]);
   const lastWorkflowTabRef = React.useRef(null);
   React.useEffect(() => {
     if (lastWorkflowTabRef.current === workflow) return;
@@ -3863,7 +3898,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 />
               ) : (
                 <SsotQaBoard
-                  data={ssotQa}
+                  data={ssotQaBoardData}
                   sessions={ssotQaSessions}
                   activeSession={currentSession}
                   uiLang={uiLang}
@@ -5040,19 +5075,33 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
     if (!text || !onRunCommand) return;
     onRunCommand(text);
   };
+  const readFileAsBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const raw = String(reader.result || '');
+      resolve(raw.includes(',') ? raw.split(',').pop() : raw);
+    };
+    reader.onerror = () => reject(reader.error || new Error('file read failed'));
+    reader.readAsDataURL(file);
+  });
   const uploadImportFiles = async (fileList) => {
     const files = Array.from(fileList || []);
     if (!files.length || !data?.ip) return;
     setImportBusy(true);
     setImportStatus('');
     try {
-      const fd = new FormData();
-      fd.append('ip', data.ip);
-      fd.append('session', activeSessionNorm || '');
-      files.forEach(file => fd.append('files', file, file.name));
+      const payloadFiles = await Promise.all(files.map(async file => ({
+        name: file.name,
+        content_b64: await readFileAsBase64(file),
+      })));
       const res = await fetch('/api/ssot/import/upload', {
         method: 'POST',
-        body: fd,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ip: data.ip,
+          session: activeSessionNorm || '',
+          files: payloadFiles,
+        }),
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok || !payload?.ok) {

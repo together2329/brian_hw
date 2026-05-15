@@ -18,10 +18,10 @@
     "rtl/arm_m0_min_rf.sv",
     "rtl/arm_m0_min.sv"
   ],
-  "timestamp": "2026-05-15T09:59:43.557976+00:00",
-  "returncode": 1,
+  "timestamp": "2026-05-15T10:01:47.390636+00:00",
+  "returncode": 0,
   "errors": 0,
-  "warnings": 7,
+  "warnings": 0,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -30,78 +30,19 @@
       "command": "pyslang rtl/arm_m0_min_if.sv rtl/arm_m0_min_id.sv rtl/arm_m0_min_alu.sv rtl/arm_m0_min_branch.sv rtl/arm_m0_min_mem_if.sv rtl/arm_m0_min_ex.sv rtl/arm_m0_min_rf.sv rtl/arm_m0_min.sv",
       "returncode": 0,
       "errors": 0,
-      "warnings": 2,
-      "diagnostics": [
-        {
-          "severity": "warning",
-          "file": "arm_m0_min/rtl/arm_m0_min_alu.sv",
-          "line": 26,
-          "message": "implicit conversion changes signedness from 'logic[31:0]' to 'logic signed[31:0]'"
-        },
-        {
-          "severity": "warning",
-          "file": "arm_m0_min/rtl/arm_m0_min_alu.sv",
-          "line": 40,
-          "message": "implicit conversion changes signedness from 'logic signed[31:0]' to 'logic[31:0]'"
-        }
-      ],
-      "passed": false
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
     },
     {
       "tool": "verilator",
       "available": true,
       "command": "verilator --lint-only -Wall -Irtl -f list/arm_m0_min.f --top-module arm_m0_min",
-      "returncode": 1,
+      "returncode": 0,
       "errors": 0,
-      "warnings": 5,
-      "diagnostics": [
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/arm_m0_min_if.sv",
-          "line": 24,
-          "column": 30,
-          "message": "Signal is not used: 'd_hready'",
-          "source": "    input  logic             d_hready,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/arm_m0_min_if.sv",
-          "line": 25,
-          "column": 30,
-          "message": "Signal is not used: 'd_hwdata'",
-          "source": "    input  logic [XLEN-1:0]  d_hwdata,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/arm_m0_min_if.sv",
-          "line": 26,
-          "column": 30,
-          "message": "Signal is not used: 'd_htrans'",
-          "source": "    input  logic [1:0]       d_htrans"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/arm_m0_min_id.sv",
-          "line": 63,
-          "column": 17,
-          "message": "Signal is not used: 'fsm_state_obs'",
-          "source": "    logic [2:0] fsm_state_obs;"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/arm_m0_min_id.sv",
-          "line": 64,
-          "column": 22,
-          "message": "Signal is not used: 'branch_target_hint'",
-          "source": "    logic [XLEN-1:0] branch_target_hint;"
-        }
-      ],
-      "passed": false
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
     }
   ],
   "suppression_violation_count": 0,
@@ -109,5 +50,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": false
+  "passed": true
 }

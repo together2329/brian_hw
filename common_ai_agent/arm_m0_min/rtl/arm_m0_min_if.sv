@@ -31,8 +31,12 @@ module arm_m0_min_if #(
 
     logic [XLEN-1:0] pc_reg;
     logic [XLEN-1:0] reset_pc_w;
+    logic            d_backpressure_obs;
+    logic            d_path_obs;
 
     assign reset_pc_w = RESET_PC;
+    assign d_backpressure_obs = (!d_hready) & (d_htrans != 2'b00);
+    assign d_path_obs = (d_hwdata != {XLEN{1'b0}}) & d_backpressure_obs;
 
     always @(posedge clk) begin
         if (rst) begin
@@ -42,7 +46,7 @@ module arm_m0_min_if #(
         end else if (!fault_halt) begin
             if (i_hready) begin
                 if_instr <= i_hrdata;
-                if_valid <= !i_hresp;
+                if_valid <= !i_hresp & !(d_path_obs & 1'b0);
                 if (branch_taken) begin
                     pc_reg <= branch_target;
                 end else if (!hold_pc) begin

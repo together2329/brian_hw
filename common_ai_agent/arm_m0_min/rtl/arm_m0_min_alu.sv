@@ -41,7 +41,7 @@ module arm_m0_min_alu #(
             ALU_MOV: alu_res = op_b;
             ALU_LSL: alu_res = op_a << shamt;
             ALU_LSR: alu_res = op_a >> shamt;
-            ALU_ASR: alu_res = asr_res_s;
+            ALU_ASR: alu_res = asr_res_u;
             default: alu_res = {XLEN{1'b0}};
         endcase
     end

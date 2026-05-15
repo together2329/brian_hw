@@ -1,4 +1,5 @@
 import json
+import base64
 import sys
 from pathlib import Path
 
@@ -83,19 +84,19 @@ def test_ssot_import_upload_saves_attachment_and_returns_import_command(tmp_path
 
     client = TestClient(atlas_ui.create_app())
     _register(client)
+    content = b"# MCTP\n\nAXI slave data path plus APB control registers.\n"
     response = client.post(
         "/api/ssot/import/upload",
-        data={"ip": "mctp_assembler", "session": "default/mctp_assembler/ssot-gen"},
-        files=[
-            (
-                "files",
-                (
-                    "mctp requirements.md",
-                    b"# MCTP\n\nAXI slave data path plus APB control registers.\n",
-                    "text/markdown",
-                ),
-            )
-        ],
+        json={
+            "ip": "mctp_assembler",
+            "session": "default/mctp_assembler/ssot-gen",
+            "files": [
+                {
+                    "name": "mctp requirements.md",
+                    "content_b64": base64.b64encode(content).decode("ascii"),
+                }
+            ],
+        },
     )
 
     assert response.status_code == 200, response.text

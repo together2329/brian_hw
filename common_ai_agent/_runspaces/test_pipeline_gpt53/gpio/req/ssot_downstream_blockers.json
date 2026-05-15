@@ -1,0 +1,14 @@
+{
+  "schema_version": "ssot_downstream_blockers.v1",
+  "ip": "gpio",
+  "ssot": "gpio/yaml/gpio.ssot.yaml",
+  "issues": [
+    {
+      "id": "SSOT_SAMPLE_CONDITION_DSL",
+      "field": "rtl_contract.sample_condition",
+      "expression": "legal transaction accepted under cycle_model.handshake_rules",
+      "error": "invalid syntax at column 7",
+      "fix": "Rewrite using DSL: Python comparisons (==, !=, <=, >=), and/or/not, & | ^ ~ for bitwise."
+    }
+  ]
+}

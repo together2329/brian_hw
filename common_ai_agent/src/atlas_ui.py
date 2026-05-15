@@ -8442,25 +8442,56 @@ def create_app():
         command path, so Web UI, Textual UI, and headless command handling
         stay aligned.
         """
-        try:
-            form = await request.form()
-        except Exception as exc:
-            return JSONResponse({"error": f"invalid multipart form: {exc}"}, status_code=400)
+        content_type = (request.headers.get("content-type") or "").lower()
+        upload_entries: list[tuple[str, bytes]] = []
+        ip = ""
+        if "json" in content_type:
+            try:
+                body = await request.json()
+            except Exception as exc:
+                return JSONResponse({"error": f"invalid json body: {exc}"}, status_code=400)
+            ip = str((body or {}).get("ip") or _active_ssot_ip() or "").strip()
+            import base64 as _base64_import
 
-        ip = str(form.get("ip") or _active_ssot_ip() or "").strip()
+            for idx, item in enumerate((body or {}).get("files") or []):
+                if not isinstance(item, dict):
+                    continue
+                filename = str(item.get("name") or f"import_{idx}.txt")
+                encoded = str(item.get("content_b64") or "")
+                if not encoded:
+                    continue
+                try:
+                    upload_entries.append((filename, _base64_import.b64decode(encoded, validate=True)))
+                except Exception as exc:
+                    return JSONResponse({"error": f"{filename}: invalid base64 payload: {exc}"}, status_code=400)
+        else:
+            try:
+                form = await request.form()
+            except Exception as exc:
+                return JSONResponse({"error": f"invalid multipart form: {exc}"}, status_code=400)
+            ip = str(form.get("ip") or _active_ssot_ip() or "").strip()
+            uploads = []
+            try:
+                uploads.extend(form.getlist("files"))  # type: ignore[attr-defined]
+                uploads.extend(form.getlist("file"))  # type: ignore[attr-defined]
+            except Exception:
+                one = form.get("files") or form.get("file")
+                if one is not None:
+                    uploads.append(one)
+            uploads = [up for up in uploads if hasattr(up, "read")]
+            for idx, upload in enumerate(uploads[:16]):
+                filename = getattr(upload, "filename", "") or f"import_{idx}.txt"
+                try:
+                    raw = await upload.read()
+                except Exception as exc:
+                    return JSONResponse({"error": f"{filename}: read failed: {exc}"}, status_code=400)
+                if not isinstance(raw, (bytes, bytearray)):
+                    raw = str(raw).encode("utf-8", errors="replace")
+                upload_entries.append((filename, bytes(raw)))
+
         if not _valid_ip_name(ip):
             return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
-
-        uploads = []
-        try:
-            uploads.extend(form.getlist("files"))  # type: ignore[attr-defined]
-            uploads.extend(form.getlist("file"))  # type: ignore[attr-defined]
-        except Exception:
-            one = form.get("files") or form.get("file")
-            if one is not None:
-                uploads.append(one)
-        uploads = [up for up in uploads if hasattr(up, "read")]
-        if not uploads:
+        if not upload_entries:
             return JSONResponse({"error": "missing file upload"}, status_code=400)
 
         dest_dir = PROJECT_ROOT / ip / "req" / "imports"
@@ -8472,19 +8503,12 @@ def create_app():
         saved: list[dict[str, Any]] = []
         errors: list[str] = []
         max_bytes = 12 * 1024 * 1024
-        for idx, upload in enumerate(uploads[:16]):
-            filename = _safe_import_upload_name(getattr(upload, "filename", "") or f"import_{idx}.txt")
+        for idx, (raw_name, raw) in enumerate(upload_entries[:16]):
+            filename = _safe_import_upload_name(raw_name or f"import_{idx}.txt")
             suffix = Path(filename).suffix.lower()
             if suffix not in _SSOT_IMPORT_EXTENSIONS:
                 errors.append(f"{filename}: unsupported extension {suffix or '(none)'}")
                 continue
-            try:
-                raw = await upload.read()
-            except Exception as exc:
-                errors.append(f"{filename}: read failed: {exc}")
-                continue
-            if not isinstance(raw, (bytes, bytearray)):
-                raw = str(raw).encode("utf-8", errors="replace")
             if len(raw) > max_bytes:
                 errors.append(f"{filename}: file too large ({len(raw)} bytes > {max_bytes})")
                 continue
