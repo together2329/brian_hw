@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "type": "rtl_blocker",
+  "status": "blocked",
+  "owner": "ssot-gen + human gate",
+  "ip": "gpio",
+  "top": "gpio",
+  "reason": "SSOT behavior is not concrete enough for production RTL implementation.",
+  "questions": [
+    {
+      "id": "RTL_OUTPUT_DEP_DIN_Q_MASKED_NEXT",
+      "decision_needed": "Break or order output-rule dependency for 'din_q_masked_next'.",
+      "evidence": "Rule expression references unresolved output rule(s): din_q.",
+      "options": [
+        "Define combinational helper expressions before dependent outputs or remove cyclic output dependencies."
+      ],
+      "recommended_default": "Output rules must form an acyclic same-cycle expression graph.",
+      "downstream_effect": "Generated RTL can lower FL observables without previous-cycle output feedback."
+    },
+    {
+      "id": "RTL_SAMPLE_CONDITION",
+      "decision_needed": "Rewrite rtl_contract.sample_condition using the supported expression DSL.",
+      "evidence": "invalid syntax (<unknown>, line 1)",
+      "options": [
+        "Use input port names or input_map fields with and/or/not, comparisons, and bitwise operators."
+      ],
+      "recommended_default": "Make sampling eligibility machine-checkable.",
+      "downstream_effect": "RTL, TB driver, and cycle model observe the same transaction acceptance condition."
+    }
+  ],
+  "next_action": "Run workflow/rtl-gen/scripts/prepare_rtl_human_review.py to create a pending review packet, answer/approve through ATLAS UI or resolve_rtl_blockers.py, update SSOT, then rerun /ssot-rtl.",
+  "timestamp": "2026-05-15T09:56:52Z"
+}

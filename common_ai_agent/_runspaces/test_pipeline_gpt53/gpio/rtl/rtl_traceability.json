@@ -11,34 +11,14 @@
       "packet_id": "module__gpio_regs__cycle_model"
     },
     {
-      "json": "rtl/authoring_packets/module__gpio_regs__test_requirements.json",
-      "markdown": "rtl/authoring_packets/module__gpio_regs__test_requirements.md",
-      "packet_id": "module__gpio_regs__test_requirements"
-    },
-    {
-      "json": "rtl/authoring_packets/module__gpio_regs__registers.json",
-      "markdown": "rtl/authoring_packets/module__gpio_regs__registers.md",
-      "packet_id": "module__gpio_regs__registers"
-    },
-    {
-      "json": "rtl/authoring_packets/module__gpio_regs__features.json",
-      "markdown": "rtl/authoring_packets/module__gpio_regs__features.md",
-      "packet_id": "module__gpio_regs__features"
-    },
-    {
       "json": "rtl/authoring_packets/module__gpio_regs__fsm.json",
       "markdown": "rtl/authoring_packets/module__gpio_regs__fsm.md",
       "packet_id": "module__gpio_regs__fsm"
     },
     {
-      "json": "rtl/authoring_packets/module__gpio_regs__equivalence.json",
-      "markdown": "rtl/authoring_packets/module__gpio_regs__equivalence.md",
-      "packet_id": "module__gpio_regs__equivalence"
-    },
-    {
-      "json": "rtl/authoring_packets/module__gpio_regs__workflow_todo.json",
-      "markdown": "rtl/authoring_packets/module__gpio_regs__workflow_todo.md",
-      "packet_id": "module__gpio_regs__workflow_todo"
+      "json": "rtl/authoring_packets/module__gpio_regs__features.json",
+      "markdown": "rtl/authoring_packets/module__gpio_regs__features.md",
+      "packet_id": "module__gpio_regs__features"
     },
     {
       "json": "rtl/authoring_packets/module__gpio_input_sampler.json",
@@ -74,6 +54,26 @@
       "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
       "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
       "packet_id": "rtl_gate_tool_evidence"
+    },
+    {
+      "json": "rtl/authoring_packets/module__gpio_regs__equivalence.json",
+      "markdown": "rtl/authoring_packets/module__gpio_regs__equivalence.md",
+      "packet_id": "module__gpio_regs__equivalence"
+    },
+    {
+      "json": "rtl/authoring_packets/module__gpio_regs__registers.json",
+      "markdown": "rtl/authoring_packets/module__gpio_regs__registers.md",
+      "packet_id": "module__gpio_regs__registers"
+    },
+    {
+      "json": "rtl/authoring_packets/module__gpio_regs__test_requirements.json",
+      "markdown": "rtl/authoring_packets/module__gpio_regs__test_requirements.md",
+      "packet_id": "module__gpio_regs__test_requirements"
+    },
+    {
+      "json": "rtl/authoring_packets/module__gpio_regs__workflow_todo.json",
+      "markdown": "rtl/authoring_packets/module__gpio_regs__workflow_todo.md",
+      "packet_id": "module__gpio_regs__workflow_todo"
     }
   ],
   "authoring_plan": "rtl/rtl_authoring_plan.json",
@@ -100,12 +100,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 138,
+    "open_required_todos": 85,
     "orphan_tasks": 0,
-    "static_missing": 53,
+    "static_missing": 31,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T09:54:44Z",
+  "generated_at": "2026-05-15T09:56:52Z",
   "ip": "gpio",
   "rows": [
     {
@@ -359,8 +359,14 @@
       "owner_module": "gpio_regs",
       "source_ref": "workflow_todos.rtl-gen[0]",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "GPIO",
+          "REGS",
+          "gpio",
+          "gpio_regs",
+          "regs"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -382,7 +388,7 @@
           "regs"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0020"
     },
@@ -664,8 +670,11 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.preconditions.precondition_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -674,7 +683,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0038"
     },
@@ -701,8 +710,12 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.inputs.input_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "dir",
+          "dir_in",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -712,7 +725,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0040"
     },
@@ -727,8 +740,12 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.inputs.input_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "dout",
+          "dout_in",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -738,7 +755,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0041"
     },
@@ -754,8 +771,12 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.outputs.output_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "dir",
+          "dir_in",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -766,7 +787,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0042"
     },
@@ -782,8 +803,12 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.outputs.output_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "dout",
+          "dout_in",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -794,7 +819,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0043"
     },
@@ -810,8 +835,13 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.output_rules.dir_q_next",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dir",
+          "dir_in",
+          "dir_q",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -822,7 +852,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0044"
     },
@@ -838,8 +868,13 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.output_rules.dout_q_next",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dout",
+          "dout_in",
+          "dout_q",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -850,7 +885,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0045"
     },
@@ -866,8 +901,13 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.side_effects.side_effect_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -878,7 +918,7 @@
           "dout_q"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0046"
     },
@@ -904,8 +944,11 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.preconditions.precondition_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -914,7 +957,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0048"
     },
@@ -941,8 +984,10 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.inputs.input_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -966,8 +1011,10 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.inputs.input_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "dir"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1019,8 +1066,11 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.outputs.output_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "dir",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1034,7 +1084,7 @@
           "pad_in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0053"
     },
@@ -1050,8 +1100,10 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.outputs.output_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "dir"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1081,8 +1133,12 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.output_rules.din_q_masked_next",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1096,7 +1152,7 @@
           "pad_in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0055"
     },
@@ -1366,8 +1422,11 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM4_ASYNC_RESET.preconditions.precondition_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1376,7 +1435,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0067"
     },
@@ -1390,8 +1449,10 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM4_ASYNC_RESET.outputs.output_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "dir"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1414,8 +1475,10 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM4_ASYNC_RESET.outputs.output_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "dout"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1510,8 +1573,11 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM4_ASYNC_RESET.output_rules.dir_reset",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "dir",
+          "dir_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1520,7 +1586,7 @@
           "dir_q"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0073"
     },
@@ -1534,8 +1600,11 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.transactions.FM4_ASYNC_RESET.output_rules.dout_reset",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "dout",
+          "dout_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1544,7 +1613,7 @@
           "dout_q"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0074"
     },
@@ -1596,8 +1665,11 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.invariants.invariant_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "dir",
+          "dir_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1608,7 +1680,7 @@
           "oe_o"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0077"
     },
@@ -1626,8 +1698,13 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.invariants.invariant_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1640,7 +1717,7 @@
           "pad_o"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0078"
     },
@@ -1682,8 +1759,13 @@
       "owner_module": "gpio_regs",
       "source_ref": "function_model.invariants.invariant_3",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1696,7 +1778,7 @@
           "dout_q"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0080"
     },
@@ -1846,8 +1928,15 @@
       "owner_module": "gpio_regs",
       "source_ref": "cycle_model.pipeline.S0_RESET",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q",
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1862,7 +1951,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0087"
     },
@@ -1881,8 +1970,16 @@
       "owner_module": "gpio_regs",
       "source_ref": "cycle_model.pipeline.S1_LATCH_CONTROL",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "dir",
+          "dir_in",
+          "dir_q",
+          "dout",
+          "dout_in",
+          "dout_q",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1896,7 +1993,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0088"
     },
@@ -2174,8 +2271,11 @@
       "owner_module": "gpio_regs",
       "source_ref": "features.Per_bit_direction_control",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "dir",
+          "dir_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2186,7 +2286,7 @@
           "oe_o"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0106"
     },
@@ -2204,8 +2304,13 @@
       "owner_module": "gpio_regs",
       "source_ref": "features.Registered_output_data",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2218,7 +2323,7 @@
           "pad_o"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0107"
     },

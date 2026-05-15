@@ -6457,6 +6457,17 @@ def create_app():
         ]
         approved = sum(1 for item in items if item.get("status_group") == "approved")
         pending = sum(1 for item in items if item.get("status_group") != "approved")
+        missing_requirements = _missing_ssot_decisions(ip, state)
+        missing_set = set(missing_requirements)
+        requirements = [
+            {
+                "key": key,
+                "label": label,
+                "status": "missing" if key in missing_set else "filled",
+                "answer": decisions.get(key, ""),
+            }
+            for key, label in _SSOT_REQUIRED_DECISIONS
+        ]
         return {
             "ip": ip,
             "workflow": "ssot-gen",
@@ -6466,6 +6477,13 @@ def create_app():
             "toc": toc,
             "sections": sections,
             "summary": {"total": approved + pending, "approved": approved, "pending": pending},
+            "requirements": {
+                "total": len(_SSOT_REQUIRED_DECISIONS),
+                "filled": len(_SSOT_REQUIRED_DECISIONS) - len(missing_requirements),
+                "missing": len(missing_requirements),
+                "items": requirements,
+                "missing_keys": missing_requirements,
+            },
             "items": items,
             "path": str(_ssot_qa_path(ip, session).relative_to(PROJECT_ROOT)),
         }
@@ -8407,6 +8425,90 @@ def create_app():
         _emit_workflow_result(msg, "import")
         _emit_ssot_approval_ready(ip, state, missing)
         return True
+
+    def _safe_import_upload_name(name: str) -> str:
+        raw = Path(str(name or "import.txt")).name
+        safe = re.sub(r"[^A-Za-z0-9._-]+", "_", raw).strip("._")
+        if not safe:
+            safe = "import.txt"
+        return safe[:120]
+
+    @app.post("/api/ssot/import/upload")
+    async def api_ssot_import_upload(request: Request):
+        """Upload requirement/source evidence into <ip>/req/imports/.
+
+        The route only stores the attachment and returns the exact /import
+        command to run. That keeps import semantics in the existing slash
+        command path, so Web UI, Textual UI, and headless command handling
+        stay aligned.
+        """
+        try:
+            form = await request.form()
+        except Exception as exc:
+            return JSONResponse({"error": f"invalid multipart form: {exc}"}, status_code=400)
+
+        ip = str(form.get("ip") or _active_ssot_ip() or "").strip()
+        if not _valid_ip_name(ip):
+            return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
+
+        uploads = []
+        try:
+            uploads.extend(form.getlist("files"))  # type: ignore[attr-defined]
+            uploads.extend(form.getlist("file"))  # type: ignore[attr-defined]
+        except Exception:
+            one = form.get("files") or form.get("file")
+            if one is not None:
+                uploads.append(one)
+        uploads = [up for up in uploads if hasattr(up, "read")]
+        if not uploads:
+            return JSONResponse({"error": "missing file upload"}, status_code=400)
+
+        dest_dir = PROJECT_ROOT / ip / "req" / "imports"
+        try:
+            dest_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            return JSONResponse({"error": f"cannot create import dir: {exc}"}, status_code=500)
+
+        saved: list[dict[str, Any]] = []
+        errors: list[str] = []
+        max_bytes = 12 * 1024 * 1024
+        for idx, upload in enumerate(uploads[:16]):
+            filename = _safe_import_upload_name(getattr(upload, "filename", "") or f"import_{idx}.txt")
+            suffix = Path(filename).suffix.lower()
+            if suffix not in _SSOT_IMPORT_EXTENSIONS:
+                errors.append(f"{filename}: unsupported extension {suffix or '(none)'}")
+                continue
+            try:
+                raw = await upload.read()
+            except Exception as exc:
+                errors.append(f"{filename}: read failed: {exc}")
+                continue
+            if not isinstance(raw, (bytes, bytearray)):
+                raw = str(raw).encode("utf-8", errors="replace")
+            if len(raw) > max_bytes:
+                errors.append(f"{filename}: file too large ({len(raw)} bytes > {max_bytes})")
+                continue
+            stamp = int(time.time() * 1000)
+            target = dest_dir / f"{stamp}_{idx}_{filename}"
+            try:
+                target.write_bytes(bytes(raw))
+                rel = target.relative_to(PROJECT_ROOT).as_posix()
+                saved.append({"path": rel, "name": filename, "bytes": len(raw)})
+            except OSError as exc:
+                errors.append(f"{filename}: write failed: {exc}")
+
+        if not saved:
+            return JSONResponse({"error": "no files saved", "errors": errors}, status_code=400)
+        paths = [item["path"] for item in saved]
+        command = f"/import --ip {ip} " + " ".join(f"@{path}" for path in paths)
+        return JSONResponse({
+            "ok": True,
+            "ip": ip,
+            "saved": saved,
+            "paths": paths,
+            "errors": errors,
+            "command": command,
+        })
 
     def _handle_grill_me_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)

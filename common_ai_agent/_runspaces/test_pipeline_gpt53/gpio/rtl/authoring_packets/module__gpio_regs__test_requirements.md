@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 9
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline.S1_LATCH_CONTROL, dataflow, decomposition, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM1_LATCH_CONTROL, function_model.transactions.FM2_SAMPLE_INPUTS, function_model.transactions.FM3_DRIVE_PAD_OUTPUTS, function_model.transactions.FM4_ASYNC_RESET, registers, registers.register_list, registers.register_list.DIR_Q, registers.register_list.DOUT_Q
 - Module slice: 6/8 section=test_requirements task_limit=48
@@ -43,14 +43,14 @@
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC01
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC01.
 Owner: gpio_regs in rtl/gpio_regs.sv via test_requirements.
 SSOT item context: id=SC01; name=reset contract; expected=Architectural state, status, outputs, and debug observability match function_model reset outputs..
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -64,14 +64,14 @@ SSOT item context: id=SC01; name=reset contract; expected=Architectural state, s
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC02
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC02.
 Owner: gpio_regs in rtl/gpio_regs.sv via test_requirements.
 SSOT item context: id=SC02; name=primary approved behavior; expected=Externally observable result/status/side effects match the function_model primary transaction..
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -85,14 +85,14 @@ SSOT item context: id=SC02; name=primary approved behavior; expected=Externally 
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC03
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC03.
 Owner: gpio_regs in rtl/gpio_regs.sv via test_requirements.
 SSOT item context: id=SC03; name=cycle handshake and backpressure; expected=Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules..
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -106,14 +106,14 @@ SSOT item context: id=SC03; name=cycle handshake and backpressure; expected=Payl
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC04
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC04.
 Owner: gpio_regs in rtl/gpio_regs.sv via test_requirements.
 SSOT item context: id=SC04; name=error and recovery policy; expected=Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state..
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -127,14 +127,14 @@ SSOT item context: id=SC04; name=error and recovery policy; expected=Error/statu
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC05
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC05.
 Owner: gpio_regs in rtl/gpio_regs.sv via test_requirements.
 SSOT item context: id=SC05; name=debug and trace observability; expected=Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior..
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -148,14 +148,14 @@ SSOT item context: id=SC05; name=debug and trace observability; expected=Debug/s
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC06
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC06.
 Owner: gpio_regs in rtl/gpio_regs.sv via test_requirements.
 SSOT item context: id=SC06; name=function_model transaction FM1_LATCH_CONTROL; expected=Outputs and side effects match `FM1_LATCH_CONTROL` exactly..
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -169,14 +169,14 @@ SSOT item context: id=SC06; name=function_model transaction FM1_LATCH_CONTROL; e
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC07
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC07.
 Owner: gpio_regs in rtl/gpio_regs.sv via test_requirements.
 SSOT item context: id=SC07; name=function_model transaction FM2_SAMPLE_INPUTS; expected=Outputs and side effects match `FM2_SAMPLE_INPUTS` exactly..
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -190,14 +190,14 @@ SSOT item context: id=SC07; name=function_model transaction FM2_SAMPLE_INPUTS; e
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC08
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC08.
 Owner: gpio_regs in rtl/gpio_regs.sv via test_requirements.
 SSOT item context: id=SC08; name=function_model transaction FM3_DRIVE_PAD_OUTPUTS; expected=Outputs and side effects match `FM3_DRIVE_PAD_OUTPUTS` exactly..
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -211,14 +211,14 @@ SSOT item context: id=SC08; name=function_model transaction FM3_DRIVE_PAD_OUTPUT
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC09
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC09.
 Owner: gpio_regs in rtl/gpio_regs.sv via test_requirements.
 SSOT item context: id=SC09; name=function_model transaction FM4_ASYNC_RESET; expected=Outputs and side effects match `FM4_ASYNC_RESET` exactly..
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 12
+- LLM-actionable open tasks: 3
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline.S1_LATCH_CONTROL, dataflow, decomposition, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM1_LATCH_CONTROL, function_model.transactions.FM2_SAMPLE_INPUTS, function_model.transactions.FM3_DRIVE_PAD_OUTPUTS, function_model.transactions.FM4_ASYNC_RESET, registers, registers.register_list, registers.register_list.DIR_Q, registers.register_list.DOUT_Q
 - Module slice: 2/8 section=cycle_model task_limit=48
@@ -43,14 +43,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
 SSOT item context: value=clk.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -64,13 +64,13 @@ SSOT item context: value=clk.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -84,13 +84,13 @@ Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -111,7 +111,7 @@ Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
 SSOT ref: cycle_model.handshake_rules.HR_SYNC_SAMPLE.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
 SSOT item context: id=HR_SYNC_SAMPLE; signal=clk.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -132,7 +132,7 @@ SSOT item context: id=HR_SYNC_SAMPLE; signal=clk.
 SSOT ref: cycle_model.handshake_rules.HR_INPUT_MASK_SAMPLE.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
 SSOT item context: id=HR_INPUT_MASK_SAMPLE; signal=din_q.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -146,14 +146,14 @@ SSOT item context: id=HR_INPUT_MASK_SAMPLE; signal=din_q.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S0_RESET
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_RESET.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
 SSOT item context: stage=S0_RESET; action=Clear dir_q/dout_q/din_q when rst_n=0; cycle=async.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -168,14 +168,14 @@ SSOT item context: stage=S0_RESET; action=Clear dir_q/dout_q/din_q when rst_n=0;
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S1_LATCH_CONTROL
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_LATCH_CONTROL.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.pipeline.S1_LATCH_CONTROL.
 SSOT item context: stage=S1_LATCH_CONTROL; action=Latch dir_in->dir_q and dout_in->dout_q at rising edge; cycle=N.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -197,7 +197,7 @@ SSOT item context: stage=S1_LATCH_CONTROL; action=Latch dir_in->dir_q and dout_i
 SSOT ref: cycle_model.pipeline.S3_DRIVE_OUTPUTS.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
 SSOT item context: stage=S3_DRIVE_OUTPUTS; action=Drive oe_o/pad_o from registered state; cycle=N+comb.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -212,14 +212,14 @@ SSOT item context: stage=S3_DRIVE_OUTPUTS; action=Drive oe_o/pad_o from register
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
 SSOT item context: value=sequential updates occur at edge, combinational outputs settle after edge.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -233,14 +233,14 @@ SSOT item context: value=sequential updates occur at edge, combinational outputs
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
 SSOT item context: value=reset dominates non-reset behavior.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -254,14 +254,14 @@ SSOT item context: value=reset dominates non-reset behavior.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
 SSOT item context: value=no ready/valid protocol in this GPIO fixture.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -275,14 +275,14 @@ SSOT item context: value=no ready/valid protocol in this GPIO fixture.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via cycle_model.
 SSOT item context: value=each function_model transaction maps to cycle stages and test scenarios.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior

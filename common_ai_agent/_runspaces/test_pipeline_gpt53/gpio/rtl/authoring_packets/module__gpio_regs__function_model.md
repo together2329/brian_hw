@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 38
+- LLM-actionable open tasks: 12
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline.S1_LATCH_CONTROL, dataflow, decomposition, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM1_LATCH_CONTROL, function_model.transactions.FM2_SAMPLE_INPUTS, function_model.transactions.FM3_DRIVE_PAD_OUTPUTS, function_model.transactions.FM4_ASYNC_RESET, registers, registers.register_list, registers.register_list.DIR_Q, registers.register_list.DOUT_Q
 - Module slice: 1/8 section=function_model task_limit=48
@@ -43,14 +43,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.dir_state
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.dir_state.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.state_variables.
 SSOT item context: name=dir_state; reset=0.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -64,14 +64,14 @@ SSOT item context: name=dir_state; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.dout_state
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.dout_state.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.state_variables.
 SSOT item context: name=dout_state; reset=0.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -85,14 +85,14 @@ SSOT item context: name=dout_state; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.din_state
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.din_state.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.state_variables.
 SSOT item context: name=din_state; reset=0.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -106,14 +106,14 @@ SSOT item context: name=din_state; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM1_LATCH_CONTROL
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM1_LATCH_CONTROL.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM1_LATCH_CONTROL.
 SSOT item context: id=FM1_LATCH_CONTROL; name=latch_direction_and_output_data.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -126,14 +126,14 @@ SSOT item context: id=FM1_LATCH_CONTROL; name=latch_direction_and_output_data.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM1_LATCH_CONTROL.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1_LATCH_CONTROL.preconditions.precondition_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM1_LATCH_CONTROL.
 SSOT item context: value=rst_n is deasserted.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -146,14 +146,14 @@ SSOT item context: value=rst_n is deasserted.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM1_LATCH_CONTROL.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1_LATCH_CONTROL.preconditions.precondition_1.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM1_LATCH_CONTROL.
 SSOT item context: value=rising edge of clk.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -166,14 +166,14 @@ SSOT item context: value=rising edge of clk.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM1_LATCH_CONTROL.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1_LATCH_CONTROL.inputs.input_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM1_LATCH_CONTROL.
 SSOT item context: value=dir_in.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -186,14 +186,14 @@ SSOT item context: value=dir_in.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM1_LATCH_CONTROL.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1_LATCH_CONTROL.inputs.input_1.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM1_LATCH_CONTROL.
 SSOT item context: value=dout_in.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -206,14 +206,14 @@ SSOT item context: value=dout_in.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM1_LATCH_CONTROL.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1_LATCH_CONTROL.outputs.output_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM1_LATCH_CONTROL.
 SSOT item context: value=dir_state equals dir_in after sampling edge.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -226,14 +226,14 @@ SSOT item context: value=dir_state equals dir_in after sampling edge.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM1_LATCH_CONTROL.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1_LATCH_CONTROL.outputs.output_1.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM1_LATCH_CONTROL.
 SSOT item context: value=dout_state equals dout_in after sampling edge.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -246,14 +246,14 @@ SSOT item context: value=dout_state equals dout_in after sampling edge.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM1_LATCH_CONTROL.output_rules.dir_q_next
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1_LATCH_CONTROL.output_rules.dir_q_next.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM1_LATCH_CONTROL.
 SSOT item context: name=dir_q_next; port=dir_q; expr=dir_in; width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -270,14 +270,14 @@ SSOT item context: name=dir_q_next; port=dir_q; expr=dir_in; width=WIDTH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM1_LATCH_CONTROL.output_rules.dout_q_next
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1_LATCH_CONTROL.output_rules.dout_q_next.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM1_LATCH_CONTROL.
 SSOT item context: name=dout_q_next; port=dout_q; expr=dout_in; width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -294,14 +294,14 @@ SSOT item context: name=dout_q_next; port=dout_q; expr=dout_in; width=WIDTH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM1_LATCH_CONTROL.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1_LATCH_CONTROL.side_effects.side_effect_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM1_LATCH_CONTROL.
 SSOT item context: value=dir_q and dout_q update atomically each cycle.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -314,14 +314,14 @@ SSOT item context: value=dir_q and dout_q update atomically each cycle.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM2_SAMPLE_INPUTS
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM2_SAMPLE_INPUTS.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM2_SAMPLE_INPUTS.
 SSOT item context: id=FM2_SAMPLE_INPUTS; name=sample_pad_inputs_for_input_bits_only.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -334,14 +334,14 @@ SSOT item context: id=FM2_SAMPLE_INPUTS; name=sample_pad_inputs_for_input_bits_o
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM2_SAMPLE_INPUTS.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2_SAMPLE_INPUTS.preconditions.precondition_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM2_SAMPLE_INPUTS.
 SSOT item context: value=rst_n is deasserted.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -354,14 +354,14 @@ SSOT item context: value=rst_n is deasserted.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM2_SAMPLE_INPUTS.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2_SAMPLE_INPUTS.preconditions.precondition_1.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM2_SAMPLE_INPUTS.
 SSOT item context: value=rising edge of clk.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -381,7 +381,7 @@ SSOT item context: value=rising edge of clk.
 SSOT ref: function_model.transactions.FM2_SAMPLE_INPUTS.inputs.input_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM2_SAMPLE_INPUTS.
 SSOT item context: value=pad_in.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -401,7 +401,7 @@ SSOT item context: value=pad_in.
 SSOT ref: function_model.transactions.FM2_SAMPLE_INPUTS.inputs.input_1.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM2_SAMPLE_INPUTS.
 SSOT item context: value=dir_state.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -421,7 +421,7 @@ SSOT item context: value=dir_state.
 SSOT ref: function_model.transactions.FM2_SAMPLE_INPUTS.inputs.input_2.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM2_SAMPLE_INPUTS.
 SSOT item context: value=din_state.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -434,14 +434,14 @@ SSOT item context: value=din_state.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM2_SAMPLE_INPUTS.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2_SAMPLE_INPUTS.outputs.output_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM2_SAMPLE_INPUTS.
 SSOT item context: value=din_state bits with dir_state=0 sample pad_in.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -461,7 +461,7 @@ SSOT item context: value=din_state bits with dir_state=0 sample pad_in.
 SSOT ref: function_model.transactions.FM2_SAMPLE_INPUTS.outputs.output_1.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM2_SAMPLE_INPUTS.
 SSOT item context: value=din_state bits with dir_state=1 hold previous value.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -474,14 +474,14 @@ SSOT item context: value=din_state bits with dir_state=1 hold previous value.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM2_SAMPLE_INPUTS.output_rules.din_q_masked_next
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2_SAMPLE_INPUTS.output_rules.din_q_masked_next.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM2_SAMPLE_INPUTS.
 SSOT item context: name=din_q_masked_next; port=din_q; expr=(din_q & dir_q) | (pad_in & ~dir_q); width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -505,7 +505,7 @@ SSOT item context: name=din_q_masked_next; port=din_q; expr=(din_q & dir_q) | (p
 SSOT ref: function_model.transactions.FM2_SAMPLE_INPUTS.side_effects.side_effect_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM2_SAMPLE_INPUTS.
 SSOT item context: value=din_q updates only on input-configured bits.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -518,14 +518,14 @@ SSOT item context: value=din_q updates only on input-configured bits.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM4_ASYNC_RESET
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM4_ASYNC_RESET.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM4_ASYNC_RESET.
 SSOT item context: id=FM4_ASYNC_RESET; name=asynchronous_reset_clears_state.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -538,14 +538,14 @@ SSOT item context: id=FM4_ASYNC_RESET; name=asynchronous_reset_clears_state.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM4_ASYNC_RESET.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4_ASYNC_RESET.preconditions.precondition_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM4_ASYNC_RESET.
 SSOT item context: value=rst_n asserted low.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -565,7 +565,7 @@ SSOT item context: value=rst_n asserted low.
 SSOT ref: function_model.transactions.FM4_ASYNC_RESET.outputs.output_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM4_ASYNC_RESET.
 SSOT item context: value=dir_state zero.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -585,7 +585,7 @@ SSOT item context: value=dir_state zero.
 SSOT ref: function_model.transactions.FM4_ASYNC_RESET.outputs.output_1.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM4_ASYNC_RESET.
 SSOT item context: value=dout_state zero.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -605,7 +605,7 @@ SSOT item context: value=dout_state zero.
 SSOT ref: function_model.transactions.FM4_ASYNC_RESET.outputs.output_2.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM4_ASYNC_RESET.
 SSOT item context: value=din_state zero.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -625,7 +625,7 @@ SSOT item context: value=din_state zero.
 SSOT ref: function_model.transactions.FM4_ASYNC_RESET.outputs.output_3.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM4_ASYNC_RESET.
 SSOT item context: value=oe_o zero.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -645,7 +645,7 @@ SSOT item context: value=oe_o zero.
 SSOT ref: function_model.transactions.FM4_ASYNC_RESET.outputs.output_4.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM4_ASYNC_RESET.
 SSOT item context: value=pad_o zero.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -658,14 +658,14 @@ SSOT item context: value=pad_o zero.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM4_ASYNC_RESET.output_rules.dir_reset
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4_ASYNC_RESET.output_rules.dir_reset.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM4_ASYNC_RESET.
 SSOT item context: name=dir_reset; port=dir_q; expr=0; width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -682,14 +682,14 @@ SSOT item context: name=dir_reset; port=dir_q; expr=0; width=WIDTH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM4_ASYNC_RESET.output_rules.dout_reset
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4_ASYNC_RESET.output_rules.dout_reset.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM4_ASYNC_RESET.
 SSOT item context: name=dout_reset; port=dout_q; expr=0; width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -713,7 +713,7 @@ SSOT item context: name=dout_reset; port=dout_q; expr=0; width=WIDTH.
 SSOT ref: function_model.transactions.FM4_ASYNC_RESET.output_rules.din_reset.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM4_ASYNC_RESET.
 SSOT item context: name=din_reset; port=din_q; expr=0; width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -730,14 +730,14 @@ SSOT item context: name=din_reset; port=din_q; expr=0; width=WIDTH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM4_ASYNC_RESET.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4_ASYNC_RESET.side_effects.side_effect_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.transactions.FM4_ASYNC_RESET.
 SSOT item context: value=all architectural state cleared independent of clk.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -750,14 +750,14 @@ SSOT item context: value=all architectural state cleared independent of clk.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_0
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.
 SSOT item context: value=oe_o equals dir_q at all times after combinational settle.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -770,14 +770,14 @@ SSOT item context: value=oe_o equals dir_q at all times after combinational sett
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_1
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_1.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.
 SSOT item context: value=pad_o equals (dout_q & dir_q) bitwise.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -797,7 +797,7 @@ SSOT item context: value=pad_o equals (dout_q & dir_q) bitwise.
 SSOT ref: function_model.invariants.invariant_2.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.
 SSOT item context: value=din_q output-configured bits hold unless reset.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -810,14 +810,14 @@ SSOT item context: value=din_q output-configured bits hold unless reset.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_3
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_3.
 Owner: gpio_regs in rtl/gpio_regs.sv via function_model.
 SSOT item context: value=no hidden state beyond dir_q, dout_q, din_q.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner

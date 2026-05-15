@@ -28,10 +28,10 @@
 - Human-locked open tasks: 0
 - Owner refs: integration, integration.connections, rtl_contract
 - Tool-evidence blockers:
-  - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
+  - common_ai_agent_authoring: RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/gpio.sv,rtl/gpio_input_sampler.sv,rtl/gpio_pad_logic.sv
   - dut_compile: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
   - dut_lint: Missing canonical DUT lint artifact: lint/dut_lint.json.
-  - dynamic_todo_closure: 137 required non-closure TODO(s) remain open.
+  - dynamic_todo_closure: 84 required non-closure TODO(s) remain open.
 - Tool-evidence runbook:
   - common_ai_agent_authoring: stages=ssot-rtl; artifact=gpio/rtl/rtl_authoring_provenance.json
   - dut_compile: stages=ssot-rtl, dut_compile; artifact=gpio/rtl/rtl_compile.json
@@ -64,7 +64,7 @@
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: gpio in rtl/gpio.sv via top_fallback.
-- Current reason: Missing common_ai_agent RTL authoring provenance.
+- Current reason: RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/gpio.sv,rtl/gpio_input_sampler.sv,rtl/gpio_pad_logic.sv
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -130,7 +130,7 @@ Owner: gpio in rtl/gpio.sv via top_fallback.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: gpio in rtl/gpio.sv via top_fallback.
-- Current reason: 137 required non-closure TODO(s) remain open.
+- Current reason: 84 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

@@ -50,7 +50,7 @@
 SSOT ref: fsm.control.states.state_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via fsm.
 SSOT item context: value=ACTIVE.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -71,7 +71,7 @@ SSOT item context: value=ACTIVE.
 SSOT ref: fsm.control.transitions.transition_0.
 Owner: gpio_regs in rtl/gpio_regs.sv via fsm.
 SSOT item context: from=ACTIVE; to=ACTIVE; condition=normal operation each cycle.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented

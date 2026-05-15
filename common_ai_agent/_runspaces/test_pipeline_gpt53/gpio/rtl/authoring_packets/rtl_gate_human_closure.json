@@ -335,7 +335,7 @@
       {
         "gate_kind": "manifest_connection_contract_evidence",
         "owner_module": "gpio",
-        "reason": "15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL",
+        "reason": "15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
         "status": "open",
@@ -574,7 +574,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL",
+        "reason": "15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "required": true,
         "status": "open"
       }

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline.S1_LATCH_CONTROL, dataflow, decomposition, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM1_LATCH_CONTROL, function_model.transactions.FM2_SAMPLE_INPUTS, function_model.transactions.FM3_DRIVE_PAD_OUTPUTS, function_model.transactions.FM4_ASYNC_RESET, registers, registers.register_list, registers.register_list.DIR_Q, registers.register_list.DOUT_Q
 - Module slice: 8/8 section=workflow_todo task_limit=48
@@ -43,14 +43,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Create async-reset sequential logic for dir_q and dout_q sampled each rising edge
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: gpio_regs in rtl/gpio_regs.sv via workflow_todos.owner.
 SSOT item context: id=RTL_GPIO_REGS.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - reset clears registers to zero
   - one-cycle sampling of dir_in/dout_in is preserved

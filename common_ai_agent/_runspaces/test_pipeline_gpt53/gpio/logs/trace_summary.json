@@ -1,8 +1,21 @@
 {
-  "blocked_at_stage": "equiv-goals",
+  "blocked_at_stage": "rtl-gen",
   "ip": "gpio",
   "llm": {
     "by_stage": {
+      "rtl-gen": {
+        "cache_read_tokens": 51712,
+        "calls": 4,
+        "cost_usd": 0.18540792,
+        "input_tokens": 158052,
+        "models": [
+          "gpt-5.3-codex"
+        ],
+        "output_tokens": 5247,
+        "repair_calls": 0,
+        "repair_rate": 0.0,
+        "total_tokens": 163299
+      },
       "ssot-gen": {
         "cache_read_tokens": 28160,
         "calls": 2,
@@ -18,17 +31,17 @@
       }
     },
     "totals": {
-      "cache_read_tokens": 28160,
-      "calls": 2,
-      "cost_usd": 0.09627380000000002,
-      "input_tokens": 39419,
-      "output_tokens": 16634,
+      "cache_read_tokens": 79872,
+      "calls": 6,
+      "cost_usd": 0.28168172,
+      "input_tokens": 197471,
+      "output_tokens": 21881,
       "repair_calls": 1,
-      "repair_rate": 0.5,
-      "total_tokens": 56053
+      "repair_rate": 0.16666666666666666,
+      "total_tokens": 219352
     }
   },
-  "llm_log_files": 2,
+  "llm_log_files": 6,
   "run_status": "blocked",
   "stage_engine_order": [
     {
@@ -50,6 +63,11 @@
       "created_at": "2026-05-15T09:51:31Z",
       "stage_engine": "ssot-fl-model",
       "status": "fail"
+    },
+    {
+      "created_at": "2026-05-15T09:56:53Z",
+      "stage_engine": "ssot-rtl",
+      "status": "human_gate"
     }
   ]
 }

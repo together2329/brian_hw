@@ -28,7 +28,7 @@
 - Human-locked open tasks: 1
 - Owner refs: integration, integration.connections, rtl_contract
 - Locked-truth blockers:
-  - manifest_connection_contract_evidence: 15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL
+  - manifest_connection_contract_evidence: 15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy
 - SSOT connection contracts:
   - gpio_regs.clk <= clk (integration.connections[0])
   - gpio_regs.rst_n <= rst_n (integration.connections[1])
@@ -114,7 +114,7 @@ Owner: gpio in rtl/gpio.sv via top_fallback.
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: gpio in rtl/gpio.sv via top_fallback.
-- Current reason: 15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL
+- Current reason: 15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

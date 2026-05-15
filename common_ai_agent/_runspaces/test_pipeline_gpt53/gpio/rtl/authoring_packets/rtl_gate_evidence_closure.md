@@ -24,7 +24,7 @@
 - Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 8
+- LLM-actionable open tasks: 7
 - Human-locked open tasks: 0
 - Owner refs: integration, integration.connections, rtl_contract
 - SSOT connection contracts:
@@ -54,7 +54,7 @@
 - Detail: After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.
 SSOT ref: quality_gates.rtl_gen.static_rtl_evidence.
 Owner: gpio in rtl/gpio.sv via top_fallback.
-- Current reason: 53 static-evidence-required task(s) still lack DUT RTL evidence.
+- Current reason: 31 static-evidence-required task(s) still lack DUT RTL evidence.
 - Criteria:
   - derive_rtl_todos.py --audit-rtl ran after the final RTL edit
   - rtl_todo_plan.json static_rtl_evidence.missing is zero
@@ -74,7 +74,7 @@ Owner: gpio in rtl/gpio.sv via top_fallback.
 - Detail: Static token evidence is not enough. Each SSOT behavior-owner RTL module must contain real assign/procedural/state structure appropriate for its owned function_model, cycle_model, register, memory, or FSM contract.
 SSOT ref: quality_gates.rtl_gen.owner_logic_structure_evidence.
 Owner: gpio in rtl/gpio.sv via top_fallback.
-- Current reason: 3 owner logic structure issue(s) remain. gpio_regs: Behavior-owner module is not declared in its owner file; gpio_input_sampler: Behavior-owner module is not declared in its owner file; gpio_pad_logic: Behavior-owner module is not declared in its owner file
+- Current reason: 2 owner logic structure issue(s) remain. gpio_input_sampler: Behavior-owner module is not declared in its owner file; gpio_pad_logic: Behavior-owner module is not declared in its owner file
 - Criteria:
   - Every active behavior-owner module is declared in its owner file
   - Behavior-owner modules contain non-placeholder assign/procedural implementation logic
@@ -87,13 +87,13 @@ Owner: gpio in rtl/gpio.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence
 - Detail: Production RTL cannot carry TODO/TBD/FIXME/stub/dummy/not-implemented markers in source code or comments. Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract.
 SSOT ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence.
 Owner: gpio in rtl/gpio.sv via top_fallback.
-- Current reason: 1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)
+- Current reason: RTL sources contain no placeholder markers or disallowed default-policy constructs.
 - Criteria:
   - Listed RTL source files contain no TODO/TBD/FIXME/HACK markers
   - Listed RTL source files contain no placeholder/stub/dummy/not-implemented implementation text
@@ -172,7 +172,7 @@ Owner: gpio in rtl/gpio.sv via top_fallback.
 - Detail: File existence is not enough for general IP RTL. Every SSOT manifest-owned non-top RTL module must be declared and reachable from the SSOT top through real module instantiation.
 SSOT ref: quality_gates.rtl_gen.manifest_hierarchy_integration.
 Owner: gpio in rtl/gpio.sv via top_fallback.
-- Current reason: 4 manifest hierarchy integration issue(s) remain. gpio: SSOT top module is not declared in listed RTL sources; gpio_regs: SSOT manifest child module is not declared in listed RTL sources; gpio_input_sampler: SSOT manifest child module is not declared in listed RTL sources
+- Current reason: 4 manifest hierarchy integration issue(s) remain. gpio: SSOT top module is not declared in listed RTL sources; gpio_regs: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; gpio_input_sampler: SSOT manifest child module is not declared in listed RTL sources
 - Criteria:
   - Every manifest-owned non-top submodule is declared in listed DUT RTL sources
   - Each child module is reachable from the SSOT top module through SystemVerilog instantiation

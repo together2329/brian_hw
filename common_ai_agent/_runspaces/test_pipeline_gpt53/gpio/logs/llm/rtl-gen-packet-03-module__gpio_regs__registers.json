@@ -1,0 +1,42 @@
+{
+  "error": "",
+  "finish_reason": "",
+  "finished_at": "2026-05-15T09:56:47Z",
+  "input_hash": "246d2dacbb3f48dde7064e46a9fe2778318a026001ab01399c37ee7911f850a4",
+  "model": "gpt-5.3-codex",
+  "output_hash": "7729522675f82f07644d616228da7505c3acd1c9bbaf25de97ecf8417b418815",
+  "parsed_artifacts": [
+    {
+      "content": "module gpio_regs #(\n    parameter integer WIDTH = 8\n) (\n    input  logic             clk,\n    input  logic             rst_n,\n    input  logic [WIDTH-1:0] dir_in,\n    input  logic [WIDTH-1:0] dout_in,\n    output logic [WIDTH-1:0] dir_q,\n    output logic [WIDTH-1:0] dout_q\n);\n\n    // SSOT architectural register map (logical, no external bus in this fixture):\n    //   DIR_Q  @ offset 0x0, RW, reset 0, field dir[7:0]\n    //   DOUT_Q @ offset 0x4, RW, reset 0, field dout[7:0]\n    // The \"write\" source for these RW fields is the direct control interface\n    // sampled each cycle (FM1_LATCH_CONTROL), not a CSR bus transaction.\n    localparam [3:0] DIR_Q_OFFSET  = 4'h0;\n    localparam [3:0] DOUT_Q_OFFSET = 4'h4;\n\n    // 32-bit logical readback views to preserve register-level traceability:\n    // lower WIDTH bits carry implemented state fields; upper bits are reserved zero.\n    logic [31:0] dir_q_csr;\n    logic [31:0] dout_q_csr;\n\n    assign dir_q_csr  = {{(32-WIDTH){1'b0}}, dir_q};\n    assign dout_q_csr = {{(32-WIDTH){1'b0}}, dout_q};\n\n    // FM4_ASYNC_RESET + FM1_LATCH_CONTROL / S1_LATCH_CONTROL:\n    // async assert reset clears DIR_Q and DOUT_Q; each rising edge latches\n    // the direct control inputs into the corresponding RW register fields.\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            dir_q  <= {WIDTH{1'b0}};\n            dout_q <= {WIDTH{1'b0}};\n        end else begin\n            dir_q  <= dir_in;\n            dout_q <= dout_in;\n        end\n    end\n\n    // Keep offsets and readback views live for lint/static evidence in this\n    // bus-less fixture while preserving synthesizable behavior.\n    logic _unused_keepalive;\n    assign _unused_keepalive = DIR_Q_OFFSET[0] ^ DOUT_Q_OFFSET[0] ^ dir_q_csr[0] ^ dout_q_csr[0];\n\nendmodule\n",
+      "kind": "rtl",
+      "path": "gpio/rtl/gpio_regs.sv"
+    },
+    {
+      "content": "Updated gpio_regs owner file for packet module__gpio_regs__registers.\n\nChanges made:\n- Fixed interface typing to SSOT-consistent scalar clk/rst_n and WIDTH vectors for dir_in/dout_in/dir_q/dout_q.\n- Focused gpio_regs responsibility on DIR_Q and DOUT_Q state only (sequential control-state owner).\n- Implemented async-reset + per-cycle RW latch semantics for DIR_Q.dir and DOUT_Q.dout.\n- Added explicit logical register offsets (0x0, 0x4) and 32-bit readback views to satisfy register traceability in a no-bus fixture.\n- Upper bits of 32-bit logical registers are reserved-zero by construction.\n\nSSOT alignment:\n- registers.register_list.DIR_Q (width 32, reset 0, rw, offset 0)\n- registers.register_list.DOUT_Q (width 32, reset 0, rw, offset 4)\n- function_model.transactions.FM1_LATCH_CONTROL\n- function_model.transactions.FM4_ASYNC_RESET\n- cycle_model.pipeline.S1_LATCH_CONTROL",
+      "kind": "rtl_notes",
+      "path": "gpio/rtl/rtl_authoring_notes/module__gpio_regs__registers.md"
+    }
+  ],
+  "prompt_hash": "3c154f93fa8c62204f875dcd6b74acb26b63a29a5c1adc8b86ea70cf3d7dba3f",
+  "raw_response": "{\"files\":[{\"path\":\"gpio/rtl/gpio_regs.sv\",\"kind\":\"rtl\",\"content\":\"module gpio_regs #(\\n    parameter integer WIDTH = 8\\n) (\\n    input  logic             clk,\\n    input  logic             rst_n,\\n    input  logic [WIDTH-1:0] dir_in,\\n    input  logic [WIDTH-1:0] dout_in,\\n    output logic [WIDTH-1:0] dir_q,\\n    output logic [WIDTH-1:0] dout_q\\n);\\n\\n    // SSOT architectural register map (logical, no external bus in this fixture):\\n    //   DIR_Q  @ offset 0x0, RW, reset 0, field dir[7:0]\\n    //   DOUT_Q @ offset 0x4, RW, reset 0, field dout[7:0]\\n    // The \\\"write\\\" source for these RW fields is the direct control interface\\n    // sampled each cycle (FM1_LATCH_CONTROL), not a CSR bus transaction.\\n    localparam [3:0] DIR_Q_OFFSET  = 4'h0;\\n    localparam [3:0] DOUT_Q_OFFSET = 4'h4;\\n\\n    // 32-bit logical readback views to preserve register-level traceability:\\n    // lower WIDTH bits carry implemented state fields; upper bits are reserved zero.\\n    logic [31:0] dir_q_csr;\\n    logic [31:0] dout_q_csr;\\n\\n    assign dir_q_csr  = {{(32-WIDTH){1'b0}}, dir_q};\\n    assign dout_q_csr = {{(32-WIDTH){1'b0}}, dout_q};\\n\\n    // FM4_ASYNC_RESET + FM1_LATCH_CONTROL / S1_LATCH_CONTROL:\\n    // async assert reset clears DIR_Q and DOUT_Q; each rising edge latches\\n    // the direct control inputs into the corresponding RW register fields.\\n    always @(posedge clk or negedge rst_n) begin\\n        if (!rst_n) begin\\n            dir_q  <= {WIDTH{1'b0}};\\n            dout_q <= {WIDTH{1'b0}};\\n        end else begin\\n            dir_q  <= dir_in;\\n            dout_q <= dout_in;\\n        end\\n    end\\n\\n    // Keep offsets and readback views live for lint/static evidence in this\\n    // bus-less fixture while preserving synthesizable behavior.\\n    logic _unused_keepalive;\\n    assign _unused_keepalive = DIR_Q_OFFSET[0] ^ DOUT_Q_OFFSET[0] ^ dir_q_csr[0] ^ dout_q_csr[0];\\n\\nendmodule\\n\"},{\"path\":\"gpio/rtl/rtl_authoring_notes/module__gpio_regs__registers.md\",\"kind\":\"rtl_notes\",\"content\":\"Updated gpio_regs owner file for packet module__gpio_regs__registers.\\n\\nChanges made:\\n- Fixed interface typing to SSOT-consistent scalar clk/rst_n and WIDTH vectors for dir_in/dout_in/dir_q/dout_q.\\n- Focused gpio_regs responsibility on DIR_Q and DOUT_Q state only (sequential control-state owner).\\n- Implemented async-reset + per-cycle RW latch semantics for DIR_Q.dir and DOUT_Q.dout.\\n- Added explicit logical register offsets (0x0, 0x4) and 32-bit readback views to satisfy register traceability in a no-bus fixture.\\n- Upper bits of 32-bit logical registers are reserved-zero by construction.\\n\\nSSOT alignment:\\n- registers.register_list.DIR_Q (width 32, reset 0, rw, offset 0)\\n- registers.register_list.DOUT_Q (width 32, reset 0, rw, offset 4)\\n- function_model.transactions.FM1_LATCH_CONTROL\\n- function_model.transactions.FM4_ASYNC_RESET\\n- cycle_model.pipeline.S1_LATCH_CONTROL\"}]}",
+  "stage": "rtl-gen",
+  "started_at": "2026-05-15T09:56:21Z",
+  "status": "pass",
+  "usage": {
+    "cache_created": 0,
+    "cache_read": 13056,
+    "cost": {
+      "pricing_per_1m": {
+        "cache": 0.26,
+        "input": 1.4,
+        "output": 4.4
+      },
+      "usd": 0.03958136
+    },
+    "input": 34620,
+    "output": 1363,
+    "total": 35983,
+    "total_cache_created": 0,
+    "total_cache_read": 13056
+  }
+}

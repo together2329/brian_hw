@@ -148,8 +148,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 3,
-    "open_required_count": 3,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -192,7 +192,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 3,
+    "open_required_count": 1,
     "required_count": 3,
     "source_refs": [
       "features.Per_bit_direction_control",
@@ -200,7 +200,8 @@
       "features.Direction_masked_input_sampling"
     ],
     "status_counts": {
-      "open": 3
+      "open": 1,
+      "pass": 2
     },
     "task_count": 3
   },
@@ -236,8 +237,11 @@
         "features.Per_bit_direction_control"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "dir",
+          "dir_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -248,7 +252,7 @@
           "oe_o"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -258,9 +262,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -296,8 +300,13 @@
         "features.Registered_output_data"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -310,7 +319,7 @@
           "pad_o"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -320,9 +329,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -374,7 +383,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }

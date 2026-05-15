@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 4
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline.S1_LATCH_CONTROL, dataflow, decomposition, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM1_LATCH_CONTROL, function_model.transactions.FM2_SAMPLE_INPUTS, function_model.transactions.FM3_DRIVE_PAD_OUTPUTS, function_model.transactions.FM4_ASYNC_RESET, registers, registers.register_list, registers.register_list.DIR_Q, registers.register_list.DOUT_Q
 - Module slice: 4/8 section=registers task_limit=48
@@ -43,14 +43,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.DIR_Q
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.DIR_Q.
 Owner: gpio_regs in rtl/gpio_regs.sv via registers.register_list.DIR_Q.
 SSOT item context: name=DIR_Q; width=32; reset=0; access=rw; offset=0.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -67,14 +67,14 @@ SSOT item context: name=DIR_Q; width=32; reset=0; access=rw; offset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DIR_Q.fields.dir
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DIR_Q.fields.dir.
 Owner: gpio_regs in rtl/gpio_regs.sv via registers.register_list.DIR_Q.
 SSOT item context: name=dir; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -93,14 +93,14 @@ SSOT item context: name=dir; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.DOUT_Q
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.DOUT_Q.
 Owner: gpio_regs in rtl/gpio_regs.sv via registers.register_list.DOUT_Q.
 SSOT item context: name=DOUT_Q; width=32; reset=0; access=rw; offset=4.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -117,14 +117,14 @@ SSOT item context: name=DOUT_Q; width=32; reset=0; access=rw; offset=4.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DOUT_Q.fields.dout
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DOUT_Q.fields.dout.
 Owner: gpio_regs in rtl/gpio_regs.sv via registers.register_list.DOUT_Q.
 SSOT item context: name=dout; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT

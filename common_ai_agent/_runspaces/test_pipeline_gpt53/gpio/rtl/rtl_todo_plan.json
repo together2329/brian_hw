@@ -35,48 +35,48 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 138,
+    "open_required_todos": 85,
     "orphan_tasks": 0,
-    "static_missing": 53,
+    "static_missing": 31,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T09:54:44Z",
+  "generated_at": "2026-05-15T09:56:52Z",
   "ip": "gpio",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 15,
     "connection_contract_issues": [
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "gpio_regs",
         "port": "clk",
         "source_ref": "integration.connections[0]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "gpio_regs",
         "port": "rst_n",
         "source_ref": "integration.connections[1]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "gpio_regs",
         "port": "dir_in",
         "source_ref": "integration.connections[2]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "gpio_regs",
         "port": "dout_in",
         "source_ref": "integration.connections[3]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "gpio_regs",
         "port": "dir_q",
         "source_ref": "integration.connections[4]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "gpio_regs",
         "port": "dout_q",
         "source_ref": "integration.connections[5]"
@@ -137,8 +137,12 @@
       }
     ],
     "connection_contract_status": "fail",
-    "declared_modules": [],
-    "graph": {},
+    "declared_modules": [
+      "gpio_regs"
+    ],
+    "graph": {
+      "gpio_regs": []
+    },
     "issues": [
       {
         "file": "rtl/gpio.sv",
@@ -147,7 +151,7 @@
       },
       {
         "file": "rtl/gpio_regs.sv",
-        "issue": "SSOT manifest child module is not declared in listed RTL sources",
+        "issue": "SSOT manifest child module is declared but not reachable from the top RTL hierarchy",
         "module": "gpio_regs"
       },
       {
@@ -165,7 +169,9 @@
     "port_connection_status": "pass",
     "reachable_modules": [],
     "roots": [],
-    "sources": [],
+    "sources": [
+      "rtl/gpio_regs.sv"
+    ],
     "status": "fail"
   },
   "manifest_signal_flow_evidence": {
@@ -185,11 +191,6 @@
   "owner_logic_evidence": {
     "checked": 3,
     "issues": [
-      {
-        "file": "rtl/gpio_regs.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "gpio_regs"
-      },
       {
         "file": "rtl/gpio_input_sampler.sv",
         "issue": "Behavior-owner module is not declared in its owner file",
@@ -220,21 +221,36 @@
   "reference_scale_gap": {},
   "rtl_implementation_depth_evidence": {
     "aggregate": {
-      "behavior_owner_logic_modules": 0,
-      "control_flow": 0,
-      "depth_score": 0,
+      "behavior_owner_logic_modules": 1,
+      "control_flow": 1,
+      "depth_score": 19,
       "instances": 0,
-      "lines": 0,
-      "logic_modules": 0,
-      "modules": 0,
-      "nonconstant_assigns": 0,
-      "procedural_blocks": 0,
-      "source_files": 0,
-      "state_updates": 0,
-      "storage_decls": 0
+      "lines": 46,
+      "logic_modules": 1,
+      "modules": 1,
+      "nonconstant_assigns": 3,
+      "procedural_blocks": 1,
+      "source_files": 1,
+      "state_updates": 4,
+      "storage_decls": 4
     },
     "issues": [],
-    "modules": [],
+    "modules": [
+      {
+        "depth_score": 19,
+        "file": "rtl/gpio_regs.sv",
+        "metrics": {
+          "control_flow": 1,
+          "instances": 0,
+          "nonconstant_assigns": 3,
+          "placeholder_tokens": false,
+          "procedural_blocks": 1,
+          "state_updates": 4,
+          "storage_decls": 4
+        },
+        "module": "gpio_regs"
+      }
+    ],
     "profile": "standard",
     "reference_comparison": null,
     "status": "pass",
@@ -249,13 +265,9 @@
     }
   },
   "rtl_placeholder_free_evidence": {
-    "checked": 0,
-    "issues": [
-      {
-        "issue": "No listed RTL source files were readable, so placeholder-free evidence cannot be checked"
-      }
-    ],
-    "status": "fail"
+    "checked": 1,
+    "issues": [],
+    "status": "pass"
   },
   "schema_version": 1,
   "source": "gpio/yaml/gpio.ssot.yaml",
@@ -573,28 +585,8 @@
   ],
   "static_rtl_evidence": {
     "checked": 53,
-    "missing": 53,
+    "missing": 31,
     "missing_tasks": [
-      {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "ASYNC",
-          "FM1",
-          "FM1_LATCH_CONTROL",
-          "FM4",
-          "FM4_ASYNC_RESET",
-          "GPIO",
-          "LATCH",
-          "REGS"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[0]",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0020"
-      },
       {
         "category": "workflow_todo.rtl_gen",
         "matched_count": 0,
@@ -636,147 +628,11 @@
         "task_id": "RTL-0022"
       },
       {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.preconditions.precondition_0",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0038"
-      },
-      {
         "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "dir",
-          "dir_in",
+        "matched_count": 1,
+        "matched_terms": [
           "in"
         ],
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.inputs.input_0",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0040"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "dout",
-          "dout_in",
-          "in"
-        ],
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.inputs.input_1",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0041"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "dir",
-          "dir_in",
-          "dir_state",
-          "in"
-        ],
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.outputs.output_0",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0042"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "dout",
-          "dout_in",
-          "dout_state",
-          "in"
-        ],
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.outputs.output_1",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0043"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "dir",
-          "dir_in",
-          "dir_q",
-          "in"
-        ],
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.output_rules.dir_q_next",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0044"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "dout",
-          "dout_in",
-          "dout_q",
-          "in"
-        ],
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.output_rules.dout_q_next",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0045"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "dir",
-          "dir_q",
-          "dout",
-          "dout_q"
-        ],
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.side_effects.side_effect_0",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0046"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.preconditions.precondition_0",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0048"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
         "owner_file": "rtl/gpio_regs.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -790,8 +646,10 @@
       },
       {
         "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "dir"
+        ],
         "owner_file": "rtl/gpio_regs.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -818,27 +676,10 @@
       },
       {
         "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "din",
-          "din_state",
-          "dir",
-          "dir_state",
-          "in",
-          "pad",
-          "pad_in"
+        "matched_count": 1,
+        "matched_terms": [
+          "dir"
         ],
-        "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.outputs.output_0",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0053"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
         "owner_file": "rtl/gpio_regs.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -850,25 +691,6 @@
         "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.outputs.output_1",
         "source_scope": "rtl/gpio_regs.sv",
         "task_id": "RTL-0054"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "din",
-          "din_q",
-          "dir",
-          "dir_q",
-          "in",
-          "pad",
-          "pad_in"
-        ],
-        "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.output_rules.din_q_masked_next",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0055"
       },
       {
         "category": "function_model.side_effect",
@@ -997,23 +819,11 @@
         "task_id": "RTL-0064"
       },
       {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "function_model.transactions.FM4_ASYNC_RESET.preconditions.precondition_0",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0067"
-      },
-      {
         "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "dir"
+        ],
         "owner_file": "rtl/gpio_regs.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1026,8 +836,10 @@
       },
       {
         "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "dout"
+        ],
         "owner_file": "rtl/gpio_regs.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1087,34 +899,6 @@
         "owner_file": "rtl/gpio_regs.sv",
         "required_match_count": 2,
         "required_terms": [
-          "dir",
-          "dir_q"
-        ],
-        "source_ref": "function_model.transactions.FM4_ASYNC_RESET.output_rules.dir_reset",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0073"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "dout",
-          "dout_q"
-        ],
-        "source_ref": "function_model.transactions.FM4_ASYNC_RESET.output_rules.dout_reset",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0074"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
           "din",
           "din_q"
         ],
@@ -1129,64 +913,12 @@
         "owner_file": "rtl/gpio_regs.sv",
         "required_match_count": 2,
         "required_terms": [
-          "dir",
-          "dir_q",
-          "oe",
-          "oe_o"
-        ],
-        "source_ref": "function_model.invariants.invariant_0",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0077"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "dir",
-          "dir_q",
-          "dout",
-          "dout_q",
-          "pad",
-          "pad_o"
-        ],
-        "source_ref": "function_model.invariants.invariant_1",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0078"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
           "din",
           "din_q"
         ],
         "source_ref": "function_model.invariants.invariant_2",
         "source_scope": "rtl/gpio_regs.sv",
         "task_id": "RTL-0079"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "din",
-          "din_q",
-          "dir",
-          "dir_q",
-          "dout",
-          "dout_q"
-        ],
-        "source_ref": "function_model.invariants.invariant_3",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0080"
       },
       {
         "category": "cycle_model.handshake_rules",
@@ -1240,45 +972,6 @@
         "source_ref": "cycle_model.handshake_rules.HR_COMB_OUTPUTS",
         "source_scope": "rtl/gpio_pad_logic.sv",
         "task_id": "RTL-0086"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "din",
-          "din_q",
-          "dir",
-          "dir_q",
-          "dout",
-          "dout_q",
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "cycle_model.pipeline.S0_RESET",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0087"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "dir",
-          "dir_in",
-          "dir_q",
-          "dout",
-          "dout_in",
-          "dout_q",
-          "in"
-        ],
-        "source_ref": "cycle_model.pipeline.S1_LATCH_CONTROL",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0088"
       },
       {
         "category": "cycle_model.pipeline",
@@ -1348,40 +1041,6 @@
         "owner_file": "rtl/gpio_regs.sv",
         "required_match_count": 1,
         "required_terms": [
-          "dir",
-          "dir_q",
-          "oe",
-          "oe_o"
-        ],
-        "source_ref": "features.Per_bit_direction_control",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0106"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "dir",
-          "dir_q",
-          "dout",
-          "dout_q",
-          "pad",
-          "pad_o"
-        ],
-        "source_ref": "features.Registered_output_data",
-        "source_scope": "rtl/gpio_regs.sv",
-        "task_id": "RTL-0107"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gpio_regs.sv",
-        "required_match_count": 1,
-        "required_terms": [
           "din",
           "din_q"
         ],
@@ -1418,8 +1077,10 @@
         "task_id": "RTL-0111"
       }
     ],
-    "passed": 0,
-    "sources": []
+    "passed": 22,
+    "sources": [
+      "rtl/gpio_regs.sv"
+    ]
   },
   "summary": {
     "blocking_questions": 0,
@@ -1826,7 +1487,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/gpio.sv,rtl/gpio_input_sampler.sv,rtl/gpio_pad_logic.sv",
         "required": true,
         "status": "open"
       }
@@ -1874,7 +1535,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "53 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "31 static-evidence-required task(s) still lack DUT RTL evidence.",
         "required": true,
         "status": "open"
       }
@@ -1921,7 +1582,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 owner logic structure issue(s) remain. gpio_regs: Behavior-owner module is not declared in its owner file; gpio_input_sampler: Behavior-owner module is not declared in its owner file; gpio_pad_logic: Behavior-owner module is not declared in its owner file",
+        "reason": "2 owner logic structure issue(s) remain. gpio_input_sampler: Behavior-owner module is not declared in its owner file; gpio_pad_logic: Behavior-owner module is not declared in its owner file",
         "required": true,
         "status": "open"
       }
@@ -1971,9 +1632,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2159,7 +1820,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 manifest hierarchy integration issue(s) remain. gpio: SSOT top module is not declared in listed RTL sources; gpio_regs: SSOT manifest child module is not declared in listed RTL sources; gpio_input_sampler: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "4 manifest hierarchy integration issue(s) remain. gpio: SSOT top module is not declared in listed RTL sources; gpio_regs: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; gpio_input_sampler: SSOT manifest child module is not declared in listed RTL sources",
         "required": true,
         "status": "open"
       }
@@ -2300,7 +1961,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL",
+        "reason": "15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "required": true,
         "status": "open"
       }
@@ -2446,7 +2107,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "137 required non-closure TODO(s) remain open.",
+        "reason": "84 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -2499,8 +2160,14 @@
         "workflow_todos.rtl-gen[0]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "GPIO",
+          "REGS",
+          "gpio",
+          "gpio_regs",
+          "regs"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2522,7 +2189,7 @@
           "regs"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -2532,9 +2199,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_GPIO_REGS",
@@ -3276,9 +2943,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3321,9 +2988,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3366,9 +3033,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3410,9 +3077,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3445,8 +3112,11 @@
         "function_model.transactions.FM1_LATCH_CONTROL.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3455,7 +3125,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3465,9 +3135,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3508,9 +3178,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3544,8 +3214,12 @@
         "function_model.transactions.FM1_LATCH_CONTROL.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "dir",
+          "dir_in",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3555,7 +3229,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3565,9 +3239,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3601,8 +3275,12 @@
         "function_model.transactions.FM1_LATCH_CONTROL.inputs.input_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "dout",
+          "dout_in",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3612,7 +3290,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3622,9 +3300,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3659,8 +3337,12 @@
         "function_model.transactions.FM1_LATCH_CONTROL.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "dir",
+          "dir_in",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3671,7 +3353,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3681,9 +3363,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3718,8 +3400,12 @@
         "function_model.transactions.FM1_LATCH_CONTROL.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "dout",
+          "dout_in",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3730,7 +3416,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3740,9 +3426,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3784,8 +3470,13 @@
         "function_model.transactions.FM1_LATCH_CONTROL.output_rules.dir_q_next"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dir",
+          "dir_in",
+          "dir_q",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3796,7 +3487,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -3806,9 +3497,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3850,8 +3541,13 @@
         "function_model.transactions.FM1_LATCH_CONTROL.output_rules.dout_q_next"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dout",
+          "dout_in",
+          "dout_q",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3862,7 +3558,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -3872,9 +3568,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3909,8 +3605,13 @@
         "function_model.transactions.FM1_LATCH_CONTROL.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3921,7 +3622,7 @@
           "dout_q"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3931,9 +3632,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3975,9 +3676,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4010,8 +3711,11 @@
         "function_model.transactions.FM2_SAMPLE_INPUTS.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4020,7 +3724,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4030,9 +3734,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4073,9 +3777,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4109,8 +3813,10 @@
         "function_model.transactions.FM2_SAMPLE_INPUTS.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4130,7 +3836,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4165,8 +3871,10 @@
         "function_model.transactions.FM2_SAMPLE_INPUTS.inputs.input_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "dir"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4185,7 +3893,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4240,7 +3948,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4280,8 +3988,11 @@
         "function_model.transactions.FM2_SAMPLE_INPUTS.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "dir",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4295,7 +4006,7 @@
           "pad_in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4305,9 +4016,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4342,8 +4053,10 @@
         "function_model.transactions.FM2_SAMPLE_INPUTS.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "dir"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4364,7 +4077,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4411,8 +4124,12 @@
         "function_model.transactions.FM2_SAMPLE_INPUTS.output_rules.din_q_masked_next"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4426,7 +4143,7 @@
           "pad_in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -4436,9 +4153,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4491,7 +4208,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5049,9 +4766,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5084,8 +4801,11 @@
         "function_model.transactions.FM4_ASYNC_RESET.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5094,7 +4814,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5104,9 +4824,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5139,8 +4859,10 @@
         "function_model.transactions.FM4_ASYNC_RESET.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "dir"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5159,7 +4881,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5194,8 +4916,10 @@
         "function_model.transactions.FM4_ASYNC_RESET.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "dout"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5214,7 +4938,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5269,7 +4993,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5324,7 +5048,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5379,7 +5103,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5421,8 +5145,11 @@
         "function_model.transactions.FM4_ASYNC_RESET.output_rules.dir_reset"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "dir",
+          "dir_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5431,7 +5158,7 @@
           "dir_q"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -5441,9 +5168,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5483,8 +5210,11 @@
         "function_model.transactions.FM4_ASYNC_RESET.output_rules.dout_reset"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "dout",
+          "dout_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5493,7 +5223,7 @@
           "dout_q"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -5503,9 +5233,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5565,7 +5295,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5608,9 +5338,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5645,8 +5375,11 @@
         "function_model.invariants.invariant_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "dir",
+          "dir_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5657,7 +5390,7 @@
           "oe_o"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5667,9 +5400,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5706,8 +5439,13 @@
         "function_model.invariants.invariant_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5720,7 +5458,7 @@
           "pad_o"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5730,9 +5468,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5785,7 +5523,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5824,8 +5562,13 @@
         "function_model.invariants.invariant_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5838,7 +5581,7 @@
           "dout_q"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5848,9 +5591,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5892,9 +5635,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5934,9 +5677,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5976,9 +5719,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6037,7 +5780,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6102,7 +5845,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6214,8 +5957,15 @@
         "cycle_model.pipeline.S0_RESET"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q",
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6230,7 +5980,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -6240,9 +5990,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6284,8 +6034,16 @@
         "cycle_model.pipeline.S1_LATCH_CONTROL"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "dir",
+          "dir_in",
+          "dir_q",
+          "dout",
+          "dout_in",
+          "dout_q",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6299,7 +6057,7 @@
           "in"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -6309,9 +6067,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6441,7 +6199,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6485,9 +6243,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6529,9 +6287,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6573,9 +6331,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6617,9 +6375,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6668,9 +6426,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6719,9 +6477,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6770,9 +6528,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6821,9 +6579,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7121,7 +6879,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7178,7 +6936,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7216,8 +6974,11 @@
         "features.Per_bit_direction_control"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "dir",
+          "dir_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -7228,7 +6989,7 @@
           "oe_o"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7238,9 +6999,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7278,8 +7039,13 @@
         "features.Registered_output_data"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -7292,7 +7058,7 @@
           "pad_o"
         ],
         "source_scope": "rtl/gpio_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7302,9 +7068,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7358,7 +7124,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -8501,9 +8267,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8633,9 +8399,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8679,9 +8445,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8725,9 +8491,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8771,9 +8537,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8817,9 +8583,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8863,9 +8629,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8909,9 +8675,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8955,9 +8721,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9001,16 +8767,16 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 138,
+    "open_required_tasks": 85,
     "open_tasks": [
       {
         "category": "rtl_flow.top",
@@ -9020,27 +8786,21 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/gpio.sv,rtl/gpio_input_sampler.sv,rtl/gpio_pad_logic.sv",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "task_id": "RTL-0006"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "53 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "31 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "task_id": "RTL-0007"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "3 owner logic structure issue(s) remain. gpio_regs: Behavior-owner module is not declared in its owner file; gpio_input_sampler: Behavior-owner module is not declared in its owner file; gpio_pad_logic: Behavior-owner module is not declared in its owner file",
+        "reason": "2 owner logic structure issue(s) remain. gpio_input_sampler: Behavior-owner module is not declared in its owner file; gpio_pad_logic: Behavior-owner module is not declared in its owner file",
         "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
         "task_id": "RTL-0008"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "task_id": "RTL-0009"
       },
       {
         "category": "rtl_gate.rtl_gen",
@@ -9062,7 +8822,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "4 manifest hierarchy integration issue(s) remain. gpio: SSOT top module is not declared in listed RTL sources; gpio_regs: SSOT manifest child module is not declared in listed RTL sources; gpio_input_sampler: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "4 manifest hierarchy integration issue(s) remain. gpio: SSOT top module is not declared in listed RTL sources; gpio_regs: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; gpio_input_sampler: SSOT manifest child module is not declared in listed RTL sources",
         "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
         "task_id": "RTL-0013"
       },
@@ -9074,7 +8834,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL; gpio_regs: SSOT connection contract targets a module not declared in RTL",
+        "reason": "15 SSOT connection contract issue(s) remain. gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy; gpio_regs: SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
         "task_id": "RTL-0016"
       },
@@ -9092,15 +8852,9 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "137 required non-closure TODO(s) remain open.",
+        "reason": "84 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "workflow_todos.rtl-gen[0]",
-        "task_id": "RTL-0020"
       },
       {
         "category": "workflow_todo.rtl_gen",
@@ -9181,140 +8935,32 @@
         "task_id": "RTL-0033"
       },
       {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.state_variables.dir_state",
-        "task_id": "RTL-0034"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.state_variables.dout_state",
-        "task_id": "RTL-0035"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.state_variables.din_state",
-        "task_id": "RTL-0036"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL",
-        "task_id": "RTL-0037"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.preconditions.precondition_0",
-        "task_id": "RTL-0038"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.preconditions.precondition_1",
-        "task_id": "RTL-0039"
-      },
-      {
         "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.inputs.input_0",
-        "task_id": "RTL-0040"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.inputs.input_1",
-        "task_id": "RTL-0041"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.outputs.output_0",
-        "task_id": "RTL-0042"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.outputs.output_1",
-        "task_id": "RTL-0043"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.output_rules.dir_q_next",
-        "task_id": "RTL-0044"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.output_rules.dout_q_next",
-        "task_id": "RTL-0045"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM1_LATCH_CONTROL.side_effects.side_effect_0",
-        "task_id": "RTL-0046"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS",
-        "task_id": "RTL-0047"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.preconditions.precondition_0",
-        "task_id": "RTL-0048"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.preconditions.precondition_1",
-        "task_id": "RTL-0049"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.inputs.input_0",
         "task_id": "RTL-0050"
       },
       {
         "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.inputs.input_1",
         "task_id": "RTL-0051"
       },
       {
         "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.inputs.input_2",
         "task_id": "RTL-0052"
       },
       {
         "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.outputs.output_0",
-        "task_id": "RTL-0053"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.outputs.output_1",
         "task_id": "RTL-0054"
       },
       {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.output_rules.din_q_masked_next",
-        "task_id": "RTL-0055"
-      },
-      {
         "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM2_SAMPLE_INPUTS.side_effects.side_effect_0",
         "task_id": "RTL-0056"
       },
@@ -9373,122 +9019,56 @@
         "task_id": "RTL-0065"
       },
       {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM4_ASYNC_RESET",
-        "task_id": "RTL-0066"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM4_ASYNC_RESET.preconditions.precondition_0",
-        "task_id": "RTL-0067"
-      },
-      {
         "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM4_ASYNC_RESET.outputs.output_0",
         "task_id": "RTL-0068"
       },
       {
         "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM4_ASYNC_RESET.outputs.output_1",
         "task_id": "RTL-0069"
       },
       {
         "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM4_ASYNC_RESET.outputs.output_2",
         "task_id": "RTL-0070"
       },
       {
         "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM4_ASYNC_RESET.outputs.output_3",
         "task_id": "RTL-0071"
       },
       {
         "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM4_ASYNC_RESET.outputs.output_4",
         "task_id": "RTL-0072"
       },
       {
         "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM4_ASYNC_RESET.output_rules.dir_reset",
-        "task_id": "RTL-0073"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM4_ASYNC_RESET.output_rules.dout_reset",
-        "task_id": "RTL-0074"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM4_ASYNC_RESET.output_rules.din_reset",
         "task_id": "RTL-0075"
       },
       {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.transactions.FM4_ASYNC_RESET.side_effects.side_effect_0",
-        "task_id": "RTL-0076"
-      },
-      {
         "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.invariants.invariant_0",
-        "task_id": "RTL-0077"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.invariants.invariant_1",
-        "task_id": "RTL-0078"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.invariants.invariant_2",
         "task_id": "RTL-0079"
       },
       {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "function_model.invariants.invariant_3",
-        "task_id": "RTL-0080"
-      },
-      {
-        "category": "cycle_model.clock",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "cycle_model.clock",
-        "task_id": "RTL-0081"
-      },
-      {
-        "category": "cycle_model.reset",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "cycle_model.reset",
-        "task_id": "RTL-0082"
-      },
-      {
-        "category": "cycle_model.latency",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "cycle_model.latency",
-        "task_id": "RTL-0083"
-      },
-      {
         "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "cycle_model.handshake_rules.HR_SYNC_SAMPLE",
         "task_id": "RTL-0084"
       },
       {
         "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "cycle_model.handshake_rules.HR_INPUT_MASK_SAMPLE",
         "task_id": "RTL-0085"
       },
@@ -9500,75 +9080,15 @@
       },
       {
         "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "cycle_model.pipeline.S0_RESET",
-        "task_id": "RTL-0087"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "cycle_model.pipeline.S1_LATCH_CONTROL",
-        "task_id": "RTL-0088"
-      },
-      {
-        "category": "cycle_model.pipeline",
         "reason": "Owner RTL file is missing: rtl/gpio_input_sampler.sv.",
         "source_ref": "cycle_model.pipeline.S2_SAMPLE_INPUTS",
         "task_id": "RTL-0089"
       },
       {
         "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "cycle_model.pipeline.S3_DRIVE_OUTPUTS",
         "task_id": "RTL-0090"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_0",
-        "task_id": "RTL-0091"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_1",
-        "task_id": "RTL-0092"
-      },
-      {
-        "category": "cycle_model.backpressure",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "cycle_model.backpressure.backpressure_rule_0",
-        "task_id": "RTL-0093"
-      },
-      {
-        "category": "cycle_model.observability",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "cycle_model.observability.observability_signal_0",
-        "task_id": "RTL-0094"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "registers.register_list.DIR_Q",
-        "task_id": "RTL-0095"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "registers.register_list.DIR_Q.fields.dir",
-        "task_id": "RTL-0096"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "registers.register_list.DOUT_Q",
-        "task_id": "RTL-0097"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "registers.register_list.DOUT_Q.fields.dout",
-        "task_id": "RTL-0098"
       },
       {
         "category": "registers.register",
@@ -9602,31 +9122,19 @@
       },
       {
         "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.control.states.state_0",
         "task_id": "RTL-0104"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.control.transitions.transition_0",
         "task_id": "RTL-0105"
       },
       {
         "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "features.Per_bit_direction_control",
-        "task_id": "RTL-0106"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "features.Registered_output_data",
-        "task_id": "RTL-0107"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "features.Direction_masked_input_sampling",
         "task_id": "RTL-0108"
       },
@@ -9770,18 +9278,18 @@
       },
       {
         "category": "equivalence.module",
-        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
-        "source_ref": "sub_modules.gpio_regs.module_equivalence",
-        "task_id": "RTL-0132"
-      },
-      {
-        "category": "equivalence.module",
         "reason": "Owner RTL file is missing: rtl/gpio_input_sampler.sv.",
         "source_ref": "sub_modules.gpio_input_sampler.module_equivalence",
         "task_id": "RTL-0133"
+      },
+      {
+        "category": "equivalence.module",
+        "reason": "Owner RTL file is missing: rtl/gpio_pad_logic.sv.",
+        "source_ref": "sub_modules.gpio_pad_logic.module_equivalence",
+        "task_id": "RTL-0134"
       }
     ],
-    "required_passed": 5,
+    "required_passed": 58,
     "required_total": 143,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

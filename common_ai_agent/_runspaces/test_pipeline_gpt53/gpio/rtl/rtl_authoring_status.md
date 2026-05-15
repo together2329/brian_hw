@@ -4,7 +4,7 @@
 
 - Top: gpio
 - Packets: 15
-- LLM-actionable tasks: 133
+- LLM-actionable tasks: 80
 - Human-locked tasks: 1
 - Tool-evidence tasks: 4
 - Deferred human QA allowed: True
@@ -15,14 +15,14 @@
 
 ## Next LLM Packets
 
-- module__gpio_regs__function_model: rtl/authoring_packets/module__gpio_regs__function_model.json (llm_open=38, human_locked=0)
-- module__gpio_regs__cycle_model: rtl/authoring_packets/module__gpio_regs__cycle_model.json (llm_open=12, human_locked=0)
-- module__gpio_regs__test_requirements: rtl/authoring_packets/module__gpio_regs__test_requirements.json (llm_open=9, human_locked=0)
-- module__gpio_regs__registers: rtl/authoring_packets/module__gpio_regs__registers.json (llm_open=4, human_locked=0)
-- module__gpio_regs__features: rtl/authoring_packets/module__gpio_regs__features.json (llm_open=3, human_locked=0)
+- module__gpio_regs__function_model: rtl/authoring_packets/module__gpio_regs__function_model.json (llm_open=12, human_locked=0)
+- module__gpio_regs__cycle_model: rtl/authoring_packets/module__gpio_regs__cycle_model.json (llm_open=3, human_locked=0)
 - module__gpio_regs__fsm: rtl/authoring_packets/module__gpio_regs__fsm.json (llm_open=2, human_locked=0)
-- module__gpio_regs__equivalence: rtl/authoring_packets/module__gpio_regs__equivalence.json (llm_open=1, human_locked=0)
-- module__gpio_regs__workflow_todo: rtl/authoring_packets/module__gpio_regs__workflow_todo.json (llm_open=1, human_locked=0)
+- module__gpio_regs__features: rtl/authoring_packets/module__gpio_regs__features.json (llm_open=1, human_locked=0)
+- module__gpio_input_sampler: rtl/authoring_packets/module__gpio_input_sampler.json (llm_open=5, human_locked=0)
+- module__gpio_pad_logic: rtl/authoring_packets/module__gpio_pad_logic.json (llm_open=22, human_locked=0)
+- module__gpio: rtl/authoring_packets/module__gpio.json (llm_open=25, human_locked=0)
+- unowned_tasks: rtl/authoring_packets/unowned_tasks.json (llm_open=3, human_locked=0)
 
 ## Tool Evidence Queue
 

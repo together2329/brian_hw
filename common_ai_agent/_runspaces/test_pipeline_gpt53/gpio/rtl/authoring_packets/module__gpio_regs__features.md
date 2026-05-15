@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline.S1_LATCH_CONTROL, dataflow, decomposition, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM1_LATCH_CONTROL, function_model.transactions.FM2_SAMPLE_INPUTS, function_model.transactions.FM3_DRIVE_PAD_OUTPUTS, function_model.transactions.FM4_ASYNC_RESET, registers, registers.register_list, registers.register_list.DIR_Q, registers.register_list.DOUT_Q
 - Module slice: 5/8 section=features task_limit=48
@@ -43,14 +43,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Per_bit_direction_control
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Per_bit_direction_control.
 Owner: gpio_regs in rtl/gpio_regs.sv via features.
 SSOT item context: name=Per-bit direction control; output=oe_o[i]=1 when dir_q[i]=1.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -63,14 +63,14 @@ SSOT item context: name=Per-bit direction control; output=oe_o[i]=1 when dir_q[i
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Registered_output_data
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Registered_output_data.
 Owner: gpio_regs in rtl/gpio_regs.sv via features.
 SSOT item context: name=Registered output data; output=pad_o follows dout_q only for dir_q=1 bits.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -90,7 +90,7 @@ SSOT item context: name=Registered output data; output=pad_o follows dout_q only
 SSOT ref: features.Direction_masked_input_sampling.
 Owner: gpio_regs in rtl/gpio_regs.sv via features.
 SSOT item context: name=Direction-masked input sampling; output=output-mode bits hold prior din_q.
-- Current reason: Owner RTL file is missing: rtl/gpio_regs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT

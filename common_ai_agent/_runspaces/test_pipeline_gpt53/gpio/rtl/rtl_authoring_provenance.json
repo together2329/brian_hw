@@ -3,7 +3,8 @@
   "authoring_packets": [
     "module__gpio_regs__function_model",
     "module__gpio_regs__cycle_model",
-    "module__gpio_regs__test_requirements"
+    "module__gpio_regs__test_requirements",
+    "module__gpio_regs__registers"
   ],
   "contract_files": [
     "rtl/rtl_contract.json"
@@ -18,6 +19,6 @@
   "surface": "headless_common_engine",
   "todo_plan_sha256": "123947ae1f7d9f96f7ef25a8af2118a8e5c5ac198b54689b9c8f4223188b5dce",
   "type": "rtl_authoring_provenance",
-  "updated_at": "2026-05-15T09:56:20Z",
+  "updated_at": "2026-05-15T09:56:49Z",
   "workflow": "rtl-gen"
 }

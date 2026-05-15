@@ -336,7 +336,7 @@
       {
         "gate_kind": "common_ai_agent_authoring",
         "owner_module": "gpio",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/gpio.sv,rtl/gpio_input_sampler.sv,rtl/gpio_pad_logic.sv",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "status": "open",
@@ -363,7 +363,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "gpio",
-        "reason": "137 required non-closure TODO(s) remain open.",
+        "reason": "84 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -402,7 +402,7 @@
         "prerequisites": [
           "An LLM authoring pass emitted or repaired DUT RTL files."
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/gpio.sv,rtl/gpio_input_sampler.sv,rtl/gpio_pad_logic.sv",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "stage_sequence": [
           "ssot-rtl"
@@ -471,7 +471,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "137 required non-closure TODO(s) remain open.",
+        "reason": "84 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -561,7 +561,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/gpio.sv,rtl/gpio_input_sampler.sv,rtl/gpio_pad_logic.sv",
         "required": true,
         "status": "open"
       }
@@ -701,7 +701,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "137 required non-closure TODO(s) remain open.",
+        "reason": "84 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }

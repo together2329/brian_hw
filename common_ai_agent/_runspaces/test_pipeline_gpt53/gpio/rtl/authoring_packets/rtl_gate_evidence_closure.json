@@ -340,8 +340,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 8,
-    "open_required_count": 8,
+    "llm_actionable_open_count": 7,
+    "open_required_count": 7,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -373,7 +373,7 @@
       "rtl_gate.rtl_gen": 9
     },
     "module_slice": {},
-    "open_required_count": 8,
+    "open_required_count": 7,
     "required_count": 9,
     "source_refs": [
       "quality_gates.rtl_gen.static_rtl_evidence",
@@ -387,8 +387,8 @@
       "quality_gates.rtl_gen.manifest_signal_flow_evidence"
     ],
     "status_counts": {
-      "open": 8,
-      "pass": 1
+      "open": 7,
+      "pass": 2
     },
     "task_count": 9
   },
@@ -434,7 +434,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "53 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "31 static-evidence-required task(s) still lack DUT RTL evidence.",
         "required": true,
         "status": "open"
       }
@@ -479,7 +479,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 owner logic structure issue(s) remain. gpio_regs: Behavior-owner module is not declared in its owner file; gpio_input_sampler: Behavior-owner module is not declared in its owner file; gpio_pad_logic: Behavior-owner module is not declared in its owner file",
+        "reason": "2 owner logic structure issue(s) remain. gpio_input_sampler: Behavior-owner module is not declared in its owner file; gpio_pad_logic: Behavior-owner module is not declared in its owner file",
         "required": true,
         "status": "open"
       }
@@ -527,9 +527,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -707,7 +707,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 manifest hierarchy integration issue(s) remain. gpio: SSOT top module is not declared in listed RTL sources; gpio_regs: SSOT manifest child module is not declared in listed RTL sources; gpio_input_sampler: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "4 manifest hierarchy integration issue(s) remain. gpio: SSOT top module is not declared in listed RTL sources; gpio_regs: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; gpio_input_sampler: SSOT manifest child module is not declared in listed RTL sources",
         "required": true,
         "status": "open"
       }

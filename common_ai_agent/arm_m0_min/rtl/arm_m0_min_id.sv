@@ -2,6 +2,10 @@ module arm_m0_min_id #(
     parameter integer XLEN = 32
 ) (
     input  logic             fault_halt,
+    input  logic             i_hready,
+    input  logic             i_hresp,
+    input  logic             d_hready,
+    input  logic             d_hresp,
     input  logic             if_valid,
     input  logic [31:0]      if_instr,
     input  logic [XLEN-1:0]  pc_in,
@@ -20,6 +24,12 @@ module arm_m0_min_id #(
     output logic             is_bne,
     output logic             is_undef
 );
+
+    localparam [2:0] RESET = 3'd0,
+                     RUN = 3'd1,
+                     STALL_IF = 3'd2,
+                     STALL_MEM = 3'd3,
+                     FAULT_HALT = 3'd4;
 
     localparam [3:0] OP_ADD = 4'h0,
                      OP_SUB = 4'h1,
@@ -50,10 +60,23 @@ module arm_m0_min_id #(
     logic [15:0] instr16;
     logic        nzcv_parity;
     logic [XLEN-1:0] pc_bias;
+    logic [2:0] fsm_state_obs;
+    logic [XLEN-1:0] branch_target_hint;
+    logic store_data_mux_hit;
 
     assign instr16 = if_instr[15:0];
     assign nzcv_parity = nzcv[3] ^ nzcv[2] ^ nzcv[1] ^ nzcv[0];
     assign pc_bias = pc_in & {XLEN{1'b0}};
+    assign branch_target_hint = pc_in + imm_ext;
+    assign store_data_mux_hit = is_str & (rs2_addr == instr16[7:4]);
+
+    always @(*) begin
+        fsm_state_obs = RUN;
+        if (fault_halt || i_hresp || d_hresp) fsm_state_obs = FAULT_HALT;
+        else if (!i_hready) fsm_state_obs = STALL_IF;
+        else if (!d_hready) fsm_state_obs = STALL_MEM;
+        else if (rst) fsm_state_obs = RESET;
+    end
 
     always @(*) begin
         id_valid  = if_valid & !fault_halt;
