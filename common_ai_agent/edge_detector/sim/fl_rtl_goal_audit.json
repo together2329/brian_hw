@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "fl_rtl_goal_audit",
   "ip": "edge_detector",
-  "generated_at": "2026-05-15T02:35:43Z",
+  "generated_at": "2026-05-15T02:37:28Z",
   "status": "fail",
   "source_of_truth": {
     "ssot": "edge_detector/yaml/edge_detector.ssot.yaml",

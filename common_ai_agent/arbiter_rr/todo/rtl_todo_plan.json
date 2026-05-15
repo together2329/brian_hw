@@ -47,7 +47,7 @@
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:35:09Z",
+  "generated_at": "2026-05-15T02:37:30Z",
   "ip": "arbiter_rr",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 24,
@@ -1799,7 +1799,7 @@
           "rtl_todo_plan.json task criteria",
           "governance/authority.json"
         ],
-        "reason": "Missing production golden authority artifact(s): model/fl_model_check.json",
+        "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending, G4=pending, G5=pending, G6=pending",
         "required": true,
         "status": "open"
       }
@@ -5063,10 +5063,10 @@
         "Traceability keeps source_ref function_model.transactions.FM2.state_updates.last_winner",
         "Primary implementation evidence is in rtl/arbiter_rr_core.sv",
         "last_winner reset behavior matches SSOT value 0",
-        "last_winner RTL expression implements SSOT expression last_winner (unchanged)",
+        "last_winner RTL expression implements SSOT expression last_winner",
         "last_winner updates exactly once at the SSOT-defined transaction acceptance point"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.state_updates.last_winner.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.\nSSOT item context: name=last_winner; expr=last_winner (unchanged); reset=0.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.state_updates.last_winner.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.\nSSOT item context: name=last_winner; expr=last_winner; reset=0.",
       "evidence_terms": [
         "last",
         "last_winner",
@@ -5081,7 +5081,7 @@
       "requires_static_rtl_evidence": true,
       "source_ref": "function_model.transactions.FM2.state_updates.last_winner",
       "ssot_context": {
-        "expr": "last_winner (unchanged)",
+        "expr": "last_winner",
         "name": "last_winner",
         "reset": "0"
       },
@@ -9769,7 +9769,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing production golden authority artifact(s): model/fl_model_check.json",
+        "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending, G4=pending, G5=pending, G6=pending",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
         "task_id": "RTL-0020"
       },

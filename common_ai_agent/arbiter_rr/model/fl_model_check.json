@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "arbiter_rr",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 3,
+    "failed": 0,
+    "transactions": 2,
+    "transaction_results": [
+      {
+        "id": "FM1",
+        "name": "arbitrate_grant",
+        "kind": "FM1",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM1",
+          "transaction_name": "arbitrate_grant",
+          "sample_accepted": 1,
+          "grant_index": 0,
+          "gnt_idx_o": 0,
+          "grant": 1,
+          "gnt_o": 1,
+          "grant_valid": 1,
+          "gnt_valid_o": 1,
+          "state_updates": {
+            "last_winner": 0
+          }
+        }
+      },
+      {
+        "id": "FM2",
+        "name": "no_grant_idle",
+        "kind": "FM2",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM2",
+          "transaction_name": "no_grant_idle",
+          "sample_accepted": 1,
+          "grant": 0,
+          "gnt_o": 0,
+          "grant_valid": 0,
+          "gnt_valid_o": 0,
+          "grant_index": 0,
+          "gnt_idx_o": 0,
+          "state_updates": {
+            "last_winner": 0
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 3,
+    "coverage_bins": 45,
+    "invariants_total": 6,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "At most one bit in gnt_o is asserted per",
+        "expr": "At most one bit in gnt_o is asserted per cycle (one-hot invariant).",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "gnt_valid_o == 0 implies gnt_o == 0.",
+        "expr": "gnt_valid_o == 0 implies gnt_o == 0.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "gnt_valid_o == 1 implies exactly one bit",
+        "expr": "gnt_valid_o == 1 implies exactly one bit in gnt_o is set and gnt_idx_o equals the index of that bit.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Masked requests never receive a grant re",
+        "expr": "Masked requests never receive a grant regardless of req_i state.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "When arb_enabled == 0, all outputs are z",
+        "expr": "When arb_enabled == 0, all outputs are zero and last_winner is frozen.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Round-robin fairness: a requestor that w",
+        "expr": "Round-robin fairness: a requestor that was granted in the previous cycle has the lowest priority in the current cycle.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 0,
+    "error_cases_planned": 0
+  },
+  "decomposition_units": 8,
+  "fcov_bins": 45,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "arbiter_rr/req/",
+      "arbiter_rr/yaml/arbiter_rr.ssot.yaml",
+      "arbiter_rr/model/functional_model.py",
+      "arbiter_rr/cov/fcov_plan.json",
+      "arbiter_rr/yaml/arbiter_rr.ssot.yaml#io_list",
+      "arbiter_rr/yaml/arbiter_rr.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "arbiter_rr/rtl/",
+      "arbiter_rr/tb/",
+      "arbiter_rr/sim/",
+      "arbiter_rr/vectors/",
+      "arbiter_rr/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

@@ -10,7 +10,7 @@
       {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "arbiter_rr",
-        "reason": "Missing production golden authority artifact(s): model/fl_model_check.json",
+        "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending, G4=pending, G5=pending, G6=pending",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
         "status": "open",
@@ -193,7 +193,7 @@
           {
             "gate_kind": "golden_authority_artifacts",
             "owner_module": "arbiter_rr",
-            "reason": "Missing production golden authority artifact(s): model/fl_model_check.json",
+            "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending, G4=pending, G5=pending, G6=pending",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
             "status": "open",
@@ -1645,7 +1645,7 @@
     "min_state_updates": 3,
     "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
   },
-  "todo_plan_sha256": "d249f4a6a57e3a02ee859050bfbd563fc32176218d8220af76c1d245fbc4fef0",
+  "todo_plan_sha256": "42c6b8bd94b9014c4ffd4c5d4b0b52e4e0acd50e50bcbb2c640ddd235b09f460",
   "top": "arbiter_rr",
   "type": "rtl_authoring_plan"
 }

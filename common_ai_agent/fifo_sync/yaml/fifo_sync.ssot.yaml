@@ -280,9 +280,9 @@ io_list:
     description: Fill-level status outputs
     ports:
     - name: count_o
-      width: $clog2(DEPTH+1)
+      width: COUNT_WIDTH
       direction: output
-      description: Current fill count (0..DEPTH)
+      description: Current fill count (0..DEPTH); COUNT_WIDTH is the RTL parameter equal to $clog2(DEPTH+1).
     protocol:
       sampling: count_o updated every rising PCLK edge to reflect current fill count.
       stability: count_o holds stable value between clock edges.

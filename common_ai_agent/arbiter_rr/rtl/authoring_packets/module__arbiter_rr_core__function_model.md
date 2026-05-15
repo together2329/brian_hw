@@ -684,7 +684,7 @@ SSOT item context: name=grant_index; port=gnt_idx_o; expr=0; width=IDX_WIDTH.
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.state_updates.last_winner.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
-SSOT item context: name=last_winner; expr=last_winner (unchanged); reset=0.
+SSOT item context: name=last_winner; expr=last_winner; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
@@ -693,7 +693,7 @@ SSOT item context: name=last_winner; expr=last_winner (unchanged); reset=0.
   - Traceability keeps source_ref function_model.transactions.FM2.state_updates.last_winner
   - Primary implementation evidence is in rtl/arbiter_rr_core.sv
   - last_winner reset behavior matches SSOT value 0
-  - last_winner RTL expression implements SSOT expression last_winner (unchanged)
+  - last_winner RTL expression implements SSOT expression last_winner
   - last_winner updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM2.state_updates.last_winner
 

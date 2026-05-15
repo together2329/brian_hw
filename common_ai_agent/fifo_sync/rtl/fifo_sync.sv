@@ -9,8 +9,7 @@ module fifo_sync #(
     parameter integer USE_ECC = 0,
     parameter integer CLOCK_FREQ_MHZ = 50,
     parameter integer ADDR_WIDTH = $clog2(DEPTH),
-    parameter integer COUNT_WIDTH = $clog2(DEPTH+1),
-    parameter integer CLOG2_DEPTH_PLUS_ONE = $clog2(DEPTH+1)
+    parameter integer COUNT_WIDTH = $clog2(DEPTH+1)
 ) (
     input  logic                   PCLK,
     input  logic                   PRESETn,
@@ -22,7 +21,7 @@ module fifo_sync #(
     output logic [DATA_WIDTH-1:0]  rd_data_o,
     output logic                   empty_o,
     output logic                   almost_empty_o,
-    output logic [CLOG2_DEPTH_PLUS_ONE-1:0] count_o,
+    output logic [COUNT_WIDTH-1:0] count_o,
     input  logic                   flush_i,
     input  logic [3:0]             paddr,
     input  logic                   psel,

@@ -29,7 +29,7 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=1, min_logic_modules=1, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=3
 - Locked-truth blockers:
-  - golden_authority_artifacts: Missing production golden authority artifact(s): model/fl_model_check.json
+  - golden_authority_artifacts: Human authority gate(s) required before production RTL-GEN are not approved: G1=pending, G4=pending, G5=pending, G6=pending
 - SSOT connection contracts:
   - arbiter_rr_regs.PCLK <= PCLK (integration.connections[0])
   - arbiter_rr_regs.PRESETn <= PRESETn (integration.connections[1])
@@ -134,7 +134,7 @@ Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
 - Detail: PL330-level RTL cannot proceed from prose alone. It must carry machine-readable authority artifacts that separate human-owned truth from LLM-editable implementation.
 SSOT ref: quality_gates.rtl_gen.golden_authority_artifacts.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
-- Current reason: Missing production golden authority artifact(s): model/fl_model_check.json
+- Current reason: Human authority gate(s) required before production RTL-GEN are not approved: G1=pending, G4=pending, G5=pending, G6=pending
 - Criteria:
   - governance/authority.json exists
   - authority.json is the current IP human_llm_authority_manifest

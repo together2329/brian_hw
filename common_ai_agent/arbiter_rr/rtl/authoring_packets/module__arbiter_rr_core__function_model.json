@@ -2053,10 +2053,10 @@
         "Traceability keeps source_ref function_model.transactions.FM2.state_updates.last_winner",
         "Primary implementation evidence is in rtl/arbiter_rr_core.sv",
         "last_winner reset behavior matches SSOT value 0",
-        "last_winner RTL expression implements SSOT expression last_winner (unchanged)",
+        "last_winner RTL expression implements SSOT expression last_winner",
         "last_winner updates exactly once at the SSOT-defined transaction acceptance point"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.state_updates.last_winner.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.\nSSOT item context: name=last_winner; expr=last_winner (unchanged); reset=0.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.state_updates.last_winner.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.\nSSOT item context: name=last_winner; expr=last_winner; reset=0.",
       "evidence_terms": [
         "last",
         "last_winner",
@@ -2069,7 +2069,7 @@
       "required": true,
       "source_ref": "function_model.transactions.FM2.state_updates.last_winner",
       "ssot_context": {
-        "expr": "last_winner (unchanged)",
+        "expr": "last_winner",
         "name": "last_winner",
         "reset": "0"
       },
@@ -2518,7 +2518,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "d249f4a6a57e3a02ee859050bfbd563fc32176218d8220af76c1d245fbc4fef0",
+  "todo_plan_sha256": "42c6b8bd94b9014c4ffd4c5d4b0b52e4e0acd50e50bcbb2c640ddd235b09f460",
   "top": "arbiter_rr",
   "type": "rtl_authoring_packet"
 }
