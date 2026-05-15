@@ -65,6 +65,9 @@ const WORKFLOW_RESULT_TOOLS = new Set([
 ]);
 const _isWorkflowResultTool = (tool) => WORKFLOW_RESULT_TOOLS.has(String(tool || '').toLowerCase());
 const INPUT_HISTORY_LIMIT = 200;
+const QA_HISTORY_LIMIT = 50;
+const QA_HISTORY_LEGACY_STORAGE_KEY = 'atlasQaHistory';
+const QA_HISTORY_STORAGE_PREFIX = 'atlasQaHistory:';
 const WORKFLOW_REPORT_TABS = {
   lint: {
     label: 'lint report',
@@ -1394,20 +1397,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const qaStateRef = React.useRef(qaState);
   React.useEffect(() => { qaStateRef.current = qaState; }, [qaState]);
   // qaHistory: every submitted ask_user round-trip, newest first.
-  // Each entry is {flowId, ts, ip, workflow, source, items: [{
+  // Each entry is {flowId, ts, session, ip, workflow, source, items: [{
   //   question, kind, selected: [{id,label}], custom
-  // }, ...]}. Persisted in localStorage so refreshing the tab keeps
-  // the trail visible. The Q&A tab renders this above the SSOT board.
-  const [qaHistory, setQaHistory] = React.useState(() => {
-    try {
-      const raw = localStorage.getItem('atlasQaHistory');
-      const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed.slice(0, 50) : [];
-    } catch (_) { return []; }
-  });
-  React.useEffect(() => {
-    try { localStorage.setItem('atlasQaHistory', JSON.stringify(qaHistory.slice(0, 50))); } catch (_) {}
-  }, [qaHistory]);
+  // }, ...]}. It is persisted per session+IP; the legacy global
+  // localStorage key mixed old GPIO answers into unrelated IPs.
+  const [qaHistory, setQaHistory] = React.useState([]);
   const [ssotApproval, setSsotApproval] = React.useState(null);
   const [ssotQa, setSsotQa] = React.useState(null);
   const [ssotQaSessions, setSsotQaSessions] = React.useState([]);
@@ -1470,6 +1464,71 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     const scoped = String(window.SCOPE_PATH || '').split('/').filter(Boolean).pop() || '';
     return /^[A-Za-z][A-Za-z0-9_]*$/.test(scoped) ? scoped : '';
   }, [activeIp, currentSession]);
+
+  const qaHistoryScope = React.useMemo(() => {
+    const session = normalizeUiSession(currentSession || window.ACTIVE_SESSION || '');
+    const ip = ssotIpFromSession(session) || activeSsotIp() || 'default';
+    const safeSession = session || 'default';
+    const safeIp = ip || 'default';
+    return {
+      session,
+      ip,
+      key: `${QA_HISTORY_STORAGE_PREFIX}${safeSession}:${safeIp}`,
+    };
+  }, [activeSsotIp, currentSession]);
+
+  const qaHistoryMatchesScope = React.useCallback((entry) => {
+    const entrySession = normalizeUiSession(entry?.session || '');
+    const entryIp = String(entry?.ip || '').trim();
+    const scopeSession = qaHistoryScope.session;
+    const scopeIp = qaHistoryScope.ip;
+    if (entrySession && scopeSession && entrySession !== scopeSession) return false;
+    if (entryIp && scopeIp && entryIp !== scopeIp) return false;
+    return true;
+  }, [qaHistoryScope.ip, qaHistoryScope.session]);
+
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem(qaHistoryScope.key);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(parsed)) {
+        setQaHistory(parsed.filter(qaHistoryMatchesScope).slice(0, QA_HISTORY_LIMIT));
+        return;
+      }
+      const legacyRaw = localStorage.getItem(QA_HISTORY_LEGACY_STORAGE_KEY);
+      const legacyParsed = legacyRaw ? JSON.parse(legacyRaw) : [];
+      const migrated = Array.isArray(legacyParsed)
+        ? legacyParsed.filter(qaHistoryMatchesScope).slice(0, QA_HISTORY_LIMIT)
+        : [];
+      if (migrated.length) {
+        localStorage.setItem(qaHistoryScope.key, JSON.stringify(migrated));
+      }
+      setQaHistory(migrated);
+    } catch (_) {
+      setQaHistory([]);
+    }
+  }, [qaHistoryMatchesScope, qaHistoryScope.key]);
+
+  React.useEffect(() => {
+    try {
+      const scoped = qaHistory.filter(qaHistoryMatchesScope).slice(0, QA_HISTORY_LIMIT);
+      if (scoped.length) {
+        localStorage.setItem(qaHistoryScope.key, JSON.stringify(scoped));
+      } else {
+        localStorage.removeItem(qaHistoryScope.key);
+      }
+    } catch (_) {}
+  }, [qaHistory, qaHistoryMatchesScope, qaHistoryScope.key]);
+
+  const visibleQaHistory = React.useMemo(
+    () => qaHistory.filter(qaHistoryMatchesScope).slice(0, QA_HISTORY_LIMIT),
+    [qaHistory, qaHistoryMatchesScope],
+  );
+
+  const clearQaHistory = React.useCallback(() => {
+    setQaHistory([]);
+    try { localStorage.removeItem(qaHistoryScope.key); } catch (_) {}
+  }, [qaHistoryScope.key]);
 
   // Single-source-of-truth pivot: whenever the canonical (session_id, ip,
   // workflow) triple resolves to a real IP, point the preview pane at
@@ -2833,6 +2892,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
 
   function historySnapshotFor(flowId, flow, st) {
     if (!flow || !st) return null;
+    const session = normalizeUiSession(flow.session || currentSession || window.ACTIVE_SESSION || '');
+    const ip = String(flow.ip || ssotIpFromSession(session) || activeSsotIp() || '').trim();
     const items = flow.batched
       ? (flow.questions || []).map((q, i) => {
           const tab = (st.states || [])[i] || { opts: [], custom: '' };
@@ -2854,7 +2915,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     return {
       flowId,
       ts: Date.now(),
-      ip: flow.ip || '',
+      session,
+      ip,
       workflow: flow.workflow || '',
       source: flow.source || '',
       items,
@@ -2935,7 +2997,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     if (snapshot) {
       setQaHistory(h => {
         if (h.length && h[0].flowId === snapshot.flowId) return h;
-        return [snapshot, ...h].slice(0, 50);
+        return [snapshot, ...h].slice(0, QA_HISTORY_LIMIT);
       });
     }
     setMainTab(shouldSubmit ? 'chat' : 'qa');
@@ -3024,7 +3086,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           snapshot = {
             flowId,
             ts: Date.now(),
-            ip: flow.ip || '',
+            session: normalizeUiSession(flow.session || currentSession || window.ACTIVE_SESSION || ''),
+            ip: String(flow.ip || ssotIpFromSession(flow.session || currentSession || window.ACTIVE_SESSION || '') || activeSsotIp() || '').trim(),
             workflow: flow.workflow || '',
             source: flow.source || '',
             items,
@@ -3036,7 +3099,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     if (snapshot) {
       setQaHistory(h => {
         if (h.length && h[0].flowId === snapshot.flowId) return h; // dedupe re-submits
-        return [snapshot, ...h].slice(0, 50);
+        return [snapshot, ...h].slice(0, QA_HISTORY_LIMIT);
       });
     }
     setStreaming(true);  // agent resumes after receiving answer
@@ -3840,8 +3903,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   }}
                 />
               )}
-              {qaHistory.length > 0 && (
-                <QaHistoryPanel history={qaHistory} onClear={() => setQaHistory([])} />
+              {visibleQaHistory.length > 0 && (
+                <QaHistoryPanel history={visibleQaHistory} onClear={clearQaHistory} />
               )}
             </div>
           )}
