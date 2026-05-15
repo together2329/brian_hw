@@ -1,0 +1,408 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 15,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "",
+      "name": "",
+      "refs": [],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/gpio_regs.sv",
+        "name": "gpio_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio_input_sampler.sv",
+        "name": "gpio_input_sampler",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio_pad_logic.sv",
+        "name": "gpio_pad_logic",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio.sv",
+        "name": "gpio",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dir_in",
+        "signal": "dir_in",
+        "signal_terms": [
+          "dir_in"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dout_in",
+        "signal": "dout_in",
+        "signal_terms": [
+          "dout_in"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dir_q",
+        "signal": "dir_q",
+        "signal_terms": [
+          "dir_q"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dout_q",
+        "signal": "dout_q",
+        "signal_terms": [
+          "dout_q"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "pad_in",
+        "signal": "pad_in",
+        "signal_terms": [
+          "pad_in"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "dir_q",
+        "signal": "dir_q",
+        "signal_terms": [
+          "dir_q"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "din_q",
+        "signal": "din_q",
+        "signal_terms": [
+          "din_q"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_pad_logic",
+        "port": "dir_q",
+        "signal": "dir_q",
+        "signal_terms": [
+          "dir_q"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_pad_logic",
+        "port": "dout_q",
+        "signal": "dout_q",
+        "signal_terms": [
+          "dout_q"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_pad_logic",
+        "port": "oe_o",
+        "signal": "oe_o",
+        "signal_terms": [
+          "oe_o"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_pad_logic",
+        "port": "pad_o",
+        "signal": "pad_o",
+        "signal_terms": [
+          "pad_o"
+        ],
+        "source_ref": "integration.connections[14]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 3,
+    "open_required_count": 3,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "gpio",
+  "kind": "unowned",
+  "owner_file": "",
+  "owner_module": "",
+  "packet_id": "unowned_tasks",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "memory.instances": 3
+    },
+    "module_slice": {},
+    "open_required_count": 3,
+    "required_count": 3,
+    "source_refs": [
+      "memory.instances.dir_q_ff",
+      "memory.instances.dout_q_ff",
+      "memory.instances.din_q_ff"
+    ],
+    "status_counts": {
+      "open": 3
+    },
+    "task_count": 3
+  },
+  "tasks": [
+    {
+      "category": "memory.instances",
+      "content": "Implement memory item dir_q_ff",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref memory.instances.dir_q_ff",
+        "dir_q_ff width matches SSOT value WIDTH",
+        "dir_q_ff timing uses SSOT cycle/latency 0",
+        "dir_q_ff storage depth matches SSOT value 1"
+      ],
+      "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.dir_q_ff.\nSSOT item context: name=dir_q_ff; width=WIDTH; depth=1; latency=0.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "",
+      "owner_module": "",
+      "priority": "high",
+      "required": true,
+      "source_ref": "memory.instances.dir_q_ff",
+      "ssot_context": {
+        "depth": "1",
+        "latency": "0",
+        "name": "dir_q_ff",
+        "width": "WIDTH"
+      },
+      "ssot_refs": [
+        "memory.instances.dir_q_ff"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task has no RTL owner file.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "memory.instances",
+      "content": "Implement memory item dout_q_ff",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref memory.instances.dout_q_ff",
+        "dout_q_ff width matches SSOT value WIDTH",
+        "dout_q_ff timing uses SSOT cycle/latency 0",
+        "dout_q_ff storage depth matches SSOT value 1"
+      ],
+      "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.dout_q_ff.\nSSOT item context: name=dout_q_ff; width=WIDTH; depth=1; latency=0.",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "",
+      "owner_module": "",
+      "priority": "high",
+      "required": true,
+      "source_ref": "memory.instances.dout_q_ff",
+      "ssot_context": {
+        "depth": "1",
+        "latency": "0",
+        "name": "dout_q_ff",
+        "width": "WIDTH"
+      },
+      "ssot_refs": [
+        "memory.instances.dout_q_ff"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task has no RTL owner file.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "memory.instances",
+      "content": "Implement memory item din_q_ff",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref memory.instances.din_q_ff",
+        "din_q_ff width matches SSOT value WIDTH",
+        "din_q_ff timing uses SSOT cycle/latency 0",
+        "din_q_ff storage depth matches SSOT value 1"
+      ],
+      "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.din_q_ff.\nSSOT item context: name=din_q_ff; width=WIDTH; depth=1; latency=0.",
+      "evidence_terms": [],
+      "id": "RTL-0103",
+      "owner_file": "",
+      "owner_module": "",
+      "priority": "high",
+      "required": true,
+      "source_ref": "memory.instances.din_q_ff",
+      "ssot_context": {
+        "depth": "1",
+        "latency": "0",
+        "name": "din_q_ff",
+        "width": "WIDTH"
+      },
+      "ssot_refs": [
+        "memory.instances.din_q_ff"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task has no RTL owner file.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "123947ae1f7d9f96f7ef25a8af2118a8e5c5ac198b54689b9c8f4223188b5dce",
+  "top": "gpio",
+  "type": "rtl_authoring_packet"
+}

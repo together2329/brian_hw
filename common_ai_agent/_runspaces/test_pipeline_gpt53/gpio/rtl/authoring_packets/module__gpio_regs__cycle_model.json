@@ -1,0 +1,837 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 15,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 2,
+      "key": "cycle_model",
+      "module_task_count": 70,
+      "rule": "Owner module gpio_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/gpio_regs.sv",
+      "name": "gpio_regs",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline.S1_LATCH_CONTROL",
+        "dataflow",
+        "decomposition",
+        "features",
+        "fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM1_LATCH_CONTROL",
+        "function_model.transactions.FM2_SAMPLE_INPUTS",
+        "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS",
+        "function_model.transactions.FM4_ASYNC_RESET",
+        "registers",
+        "registers.register_list",
+        "registers.register_list.DIR_Q",
+        "registers.register_list.DOUT_Q",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/gpio_regs.sv",
+        "name": "gpio_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio_input_sampler.sv",
+        "name": "gpio_input_sampler",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio_pad_logic.sv",
+        "name": "gpio_pad_logic",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio.sv",
+        "name": "gpio",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dir_in",
+        "signal": "dir_in",
+        "signal_terms": [
+          "dir_in"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dout_in",
+        "signal": "dout_in",
+        "signal_terms": [
+          "dout_in"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dir_q",
+        "signal": "dir_q",
+        "signal_terms": [
+          "dir_q"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dout_q",
+        "signal": "dout_q",
+        "signal_terms": [
+          "dout_q"
+        ],
+        "source_ref": "integration.connections[5]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 12,
+    "open_required_count": 12,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "gpio",
+  "kind": "module",
+  "owner_file": "rtl/gpio_regs.sv",
+  "owner_module": "gpio_regs",
+  "packet_id": "module__gpio_regs__cycle_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 1,
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 2,
+      "cycle_model.latency": 1,
+      "cycle_model.observability": 1,
+      "cycle_model.ordering": 2,
+      "cycle_model.pipeline": 3,
+      "cycle_model.reset": 1
+    },
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 2,
+      "key": "cycle_model",
+      "module_task_count": 70,
+      "rule": "Owner module gpio_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 12,
+    "required_count": 12,
+    "source_refs": [
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.handshake_rules.HR_SYNC_SAMPLE",
+      "cycle_model.handshake_rules.HR_INPUT_MASK_SAMPLE",
+      "cycle_model.pipeline.S0_RESET",
+      "cycle_model.pipeline.S1_LATCH_CONTROL",
+      "cycle_model.pipeline.S3_DRIVE_OUTPUTS",
+      "cycle_model.ordering.ordering_rule_0",
+      "cycle_model.ordering.ordering_rule_1",
+      "cycle_model.backpressure.backpressure_rule_0",
+      "cycle_model.observability.observability_signal_0"
+    ],
+    "status_counts": {
+      "open": 12
+    },
+    "task_count": 12
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.\nSSOT item context: value=clk.",
+      "evidence_terms": [],
+      "id": "RTL-0081",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "clk"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0082",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0083",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: HR_SYNC_SAMPLE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.HR_SYNC_SAMPLE",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "HR_SYNC_SAMPLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.HR_SYNC_SAMPLE.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.\nSSOT item context: id=HR_SYNC_SAMPLE; signal=clk.",
+      "evidence_terms": [
+        "HR",
+        "HR_SYNC_SAMPLE",
+        "SAMPLE",
+        "SYNC"
+      ],
+      "id": "RTL-0084",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.HR_SYNC_SAMPLE",
+      "ssot_context": {
+        "id": "HR_SYNC_SAMPLE",
+        "signal": "clk"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.HR_SYNC_SAMPLE"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "HR",
+          "HR_SYNC_SAMPLE",
+          "SAMPLE",
+          "SYNC"
+        ],
+        "source_scope": "rtl/gpio_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: HR_INPUT_MASK_SAMPLE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.HR_INPUT_MASK_SAMPLE",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "HR_INPUT_MASK_SAMPLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.HR_INPUT_MASK_SAMPLE.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.\nSSOT item context: id=HR_INPUT_MASK_SAMPLE; signal=din_q.",
+      "evidence_terms": [
+        "HR",
+        "HR_INPUT_MASK_SAMPLE",
+        "MASK",
+        "SAMPLE",
+        "din",
+        "din_q"
+      ],
+      "id": "RTL-0085",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.HR_INPUT_MASK_SAMPLE",
+      "ssot_context": {
+        "id": "HR_INPUT_MASK_SAMPLE",
+        "signal": "din_q"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.HR_INPUT_MASK_SAMPLE"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "HR",
+          "HR_INPUT_MASK_SAMPLE",
+          "MASK",
+          "SAMPLE",
+          "din",
+          "din_q"
+        ],
+        "source_scope": "rtl/gpio_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S0_RESET",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S0_RESET",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "cycle_model.pipeline.S0_RESET timing uses SSOT cycle/latency async",
+        "cycle_model.pipeline.S0_RESET appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_RESET.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.\nSSOT item context: stage=S0_RESET; action=Clear dir_q/dout_q/din_q when rst_n=0; cycle=async.",
+      "evidence_terms": [
+        "din",
+        "din_q",
+        "dir",
+        "dir_q",
+        "dout",
+        "dout_q",
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0087",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S0_RESET",
+      "ssot_context": {
+        "action": "Clear dir_q/dout_q/din_q when rst_n=0",
+        "cycle": "async",
+        "stage": "S0_RESET"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_RESET"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "din",
+          "din_q",
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q",
+          "rst",
+          "rst_n"
+        ],
+        "source_scope": "rtl/gpio_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S1_LATCH_CONTROL",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S1_LATCH_CONTROL",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "cycle_model.pipeline.S1_LATCH_CONTROL timing uses SSOT cycle/latency N",
+        "cycle_model.pipeline.S1_LATCH_CONTROL appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_LATCH_CONTROL.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.pipeline.S1_LATCH_CONTROL.\nSSOT item context: stage=S1_LATCH_CONTROL; action=Latch dir_in->dir_q and dout_in->dout_q at rising edge; cycle=N.",
+      "evidence_terms": [
+        "dir",
+        "dir_in",
+        "dir_q",
+        "dout",
+        "dout_in",
+        "dout_q",
+        "in"
+      ],
+      "id": "RTL-0088",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S1_LATCH_CONTROL",
+      "ssot_context": {
+        "action": "Latch dir_in->dir_q and dout_in->dout_q at rising edge",
+        "cycle": "N",
+        "stage": "S1_LATCH_CONTROL"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_LATCH_CONTROL"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "dir",
+          "dir_in",
+          "dir_q",
+          "dout",
+          "dout_in",
+          "dout_q",
+          "in"
+        ],
+        "source_scope": "rtl/gpio_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S3_DRIVE_OUTPUTS",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S3_DRIVE_OUTPUTS",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "cycle_model.pipeline.S3_DRIVE_OUTPUTS timing uses SSOT cycle/latency N+comb",
+        "cycle_model.pipeline.S3_DRIVE_OUTPUTS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S3_DRIVE_OUTPUTS.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.\nSSOT item context: stage=S3_DRIVE_OUTPUTS; action=Drive oe_o/pad_o from registered state; cycle=N+comb.",
+      "evidence_terms": [
+        "oe",
+        "oe_o",
+        "pad",
+        "pad_o"
+      ],
+      "id": "RTL-0090",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S3_DRIVE_OUTPUTS",
+      "ssot_context": {
+        "action": "Drive oe_o/pad_o from registered state",
+        "cycle": "N+comb",
+        "stage": "S3_DRIVE_OUTPUTS"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S3_DRIVE_OUTPUTS"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "oe",
+          "oe_o",
+          "pad",
+          "pad_o"
+        ],
+        "source_scope": "rtl/gpio_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.\nSSOT item context: value=sequential updates occur at edge, combinational outputs settle after edge.",
+      "evidence_terms": [],
+      "id": "RTL-0091",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "sequential updates occur at edge, combinational outputs settle after edge"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.\nSSOT item context: value=reset dominates non-reset behavior.",
+      "evidence_terms": [],
+      "id": "RTL-0092",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "ssot_context": {
+        "value": "reset dominates non-reset behavior"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.\nSSOT item context: value=no ready/valid protocol in this GPIO fixture.",
+      "evidence_terms": [],
+      "id": "RTL-0093",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "no ready/valid protocol in this GPIO fixture"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
+        "Primary implementation evidence is in rtl/gpio_regs.sv",
+        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: gpio_regs in rtl/gpio_regs.sv via cycle_model.\nSSOT item context: value=each function_model transaction maps to cycle stages and test scenarios.",
+      "evidence_terms": [],
+      "id": "RTL-0094",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "ssot_context": {
+        "value": "each function_model transaction maps to cycle stages and test scenarios"
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "123947ae1f7d9f96f7ef25a8af2118a8e5c5ac198b54689b9c8f4223188b5dce",
+  "top": "gpio",
+  "type": "rtl_authoring_packet"
+}

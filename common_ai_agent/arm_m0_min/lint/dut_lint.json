@@ -18,10 +18,10 @@
     "rtl/arm_m0_min_rf.sv",
     "rtl/arm_m0_min.sv"
   ],
-  "timestamp": "2026-05-15T09:54:02.967124+00:00",
+  "timestamp": "2026-05-15T09:55:15.827750+00:00",
   "returncode": 1,
   "errors": 0,
-  "warnings": 7,
+  "warnings": 3,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -47,17 +47,8 @@
       "command": "verilator --lint-only -Wall -Irtl -f list/arm_m0_min.f --top-module arm_m0_min",
       "returncode": 1,
       "errors": 0,
-      "warnings": 6,
+      "warnings": 2,
       "diagnostics": [
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/arm_m0_min_if.sv",
-          "line": 23,
-          "column": 30,
-          "message": "Signal is not used: 'i_hresp'",
-          "source": "    input  logic             i_hresp"
-        },
         {
           "severity": "warning",
           "rule": "UNUSEDSIGNAL",
@@ -75,33 +66,6 @@
           "column": 30,
           "message": "Signal is not used: 'rst'",
           "source": "    input  logic             rst,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/arm_m0_min_id.sv",
-          "line": 8,
-          "column": 30,
-          "message": "Bits of signal are not used: 'if_instr'[31:16]",
-          "source": "    input  logic [31:0]      if_instr,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/arm_m0_min_id.sv",
-          "line": 9,
-          "column": 30,
-          "message": "Signal is not used: 'pc_in'",
-          "source": "    input  logic [XLEN-1:0]  pc_in,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/arm_m0_min_id.sv",
-          "line": 10,
-          "column": 30,
-          "message": "Bits of signal are not used: 'nzcv'[3,1:0]",
-          "source": "    input  logic [3:0]       nzcv,"
         }
       ],
       "passed": false

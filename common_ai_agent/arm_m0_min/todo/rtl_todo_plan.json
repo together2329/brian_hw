@@ -47,7 +47,7 @@
     "static_missing": 18,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T09:53:44Z",
+  "generated_at": "2026-05-15T09:55:03Z",
   "ip": "arm_m0_min",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 12,
@@ -153,17 +153,17 @@
   "rtl_implementation_depth_evidence": {
     "aggregate": {
       "behavior_owner_logic_modules": 5,
-      "control_flow": 39,
-      "depth_score": 232,
+      "control_flow": 40,
+      "depth_score": 237,
       "instances": 7,
-      "lines": 585,
+      "lines": 594,
       "logic_modules": 8,
       "modules": 8,
-      "nonconstant_assigns": 13,
+      "nonconstant_assigns": 15,
       "procedural_blocks": 10,
       "source_files": 8,
       "state_updates": 44,
-      "storage_decls": 48
+      "storage_decls": 50
     },
     "issues": [],
     "modules": [
@@ -224,6 +224,20 @@
         "module": "arm_m0_min"
       },
       {
+        "depth_score": 14,
+        "file": "rtl/arm_m0_min_id.sv",
+        "metrics": {
+          "control_flow": 4,
+          "instances": 0,
+          "nonconstant_assigns": 3,
+          "placeholder_tokens": false,
+          "procedural_blocks": 1,
+          "state_updates": 0,
+          "storage_decls": 4
+        },
+        "module": "arm_m0_min_id"
+      },
+      {
         "depth_score": 9,
         "file": "rtl/arm_m0_min_alu.sv",
         "metrics": {
@@ -250,20 +264,6 @@
           "storage_decls": 1
         },
         "module": "arm_m0_min_branch"
-      },
-      {
-        "depth_score": 9,
-        "file": "rtl/arm_m0_min_id.sv",
-        "metrics": {
-          "control_flow": 3,
-          "instances": 0,
-          "nonconstant_assigns": 1,
-          "placeholder_tokens": false,
-          "procedural_blocks": 1,
-          "state_updates": 0,
-          "storage_decls": 2
-        },
-        "module": "arm_m0_min_id"
       },
       {
         "depth_score": 7,
@@ -2003,7 +2003,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "DUT compile artifact is not clean.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_id.sv; rerun DUT compile after the final RTL edit.",
         "required": true,
         "status": "open"
       }
@@ -2053,7 +2053,7 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT lint artifact is not clean.",
         "required": true,
         "status": "open"
       }
@@ -2249,7 +2249,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=232, required=66).",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=237, required=66).",
         "required": true,
         "status": "pass"
       }
@@ -8732,13 +8732,13 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "DUT compile artifact is not clean.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_id.sv; rerun DUT compile after the final RTL edit.",
         "source_ref": "quality_gates.rtl_gen.dut_compile",
         "task_id": "RTL-0017"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT lint artifact is not clean.",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
         "task_id": "RTL-0018"
       },

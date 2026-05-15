@@ -20,3 +20,6 @@
 {"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gpio/logs/headless_run.json", "status": "blocked", "ts": "2026-05-15T09:53:20Z"}
 {"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53", "stages": ["rtl-gen", "tb-gen", "sim", "sim-debug", "lint", "coverage"], "target_ip": "gpio", "ts": "2026-05-15T09:54:43Z"}
 {"event": "stage_start", "stage": "rtl-gen", "ts": "2026-05-15T09:54:43Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-00-module__gpio_regs__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-15T09:54:48Z"}
+{"elapsed_sec": 34.357, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-packet-00-module__gpio_regs__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-15T09:55:22Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-01-module__gpio_regs__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-15T09:55:24Z"}

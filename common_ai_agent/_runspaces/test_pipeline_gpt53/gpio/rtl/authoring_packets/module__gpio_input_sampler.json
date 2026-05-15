@@ -1,0 +1,478 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 15,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 5,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/gpio_input_sampler.sv",
+      "name": "gpio_input_sampler",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline.S2_SAMPLE_INPUTS",
+        "function_model",
+        "function_model.transactions.FM2_SAMPLE_INPUTS",
+        "registers",
+        "registers.register_list.DIN_Q"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/gpio_regs.sv",
+        "name": "gpio_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio_input_sampler.sv",
+        "name": "gpio_input_sampler",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio_pad_logic.sv",
+        "name": "gpio_pad_logic",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio.sv",
+        "name": "gpio",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "pad_in",
+        "signal": "pad_in",
+        "signal_terms": [
+          "pad_in"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "dir_q",
+        "signal": "dir_q",
+        "signal_terms": [
+          "dir_q"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "din_q",
+        "signal": "din_q",
+        "signal_terms": [
+          "din_q"
+        ],
+        "source_ref": "integration.connections[10]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 5,
+    "open_required_count": 5,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "gpio",
+  "kind": "module",
+  "owner_file": "rtl/gpio_input_sampler.sv",
+  "owner_module": "gpio_input_sampler",
+  "packet_id": "module__gpio_input_sampler",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.pipeline": 1,
+      "equivalence.module": 1,
+      "registers.field": 1,
+      "registers.register": 1,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 5,
+      "task_limit": 48
+    },
+    "open_required_count": 5,
+    "required_count": 5,
+    "source_refs": [
+      "workflow_todos.rtl-gen[1]",
+      "cycle_model.pipeline.S2_SAMPLE_INPUTS",
+      "registers.register_list.DIN_Q",
+      "registers.register_list.DIN_Q.fields.din",
+      "sub_modules.gpio_input_sampler.module_equivalence"
+    ],
+    "status_counts": {
+      "open": 5
+    },
+    "task_count": 5
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement direction-masked input sampling",
+      "criteria": [
+        "din_q[i] samples pad_in[i] when dir_q[i]==0",
+        "din_q[i] holds when dir_q[i]==1",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/gpio_input_sampler.sv",
+        "Semantic source_refs covered: cycle_model.pipeline.S2_SAMPLE_INPUTS, function_model.transactions.FM2_SAMPLE_INPUTS"
+      ],
+      "detail": "Update din_q only on input-configured bits at rising edge\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: gpio_input_sampler in rtl/gpio_input_sampler.sv via workflow_todos.owner.\nSSOT item context: id=RTL_GPIO_SAMPLER.",
+      "evidence_terms": [
+        "FM2",
+        "FM2_SAMPLE_INPUTS",
+        "GPIO",
+        "RTL_GPIO_SAMPLER",
+        "S2",
+        "S2_SAMPLE_INPUTS",
+        "SAMPLE",
+        "SAMPLER",
+        "gpio",
+        "gpio_input_sampler",
+        "sampler"
+      ],
+      "id": "RTL-0021",
+      "owner_file": "rtl/gpio_input_sampler.sv",
+      "owner_module": "gpio_input_sampler",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_GPIO_SAMPLER"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S2_SAMPLE_INPUTS",
+        "function_model.transactions.FM2_SAMPLE_INPUTS",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "FM2",
+          "FM2_SAMPLE_INPUTS",
+          "GPIO",
+          "RTL_GPIO_SAMPLER",
+          "S2",
+          "S2_SAMPLE_INPUTS",
+          "SAMPLE",
+          "SAMPLER",
+          "gpio",
+          "gpio_input_sampler",
+          "sampler"
+        ],
+        "source_scope": "rtl/gpio_input_sampler.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_input_sampler.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_GPIO_SAMPLER",
+        "source_refs": [
+          "cycle_model.pipeline.S2_SAMPLE_INPUTS",
+          "function_model.transactions.FM2_SAMPLE_INPUTS"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S2_SAMPLE_INPUTS",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S2_SAMPLE_INPUTS",
+        "Primary implementation evidence is in rtl/gpio_input_sampler.sv",
+        "cycle_model.pipeline.S2_SAMPLE_INPUTS timing uses SSOT cycle/latency N",
+        "cycle_model.pipeline.S2_SAMPLE_INPUTS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_SAMPLE_INPUTS.\nOwner: gpio_input_sampler in rtl/gpio_input_sampler.sv via cycle_model.pipeline.S2_SAMPLE_INPUTS.\nSSOT item context: stage=S2_SAMPLE_INPUTS; action=Sample pad_in into din_q only for dir_q=0 bits; cycle=N.",
+      "evidence_terms": [
+        "din",
+        "din_q",
+        "dir",
+        "dir_q",
+        "in",
+        "pad",
+        "pad_in"
+      ],
+      "id": "RTL-0089",
+      "owner_file": "rtl/gpio_input_sampler.sv",
+      "owner_module": "gpio_input_sampler",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S2_SAMPLE_INPUTS",
+      "ssot_context": {
+        "action": "Sample pad_in into din_q only for dir_q=0 bits",
+        "cycle": "N",
+        "stage": "S2_SAMPLE_INPUTS"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S2_SAMPLE_INPUTS"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "din",
+          "din_q",
+          "dir",
+          "dir_q",
+          "in",
+          "pad",
+          "pad_in"
+        ],
+        "source_scope": "rtl/gpio_input_sampler.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_input_sampler.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register DIN_Q",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.DIN_Q",
+        "Primary implementation evidence is in rtl/gpio_input_sampler.sv",
+        "DIN_Q width matches SSOT value 32",
+        "DIN_Q reset behavior matches SSOT value 0",
+        "DIN_Q access policy ro is implemented without read/write shortcuts",
+        "DIN_Q decode uses SSOT address/offset 8"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DIN_Q.\nOwner: gpio_input_sampler in rtl/gpio_input_sampler.sv via registers.register_list.DIN_Q.\nSSOT item context: name=DIN_Q; width=32; reset=0; access=ro; offset=8.",
+      "evidence_terms": [],
+      "id": "RTL-0099",
+      "owner_file": "rtl/gpio_input_sampler.sv",
+      "owner_module": "gpio_input_sampler",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DIN_Q",
+      "ssot_context": {
+        "access": "ro",
+        "name": "DIN_Q",
+        "offset": "8",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.DIN_Q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_input_sampler.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DIN_Q.din",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DIN_Q.fields.din",
+        "Primary implementation evidence is in rtl/gpio_input_sampler.sv",
+        "din reset behavior matches SSOT value 0",
+        "din access policy ro is implemented without read/write shortcuts",
+        "din readback returns implemented RTL state when readable",
+        "din write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DIN_Q.fields.din.\nOwner: gpio_input_sampler in rtl/gpio_input_sampler.sv via registers.register_list.DIN_Q.\nSSOT item context: name=din; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0100",
+      "owner_file": "rtl/gpio_input_sampler.sv",
+      "owner_module": "gpio_input_sampler",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DIN_Q.fields.din",
+      "ssot_context": {
+        "access": "ro",
+        "name": "din",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DIN_Q.fields.din"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_input_sampler.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module gpio_input_sampler is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.gpio_input_sampler.module_equivalence",
+        "Primary implementation evidence is in rtl/gpio_input_sampler.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.gpio_input_sampler.module_equivalence.\nOwner: gpio_input_sampler in rtl/gpio_input_sampler.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0133",
+      "owner_file": "rtl/gpio_input_sampler.sv",
+      "owner_module": "gpio_input_sampler",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.gpio_input_sampler.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.gpio_input_sampler.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_input_sampler.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "123947ae1f7d9f96f7ef25a8af2118a8e5c5ac198b54689b9c8f4223188b5dce",
+  "top": "gpio",
+  "type": "rtl_authoring_packet"
+}

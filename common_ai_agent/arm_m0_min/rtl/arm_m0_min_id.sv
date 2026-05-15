@@ -72,6 +72,10 @@ module arm_m0_min_id #(
         is_bne    = 1'b0;
         is_undef  = 1'b0;
 
+        if (if_instr[31:16] != 16'h0000) begin
+            is_undef = 1'b1;
+        end
+
         case (instr16[15:12])
             OP_ADD: begin
                 alu_op = ALU_ADD;

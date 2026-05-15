@@ -9,31 +9,15 @@ warning: arm_m0_min/rtl/arm_m0_min_alu.sv:36 implicit conversion changes signedn
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/arm_m0_min.f --top-module arm_m0_min
 returncode: 1
-errors: 0 warnings: 6
-%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_if.sv:23:30: Signal is not used: 'i_hresp'
-                                                 : ... note: In instance 'arm_m0_min.u_if'
-   23 |     input  logic             i_hresp
-      |                              ^~~~~~~
-                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
-                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
+errors: 0 warnings: 2
 %Warning-UNUSEDSIGNAL: rtl/arm_m0_min_id.sv:4:30: Signal is not used: 'clk'
                                                 : ... note: In instance 'arm_m0_min.u_id'
     4 |     input  logic             clk,
       |                              ^~~
+                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
+                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
 %Warning-UNUSEDSIGNAL: rtl/arm_m0_min_id.sv:5:30: Signal is not used: 'rst'
                                                 : ... note: In instance 'arm_m0_min.u_id'
     5 |     input  logic             rst,
       |                              ^~~
-%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_id.sv:8:30: Bits of signal are not used: 'if_instr'[31:16]
-                                                : ... note: In instance 'arm_m0_min.u_id'
-    8 |     input  logic [31:0]      if_instr,
-      |                              ^~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_id.sv:9:30: Signal is not used: 'pc_in'
-                                                : ... note: In instance 'arm_m0_min.u_id'
-    9 |     input  logic [XLEN-1:0]  pc_in,
-      |                              ^~~~~
-%Warning-UNUSEDSIGNAL: rtl/arm_m0_min_id.sv:10:30: Bits of signal are not used: 'nzcv'[3,1:0]
-                                                 : ... note: In instance 'arm_m0_min.u_id'
-   10 |     input  logic [3:0]       nzcv,
-      |                              ^~~~
-%Error: Exiting due to 6 warning(s)
+%Error: Exiting due to 2 warning(s)

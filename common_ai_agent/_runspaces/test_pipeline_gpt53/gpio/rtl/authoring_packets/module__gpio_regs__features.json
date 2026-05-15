@@ -1,0 +1,386 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 15,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 5,
+      "key": "features",
+      "module_task_count": 70,
+      "rule": "Owner module gpio_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "features",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/gpio_regs.sv",
+      "name": "gpio_regs",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline.S1_LATCH_CONTROL",
+        "dataflow",
+        "decomposition",
+        "features",
+        "fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM1_LATCH_CONTROL",
+        "function_model.transactions.FM2_SAMPLE_INPUTS",
+        "function_model.transactions.FM3_DRIVE_PAD_OUTPUTS",
+        "function_model.transactions.FM4_ASYNC_RESET",
+        "registers",
+        "registers.register_list",
+        "registers.register_list.DIR_Q",
+        "registers.register_list.DOUT_Q",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/gpio_regs.sv",
+        "name": "gpio_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio_input_sampler.sv",
+        "name": "gpio_input_sampler",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio_pad_logic.sv",
+        "name": "gpio_pad_logic",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio.sv",
+        "name": "gpio",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dir_in",
+        "signal": "dir_in",
+        "signal_terms": [
+          "dir_in"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dout_in",
+        "signal": "dout_in",
+        "signal_terms": [
+          "dout_in"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dir_q",
+        "signal": "dir_q",
+        "signal_terms": [
+          "dir_q"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dout_q",
+        "signal": "dout_q",
+        "signal_terms": [
+          "dout_q"
+        ],
+        "source_ref": "integration.connections[5]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 3,
+    "open_required_count": 3,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "gpio",
+  "kind": "module",
+  "owner_file": "rtl/gpio_regs.sv",
+  "owner_module": "gpio_regs",
+  "packet_id": "module__gpio_regs__features",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "features.item": 3
+    },
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 5,
+      "key": "features",
+      "module_task_count": 70,
+      "rule": "Owner module gpio_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "features",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 3,
+    "required_count": 3,
+    "source_refs": [
+      "features.Per_bit_direction_control",
+      "features.Registered_output_data",
+      "features.Direction_masked_input_sampling"
+    ],
+    "status_counts": {
+      "open": 3
+    },
+    "task_count": 3
+  },
+  "tasks": [
+    {
+      "category": "features.item",
+      "content": "Implement feature Per-bit direction control",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Per_bit_direction_control",
+        "Primary implementation evidence is in rtl/gpio_regs.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Per_bit_direction_control.\nOwner: gpio_regs in rtl/gpio_regs.sv via features.\nSSOT item context: name=Per-bit direction control; output=oe_o[i]=1 when dir_q[i]=1.",
+      "evidence_terms": [
+        "dir",
+        "dir_q",
+        "oe",
+        "oe_o"
+      ],
+      "id": "RTL-0106",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Per_bit_direction_control",
+      "ssot_context": {
+        "name": "Per-bit direction control",
+        "output": "oe_o[i]=1 when dir_q[i]=1"
+      },
+      "ssot_refs": [
+        "features.Per_bit_direction_control"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "dir",
+          "dir_q",
+          "oe",
+          "oe_o"
+        ],
+        "source_scope": "rtl/gpio_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Registered output data",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Registered_output_data",
+        "Primary implementation evidence is in rtl/gpio_regs.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Registered_output_data.\nOwner: gpio_regs in rtl/gpio_regs.sv via features.\nSSOT item context: name=Registered output data; output=pad_o follows dout_q only for dir_q=1 bits.",
+      "evidence_terms": [
+        "dir",
+        "dir_q",
+        "dout",
+        "dout_q",
+        "pad",
+        "pad_o"
+      ],
+      "id": "RTL-0107",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Registered_output_data",
+      "ssot_context": {
+        "name": "Registered output data",
+        "output": "pad_o follows dout_q only for dir_q=1 bits"
+      },
+      "ssot_refs": [
+        "features.Registered_output_data"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "dir",
+          "dir_q",
+          "dout",
+          "dout_q",
+          "pad",
+          "pad_o"
+        ],
+        "source_scope": "rtl/gpio_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Direction-masked input sampling",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Direction_masked_input_sampling",
+        "Primary implementation evidence is in rtl/gpio_regs.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Direction_masked_input_sampling.\nOwner: gpio_regs in rtl/gpio_regs.sv via features.\nSSOT item context: name=Direction-masked input sampling; output=output-mode bits hold prior din_q.",
+      "evidence_terms": [
+        "din",
+        "din_q"
+      ],
+      "id": "RTL-0108",
+      "owner_file": "rtl/gpio_regs.sv",
+      "owner_module": "gpio_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Direction_masked_input_sampling",
+      "ssot_context": {
+        "name": "Direction-masked input sampling",
+        "output": "output-mode bits hold prior din_q"
+      },
+      "ssot_refs": [
+        "features.Direction_masked_input_sampling"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "din",
+          "din_q"
+        ],
+        "source_scope": "rtl/gpio_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "123947ae1f7d9f96f7ef25a8af2118a8e5c5ac198b54689b9c8f4223188b5dce",
+  "top": "gpio",
+  "type": "rtl_authoring_packet"
+}

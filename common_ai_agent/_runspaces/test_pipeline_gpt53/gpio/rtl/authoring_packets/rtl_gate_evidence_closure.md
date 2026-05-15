@@ -1,10 +1,10 @@
 # RTL Authoring Packet: rtl_gate_evidence_closure
 
 - Kind: gate
-- Owner module: arm_m0_min
-- Owner file: rtl/arm_m0_min.sv
-- Task count: 10
-- Required tasks: 10
+- Owner module: gpio
+- Owner file: rtl/gpio.sv
+- Task count: 9
+- Required tasks: 9
 
 ## Rules
 
@@ -18,29 +18,29 @@
 
 ## Context
 
-- Quality profile: production
+- Quality profile: standard
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 8
 - Human-locked open tasks: 0
-- Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
+- Owner refs: integration, integration.connections, rtl_contract
 - SSOT connection contracts:
-  - arm_m0_min_if.i_haddr <= i_haddr (integration.connections[0])
-  - arm_m0_min_if.i_htrans <= i_htrans (integration.connections[1])
-  - arm_m0_min_if.i_hready <= i_hready (integration.connections[2])
-  - arm_m0_min_if.i_hrdata <= i_hrdata (integration.connections[3])
-  - arm_m0_min_if.i_hresp <= i_hresp (integration.connections[4])
-  - arm_m0_min_ex.d_haddr <= d_haddr (integration.connections[5])
-  - arm_m0_min_ex.d_htrans <= d_htrans (integration.connections[6])
-  - arm_m0_min_ex.d_hwrite <= d_hwrite (integration.connections[7])
-  - arm_m0_min_ex.d_hwdata <= d_hwdata (integration.connections[8])
-  - arm_m0_min_ex.d_hready <= d_hready (integration.connections[9])
-  - arm_m0_min_ex.d_hrdata <= d_hrdata (integration.connections[10])
-  - arm_m0_min_ex.d_hresp <= d_hresp (integration.connections[11])
-- SSOT top IO contracts: 23
+  - gpio_regs.clk <= clk (integration.connections[0])
+  - gpio_regs.rst_n <= rst_n (integration.connections[1])
+  - gpio_regs.dir_in <= dir_in (integration.connections[2])
+  - gpio_regs.dout_in <= dout_in (integration.connections[3])
+  - gpio_regs.dir_q <= dir_q (integration.connections[4])
+  - gpio_regs.dout_q <= dout_q (integration.connections[5])
+  - gpio_input_sampler.clk <= clk (integration.connections[6])
+  - gpio_input_sampler.rst_n <= rst_n (integration.connections[7])
+  - gpio_input_sampler.pad_in <= pad_in (integration.connections[8])
+  - gpio_input_sampler.dir_q <= dir_q (integration.connections[9])
+  - gpio_input_sampler.din_q <= din_q (integration.connections[10])
+  - gpio_pad_logic.dir_q <= dir_q (integration.connections[11])
+- SSOT top IO contracts: 10
 
 ## Tasks
 
@@ -53,47 +53,47 @@
 - Source ref: quality_gates.rtl_gen.static_rtl_evidence
 - Detail: After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.
 SSOT ref: quality_gates.rtl_gen.static_rtl_evidence.
-Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: 18 static-evidence-required task(s) still lack DUT RTL evidence.
+Owner: gpio in rtl/gpio.sv via top_fallback.
+- Current reason: 53 static-evidence-required task(s) still lack DUT RTL evidence.
 - Criteria:
   - derive_rtl_todos.py --audit-rtl ran after the final RTL edit
   - rtl_todo_plan.json static_rtl_evidence.missing is zero
   - Rich SSOT-derived tasks match multiple owner-file RTL evidence terms, not a single incidental token
   - No task requiring DUT evidence is satisfied only by comments, TB, scoreboard, or FunctionalModel code
   - Traceability keeps source_ref quality_gates.rtl_gen.static_rtl_evidence
-  - Primary implementation evidence is in rtl/arm_m0_min.sv
+  - Primary implementation evidence is in rtl/gpio.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.static_rtl_evidence
 
 ### RTL-0008: Gate: behavior-owner RTL modules contain real implementation structure
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.owner_logic_structure_evidence
 - Detail: Static token evidence is not enough. Each SSOT behavior-owner RTL module must contain real assign/procedural/state structure appropriate for its owned function_model, cycle_model, register, memory, or FSM contract.
 SSOT ref: quality_gates.rtl_gen.owner_logic_structure_evidence.
-Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: Behavior-owner RTL modules contain real implementation structure.
+Owner: gpio in rtl/gpio.sv via top_fallback.
+- Current reason: 3 owner logic structure issue(s) remain. gpio_regs: Behavior-owner module is not declared in its owner file; gpio_input_sampler: Behavior-owner module is not declared in its owner file; gpio_pad_logic: Behavior-owner module is not declared in its owner file
 - Criteria:
   - Every active behavior-owner module is declared in its owner file
   - Behavior-owner modules contain non-placeholder assign/procedural implementation logic
   - State/register/memory/FSM owners contain sequential or storage-update evidence, not only token mentions
   - Traceability keeps source_ref quality_gates.rtl_gen.owner_logic_structure_evidence
-  - Primary implementation evidence is in rtl/arm_m0_min.sv
+  - Primary implementation evidence is in rtl/gpio.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.owner_logic_structure_evidence
 
 ### RTL-0009: Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence
 - Detail: Production RTL cannot carry TODO/TBD/FIXME/stub/dummy/not-implemented markers in source code or comments. Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract.
 SSOT ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence.
-Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: RTL sources contain no placeholder markers or disallowed default-policy constructs.
+Owner: gpio in rtl/gpio.sv via top_fallback.
+- Current reason: 1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)
 - Criteria:
   - Listed RTL source files contain no TODO/TBD/FIXME/HACK markers
   - Listed RTL source files contain no placeholder/stub/dummy/not-implemented implementation text
@@ -102,83 +102,83 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
   - FSMs use the conventional explicit style by default, unless SSOT/user specifies another synthesizable style
   - Intentional reserved behavior is represented in SSOT contracts instead of RTL placeholder comments
   - Traceability keeps source_ref quality_gates.rtl_gen.rtl_placeholder_free_evidence
-  - Primary implementation evidence is in rtl/arm_m0_min.sv
+  - Primary implementation evidence is in rtl/gpio.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.rtl_placeholder_free_evidence
 
 ### RTL-0010: Gate: SSOT top IO contracts match the RTL top module
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_io_contract_evidence
 - Detail: The top wrapper must expose the SSOT-declared clock/reset and explicit IO ports. A compiling top with missing, renamed, or wrong-direction ports cannot close RTL generation.
 SSOT ref: quality_gates.rtl_gen.top_io_contract_evidence.
-Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: SSOT top IO contracts match the RTL top declaration.
+Owner: gpio in rtl/gpio.sv via top_fallback.
+- Current reason: 1 top IO contract issue(s) remain. gpio: SSOT top module is not declared in listed RTL sources
 - Criteria:
   - SSOT clock/reset names are declared on the RTL top module
   - Explicit io_list ports/signals are declared on the RTL top module
   - Known SSOT directions and simple widths match RTL declarations
   - Traceability keeps source_ref quality_gates.rtl_gen.top_io_contract_evidence
-  - Primary implementation evidence is in rtl/arm_m0_min.sv
+  - Primary implementation evidence is in rtl/gpio.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.top_io_contract_evidence
 
 ### RTL-0011: Gate: SSOT top outputs are driven by real RTL logic
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_output_drive_evidence
 - Detail: Declaring output ports is not enough. Each SSOT-declared top output must be driven by nonconstant RTL logic, a procedural assignment, or a declared child-module output connection. Constant tieoffs require an explicit SSOT constant/tieoff allowance.
 SSOT ref: quality_gates.rtl_gen.top_output_drive_evidence.
-Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: SSOT top outputs have non-placeholder RTL drive evidence.
+Owner: gpio in rtl/gpio.sv via top_fallback.
+- Current reason: 1 top output drive issue(s) remain. gpio: SSOT top module is not declared, so output drive evidence cannot be checked
 - Criteria:
   - Every SSOT output/inout top contract has drive evidence in the RTL top
   - Non-waived output constants are rejected as placeholder tieoffs
   - Child-instance drive evidence uses a declared child output/inout port, not an unknown direction
   - Traceability keeps source_ref quality_gates.rtl_gen.top_output_drive_evidence
-  - Primary implementation evidence is in rtl/arm_m0_min.sv
+  - Primary implementation evidence is in rtl/gpio.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.top_output_drive_evidence
 
 ### RTL-0012: Gate: SSOT top inputs are consumed by RTL logic or child inputs
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_input_consumption_evidence
 - Detail: Declaring input ports is not enough. Each SSOT-declared non-clock/reset top input must feed real RTL logic, a procedural/control expression, or a declared child-module input/inout connection. Unused inputs require an explicit SSOT unused/reserved allowance.
 SSOT ref: quality_gates.rtl_gen.top_input_consumption_evidence.
-Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: SSOT top inputs have RTL consumption evidence.
+Owner: gpio in rtl/gpio.sv via top_fallback.
+- Current reason: 1 top input consumption issue(s) remain. gpio: SSOT top module is not declared, so input consumption evidence cannot be checked
 - Criteria:
   - Every non-clock/reset SSOT input/inout top contract has consumption evidence in the RTL top
   - Child-instance consumption evidence uses a declared child input/inout port, not an unknown direction
   - Unused or reserved inputs are accepted only when explicitly waived by SSOT
   - Traceability keeps source_ref quality_gates.rtl_gen.top_input_consumption_evidence
-  - Primary implementation evidence is in rtl/arm_m0_min.sv
+  - Primary implementation evidence is in rtl/gpio.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.top_input_consumption_evidence
 
 ### RTL-0013: Gate: manifest-owned RTL modules are integrated into the top hierarchy
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_hierarchy_integration
 - Detail: File existence is not enough for general IP RTL. Every SSOT manifest-owned non-top RTL module must be declared and reachable from the SSOT top through real module instantiation.
 SSOT ref: quality_gates.rtl_gen.manifest_hierarchy_integration.
-Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.
+Owner: gpio in rtl/gpio.sv via top_fallback.
+- Current reason: 4 manifest hierarchy integration issue(s) remain. gpio: SSOT top module is not declared in listed RTL sources; gpio_regs: SSOT manifest child module is not declared in listed RTL sources; gpio_input_sampler: SSOT manifest child module is not declared in listed RTL sources
 - Criteria:
   - Every manifest-owned non-top submodule is declared in listed DUT RTL sources
   - Each child module is reachable from the SSOT top module through SystemVerilog instantiation
   - A disconnected child file or flattened top cannot close the manifest hierarchy gate
   - Traceability keeps source_ref quality_gates.rtl_gen.manifest_hierarchy_integration
-  - Primary implementation evidence is in rtl/arm_m0_min.sv
+  - Primary implementation evidence is in rtl/gpio.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.manifest_hierarchy_integration
 
 ### RTL-0014: Gate: manifest-owned child instances have machine-checkable port connections
@@ -190,50 +190,31 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
 - Source ref: quality_gates.rtl_gen.manifest_port_connection_evidence
 - Detail: Reachability alone is not enough. Every reachable SSOT manifest-owned child module with declared ports must be instantiated with named, non-empty port connections so ATLAS can audit wrapper wiring for general IPs.
 SSOT ref: quality_gates.rtl_gen.manifest_port_connection_evidence.
-Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
+Owner: gpio in rtl/gpio.sv via top_fallback.
 - Current reason: Every reachable manifest child instance has named, non-empty port connections.
 - Criteria:
   - Each reachable manifest child instance uses named port mapping
   - Every declared child port is connected by name on at least one reachable instance
   - No child port connection is empty unless represented by an explicit SSOT waiver
   - Traceability keeps source_ref quality_gates.rtl_gen.manifest_port_connection_evidence
-  - Primary implementation evidence is in rtl/arm_m0_min.sv
+  - Primary implementation evidence is in rtl/gpio.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.manifest_port_connection_evidence
 
 ### RTL-0015: Gate: manifest child port connections carry live RTL signal flow
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_signal_flow_evidence
 - Detail: Named port maps prove that ports are connected, but not that the connected signals are useful. Child inputs must not be placeholder constants unless SSOT explicitly allows the tieoff, and child outputs must feed a top output, parent logic, or another declared child input/inout.
 SSOT ref: quality_gates.rtl_gen.manifest_signal_flow_evidence.
-Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: Manifest child port maps carry live non-placeholder RTL signal flow.
+Owner: gpio in rtl/gpio.sv via top_fallback.
+- Current reason: 1 manifest signal-flow issue(s) remain. gpio: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked
 - Criteria:
   - Reachable manifest child input/inout ports are not tied to constants without an SSOT connection/tieoff allowance
   - Reachable manifest child output/inout ports are consumed by top outputs, parent RTL logic, or declared child inputs/inouts
   - Named port-map entries reference ports declared by the child module
   - Traceability keeps source_ref quality_gates.rtl_gen.manifest_signal_flow_evidence
-  - Primary implementation evidence is in rtl/arm_m0_min.sv
+  - Primary implementation evidence is in rtl/gpio.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.manifest_signal_flow_evidence
-
-### RTL-0022: Gate: production RTL has SSOT-scaled implementation depth
-
-- Priority: critical
-- Required: True
-- Status: pass
-- Category: rtl_gate.rtl_gen
-- Source ref: quality_gates.rtl_gen.rtl_implementation_depth_evidence
-- Detail: Production-profile RTL cannot be a shallow shell that merely satisfies names, ports, or compile checks. The RTL must contain aggregate implementation structure scaled from the current SSOT task count, behavior-owner modules, and manifest hierarchy.
-SSOT ref: quality_gates.rtl_gen.rtl_implementation_depth_evidence.
-Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=237, required=66).
-- Criteria:
-  - Implementation depth thresholds are derived from SSOT owner/task complexity, not a fixed IP template
-  - Listed DUT RTL sources contain enough nonconstant logic, procedural/state/control structure, and child instances for the SSOT profile
-  - Production multi-module IPs distribute implementation depth across behavior-owner modules instead of hiding behavior in a wrapper shell
-  - Traceability keeps source_ref quality_gates.rtl_gen.rtl_implementation_depth_evidence
-  - Primary implementation evidence is in rtl/arm_m0_min.sv
-- SSOT refs: quality_gates, quality_gates.rtl_gen.rtl_implementation_depth_evidence

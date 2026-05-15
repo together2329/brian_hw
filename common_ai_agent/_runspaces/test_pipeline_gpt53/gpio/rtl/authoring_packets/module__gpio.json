@@ -1,0 +1,1612 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 15,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 26,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/gpio.sv",
+      "name": "gpio",
+      "refs": [
+        "integration",
+        "integration.connections",
+        "rtl_contract"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/gpio_regs.sv",
+        "name": "gpio_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio_input_sampler.sv",
+        "name": "gpio_input_sampler",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio_pad_logic.sv",
+        "name": "gpio_pad_logic",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gpio.sv",
+        "name": "gpio",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dir_in",
+        "signal": "dir_in",
+        "signal_terms": [
+          "dir_in"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dout_in",
+        "signal": "dout_in",
+        "signal_terms": [
+          "dout_in"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dir_q",
+        "signal": "dir_q",
+        "signal_terms": [
+          "dir_q"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_regs",
+        "port": "dout_q",
+        "signal": "dout_q",
+        "signal_terms": [
+          "dout_q"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "pad_in",
+        "signal": "pad_in",
+        "signal_terms": [
+          "pad_in"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "dir_q",
+        "signal": "dir_q",
+        "signal_terms": [
+          "dir_q"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_input_sampler",
+        "port": "din_q",
+        "signal": "din_q",
+        "signal_terms": [
+          "din_q"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_pad_logic",
+        "port": "dir_q",
+        "signal": "dir_q",
+        "signal_terms": [
+          "dir_q"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_pad_logic",
+        "port": "dout_q",
+        "signal": "dout_q",
+        "signal_terms": [
+          "dout_q"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_pad_logic",
+        "port": "oe_o",
+        "signal": "oe_o",
+        "signal_terms": [
+          "oe_o"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gpio_pad_logic",
+        "port": "pad_o",
+        "signal": "pad_o",
+        "signal_terms": [
+          "pad_o"
+        ],
+        "source_ref": "integration.connections[14]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "dir_in",
+          "gpio_ctrl_dir_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "dir_in",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "WIDTH"
+      },
+      {
+        "aliases": [
+          "dout_in",
+          "gpio_ctrl_dout_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "dout_in",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "WIDTH"
+      },
+      {
+        "aliases": [
+          "gpio_pad_pad_in",
+          "pad_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pad_in",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "WIDTH"
+      },
+      {
+        "aliases": [
+          "gpio_pad_oe_o",
+          "oe_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "oe_o",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "WIDTH"
+      },
+      {
+        "aliases": [
+          "gpio_pad_pad_o",
+          "pad_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pad_o",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "WIDTH"
+      },
+      {
+        "aliases": [
+          "dir_q",
+          "gpio_state_dir_q"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "dir_q",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "WIDTH"
+      },
+      {
+        "aliases": [
+          "dout_q",
+          "gpio_state_dout_q"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "dout_q",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "WIDTH"
+      },
+      {
+        "aliases": [
+          "din_q",
+          "gpio_state_din_q"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "din_q",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "WIDTH"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 25,
+    "open_required_count": 25,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "gpio",
+  "kind": "module",
+  "owner_file": "rtl/gpio.sv",
+  "owner_module": "gpio",
+  "packet_id": "module__gpio",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "error_handling.recovery": 1,
+      "integration.connections": 15,
+      "integration.dependencies": 2,
+      "parameters.item": 1,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1,
+      "security.assets": 2,
+      "synthesis.constraints": 3
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 26,
+      "task_limit": 48
+    },
+    "open_required_count": 25,
+    "required_count": 26,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "error_handling.recovery.recovery_0",
+      "security.assets.asset_0",
+      "security.assets.asset_1",
+      "integration.dependencies.dependencie_0",
+      "integration.dependencies.dependencie_1",
+      "integration.connections.clk",
+      "integration.connections.rst_n",
+      "integration.connections.dir_in",
+      "integration.connections.dout_in",
+      "integration.connections.dir_q",
+      "integration.connections.dout_q",
+      "integration.connections.clk",
+      "integration.connections.rst_n",
+      "integration.connections.pad_in",
+      "integration.connections.dir_q",
+      "integration.connections.din_q",
+      "integration.connections.dir_q",
+      "integration.connections.dout_q",
+      "integration.connections.oe_o",
+      "integration.connections.pad_o",
+      "synthesis.constraints.constraint_0",
+      "synthesis.constraints.constraint_1"
+    ],
+    "status_counts": {
+      "open": 25,
+      "pass": 1
+    },
+    "task_count": 26
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/gpio.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: gpio in rtl/gpio.sv via top_fallback.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/gpio.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: gpio in rtl/gpio.sv via top_fallback.\nSSOT item context: value=gpio.",
+      "evidence_terms": [],
+      "id": "RTL-0002",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "gpio"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_0",
+        "Primary implementation evidence is in rtl/gpio.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: gpio in rtl/gpio.sv via top_fallback.\nSSOT item context: value=Assert rst_n low to restore deterministic zero state.",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0109",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_0",
+      "ssot_context": {
+        "value": "Assert rst_n low to restore deterministic zero state"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "source_scope": "rtl/gpio.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item asset_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.asset_0",
+        "Primary implementation evidence is in rtl/gpio.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_0.\nOwner: gpio in rtl/gpio.sv via top_fallback.\nSSOT item context: value=Correct direction gating to avoid unintended output drive.",
+      "evidence_terms": [],
+      "id": "RTL-0110",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.asset_0",
+      "ssot_context": {
+        "value": "Correct direction gating to avoid unintended output drive"
+      },
+      "ssot_refs": [
+        "security.assets.asset_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item asset_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.asset_1",
+        "Primary implementation evidence is in rtl/gpio.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_1.\nOwner: gpio in rtl/gpio.sv via top_fallback.\nSSOT item context: value=Integrity of sampled input state din_q.",
+      "evidence_terms": [
+        "din",
+        "din_q"
+      ],
+      "id": "RTL-0111",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.asset_1",
+      "ssot_context": {
+        "value": "Integrity of sampled input state din_q"
+      },
+      "ssot_refs": [
+        "security.assets.asset_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "din",
+          "din_q"
+        ],
+        "source_scope": "rtl/gpio.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_0",
+        "Primary implementation evidence is in rtl/gpio.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_0.\nOwner: gpio in rtl/gpio.sv via integration.\nSSOT item context: value=pad_ring interface for pad_in/oe_o/pad_o.",
+      "evidence_terms": [
+        "in",
+        "oe",
+        "oe_o",
+        "pad",
+        "pad_in",
+        "pad_o",
+        "pad_ring",
+        "ring"
+      ],
+      "id": "RTL-0112",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_0",
+      "ssot_context": {
+        "value": "pad_ring interface for pad_in/oe_o/pad_o"
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_1",
+        "Primary implementation evidence is in rtl/gpio.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_1.\nOwner: gpio in rtl/gpio.sv via integration.\nSSOT item context: value=clock/reset distribution for clk/rst_n.",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0113",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_1",
+      "ssot_context": {
+        "value": "clock/reset distribution for clk/rst_n"
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item clk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.clk",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port clk is the implementation/observation point for clk"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.clk.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=clk; signal=clk.",
+      "evidence_terms": [],
+      "id": "RTL-0114",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.clk",
+      "ssot_context": {
+        "port": "clk",
+        "signal": "clk"
+      },
+      "ssot_refs": [
+        "integration.connections.clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item rst_n",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.rst_n",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port rst_n is the implementation/observation point for rst_n"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.rst_n.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=rst_n; signal=rst_n.",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0115",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.rst_n",
+      "ssot_context": {
+        "port": "rst_n",
+        "signal": "rst_n"
+      },
+      "ssot_refs": [
+        "integration.connections.rst_n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dir_in",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dir_in",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port dir_in is the implementation/observation point for dir_in"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dir_in.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=dir_in; signal=dir_in.",
+      "evidence_terms": [
+        "dir",
+        "dir_in",
+        "in"
+      ],
+      "id": "RTL-0116",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dir_in",
+      "ssot_context": {
+        "port": "dir_in",
+        "signal": "dir_in"
+      },
+      "ssot_refs": [
+        "integration.connections.dir_in"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dout_in",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dout_in",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port dout_in is the implementation/observation point for dout_in"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dout_in.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=dout_in; signal=dout_in.",
+      "evidence_terms": [
+        "dout",
+        "dout_in",
+        "in"
+      ],
+      "id": "RTL-0117",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dout_in",
+      "ssot_context": {
+        "port": "dout_in",
+        "signal": "dout_in"
+      },
+      "ssot_refs": [
+        "integration.connections.dout_in"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dir_q",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dir_q",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port dir_q is the implementation/observation point for dir_q"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dir_q.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=dir_q; signal=dir_q.",
+      "evidence_terms": [
+        "dir",
+        "dir_q"
+      ],
+      "id": "RTL-0118",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dir_q",
+      "ssot_context": {
+        "port": "dir_q",
+        "signal": "dir_q"
+      },
+      "ssot_refs": [
+        "integration.connections.dir_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dout_q",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dout_q",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port dout_q is the implementation/observation point for dout_q"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dout_q.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=dout_q; signal=dout_q.",
+      "evidence_terms": [
+        "dout",
+        "dout_q"
+      ],
+      "id": "RTL-0119",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dout_q",
+      "ssot_context": {
+        "port": "dout_q",
+        "signal": "dout_q"
+      },
+      "ssot_refs": [
+        "integration.connections.dout_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item clk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.clk",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port clk is the implementation/observation point for clk"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.clk.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=clk; signal=clk.",
+      "evidence_terms": [],
+      "id": "RTL-0120",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.clk",
+      "ssot_context": {
+        "port": "clk",
+        "signal": "clk"
+      },
+      "ssot_refs": [
+        "integration.connections.clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item rst_n",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.rst_n",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port rst_n is the implementation/observation point for rst_n"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.rst_n.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=rst_n; signal=rst_n.",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0121",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.rst_n",
+      "ssot_context": {
+        "port": "rst_n",
+        "signal": "rst_n"
+      },
+      "ssot_refs": [
+        "integration.connections.rst_n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pad_in",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pad_in",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port pad_in is the implementation/observation point for pad_in"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pad_in.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=pad_in; signal=pad_in.",
+      "evidence_terms": [
+        "in",
+        "pad",
+        "pad_in"
+      ],
+      "id": "RTL-0122",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pad_in",
+      "ssot_context": {
+        "port": "pad_in",
+        "signal": "pad_in"
+      },
+      "ssot_refs": [
+        "integration.connections.pad_in"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dir_q",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dir_q",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port dir_q is the implementation/observation point for dir_q"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dir_q.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=dir_q; signal=dir_q.",
+      "evidence_terms": [
+        "dir",
+        "dir_q"
+      ],
+      "id": "RTL-0123",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dir_q",
+      "ssot_context": {
+        "port": "dir_q",
+        "signal": "dir_q"
+      },
+      "ssot_refs": [
+        "integration.connections.dir_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item din_q",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.din_q",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port din_q is the implementation/observation point for din_q"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.din_q.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=din_q; signal=din_q.",
+      "evidence_terms": [
+        "din",
+        "din_q"
+      ],
+      "id": "RTL-0124",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.din_q",
+      "ssot_context": {
+        "port": "din_q",
+        "signal": "din_q"
+      },
+      "ssot_refs": [
+        "integration.connections.din_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dir_q",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dir_q",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port dir_q is the implementation/observation point for dir_q"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dir_q.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=dir_q; signal=dir_q.",
+      "evidence_terms": [
+        "dir",
+        "dir_q"
+      ],
+      "id": "RTL-0125",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dir_q",
+      "ssot_context": {
+        "port": "dir_q",
+        "signal": "dir_q"
+      },
+      "ssot_refs": [
+        "integration.connections.dir_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dout_q",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dout_q",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port dout_q is the implementation/observation point for dout_q"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dout_q.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=dout_q; signal=dout_q.",
+      "evidence_terms": [
+        "dout",
+        "dout_q"
+      ],
+      "id": "RTL-0126",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dout_q",
+      "ssot_context": {
+        "port": "dout_q",
+        "signal": "dout_q"
+      },
+      "ssot_refs": [
+        "integration.connections.dout_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item oe_o",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.oe_o",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port oe_o is the implementation/observation point for oe_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.oe_o.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=oe_o; signal=oe_o.",
+      "evidence_terms": [
+        "oe",
+        "oe_o"
+      ],
+      "id": "RTL-0127",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.oe_o",
+      "ssot_context": {
+        "port": "oe_o",
+        "signal": "oe_o"
+      },
+      "ssot_refs": [
+        "integration.connections.oe_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pad_o",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pad_o",
+        "Primary implementation evidence is in rtl/gpio.sv",
+        "DUT port pad_o is the implementation/observation point for pad_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pad_o.\nOwner: gpio in rtl/gpio.sv via integration.connections.\nSSOT item context: port=pad_o; signal=pad_o.",
+      "evidence_terms": [
+        "pad",
+        "pad_o"
+      ],
+      "id": "RTL-0128",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pad_o",
+      "ssot_context": {
+        "port": "pad_o",
+        "signal": "pad_o"
+      },
+      "ssot_refs": [
+        "integration.connections.pad_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_0",
+        "Primary implementation evidence is in rtl/gpio.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: gpio in rtl/gpio.sv via top_fallback.\nSSOT item context: value=Single clock constraint on clk.",
+      "evidence_terms": [],
+      "id": "RTL-0129",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_0",
+      "ssot_context": {
+        "value": "Single clock constraint on clk"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_1",
+        "Primary implementation evidence is in rtl/gpio.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: gpio in rtl/gpio.sv via top_fallback.\nSSOT item context: value=Reset recovery/removal constraints for rst_n.",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0130",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_1",
+      "ssot_context": {
+        "value": "Reset recovery/removal constraints for rst_n"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_2",
+        "Primary implementation evidence is in rtl/gpio.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_2.\nOwner: gpio in rtl/gpio.sv via top_fallback.\nSSOT item context: value=WIDTH >= 1.",
+      "evidence_terms": [],
+      "id": "RTL-0131",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_2",
+      "ssot_context": {
+        "value": "WIDTH >= 1"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.WIDTH",
+        "Primary implementation evidence is in rtl/gpio.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.WIDTH.\nOwner: gpio in rtl/gpio.sv via top_fallback.\nSSOT item context: name=WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0023",
+      "owner_file": "rtl/gpio.sv",
+      "owner_module": "gpio",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.WIDTH",
+      "ssot_context": {
+        "name": "WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gpio.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "123947ae1f7d9f96f7ef25a8af2118a8e5c5ac198b54689b9c8f4223188b5dce",
+  "top": "gpio",
+  "type": "rtl_authoring_packet"
+}

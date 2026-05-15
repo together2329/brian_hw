@@ -487,7 +487,7 @@
       {
         "gate_kind": "dut_compile",
         "owner_module": "arm_m0_min",
-        "reason": "DUT compile artifact is not clean.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_id.sv; rerun DUT compile after the final RTL edit.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dut_compile",
         "status": "open",
@@ -496,7 +496,7 @@
       {
         "gate_kind": "dut_lint",
         "owner_module": "arm_m0_min",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT lint artifact is not clean.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
         "status": "open",
@@ -594,7 +594,7 @@
         "prerequisites": [
           "arm_m0_min/list/arm_m0_min.f covers the current DUT RTL sources."
         ],
-        "reason": "DUT compile artifact is not clean.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_id.sv; rerun DUT compile after the final RTL edit.",
         "source_ref": "quality_gates.rtl_gen.dut_compile",
         "stage_sequence": [
           "ssot-rtl",
@@ -617,7 +617,7 @@
         "prerequisites": [
           "arm_m0_min/list/arm_m0_min.f covers the current DUT RTL/header sources."
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT lint artifact is not clean.",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
         "stage_sequence": [
           "lint",
@@ -855,7 +855,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "DUT compile artifact is not clean.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_id.sv; rerun DUT compile after the final RTL edit.",
         "required": true,
         "status": "open"
       }
@@ -903,7 +903,7 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT lint artifact is not clean.",
         "required": true,
         "status": "open"
       }

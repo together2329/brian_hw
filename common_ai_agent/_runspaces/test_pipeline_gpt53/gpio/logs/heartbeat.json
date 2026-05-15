@@ -1,7 +1,8 @@
 {
-  "current_stage": "rtl-gen",
+  "log_stage": "rtl-gen-packet-01-module__gpio_regs__cycle_model",
   "model": "gpt-5.3-codex",
-  "phase": "stage",
+  "phase": "llm_call",
+  "stage": "rtl-gen",
   "state": "running",
-  "ts": "2026-05-15T09:54:43Z"
+  "ts": "2026-05-15T09:55:24Z"
 }
