@@ -171,12 +171,76 @@ def _coverage_hit_map(coverage: dict[str, Any]) -> dict[str, bool]:
     return out
 
 
+_KIND_STIMULUS_PATTERNS = (
+    ("reset", {"rst_n": 0, "reset": 1, "enable": 0, "clear": 0}),
+    ("clear", {"clear": 1}),
+    ("hold", {"enable": 0, "clear": 0}),
+    ("idle", {"enable": 0, "clear": 0}),
+    ("advance", {"enable": 1, "clear": 0}),
+    ("run", {"enable": 1, "clear": 0}),
+    ("step", {"enable": 1, "clear": 0}),
+    ("count", {"enable": 1, "clear": 0}),
+    ("accept", {"enable": 1, "clear": 0}),
+    ("transfer", {"enable": 1, "clear": 0}),
+    ("request", {"enable": 1, "clear": 0}),
+)
+
+
+def _stimulus_contract_violation(rows: list[dict[str, Any]]) -> str:
+    """Return a non-empty reason when the TB stimulus contradicts the named transaction kind."""
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        stimulus = row.get("stimulus") if isinstance(row.get("stimulus"), dict) else {}
+        fl = row.get("fl_expected") if isinstance(row.get("fl_expected"), dict) else {}
+        fl_txn = fl.get("transaction") if isinstance(fl.get("transaction"), dict) else {}
+        fl_result = fl.get("model_result") if isinstance(fl.get("model_result"), dict) else {}
+        if not stimulus:
+            stimulus = fl_txn
+        if not stimulus:
+            continue
+        kind_candidates = [
+            stimulus.get("kind"),
+            fl_txn.get("kind"),
+            fl_result.get("transaction_name"),
+            fl_result.get("transaction_id"),
+        ]
+        kind = ""
+        for candidate in kind_candidates:
+            text_candidate = str(candidate or "").lower()
+            if any(token in text_candidate for token, _ in _KIND_STIMULUS_PATTERNS):
+                kind = text_candidate
+                break
+        if not kind:
+            kind = str(stimulus.get("kind") or "").lower()
+        if not kind:
+            continue
+        violations: list[str] = []
+        for token, signals in _KIND_STIMULUS_PATTERNS:
+            if token not in kind:
+                continue
+            for signal, expected in signals.items():
+                if signal not in stimulus:
+                    continue
+                actual = stimulus.get(signal)
+                if isinstance(actual, bool):
+                    actual = int(actual)
+                if isinstance(actual, (int, float)) and int(actual) != int(expected):
+                    violations.append(f"{signal}={int(actual)} (kind '{kind}' requires {signal}={int(expected)})")
+        if violations:
+            return "stimulus contradicts transaction kind: " + "; ".join(violations)
+    return ""
+
+
 def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: str) -> dict[str, Any]:
     text = " ".join(
         [reason]
         + [str(r.get("mismatch") or r.get("error") or r.get("owner_hint") or "") for r in rows if isinstance(r, dict)]
         + [str(goal.get("blocker") or "")]
     ).lower()
+    stimulus_violation = _stimulus_contract_violation(rows)
+    if stimulus_violation:
+        text = text + " " + stimulus_violation.lower() + " driver"
     locked_change = (
         "change functionalmodel" in text
         or "functionalmodel change" in text
