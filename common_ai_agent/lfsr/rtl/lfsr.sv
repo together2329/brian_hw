@@ -36,7 +36,69 @@ module lfsr #(
 
     localparam [APB_DATA_WIDTH-1:0] APB_ZERO = {APB_DATA_WIDTH{1'b0}};
     localparam [LFSR_WIDTH-1:0]     LFSR_ZERO = {LFSR_WIDTH{1'b0}};
-    // TBD: internal signals
+    logic [1:0] state;
+    logic [1:0] next_state;
+
+    logic [LFSR_WIDTH-1:0] lfsr_state;
+    logic [LFSR_WIDTH-1:0] poly_reg;
+    logic [1:0] ctrl_reg;
+    logic [1:0] status_reg;
+
+    logic apb_access;
+    logic apb_write;
+    logic apb_read;
+    logic addr_hit_ctrl;
+    logic addr_hit_poly;
+    logic addr_hit_seed;
+    logic addr_hit_status;
+    logic addr_hit_prbs;
+    logic addr_legal;
+    logic poly_write_blocked;
+    logic seed_write_pulse;
+    logic ctrl_write_pulse;
+    logic poly_write_pulse;
+
+    logic feedback_bit;
+    logic [LFSR_WIDTH-1:0] feedback_masked_state;
+    logic [LFSR_WIDTH-1:0] lfsr_next_state;
+    logic lockup_now;
+    logic lockup_after_step;
+    logic enabled_step;
+    logic load_seed_cycle;
+    logic [APB_DATA_WIDTH-1:0] status_read_data;
+    logic [APB_DATA_WIDTH-1:0] prbs_read_data;
+    logic [LFSR_WIDTH-1:0] seed_write_value;
+    logic [LFSR_WIDTH-1:0] poly_write_value;
+
+    assign apb_access = PSEL & PENABLE;
+    assign apb_write  = apb_access & PWRITE;
+    assign apb_read   = apb_access & (~PWRITE);
+
+    assign addr_hit_ctrl   = (PADDR == ADDR_CTRL);
+    assign addr_hit_poly   = (PADDR == ADDR_POLY);
+    assign addr_hit_seed   = (PADDR == ADDR_SEED);
+    assign addr_hit_status = (PADDR == ADDR_STATUS);
+    assign addr_hit_prbs   = (PADDR == ADDR_PRBS);
+    assign addr_legal = addr_hit_ctrl | addr_hit_poly | addr_hit_seed | addr_hit_status | addr_hit_prbs;
+
+    assign poly_write_blocked = apb_write & addr_hit_poly & ctrl_reg[0];
+    assign ctrl_write_pulse = apb_write & addr_hit_ctrl;
+    assign poly_write_pulse = apb_write & addr_hit_poly & (~ctrl_reg[0]);
+    assign seed_write_pulse = apb_write & addr_hit_seed;
+
+    // Fibonacci-form PRBS feedback: XOR-reduce state bits selected by POLY taps.
+    assign feedback_masked_state = lfsr_state & poly_reg;
+    assign feedback_bit = ^feedback_masked_state;
+    assign lfsr_next_state = {feedback_bit, lfsr_state[LFSR_WIDTH-1:1]};
+    assign lockup_now = (lfsr_state == LFSR_ZERO);
+    assign lockup_after_step = (lfsr_next_state == LFSR_ZERO);
+    assign enabled_step = ctrl_reg[0] & (state == RUNNING) & (~lockup_now);
+    assign load_seed_cycle = seed_write_pulse;
+    assign seed_write_value = PWDATA[LFSR_WIDTH-1:0];
+    assign poly_write_value = PWDATA[LFSR_WIDTH-1:0];
+
+    assign status_read_data = {{(APB_DATA_WIDTH-2){1'b0}}, status_reg[1], status_reg[0]};
+    assign prbs_read_data = {{(APB_DATA_WIDTH-LFSR_WIDTH){1'b0}}, lfsr_state};
     // TBD: reset / synchronizers
     // TBD: fsm
     // TBD: datapath
