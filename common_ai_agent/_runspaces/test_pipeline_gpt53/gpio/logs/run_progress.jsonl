@@ -1,3 +1,7 @@
 {"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53", "stages": ["ssot-gen", "fl-model-gen", "cl-model-gen", "equiv-goals", "rtl-gen", "tb-gen", "sim", "sim-debug"], "target_ip": "gpio", "ts": "2026-05-15T09:46:24Z"}
 {"event": "stage_start", "stage": "ssot-gen", "ts": "2026-05-15T09:46:24Z"}
 {"event": "llm_call_start", "log_stage": "ssot-gen", "model": "gpt-5.3-codex", "stage": "ssot-gen", "ts": "2026-05-15T09:46:24Z"}
+{"elapsed_sec": 162.513, "error": "", "event": "llm_call_end", "log_stage": "ssot-gen", "model": "gpt-5.3-codex", "stage": "ssot-gen", "status": "pass", "ts": "2026-05-15T09:49:06Z"}
+{"event": "deterministic_repair_start", "reason": "canonicalize_llm_ssot", "stage": "ssot-gen", "ts": "2026-05-15T09:49:06Z"}
+{"event": "deterministic_repair_end", "stage": "ssot-gen", "status": "pass", "ts": "2026-05-15T09:49:07Z"}
+{"event": "llm_call_start", "log_stage": "ssot-gen-repair-1", "model": "gpt-5.3-codex", "stage": "ssot-gen", "ts": "2026-05-15T09:49:07Z"}
