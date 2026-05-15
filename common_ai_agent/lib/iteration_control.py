@@ -156,8 +156,11 @@ def detect_completion_signal(content: str) -> bool:
     """
     Detects explicit completion signals in agent's response.
 
-    Only matches strict sentinel tokens, not casual conversation.
-    Korean "완료" alone does NOT trigger completion.
+    Only matches strict sentinel tokens or unambiguous narrative-end phrases.
+    Casual conversation about completion (e.g. discussing what a "done" todo
+    means) must not trigger the loop exit, so all narrative phrases require
+    sentence-boundary anchors and an explicit "pipeline/workflow/run/loop"
+    subject. Korean "완료" alone does NOT trigger completion.
 
     Args:
         content: Agent's response text
@@ -177,6 +180,20 @@ def detect_completion_signal(content: str) -> bool:
     ]
 
     for pattern in completion_sentinels:
+        if re.search(pattern, content):
+            return True
+
+    # Narrative-end phrases observed in real pipeline runs that should also
+    # exit the loop. Each pattern requires a clear subject so chat-style usage
+    # ("I'm done reading the file") does not match.
+    narrative_completion = [
+        r'(?i)\b(?:pipeline|workflow|run|loop|task)\s+(?:is\s+)?(?:complete|completed|finished|done)\b',
+        r'(?i)\ball\s+(?:tasks|todos|steps|stages|workflows|tests)\s+(?:are\s+)?(?:complete|completed|finished|passed|approved|done)\b',
+        r'(?i)\beverything\s+(?:is\s+)?(?:complete|completed|finished|done)\b',
+        r'(?i)\bnothing\s+(?:more\s+)?(?:left|remaining)?\s*to\s+do\b',
+        r'(?i)^\s*✓\s+(?:loop\s+ended|done|complete|completed|finished)\b',
+    ]
+    for pattern in narrative_completion:
         if re.search(pattern, content):
             return True
 

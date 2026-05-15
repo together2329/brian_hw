@@ -24,6 +24,10 @@
      not run out the iteration cap doing nothing — ~50 min of the
      ~3 h wall-time on this run was post-completion idle.
 - Updated [[rtl-version-run-history]] with the arm_m0_min row.
+- Addressed the three workflow improvement candidates surfaced by the arm_m0_min run:
+  1. Confirmed `repair_ssot_schema.py` already normalizes C ternary (`cond ? a : b` → `(a if cond else b)`), full Verilog bit literals (`32'h0`, `1'b1`, `8'hff`), and SystemVerilog unsized fills (`'0`, `'1`, `'x`, `'z`) inside `expr` strings. Verified with a regression matrix; no further patch needed.
+  2. `workflow/rtl-gen/system_prompt.md` now states the provenance JSON schema explicitly and tells the LLM rtl-gen agent NOT to write `rtl/rtl_authoring_provenance.json` directly — the engine (`src/headless_workflow.py`, `workflow/rtl-gen/scripts/ssot_to_rtl.py`) already auto-emits it at end of every rtl-gen run.
+  3. `lib/iteration_control.detect_completion_signal` now recognizes narrative-end phrases ("pipeline complete", "all tasks finished", "everything is done", "nothing more to do", "✓ loop ended", "all workflows complete", "all stages passed", "run finished", …) in addition to the strict sentinel tokens. The react_loop's existing completion path at `core/react_loop.py:1266` now exits on the same plain-English declarations the LLM emitted on the arm_m0_min run, removing the ~50 min post-completion idle.
 
 ## 2026-05-15
 
