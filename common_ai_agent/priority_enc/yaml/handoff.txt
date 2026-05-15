@@ -1,0 +1,61 @@
+[SSOT HANDOFF] → rtl-gen
+Module  : priority_enc
+SSOT    : priority_enc/yaml/priority_enc.ssot.yaml
+Task    : Implement RTL from validated SSOT
+Input   : priority_enc/yaml/priority_enc.ssot.yaml
+Output  : priority_enc/rtl/priority_enc_core.sv, priority_enc/rtl/priority_enc_regs.sv, priority_enc/rtl/priority_enc.sv
+Criteria: Validator PASS — 55768B, 36 sections, 0 TBDs
+
+Clocks/Resets:
+  pclk      50 MHz, single domain
+  presetn   async-assert/sync-deassert, active-low
+
+Interfaces:
+  apb_slave       APB-Lite slave, 0-wait-state, pslverr for errors
+  request_inputs  req_i[7:0] — priority request vector
+  encoded_output  enc_o[2:0] + valid_o — registered 1-cycle latency
+  interrupt       irq_o — active-high level, W1C clear
+
+Registers (5): CSR(RO), REQ_MASK(RW,reset=0xFF), IRQ_EN(RW), IRQ_STATUS(RW,W1C), THRESH_CMP(RW)
+
+Sub-modules (2):
+  priority_enc_core  — ssot_gen:false, LLM-authored (priority tree + output reg + irq + popcount)
+  priority_enc_regs  — ssot_gen:true,  template-generated APB decode
+
+Function model:
+  3 transactions (PRI_ENCODE, APB_READ, APB_WRITE)
+  PRI_ENCODE output_rules: enc_o, valid_o, irq_o — name/expr/width/port format
+  4 state_updates: enc_out, valid_out, irq_pending, thresh_met
+  6 state_variables
+
+Cycle model:
+  4 pipeline stages (S0_SAMPLE→S1_RESOLVE→S2_REGISTER→S3_IRQ_UPDATE)
+  1-cycle encode latency, 2-cycle APB transfer
+
+Test requirements:
+  16 scenarios, 18 function bins, 10 cycle bins
+  Scoreboard checks: 32
+
+RTL-gen TODOs: 3 (priority core, APB regs, top integration)
+
+Integration: 25 machine-readable connections declared
+
+Assumptions (9): recorded in custom.assumptions (ASM_01–ASM_09)
+  Key: MSB-highest priority, REQ_MASK reset=0xFF, LATENCY=1, APB-Lite no pstrb
+  Pipeline mode: no ask_user block; human review via custom.assumptions
+
+Quality gates:
+  ssot: PASS (validator check_ssot_disk.sh)
+  rtl:  compile + lint, implements function_model + cycle_model
+  dv:   16 scenarios with checkers
+  coverage: 18 function bins + 10 cycle bins, line>=95%, branch>=90%
+  eda:   synthesis + STA at 50 MHz
+  signoff: all gates pass with fresh evidence
+
+Downstream ownership:
+  rtl-gen owns: RTL files, filelist, compile/lint evidence
+  tb-gen owns:  testbench, sim, coverage measurement
+  sim_debug owns: waveform inspection, failure analysis
+  EDA workflows own: synthesis, STA, PnR evidence
+
+Next workflow: rtl-gen
