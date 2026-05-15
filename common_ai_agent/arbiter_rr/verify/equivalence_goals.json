@@ -1,0 +1,2539 @@
+{
+  "ip": "arbiter_rr",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "arbiter_rr/yaml/arbiter_rr.ssot.yaml",
+    "functional_model": "arbiter_rr/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "arbiter_rr/model/decomposition.json",
+    "coverage_plan": "arbiter_rr/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "arbiter_rr/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "arbiter_rr/yaml/arbiter_rr.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "arbiter_rr/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "arbiter_rr/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "arbiter_rr/yaml/arbiter_rr.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "arbiter_rr/yaml/arbiter_rr.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "arbiter_rr/rtl/",
+        "arbiter_rr/tb/",
+        "arbiter_rr/sim/",
+        "arbiter_rr/reports/",
+        "arbiter_rr/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 34,
+    "required": 34,
+    "optional": 0,
+    "blocked": 0,
+    "module_total": 1,
+    "module_required": 1,
+    "module_blocked": 0
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM1",
+      "title": "Transaction arbitrate_grant matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_grant_single",
+        "fcov_grant_all_rotation",
+        "function_arbitrate_grant"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arbitrate_grant",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant",
+          "grant_valid",
+          "grant_index"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM2",
+      "title": "Transaction no_grant_idle matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_no_grant_idle",
+        "function_no_grant_idle"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "no_grant_idle",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "arb_enabled == 0 OR (req_i & req_mask) == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gnt_o == 0",
+          "gnt_valid_o == 0",
+          "gnt_idx_o == 0",
+          "last_winner unchanged",
+          "grant",
+          "grant_valid",
+          "grant_index"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "last_winner is preserved unchanged when no grant is issued",
+          "last_winner"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "title": "Scenario SC1: Single requestor grant",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "SC10_executed",
+        "fcov_grant_single"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC1",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert req_i[2] only, all others low, arbiter enabled, mask=all-enabled"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gnt_o[2] asserted on next cycle, gnt_valid_o=1, gnt_idx_o=2"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "title": "Scenario SC2: Round-robin fairness",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "SC2_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC2",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert all 4 requests simultaneously for 4 consecutive cycles"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Each requestor is granted exactly once in 4 cycles in rotation order starting from (last_winner+1)"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "title": "Scenario SC3: Request masking",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "SC3_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC3",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Set REQ_MASK=0b0101, assert all requests"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Only requestors 0 and 2 participate; grants alternate between them"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "title": "Scenario SC4: Enable/disable",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC4",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert requests, then write CTRL.enable=0 via APB, then re-enable"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Grants stop when disabled, resume when re-enabled; last_winner is preserved across disable period"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC5",
+      "title": "Scenario SC5: No requests idle",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "SC5_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC5",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Deassert all requests, arbiter enabled"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gnt_o=0, gnt_valid_o=0 on all cycles"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC6",
+      "title": "Scenario SC6: Last winner persistence across disable",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[5]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "SC6_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC6",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Grant to requestor 3, then disable, then re-enable with all requests"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Priority rotation resumes from (3+1)%4 = 0 after re-enable"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC7",
+      "title": "Scenario SC7: APB CSR read/write",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[6]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "SC7_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC7",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write CTRL, REQ_MASK via APB; read back STATUS"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Written values readable; STATUS reflects internal arbiter state"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC8",
+      "title": "Scenario SC8: APB illegal offset",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[7]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "SC8_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC8",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "APB access to undefined offset (e.g. 0x0C)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "PSLVERR=1, PRDATA=0"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC9",
+      "title": "Scenario SC9: One-hot grant invariant under all input combinations",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[8]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "SC9_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC9",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Exhaustive walk of all 16 request vectors with all mask combinations"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gnt_o is always one-hot or zero; never multi-bit or invalid"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC10",
+      "title": "Scenario SC10: Reset behavior",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[9]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC10",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert PRESETn low while requests are active, then release"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "All outputs zero during reset; arbitration resumes from last_winner=0 after deassertion"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_req_stability",
+        "ccov_gnt_onehot_assertion",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'req_i', 'rule': 'Sampled on rising PCLK; requesters must hold req_i stable until corresponding gnt_o is seen.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'arbitration': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Request sampled on cycle N produces registered grant on cycle N+1'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "title": "Cycle/handshake rule handshake_1",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_req_stability",
+        "ccov_gnt_onehot_assertion",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_1",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'gnt_o', 'rule': 'Registered output \u2014 reflects arbitration decision from the previous cycle. At most one bit high.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'arbitration': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Request sampled on cycle N produces registered grant on cycle N+1'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "title": "Cycle/handshake rule handshake_2",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[2]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_req_stability",
+        "ccov_gnt_onehot_assertion",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_2",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'gnt_valid_o', 'rule': 'Registered \u2014 high when a valid grant is being asserted this cycle.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'arbitration': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Request sampled on cycle N produces registered grant on cycle N+1'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
+      "title": "Cycle/handshake rule handshake_3",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[3]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_req_stability",
+        "ccov_gnt_onehot_assertion",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_3",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'gnt_idx_o', 'rule': 'Registered \u2014 valid binary index when gnt_valid_o is high; zero otherwise.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'arbitration': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Request sampled on cycle N produces registered grant on cycle N+1'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Grant outputs reflect the arbitration decision from the previous cycle (1-stage pipeline)."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'arbitration': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Request sampled on cycle N produces registered grant on cycle N+1'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "title": "Ordering rule ordering_1",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_1",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "last_winner update occurs on the same rising edge as the grant output registration."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'arbitration': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Request sampled on cycle N produces registered grant on cycle N+1'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "title": "Ordering rule ordering_2",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[2]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_2",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "CSR writes to REQ_MASK or CTRL take effect on the next arbitration cycle (registered config)."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'arbitration': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Request sampled on cycle N produces registered grant on cycle N+1'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_CTRL",
+      "title": "Register access CTRL",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[0]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_register_model"
+      ],
+      "coverage_refs": [
+        "fcov_mask_each_bit",
+        "fcov_enable_toggle",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_latency_arbitration",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_pipeline_s1_grant",
+        "cycle_ordering_2",
+        "cycle_perf_depth",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CTRL', 'offset': 0, 'width': 32, 'access': 'rw', 'reset': 1, 'category': 'control', 'description': 'Arbiter control register', 'write_side_effects': ['enable=0 freezes last_winner and forces all grant outputs to zero.', 'enable=1 resumes normal arbitration.'], 'fields': [{'name': 'enable', 'bits': [0, 0], 'access': 'rw', 'reset': 1, 'write_effect': '0=disable arbiter, 1=enable arbiter', 'description': 'Global arbiter enable'}, {'name': 'reserved_31_1', 'bits': [31, 1], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_REQ_MASK",
+      "title": "Register access REQ_MASK",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[1]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_register_model"
+      ],
+      "coverage_refs": [
+        "fcov_mask_each_bit",
+        "fcov_enable_toggle",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_latency_arbitration",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_pipeline_s0_sample_req",
+        "cycle_pipeline_s1_grant",
+        "cycle_ordering_2",
+        "cycle_perf_depth",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'REQ_MASK', 'offset': 4, 'width': 32, 'access': 'rw', 'reset': 15, 'category': 'control', 'description': 'Per-request enable mask (bit i=1 enables requestor i)', 'write_side_effects': ['Masked requests (bit=0) are excluded from arbitration on the next cycle.'], 'fields': [{'name': 'mask', 'bits': [3, 0], 'access': 'rw', 'reset': 15, 'write_effect': 'Update request mask; only lower NUM_REQ bits are active', 'description': 'Request enable mask (default all enabled)'}, {'name': 'reserved_31_4', 'bits': [31, 4], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_STATUS",
+      "title": "Register access STATUS",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[2]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_register_model"
+      ],
+      "coverage_refs": [
+        "fcov_mask_each_bit",
+        "fcov_enable_toggle",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_latency_arbitration",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_pipeline_s1_grant",
+        "cycle_ordering_2",
+        "cycle_perf_depth",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'STATUS', 'offset': 8, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'status', 'description': 'Arbiter status (read-only)', 'fields': [{'name': 'winner', 'bits': [3, 0], 'access': 'ro', 'reset': 0, 'description': 'Last granted requestor index (one-hot representation of last_winner)'}, {'name': 'active_req', 'bits': [7, 4], 'access': 'ro', 'reset': 0, 'description': 'Current unmasked active requests snapshot (req_i & mask)'}, {'name': 'reserved_31_8', 'bits': [31, 8], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_error_model"
+      ],
+      "coverage_refs": [
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "None",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'id': 'ERR_APB_ILLEGAL', 'condition': 'APB access to undefined register offset', 'architectural_effect': 'PSLVERR=1 for that transfer, PRDATA=0'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "['PSLVERR is asserted only within the offending APB transfer cycle.']"
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_IDLE_TO_EVAL_0",
+      "title": "FSM transition arb_fsm: IDLE -> EVAL",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.arb_fsm.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC5_executed",
+        "fcov_no_grant_idle",
+        "function_no_grant_idle",
+        "cycle_pipeline_s1_grant",
+        "fsm_arb_fsm_idle_to_eval_0",
+        "fsm_arb_fsm_eval_to_grant_1",
+        "fsm_arb_fsm_grant_to_idle_2",
+        "fsm_arb_fsm_idle_to_idle_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arb_fsm_IDLE_to_EVAL_0",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "arb_enabled==1 && (req_i & mask) != 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "arb_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+      "title": "FSM transition arb_fsm: EVAL -> GRANT",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.arb_fsm.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "SC9_executed",
+        "fcov_grant_single",
+        "fcov_grant_all_rotation",
+        "fcov_no_grant_idle",
+        "ccov_grant_stage",
+        "ccov_gnt_onehot_assertion",
+        "function_arbitrate_grant",
+        "function_no_grant_idle",
+        "cycle_handshake_2",
+        "cycle_latency_arbitration",
+        "cycle_pipeline_s1_grant",
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_backpressure_0",
+        "cycle_perf_throughput",
+        "fsm_arb_fsm_idle_to_eval_0",
+        "fsm_arb_fsm_eval_to_grant_1",
+        "fsm_arb_fsm_grant_to_idle_2",
+        "fsm_arb_fsm_idle_to_idle_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arb_fsm_EVAL_to_GRANT_1",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "always (1-cycle combinational eval)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "arb_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_GRANT_TO_IDLE_2",
+      "title": "FSM transition arb_fsm: GRANT -> IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.arb_fsm.transitions[2]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "SC5_executed",
+        "SC9_executed",
+        "fcov_grant_single",
+        "fcov_grant_all_rotation",
+        "fcov_no_grant_idle",
+        "ccov_grant_stage",
+        "ccov_gnt_onehot_assertion",
+        "function_arbitrate_grant",
+        "function_no_grant_idle",
+        "cycle_handshake_2",
+        "cycle_latency_arbitration",
+        "cycle_pipeline_s1_grant",
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_backpressure_0",
+        "cycle_perf_throughput",
+        "fsm_arb_fsm_idle_to_eval_0",
+        "fsm_arb_fsm_eval_to_grant_1",
+        "fsm_arb_fsm_grant_to_idle_2",
+        "fsm_arb_fsm_idle_to_idle_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arb_fsm_GRANT_to_IDLE_2",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "next cycle: re-evaluate with updated last_winner"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "arb_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_IDLE_TO_IDLE_3",
+      "title": "FSM transition arb_fsm: IDLE -> IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.arb_fsm.transitions[3]"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC5_executed",
+        "fcov_no_grant_idle",
+        "function_no_grant_idle",
+        "fsm_arb_fsm_idle_to_eval_0",
+        "fsm_arb_fsm_eval_to_grant_1",
+        "fsm_arb_fsm_grant_to_idle_2",
+        "fsm_arb_fsm_idle_to_idle_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arb_fsm_IDLE_to_IDLE_3",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "arb_enabled==0 || (req_i & mask) == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "arb_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "title": "Required debug/waveform observability exists",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "debug_observability.waveform_must_probe"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "debug_probe_capture",
+        "required_fields": [
+          "waveform_path"
+        ],
+        "constraints": [
+          "req_i",
+          "gnt_o",
+          "gnt_valid_o",
+          "gnt_idx_o",
+          "last_winner (internal)",
+          "req_masked (internal: req_i & mask)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "waveform contains required probes"
+        ],
+        "latency": "throughout simulation window",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Waveform includes SSOT-required debug probes",
+        "sim_debug can inspect those probes around checked scenarios"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "tb",
+          "coverage",
+          "rtl",
+          "ssot",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MODULE_ARBITER_RR_CORE",
+      "title": "Module arbiter_rr_core functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "arbiter_rr_core",
+        "rtl_file": "rtl/arbiter_rr_core.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.gnt_idx_o",
+        "cycle_model.handshake_rules.gnt_o",
+        "cycle_model.handshake_rules.gnt_valid_o",
+        "cycle_model.handshake_rules.req_i",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s0_sample_req",
+        "cycle_model.pipeline.s1_grant",
+        "cycle_model.reset",
+        "features",
+        "features.enable_disable",
+        "features.request_masking",
+        "features.round_robin_arbitration",
+        "fsm",
+        "fsm.arb_fsm",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.invariants.invariant_5",
+        "function_model.state_variables.arb_enabled",
+        "function_model.state_variables.last_winner",
+        "function_model.state_variables.req_mask",
+        "function_model.transactions",
+        "function_model.transactions.FM1",
+        "function_model.transactions.FM2",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.inputs.input_1",
+        "function_model.transactions.fm1.inputs.input_2",
+        "function_model.transactions.fm1.output_rules.grant",
+        "function_model.transactions.fm1.output_rules.grant_index",
+        "function_model.transactions.fm1.output_rules.grant_valid",
+        "function_model.transactions.fm1.outputs.output_0",
+        "function_model.transactions.fm1.outputs.output_1",
+        "function_model.transactions.fm1.outputs.output_2",
+        "function_model.transactions.fm1.outputs.output_3",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.preconditions.precondition_1",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm1.side_effects.side_effect_1",
+        "function_model.transactions.fm1.state_updates.last_winner",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.inputs.input_1",
+        "function_model.transactions.fm2.output_rules.grant",
+        "function_model.transactions.fm2.output_rules.grant_index",
+        "function_model.transactions.fm2.output_rules.grant_valid",
+        "function_model.transactions.fm2.outputs.output_0",
+        "function_model.transactions.fm2.outputs.output_1",
+        "function_model.transactions.fm2.outputs.output_2",
+        "function_model.transactions.fm2.outputs.output_3",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.state_updates.last_winner",
+        "parameters.idx_width"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_core"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "arbitrate_grant",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant",
+          "grant_valid",
+          "grant_index"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_SAMPLE_STAGE",
+      "title": "Functional coverage bin ccov_sample_stage: Request sample stage observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_SAMPLE_REQ"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_sample_stage"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arbitrate_grant",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)",
+          "Request sample stage observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant",
+          "grant_valid",
+          "grant_index"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_1CYCLE_LATENCY",
+      "title": "Functional coverage bin ccov_1cycle_latency: 1-cycle arbitration latency measured and confirmed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.arbitration"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_1cycle_latency"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arbitrate_grant",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)",
+          "1-cycle arbitration latency measured and confirmed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant",
+          "grant_valid",
+          "grant_index"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_RESET_CLEAN",
+      "title": "Functional coverage bin ccov_reset_clean: Reset clears all outputs and state",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_reset_clean"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arbitrate_grant",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)",
+          "Reset clears all outputs and state"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant",
+          "grant_valid",
+          "grant_index"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "title": "Functional coverage bin cycle_perf_outstanding: {'read_max': 0, 'write_max': 0, 'description': 'No outstanding AXI-style transactions \u2014 simple combinatorial arbiter'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.outstanding"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_outstanding"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arbitrate_grant",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)",
+          "{'read_max': 0, 'write_max': 0, 'description': 'No outstanding AXI-style transactions \u2014 simple combinatorial arbiter'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant",
+          "grant_valid",
+          "grant_index"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "title": "Functional coverage bin cycle_perf_frequency_mhz: 50",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.frequency_mhz"
+      ],
+      "decomposition_refs": [
+        "arbiter_rr_regs",
+        "arbiter_rr_core",
+        "arbiter_rr_protocol_model",
+        "arbiter_rr_register_model",
+        "arbiter_rr_datapath_model",
+        "arbiter_rr_fsm_model",
+        "arbiter_rr_error_model",
+        "arbiter_rr_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arbitrate_grant",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)",
+          "50"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant",
+          "grant_valid",
+          "grant_index"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    }
+  ]
+}

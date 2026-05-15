@@ -7,16 +7,56 @@
   "reason": "SSOT/RTL contract is not concrete enough for generic cocotb scoreboard generation.",
   "questions": [
     {
-      "id": "TB_GENERATOR_INPUT",
-      "decision_needed": "Provide the missing source artifact required by generic TB generation.",
-      "evidence": "missing equivalence goals: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/arbiter_rr/verify/equivalence_goals.json",
+      "id": "TB_CLOCK_PORT",
+      "decision_needed": "Declare RTL contract clock 'clk' as an input port.",
+      "evidence": "'clk' is not in SSOT input ports.",
       "options": [
-        "Run the owning ATLAS stage shown in the evidence, then rerun /tb."
+        "Align rtl_contract.clock with io_list clock_domains[].ports[].name."
       ],
-      "recommended_default": "Run the owning ATLAS stage shown in the evidence, then rerun /tb.",
-      "downstream_effect": "The generator must consume disk-truth SSOT, FL, equivalence-goal, and RTL-contract artifacts."
+      "recommended_default": "Align rtl_contract.clock with io_list clock_domains[].ports[].name.",
+      "downstream_effect": "cocotb cannot start a clock on a missing DUT signal."
+    },
+    {
+      "id": "TB_RESET_PORT",
+      "decision_needed": "Declare RTL contract reset 'rst_n' as an input port.",
+      "evidence": "'rst_n' is not in SSOT input ports.",
+      "options": [
+        "Align rtl_contract.reset with io_list resets[].ports[].name."
+      ],
+      "recommended_default": "Align rtl_contract.reset with io_list resets[].ports[].name.",
+      "downstream_effect": "cocotb cannot apply reset to a missing DUT signal."
+    },
+    {
+      "id": "TB_INPUT_MAP_ENABLE",
+      "decision_needed": "Map transaction field 'enable' to a real input port.",
+      "evidence": "rtl_contract.input_map.enable='registers_CTRL_enable', but 'registers_CTRL_enable' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_MASK",
+      "decision_needed": "Map transaction field 'mask' to a real input port.",
+      "evidence": "rtl_contract.input_map.mask='registers_REQ_MASK_mask', but 'registers_REQ_MASK_mask' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_REQUESTS",
+      "decision_needed": "Map transaction field 'requests' to a real input port.",
+      "evidence": "rtl_contract.input_map.requests='req_i_NUM_REQ_1_0', but 'req_i_NUM_REQ_1_0' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
     }
   ],
   "next_action": "Repair SSOT/RTL contract through ATLAS, rerun /ssot-rtl, then rerun /tb.",
-  "timestamp": "2026-05-15T02:13:06Z"
+  "timestamp": "2026-05-15T02:14:49Z"
 }

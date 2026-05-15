@@ -3,7 +3,7 @@
 module lfsr (
     input  logic [0:0]                PCLK,
     input  logic [0:0]                PRESETn,
-    input  logic [7:0]                PADDR,
+    input  logic [APB_ADDR_WIDTH-1:0] PADDR,
     input  logic                      PSEL,
     input  logic                      PENABLE,
     input  logic                      PWRITE,

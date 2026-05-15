@@ -47,7 +47,7 @@
     "static_missing": 0,
     "status": "blocked"
   },
-  "generated_at": "2026-05-15T02:10:30Z",
+  "generated_at": "2026-05-15T02:14:28Z",
   "ip": "arbiter_rr",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 24,
@@ -1126,9 +1126,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1801,7 +1801,7 @@
           "rtl_todo_plan.json task criteria",
           "governance/authority.json"
         ],
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+        "reason": "Missing production golden authority artifact(s): model/fl_model_check.json",
         "required": true,
         "status": "open"
       }
@@ -1942,9 +1942,9 @@
           "rtl_todo_plan.json task criteria",
           "model/cycle_model.py"
         ],
-        "reason": "Missing executable cycle model: model/cycle_model.py.",
+        "reason": "Cycle model artifact and self-check are present.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9805,21 +9805,21 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "task_id": "RTL-0006"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
         "reason": "7 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+        "reason": "Missing production golden authority artifact(s): model/fl_model_check.json",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
         "task_id": "RTL-0020"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing executable cycle model: model/cycle_model.py.",
-        "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-        "task_id": "RTL-0023"
       },
       {
         "category": "rtl_gate.rtl_gen",

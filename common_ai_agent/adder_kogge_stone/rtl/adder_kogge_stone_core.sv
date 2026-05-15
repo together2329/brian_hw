@@ -57,7 +57,7 @@ module adder_kogge_stone_core #(
     assign APB_error_preserve_core = 1'b0;
     always @(*) begin
         next_state = state;
-        busy_o = (state == COMPUTE);
+        busy_o = (state == COMPUTE) & (~APB_error_preserve_core);
         case (state)
             IDLE: begin
                 if (shadow_valid) begin

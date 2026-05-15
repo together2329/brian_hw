@@ -108,6 +108,16 @@ module adder_kogge_stone_regs #(
 
     assign prdata_o = apb_read ? read_mux : {APB_DATA_WIDTH{1'b0}};
 
+    // Access policy decode is separate from storage updates so unmapped APB addresses preserve all registers.
+    always @(*) begin
+        start_pulse_o = 1'b0;
+        clr_done_pulse_o = 1'b0;
+        if (apb_write & valid_addr & (paddr_i == ADDR_CONTROL)) begin
+            start_pulse_o = pwdata_i[0];
+            clr_done_pulse_o = pwdata_i[2];
+        end
+    end
+
     // RW/W1C register side effects: start and clr_done are self-clearing pulses, hold_mode persists.
     always @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin

@@ -1,0 +1,9 @@
+{
+  "expressions_hash": "6da103bbcd31a63a95580a640eb3bb2d89521cf986f4882dd9156336617348ab",
+  "invariants_hash": "592ad32df05d07abdd8cf9c5115229edf395e3bc1f4aaab285c6844dcaa437a3",
+  "ip": "arbiter_rr",
+  "schema_version": 1,
+  "ssot_hash": "3cd821cb6e89258a67924f9b828ef3c7f758aa2ad7b3765a2b17dace871ab695",
+  "transactions_hash": "a4f7b3a5a5ab888df27035d94ee1669532793c96a599ab57536b7449c4585c5f",
+  "type": "model_signature"
+}

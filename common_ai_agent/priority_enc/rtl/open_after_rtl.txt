@@ -1,0 +1,16 @@
+RTL-0005 rtl_gate.rtl_gen quality_gates.rtl_gen.owner_traceability => 4 required SSOT-derived RTL task(s) still have no owner module.
+RTL-0007 rtl_gate.rtl_gen quality_gates.rtl_gen.static_rtl_evidence => 7 static-evidence-required task(s) still lack DUT RTL evidence.
+RTL-0016 rtl_gate.rtl_gen quality_gates.rtl_gen.manifest_connection_contract_evidence => 1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts
+RTL-0019 rtl_gate.rtl_gen quality_gates.rtl_gen.dynamic_todo_closure => 15 required non-closure TODO(s) remain open.
+RTL-0020 rtl_gate.rtl_gen quality_gates.rtl_gen.golden_authority_artifacts => Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
+RTL-0023 rtl_gate.rtl_gen quality_gates.rtl_gen.cycle_model_artifacts => Missing executable cycle model: model/cycle_model.py.
+RTL-0024 rtl_gate.rtl_gen quality_gates.rtl_gen.protocol_assertion_evidence => Missing protocol assertion artifact: verify/protocol_assertions.sva.
+RTL-0025 rtl_gate.rtl_gen quality_gates.rtl_gen.fl_rtl_goal_audit => Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
+RTL-0026 rtl_gate.rtl_gen quality_gates.rtl_gen.coverage_closure => Missing coverage closure artifact: cov/coverage.json.
+RTL-0060 function_model.error_case function_model.transactions.FM_ENCODE.error_cases.error_case_0 => Required RTL static evidence is missing.
+RTL-0061 function_model.error_case function_model.transactions.FM_ENCODE.error_cases.error_case_1 => Required RTL static evidence is missing.
+RTL-0067 cycle_model.handshake_rules cycle_model.handshake_rules.apb_csr => Required RTL static evidence is missing.
+RTL-0084 fsm.state fsm.encoder_fsm.states.state_0 => Task has no RTL owner file.
+RTL-0085 fsm.state fsm.encoder_fsm.states.state_1 => Task has no RTL owner file.
+RTL-0086 fsm.transition fsm.encoder_fsm.transitions.transition_0 => Task has no RTL owner file.
+RTL-0087 fsm.transition fsm.encoder_fsm.transitions.transition_1 => Task has no RTL owner file.

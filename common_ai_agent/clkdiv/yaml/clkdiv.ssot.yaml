@@ -618,7 +618,7 @@ test_requirements:
       bins:
         - { id: "FCOV_FM_DIVIDE", source_ref: "function_model.transactions.FM_DIVIDE", class: "transaction", description: "Primary divide transaction observed" }
         - { id: "FCOV_DIV_ZERO", source_ref: "function_model.transactions.FM_DIVIDE.error_cases.WARN_DIV_ZERO", class: "error_case", description: "Zero divisor coercion observed" }
-        - { id: "FCOV_IRQ", source_ref: "interrupts.sources.TERMINAL_EVENT", class: "interrupt", description: "Terminal event interrupt set and clear observed" }
+        - { id: "FCOV_IRQ", source_ref: "function_model.transactions.FM_DIVIDE.side_effects.terminal_irq", class: "interrupt", description: "Terminal event interrupt set and clear observed" }
     cycle:
       target_pct: 100
       model: "cycle_model"

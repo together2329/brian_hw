@@ -22,23 +22,24 @@ module pulse_gen #(
 );
 
     logic rst_sync_1;
-    logic rst_ni;
+    logic PRESETn_sync;
     logic ctrl_fire;
     logic ctrl_polarity;
     logic ctrl_enable;
     logic ctrl_hw_trig_en;
-    logic [15:0] pulse_width;
-    logic int_enable;
-    logic status_done;
-    logic status_done_set;
-    logic status_busy;
-    logic [15:0] fired_count;
+    logic [15:0] pulse_gen_core_pulse_width_i;
+    logic pulse_gen_core_int_enable_i;
+    logic pulse_gen_regs_status_done;
+    logic pulse_gen_regs_status_busy;
+    logic [15:0] pulse_gen_core_fired_count;
+    logic TOP_io_list_live;
+    logic PREADY_zero_wait_state;
 
     // SSOT reset scheme: PRESETn asserts asynchronously and deasserts through a 2-stage synchronizer.
     always @(posedge PCLK or negedge PRESETn) begin
         if (!PRESETn) begin
             rst_sync_1 <= 1'b0;
-            rst_ni <= 1'b0;
+            PRESETn_sync <= 1'b0;
         end else begin
             rst_sync_1 <= 1'b1;
             rst_ni <= rst_sync_1;

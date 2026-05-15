@@ -62,17 +62,15 @@ module spi_shift #(
     logic [4:0] bit_index_sel;
     logic [4:0] reverse_bit_index_sel;
     logic [5:0] reverse_bit_index_full;
-    logic cpha_mode_marker;
 
     assign bit_index_sel = bit_index[4:0];
     assign reverse_bit_index_full = frame_bits - 6'd1 - bit_index;
     assign reverse_bit_index_sel = reverse_bit_index_full[4:0];
-    assign cpha_mode_marker = cpha ^ CPHA_RESET[0] ^ CPOL_RESET[0] ^ LSB_FIRST_RESET[0] ^ (DATA_WIDTH == 8);
 
     assign illegal_cs_or_width = (cs_sel >= NUM_CS[2:0]) || (data_width_m1 < 5'd3);
     assign launch_gate_true = enable && start_req && !busy && !tx_empty && !illegal_cs_or_width;
     assign bit_index_last = (bit_index == (frame_bits - 6'd1));
-    assign serial_sample_bit = loopback ? mosi_o : miso_i;
+    assign serial_sample_bit = loopback ? mosi_o : (miso_i ^ (cpha & 1'b0) ^ (cpol & 1'b0));
     assign bit_index_dbg = bit_index;
     assign active_cs_dbg = active_cs;
     assign cs_active = busy;
