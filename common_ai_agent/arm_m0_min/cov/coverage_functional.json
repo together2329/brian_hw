@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage",
+  "status": "pass",
+  "timestamp_iso": "2026-05-15T11:35:40Z",
+  "functional": {
+    "hit": 0,
+    "total": 0,
+    "pct": 100.0,
+    "bins": {}
+  }
+}

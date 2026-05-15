@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=arm_m0_min/sim/results.xml
+scoreboard=arm_m0_min/sim/scoreboard_events.jsonl
+coverage_functional=arm_m0_min/cov/coverage_functional.json
+waveforms=arm_m0_min/sim/arm_m0_min.vcd
+0 errors, 0 warnings
