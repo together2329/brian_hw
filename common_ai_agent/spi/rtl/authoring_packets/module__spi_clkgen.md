@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 21
+- LLM-actionable open tasks: 2
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, parameters, parameters.PRESCALE_WIDTH, timing
 - SSOT target scale: min_behavior_owner_logic_modules=3, min_depth_score=40, min_logic_modules=4, min_modules=6, min_procedural_blocks=20, min_source_files=6, min_state_updates=25
@@ -35,14 +35,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.APB
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.APB.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.
 SSOT item context: signal=APB.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -56,14 +56,14 @@ SSOT item context: signal=APB.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.CTRL_start
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.CTRL_start.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.
 SSOT item context: signal=CTRL.start.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -84,7 +84,7 @@ SSOT item context: signal=CTRL.start.
 SSOT ref: cycle_model.handshake_rules.launch_gate.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.
 SSOT item context: signal=launch_gate.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -98,14 +98,14 @@ SSOT item context: signal=launch_gate.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.sclk_o
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.sclk_o.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.
 SSOT item context: signal=sclk_o.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -119,14 +119,14 @@ SSOT item context: signal=sclk_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.sample_edge
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.sample_edge.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.
 SSOT item context: signal=sample_edge.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -140,14 +140,14 @@ SSOT item context: signal=sample_edge.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S0_APB_CFG
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_APB_CFG.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.
 SSOT item context: stage=S0_APB_CFG; action=Program mode/prescale/CS and push TX words; cycle=t.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -162,14 +162,14 @@ SSOT item context: stage=S0_APB_CFG; action=Program mode/prescale/CS and push TX
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S1_LAUNCH_CHECK
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_LAUNCH_CHECK.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.
 SSOT item context: stage=S1_LAUNCH_CHECK; action=Evaluate launch preconditions and latch frame context; cycle=t+0..t+1.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -184,14 +184,14 @@ SSOT item context: stage=S1_LAUNCH_CHECK; action=Evaluate launch preconditions a
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S2_ASSERT_CS
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S2_ASSERT_CS.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.
 SSOT item context: stage=S2_ASSERT_CS; action=Drive selected chip select active-low; cycle=next.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -213,7 +213,7 @@ SSOT item context: stage=S2_ASSERT_CS; action=Drive selected chip select active-
 SSOT ref: cycle_model.pipeline.S4_SAMPLE.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.
 SSOT item context: stage=S4_SAMPLE; action=Sample MISO/loopback bit and advance bit_index; cycle=repeating.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -228,14 +228,14 @@ SSOT item context: stage=S4_SAMPLE; action=Sample MISO/loopback bit and advance 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S5_COMPLETE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S5_COMPLETE.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.
 SSOT item context: stage=S5_COMPLETE; action=Push RX word if possible, update done/errors/pending, manage CS hold/deassert; cycle=terminal.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -250,13 +250,13 @@ SSOT item context: stage=S5_COMPLETE; action=Push RX word if possible, update do
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.spi_clkgen.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.spi_clkgen.module_equivalence.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -271,14 +271,14 @@ Owner: spi_clkgen in rtl/spi_clkgen.sv via module_equivalence.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.APB_ADDR_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.APB_ADDR_WIDTH.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via parameters.
 SSOT item context: name=APB_ADDR_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -291,14 +291,14 @@ SSOT item context: name=APB_ADDR_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.APB_DATA_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.APB_DATA_WIDTH.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via parameters.
 SSOT item context: name=APB_DATA_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -311,14 +311,14 @@ SSOT item context: name=APB_DATA_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.DATA_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DATA_WIDTH.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via parameters.
 SSOT item context: name=DATA_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -331,14 +331,14 @@ SSOT item context: name=DATA_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.FIFO_DEPTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.FIFO_DEPTH.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via parameters.
 SSOT item context: name=FIFO_DEPTH.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -351,14 +351,14 @@ SSOT item context: name=FIFO_DEPTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.NUM_CS
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.NUM_CS.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via parameters.
 SSOT item context: name=NUM_CS.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -371,14 +371,14 @@ SSOT item context: name=NUM_CS.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.PRESCALE_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.PRESCALE_WIDTH.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via parameters.PRESCALE_WIDTH.
 SSOT item context: name=PRESCALE_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -391,14 +391,14 @@ SSOT item context: name=PRESCALE_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.CPOL_RESET
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.CPOL_RESET.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via parameters.
 SSOT item context: name=CPOL_RESET.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -411,14 +411,14 @@ SSOT item context: name=CPOL_RESET.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.CPHA_RESET
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.CPHA_RESET.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via parameters.
 SSOT item context: name=CPHA_RESET.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -431,14 +431,14 @@ SSOT item context: name=CPHA_RESET.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.LSB_FIRST_RESET
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.LSB_FIRST_RESET.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via parameters.
 SSOT item context: name=LSB_FIRST_RESET.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -451,14 +451,14 @@ SSOT item context: name=LSB_FIRST_RESET.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.PCLK_FREQ_MHZ
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.PCLK_FREQ_MHZ.
 Owner: spi_clkgen in rtl/spi_clkgen.sv via parameters.
 SSOT item context: name=PCLK_FREQ_MHZ.
-- Current reason: Owner RTL file is missing: rtl/spi_clkgen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects

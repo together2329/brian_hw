@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.ordering, cycle_model.pipeline, features, fsm, fsm.channel_level, function_model, function_model.transactions
 - Module slice: 7/7 section=workflow_todo task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Create FSM and datapath for launch gate, CPOL/CPHA edges, lsb/msb order, CS handling, and completion events.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: spi_shift in rtl/spi_shift.sv via workflow_todos.owner.
 SSOT item context: id=RTL_SPI_SHIFT_ENGINE.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - All fsm states/transitions implemented
   - No internal clocking on sclk_o

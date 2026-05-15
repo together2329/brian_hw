@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 16
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: error_handling, interrupts, io_list, io_list.interfaces.apb_slave, registers, registers.register_list
 - Module slice: 1/6 section=io_list task_limit=48
@@ -37,14 +37,14 @@
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.clock_domains.pclk.ports.PCLK
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.pclk.ports.PCLK.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.
 SSOT item context: name=PCLK; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -59,14 +59,14 @@ SSOT item context: name=PCLK; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.resets.presetn.ports.PRESETn
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.presetn.ports.PRESETn.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.
 SSOT item context: name=PRESETn; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -81,14 +81,14 @@ SSOT item context: name=PRESETn; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PADDR
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PADDR.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PADDR; width=12; direction=input.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -103,14 +103,14 @@ SSOT item context: name=PADDR; width=12; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PSEL
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PSEL.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PSEL; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -125,14 +125,14 @@ SSOT item context: name=PSEL; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PENABLE
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PENABLE.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PENABLE; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -147,14 +147,14 @@ SSOT item context: name=PENABLE; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PWRITE
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PWRITE.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PWRITE; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -169,14 +169,14 @@ SSOT item context: name=PWRITE; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PWDATA
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PWDATA.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PWDATA; width=32; direction=input.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -191,14 +191,14 @@ SSOT item context: name=PWDATA; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PSTRB
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PSTRB.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PSTRB; width=4; direction=input.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -213,14 +213,14 @@ SSOT item context: name=PSTRB; width=4; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PRDATA
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PRDATA.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PRDATA; width=32; direction=output.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -235,14 +235,14 @@ SSOT item context: name=PRDATA; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PREADY
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PREADY.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PREADY; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -257,14 +257,14 @@ SSOT item context: name=PREADY; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PSLVERR
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PSLVERR.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PSLVERR; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -279,14 +279,14 @@ SSOT item context: name=PSLVERR; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.spi_master.ports.sclk_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.spi_master.ports.sclk_o.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.
 SSOT item context: name=sclk_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -301,14 +301,14 @@ SSOT item context: name=sclk_o; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.spi_master.ports.mosi_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.spi_master.ports.mosi_o.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.
 SSOT item context: name=mosi_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -323,14 +323,14 @@ SSOT item context: name=mosi_o; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.spi_master.ports.miso_i
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.spi_master.ports.miso_i.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.
 SSOT item context: name=miso_i; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -345,14 +345,14 @@ SSOT item context: name=miso_i; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.spi_master.ports.csn_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.spi_master.ports.csn_o.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.
 SSOT item context: name=csn_o; width=4; direction=output.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -367,14 +367,14 @@ SSOT item context: name=csn_o; width=4; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.irq.ports.irq_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.irq.ports.irq_o.
 Owner: spi_regs in rtl/spi_regs.sv via io_list.
 SSOT item context: name=irq_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

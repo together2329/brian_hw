@@ -85,7 +85,7 @@ module pulse_gen #(
         .PULSE_POLARITY(PULSE_POLARITY),
         .PULSE_OUT_WIDTH(PULSE_OUT_WIDTH)
     ) u_core (
-        .clk_i(PCLK),
+        .rst_ni(PRESETn),
         .rst_ni(PRESETn_sync),
         .trigger_i(trigger_i),
         .ctrl_fire_i(ctrl_fire),

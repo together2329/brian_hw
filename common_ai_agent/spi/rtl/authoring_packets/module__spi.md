@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 29
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=3, min_depth_score=40, min_logic_modules=4, min_modules=6, min_procedural_blocks=20, min_source_files=6, min_state_updates=25
@@ -61,14 +61,14 @@ Owner: spi in rtl/spi.sv via top_module.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: spi in rtl/spi.sv via top_module.
 SSOT item context: value=spi.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width
@@ -81,14 +81,14 @@ SSOT item context: value=spi.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.asset_0
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.asset_0.
 Owner: spi in rtl/spi.sv via security.
 SSOT item context: value=Correct APB register access policy.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -101,14 +101,14 @@ SSOT item context: value=Correct APB register access policy.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.asset_1
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.asset_1.
 Owner: spi in rtl/spi.sv via security.
 SSOT item context: value=Integrity of serialized command/data words.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -121,14 +121,14 @@ SSOT item context: value=Integrity of serialized command/data words.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.asset_2
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.asset_2.
 Owner: spi in rtl/spi.sv via security.
 SSOT item context: value=Integrity of interrupt/error telemetry.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -141,14 +141,14 @@ SSOT item context: value=Integrity of interrupt/error telemetry.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.dependencie_0
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.dependencie_0.
 Owner: spi in rtl/spi.sv via integration.
 SSOT item context: value=External SPI slave device timing is out of scope; this IP only guarantees generated SCLK/MOSI/CS waveform contract..
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -161,14 +161,14 @@ SSOT item context: value=External SPI slave device timing is out of scope; this 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.start_req
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.start_req.
 Owner: spi in rtl/spi.sv via integration.
 SSOT item context: signal=start_req; from=spi_regs.start_pulse; to=spi_shift.start_req.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -182,14 +182,14 @@ SSOT item context: signal=start_req; from=spi_regs.start_pulse; to=spi_shift.sta
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.ctrl_cfg
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.ctrl_cfg.
 Owner: spi in rtl/spi.sv via integration.
 SSOT item context: signal=ctrl_cfg; from=spi_regs.ctrl_cfg; to=spi_shift.ctrl_cfg.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -203,14 +203,14 @@ SSOT item context: signal=ctrl_cfg; from=spi_regs.ctrl_cfg; to=spi_shift.ctrl_cf
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.tx_word
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.tx_word.
 Owner: spi in rtl/spi.sv via integration.
 SSOT item context: signal=tx_word; from=spi_fifo.tx_pop_data; to=spi_shift.tx_word.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -224,14 +224,14 @@ SSOT item context: signal=tx_word; from=spi_fifo.tx_pop_data; to=spi_shift.tx_wo
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.rx_word
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.rx_word.
 Owner: spi in rtl/spi.sv via integration.
 SSOT item context: signal=rx_word; from=spi_shift.rx_word; to=spi_fifo.rx_push_data.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -245,14 +245,14 @@ SSOT item context: signal=rx_word; from=spi_shift.rx_word; to=spi_fifo.rx_push_d
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.irq_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.irq_o.
 Owner: spi in rtl/spi.sv via integration.
 SSOT item context: signal=irq_o; from=spi_int.irq_o; to=spi.irq_o.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -266,14 +266,14 @@ SSOT item context: signal=irq_o; from=spi_int.irq_o; to=spi.irq_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dft.scan
 - Source ref: dft.scan.strategy
 - Detail: This SSOT dft.scan item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: dft.scan.strategy.
 Owner: spi in rtl/spi.sv via dft.
 SSOT item context: name=strategy; value=single_clock_scan.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -286,14 +286,14 @@ SSOT item context: name=strategy; value=single_clock_scan.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dft.scan
 - Source ref: dft.scan.assumptions
 - Detail: This SSOT dft.scan item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: dft.scan.assumptions.
 Owner: spi in rtl/spi.sv via dft.
 SSOT item context: name=assumptions; value=["PCLK is controllable in test mode.", "PRESETn can be asserted/deasserted from test controller."].
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -306,14 +306,14 @@ SSOT item context: name=assumptions; value=["PCLK is controllable in test mode."
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dft.test_points
 - Source ref: dft.test_points.test_point_0
 - Detail: This SSOT dft.test_points item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: dft.test_points.test_point_0.
 Owner: spi in rtl/spi.sv via dft.
 SSOT item context: value=FIFO full/empty boundary conditions should be controllable via APB writes and frame completions..
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -326,14 +326,14 @@ SSOT item context: value=FIFO full/empty boundary conditions should be controlla
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_0
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_0.
 Owner: spi in rtl/spi.sv via synthesis.
 SSOT item context: value=Use PCLK as only sequential clock..
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -346,14 +346,14 @@ SSOT item context: value=Use PCLK as only sequential clock..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_1
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_1.
 Owner: spi in rtl/spi.sv via synthesis.
 SSOT item context: value=Do not infer latches..
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -366,14 +366,14 @@ SSOT item context: value=Do not infer latches..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.fmax_mhz
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.fmax_mhz.
 Owner: spi in rtl/spi.sv via synthesis.
 SSOT item context: name=fmax_mhz; value=100.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -386,14 +386,14 @@ SSOT item context: name=fmax_mhz; value=100.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.area_priority
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.area_priority.
 Owner: spi in rtl/spi.sv via synthesis.
 SSOT item context: name=area_priority; value=balanced.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -406,14 +406,14 @@ SSOT item context: name=area_priority; value=balanced.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.power_priority
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.power_priority.
 Owner: spi in rtl/spi.sv via synthesis.
 SSOT item context: name=power_priority; value=low_dynamic_when_idle.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -426,13 +426,13 @@ SSOT item context: name=power_priority; value=low_dynamic_when_idle.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.spi.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.spi.module_equivalence.
 Owner: spi in rtl/spi.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -447,14 +447,14 @@ Owner: spi in rtl/spi.sv via module_equivalence.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_APB_CONFIG
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_APB_CONFIG.
 Owner: spi in rtl/spi.sv via test_requirements.
 SSOT item context: id=SC_APB_CONFIG; name=APB config/readback; expected=Readback matches writes; RO/WO behavior and PSLVERR policy hold.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -468,14 +468,14 @@ SSOT item context: id=SC_APB_CONFIG; name=APB config/readback; expected=Readback
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_BASIC_TRANSFER
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_BASIC_TRANSFER.
 Owner: spi in rtl/spi.sv via test_requirements.
 SSOT item context: id=SC_BASIC_TRANSFER; name=Basic frame transfer; expected=busy asserts then clears, done pending sets, RXDATA returns sampled value.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -489,14 +489,14 @@ SSOT item context: id=SC_BASIC_TRANSFER; name=Basic frame transfer; expected=bus
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_CPOL_CPHA_SWEEP
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_CPOL_CPHA_SWEEP.
 Owner: spi in rtl/spi.sv via test_requirements.
 SSOT item context: id=SC_CPOL_CPHA_SWEEP; name=CPOL/CPHA sweep; expected=edge launch/sample ordering follows mode.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -510,14 +510,14 @@ SSOT item context: id=SC_CPOL_CPHA_SWEEP; name=CPOL/CPHA sweep; expected=edge la
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_LSB_FIRST
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_LSB_FIRST.
 Owner: spi in rtl/spi.sv via test_requirements.
 SSOT item context: id=SC_LSB_FIRST; name=LSB-first ordering; expected=MOSI bit order reversed relative to MSB-first.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -531,14 +531,14 @@ SSOT item context: id=SC_LSB_FIRST; name=LSB-first ordering; expected=MOSI bit o
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_WIDTH_SWEEP
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_WIDTH_SWEEP.
 Owner: spi in rtl/spi.sv via test_requirements.
 SSOT item context: id=SC_WIDTH_SWEEP; name=Frame width sweep; expected=exact configured bit count shifted/sampled.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -552,14 +552,14 @@ SSOT item context: id=SC_WIDTH_SWEEP; name=Frame width sweep; expected=exact con
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_FIFO_LIMITS
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_FIFO_LIMITS.
 Owner: spi in rtl/spi.sv via test_requirements.
 SSOT item context: id=SC_FIFO_LIMITS; name=FIFO boundary behavior; expected=tx_overrun and rx_overrun sticky behavior with data drop policy.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -573,14 +573,14 @@ SSOT item context: id=SC_FIFO_LIMITS; name=FIFO boundary behavior; expected=tx_o
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_IRQ_W1C
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_IRQ_W1C.
 Owner: spi in rtl/spi.sv via test_requirements.
 SSOT item context: id=SC_IRQ_W1C; name=Interrupt mask and W1C; expected=irq_o == OR(INT_PENDING & INT_MASK); W1C clears sticky only.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -594,14 +594,14 @@ SSOT item context: id=SC_IRQ_W1C; name=Interrupt mask and W1C; expected=irq_o ==
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_ERROR_PATHS
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_ERROR_PATHS.
 Owner: spi in rtl/spi.sv via test_requirements.
 SSOT item context: id=SC_ERROR_PATHS; name=Error paths; expected=PSLVERR and corresponding sticky bits/pending bits set.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -615,14 +615,14 @@ SSOT item context: id=SC_ERROR_PATHS; name=Error paths; expected=PSLVERR and cor
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_PRESCALE_TIMING
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_PRESCALE_TIMING.
 Owner: spi in rtl/spi.sv via test_requirements.
 SSOT item context: id=SC_PRESCALE_TIMING; name=Prescale timing; expected=SCLK half-period equals divisor+1 PCLK cycles.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -636,14 +636,14 @@ SSOT item context: id=SC_PRESCALE_TIMING; name=Prescale timing; expected=SCLK ha
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_LOOPBACK_DEBUG
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_LOOPBACK_DEBUG.
 Owner: spi in rtl/spi.sv via test_requirements.
 SSOT item context: id=SC_LOOPBACK_DEBUG; name=Loopback and debug observability; expected=RX equals MOSI sequence and debug counters/probes align.
-- Current reason: Owner RTL file is missing: rtl/spi.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared

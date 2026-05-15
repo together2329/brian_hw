@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: error_handling, interrupts, io_list, io_list.interfaces.apb_slave, registers, registers.register_list
 - Module slice: 6/6 section=workflow_todo task_limit=48
@@ -37,14 +37,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[1]
 - Detail: Decode CSR map, enforce RO/WO and PSTRB policy, assert PSLVERR on illegal access, and update illegal_access sticky bits.
 SSOT ref: workflow_todos.rtl-gen[1].
 Owner: spi_regs in rtl/spi_regs.sv via workflow_todos.owner.
 SSOT item context: id=RTL_SPI_APB_POLICY.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Register map offsets/fields match SSOT
   - Error handling semantics match error_handling

@@ -126,8 +126,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 4,
-    "open_required_count": 4,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -171,7 +171,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 4,
+    "open_required_count": 1,
     "required_count": 4,
     "source_refs": [
       "cycle_model.pipeline.S3_SHIFT",
@@ -180,7 +180,8 @@
       "cycle_model.ordering.ordering_rule_2"
     ],
     "status_counts": {
-      "open": 4
+      "open": 1,
+      "pass": 3
     },
     "task_count": 4
   },
@@ -217,8 +218,10 @@
         "cycle_model.pipeline.S3_SHIFT"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "sclk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -237,7 +240,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -279,9 +282,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -321,9 +324,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -363,9 +366,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],

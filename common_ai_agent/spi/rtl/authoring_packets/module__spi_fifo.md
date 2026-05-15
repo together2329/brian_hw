@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 9
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.backpressure, dataflow, dataflow.rx_path, dataflow.tx_path, memory, memory.instances
 - SSOT target scale: min_behavior_owner_logic_modules=3, min_depth_score=40, min_logic_modules=4, min_modules=6, min_procedural_blocks=20, min_source_files=6, min_state_updates=25
@@ -37,14 +37,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: spi_fifo in rtl/spi_fifo.sv via cycle_model.
 SSOT item context: value=PCLK.
-- Current reason: Owner RTL file is missing: rtl/spi_fifo.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -58,13 +58,13 @@ SSOT item context: value=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: spi_fifo in rtl/spi_fifo.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/spi_fifo.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -78,13 +78,13 @@ Owner: spi_fifo in rtl/spi_fifo.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: spi_fifo in rtl/spi_fifo.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/spi_fifo.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -98,14 +98,14 @@ Owner: spi_fifo in rtl/spi_fifo.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: spi_fifo in rtl/spi_fifo.sv via cycle_model.backpressure.
 SSOT item context: value=TX backpressure appears as tx_full; writes are dropped with tx_overrun when full..
-- Current reason: Owner RTL file is missing: rtl/spi_fifo.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -119,14 +119,14 @@ SSOT item context: value=TX backpressure appears as tx_full; writes are dropped 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_1.
 Owner: spi_fifo in rtl/spi_fifo.sv via cycle_model.backpressure.
 SSOT item context: value=RX backpressure appears as rx_full at completion; received frame is dropped with rx_overrun when full..
-- Current reason: Owner RTL file is missing: rtl/spi_fifo.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -140,14 +140,14 @@ SSOT item context: value=RX backpressure appears as rx_full at completion; recei
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: spi_fifo in rtl/spi_fifo.sv via cycle_model.
 SSOT item context: value=Probe launch_accept, sample_edge, shift_edge, bit_index, cs_active, tx_fifo_level, rx_fifo_level, done_event.
-- Current reason: Owner RTL file is missing: rtl/spi_fifo.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -161,14 +161,14 @@ SSOT item context: value=Probe launch_accept, sample_edge, shift_edge, bit_index
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: memory.instances
 - Source ref: memory.instances.tx_fifo
 - Detail: This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: memory.instances.tx_fifo.
 Owner: spi_fifo in rtl/spi_fifo.sv via memory.instances.
 SSOT item context: name=tx_fifo; width=32; depth=16; latency=0.
-- Current reason: Owner RTL file is missing: rtl/spi_fifo.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -184,14 +184,14 @@ SSOT item context: name=tx_fifo; width=32; depth=16; latency=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: memory.instances
 - Source ref: memory.instances.rx_fifo
 - Detail: This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: memory.instances.rx_fifo.
 Owner: spi_fifo in rtl/spi_fifo.sv via memory.instances.
 SSOT item context: name=rx_fifo; width=32; depth=16; latency=0.
-- Current reason: Owner RTL file is missing: rtl/spi_fifo.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -207,13 +207,13 @@ SSOT item context: name=rx_fifo; width=32; depth=16; latency=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.spi_fifo.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.spi_fifo.module_equivalence.
 Owner: spi_fifo in rtl/spi_fifo.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/spi_fifo.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

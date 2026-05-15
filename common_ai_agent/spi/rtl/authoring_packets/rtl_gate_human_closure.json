@@ -331,7 +331,7 @@
       {
         "gate_kind": "manifest_connection_contract_evidence",
         "owner_module": "spi",
-        "reason": "4 SSOT connection contract issue(s) remain. spi_shift: SSOT connection contract targets a module not declared in RTL; spi_shift: SSOT connection contract targets a module not declared in RTL; spi_shift: SSOT connection contract targets a module not declared in RTL",
+        "reason": "1 SSOT connection contract issue(s) remain. spi_shift: SSOT connection contract port is not connected by the RTL named port map",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
         "status": "open",
@@ -591,7 +591,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 SSOT connection contract issue(s) remain. spi_shift: SSOT connection contract targets a module not declared in RTL; spi_shift: SSOT connection contract targets a module not declared in RTL; spi_shift: SSOT connection contract targets a module not declared in RTL",
+        "reason": "1 SSOT connection contract issue(s) remain. spi_shift: SSOT connection contract port is not connected by the RTL named port map",
         "required": true,
         "status": "open"
       }

@@ -194,9 +194,9 @@ function_model:
         - "locked_o is 1 after the first terminal reload while enabled"
         - "irq_o is 1 when irq_pending and CTRL.irq_enable are both 1"
       output_rules:
-        - { name: "divided_clock", expr: "terminal_count ? ~clk_state : clk_state", width: 1, port: "clk_o" }
-        - { name: "lock_indicator", expr: "enable && first_reload_seen", width: 1, port: "locked_o" }
-        - { name: "interrupt", expr: "irq_pending && irq_enable", width: 1, port: "irq_o" }
+        - { name: "divided_clock", expr: "((~clk_state) & 1) if terminal_count else clk_state", width: 1, port: "clk_o" }
+        - { name: "lock_indicator", expr: "1 if enable and first_reload_seen else 0", width: 1, port: "locked_o" }
+        - { name: "interrupt", expr: "1 if irq_pending and irq_enable else 0", width: 1, port: "irq_o" }
       side_effects:
         - "If counter == active_divisor-1, counter resets to 0 and clk_state toggles."
         - "If counter != active_divisor-1, counter increments by one and clk_state is stable."

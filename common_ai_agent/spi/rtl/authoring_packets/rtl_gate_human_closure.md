@@ -29,7 +29,7 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=3, min_depth_score=40, min_logic_modules=4, min_modules=6, min_procedural_blocks=20, min_source_files=6, min_state_updates=25
 - Locked-truth blockers:
-  - manifest_connection_contract_evidence: 4 SSOT connection contract issue(s) remain. spi_shift: SSOT connection contract targets a module not declared in RTL; spi_shift: SSOT connection contract targets a module not declared in RTL; spi_shift: SSOT connection contract targets a module not declared in RTL
+  - manifest_connection_contract_evidence: 1 SSOT connection contract issue(s) remain. spi_shift: SSOT connection contract port is not connected by the RTL named port map
   - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json, verify/equivalence_goals.json
   - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
 - SSOT connection contracts:
@@ -110,7 +110,7 @@ Owner: spi in rtl/spi.sv via top_module.
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: spi in rtl/spi.sv via top_module.
-- Current reason: 4 SSOT connection contract issue(s) remain. spi_shift: SSOT connection contract targets a module not declared in RTL; spi_shift: SSOT connection contract targets a module not declared in RTL; spi_shift: SSOT connection contract targets a module not declared in RTL
+- Current reason: 1 SSOT connection contract issue(s) remain. spi_shift: SSOT connection contract port is not connected by the RTL named port map
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.ordering, cycle_model.pipeline, features, fsm, fsm.channel_level, function_model, function_model.transactions
 - Module slice: 5/7 section=features task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.APB_programmed_frame_transfer
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.APB_programmed_frame_transfer.
 Owner: spi_shift in rtl/spi_shift.sv via features.
 SSOT item context: name=APB-programmed frame transfer; output=Serialized frame on mosi_o/sclk_o and optional received frame in RX FIFO.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -61,14 +61,14 @@ SSOT item context: name=APB-programmed frame transfer; output=Serialized frame o
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Programmable_SPI_mode_and_bit_order
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Programmable_SPI_mode_and_bit_order.
 Owner: spi_shift in rtl/spi_shift.sv via features.
 SSOT item context: name=Programmable SPI mode and bit order; output=Protocol-compliant phase/polarity behavior and chosen bit ordering.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -88,7 +88,7 @@ SSOT item context: name=Programmable SPI mode and bit order; output=Protocol-com
 SSOT ref: features.Interrupt_and_sticky_error_reporting.
 Owner: spi_shift in rtl/spi_shift.sv via features.
 SSOT item context: name=Interrupt and sticky error reporting; output=irq_o and software-readable status/error telemetry.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT

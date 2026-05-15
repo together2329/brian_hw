@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 4
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.ordering, cycle_model.pipeline, features, fsm, fsm.channel_level, function_model, function_model.transactions
 - Module slice: 3/7 section=cycle_model task_limit=48
@@ -48,7 +48,7 @@
 SSOT ref: cycle_model.pipeline.S3_SHIFT.
 Owner: spi_shift in rtl/spi_shift.sv via cycle_model.pipeline.
 SSOT item context: stage=S3_SHIFT; action=Generate sclk_o edges and launch MOSI bits; cycle=repeating.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -63,14 +63,14 @@ SSOT item context: stage=S3_SHIFT; action=Generate sclk_o edges and launch MOSI 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: spi_shift in rtl/spi_shift.sv via cycle_model.ordering.
 SSOT item context: value=For each frame, TX dequeue precedes first MOSI launch edge..
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -84,14 +84,14 @@ SSOT item context: value=For each frame, TX dequeue precedes first MOSI launch e
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: spi_shift in rtl/spi_shift.sv via cycle_model.ordering.
 SSOT item context: value=Final RX sample precedes done event and interrupt pending update for completion..
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -105,14 +105,14 @@ SSOT item context: value=Final RX sample precedes done event and interrupt pendi
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_2
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_2.
 Owner: spi_shift in rtl/spi_shift.sv via cycle_model.ordering.
 SSOT item context: value=INT_CLEAR W1C effects apply after the write transfer edge and before next irq_o observation edge..
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior

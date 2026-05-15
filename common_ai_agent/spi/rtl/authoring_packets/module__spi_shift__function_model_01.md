@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 48
+- LLM-actionable open tasks: 5
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.ordering, cycle_model.pipeline, features, fsm, fsm.channel_level, function_model, function_model.transactions
 - Module slice: 1/7 section=function_model task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctrl_enable
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctrl_enable.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.
 SSOT item context: name=ctrl_enable; reset=0.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -62,14 +62,14 @@ SSOT item context: name=ctrl_enable; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctrl_mode
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctrl_mode.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.
 SSOT item context: name=ctrl_mode; reset={cpol:CPOL_RESET,cpha:CPHA_RESET,lsb_first:LSB_FIRST_RESET,continuous_cs:0,loopback:0}.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -83,14 +83,14 @@ SSOT item context: name=ctrl_mode; reset={cpol:CPOL_RESET,cpha:CPHA_RESET,lsb_fi
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.active_cs
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.active_cs.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.
 SSOT item context: name=active_cs; reset=0.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -104,14 +104,14 @@ SSOT item context: name=active_cs; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.frame_bits
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.frame_bits.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.
 SSOT item context: name=frame_bits; reset=8.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -125,14 +125,14 @@ SSOT item context: name=frame_bits; reset=8.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.prescale_div
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.prescale_div.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.
 SSOT item context: name=prescale_div; reset=0.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -146,14 +146,14 @@ SSOT item context: name=prescale_div; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.tx_fifo
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.tx_fifo.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.
 SSOT item context: name=tx_fifo; reset=empty.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -167,14 +167,14 @@ SSOT item context: name=tx_fifo; reset=empty.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.rx_fifo
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.rx_fifo.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.
 SSOT item context: name=rx_fifo; reset=empty.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -188,14 +188,14 @@ SSOT item context: name=rx_fifo; reset=empty.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.busy
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.busy.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.
 SSOT item context: name=busy; reset=0.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -209,14 +209,14 @@ SSOT item context: name=busy; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.sticky_errors
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.sticky_errors.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.
 SSOT item context: name=sticky_errors; reset=0.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -230,14 +230,14 @@ SSOT item context: name=sticky_errors; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.int_pending
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.int_pending.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.
 SSOT item context: name=int_pending; reset=0.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -251,14 +251,14 @@ SSOT item context: name=int_pending; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_APB_TX_PUSH
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_APB_TX_PUSH.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: id=FM_APB_TX_PUSH; name=apb_write_txdata.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -271,14 +271,14 @@ SSOT item context: id=FM_APB_TX_PUSH; name=apb_write_txdata.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=APB write handshake to TXDATA.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -291,14 +291,14 @@ SSOT item context: value=APB write handshake to TXDATA.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_APB_TX_PUSH.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_TX_PUSH.inputs.input_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=PWDATA[DATA_WIDTH-1:0].
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -311,14 +311,14 @@ SSOT item context: value=PWDATA[DATA_WIDTH-1:0].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APB_TX_PUSH.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_TX_PUSH.outputs.output_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=TX FIFO occupancy increments by one when not full.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -331,14 +331,14 @@ SSOT item context: value=TX FIFO occupancy increments by one when not full.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=If tx_fifo full, payload is discarded and STATUS.tx_overrun set.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -351,14 +351,14 @@ SSOT item context: value=If tx_fifo full, payload is discarded and STATUS.tx_ove
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=tx_empty/tx_full level indicators update.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -378,7 +378,7 @@ SSOT item context: value=tx_empty/tx_full level indicators update.
 SSOT ref: function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: condition=unsupported PSTRB for TXDATA width.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -392,14 +392,14 @@ SSOT item context: condition=unsupported PSTRB for TXDATA width.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_FRAME_LAUNCH
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: id=FM_FRAME_LAUNCH; name=launch_frame.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -412,14 +412,14 @@ SSOT item context: id=FM_FRAME_LAUNCH; name=launch_frame.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=CTRL.start pulse observed.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -439,7 +439,7 @@ SSOT item context: value=CTRL.start pulse observed.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_1.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=ctrl_enable == 1.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -452,14 +452,14 @@ SSOT item context: value=ctrl_enable == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_2.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=busy == 0.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -479,7 +479,7 @@ SSOT item context: value=busy == 0.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_3.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=tx_fifo not empty.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -492,14 +492,14 @@ SSOT item context: value=tx_fifo not empty.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_4
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_4.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=cs_sel in [0, NUM_CS-1].
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -512,14 +512,14 @@ SSOT item context: value=cs_sel in [0, NUM_CS-1].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=frame_bits in [4, 32].
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -532,14 +532,14 @@ SSOT item context: value=frame_bits in [4, 32].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_FRAME_LAUNCH.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.outputs.output_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=busy transitions to 1.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -552,14 +552,14 @@ SSOT item context: value=busy transitions to 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_FRAME_LAUNCH.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.outputs.output_1.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=One TX word is consumed from TX FIFO for shift register load.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -572,14 +572,14 @@ SSOT item context: value=One TX word is consumed from TX FIFO for shift register
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=csn_o drives exactly one active-low bit at selected CS.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -592,14 +592,14 @@ SSOT item context: value=csn_o drives exactly one active-low bit at selected CS.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_1.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=SCLK idle level driven per CPOL before first active edge.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -612,14 +612,14 @@ SSOT item context: value=SCLK idle level driven per CPOL before first active edg
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: condition=cs_sel illegal or frame_bits illegal.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -640,7 +640,7 @@ SSOT item context: condition=cs_sel illegal or frame_bits illegal.
 SSOT ref: function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_1.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: condition=CTRL.enable == 0 or tx_fifo empty or busy==1.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -654,14 +654,14 @@ SSOT item context: condition=CTRL.enable == 0 or tx_fifo empty or busy==1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_SHIFT_SAMPLE
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: id=FM_SHIFT_SAMPLE; name=shift_and_sample_bits.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -674,14 +674,14 @@ SSOT item context: id=FM_SHIFT_SAMPLE; name=shift_and_sample_bits.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_SHIFT_SAMPLE.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.preconditions.precondition_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=busy == 1.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -694,14 +694,14 @@ SSOT item context: value=busy == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_SHIFT_SAMPLE.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.inputs.input_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=miso_i sampled on mode-dependent sample edges or internal mosi_o if loopback=1.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -714,14 +714,14 @@ SSOT item context: value=miso_i sampled on mode-dependent sample edges or intern
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=mosi_o presents serialized transmit bits with configured bit order.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -734,14 +734,14 @@ SSOT item context: value=mosi_o presents serialized transmit bits with configure
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_1.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=rx_shift_reg accumulates sampled bits.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -754,14 +754,14 @@ SSOT item context: value=rx_shift_reg accumulates sampled bits.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=bit_index progresses from 0 to frame_bits-1.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -774,14 +774,14 @@ SSOT item context: value=bit_index progresses from 0 to frame_bits-1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_1.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=done asserted when terminal sample edge occurs.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -794,14 +794,14 @@ SSOT item context: value=done asserted when terminal sample edge occurs.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_SHIFT_SAMPLE.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.error_cases.error_case_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: condition=none during legal frame.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -815,14 +815,14 @@ SSOT item context: condition=none during legal frame.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_FRAME_COMPLETE
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_FRAME_COMPLETE.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: id=FM_FRAME_COMPLETE; name=complete_frame_and_store_rx.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -835,14 +835,14 @@ SSOT item context: id=FM_FRAME_COMPLETE; name=complete_frame_and_store_rx.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_FRAME_COMPLETE.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_COMPLETE.preconditions.precondition_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=terminal sample edge reached.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -855,14 +855,14 @@ SSOT item context: value=terminal sample edge reached.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_FRAME_COMPLETE.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_COMPLETE.outputs.output_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=busy transitions to 0.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -875,14 +875,14 @@ SSOT item context: value=busy transitions to 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_FRAME_COMPLETE.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_COMPLETE.outputs.output_1.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=STATUS.done pulse/latched event generated.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -895,14 +895,14 @@ SSOT item context: value=STATUS.done pulse/latched event generated.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=If RX FIFO has space, received frame pushed; else discard and STATUS.rx_overrun set.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -915,14 +915,14 @@ SSOT item context: value=If RX FIFO has space, received frame pushed; else disca
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=CS deasserts to CS_IDLE unless continuous_cs holds across back-to-back frame.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -935,14 +935,14 @@ SSOT item context: value=CS deasserts to CS_IDLE unless continuous_cs holds acro
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_2.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=Interrupt pending bits update for done and FIFO level.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -962,7 +962,7 @@ SSOT item context: value=Interrupt pending bits update for done and FIFO level.
 SSOT ref: function_model.transactions.FM_FRAME_COMPLETE.error_cases.error_case_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: condition=RX FIFO full.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -976,14 +976,14 @@ SSOT item context: condition=RX FIFO full.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_APB_RX_POP
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_APB_RX_POP.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: id=FM_APB_RX_POP; name=apb_read_rxdata.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -996,14 +996,14 @@ SSOT item context: id=FM_APB_RX_POP; name=apb_read_rxdata.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_APB_RX_POP.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_RX_POP.preconditions.precondition_0.
 Owner: spi_shift in rtl/spi_shift.sv via function_model.transactions.
 SSOT item context: value=APB read handshake to RXDATA.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction

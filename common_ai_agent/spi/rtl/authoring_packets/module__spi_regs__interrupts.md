@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 8
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: error_handling, interrupts, io_list, io_list.interfaces.apb_slave, registers, registers.register_list
 - Module slice: 4/6 section=interrupts task_limit=48
@@ -37,14 +37,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.DONE
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.DONE.
 Owner: spi_regs in rtl/spi_regs.sv via interrupts.
 SSOT item context: name=DONE; clear=INT_CLEAR.W1C[0].
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -58,14 +58,14 @@ SSOT item context: name=DONE; clear=INT_CLEAR.W1C[0].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.TX_OVERRUN
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.TX_OVERRUN.
 Owner: spi_regs in rtl/spi_regs.sv via interrupts.
 SSOT item context: name=TX_OVERRUN; clear=INT_CLEAR.W1C[1].
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -79,14 +79,14 @@ SSOT item context: name=TX_OVERRUN; clear=INT_CLEAR.W1C[1].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.RX_OVERRUN
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.RX_OVERRUN.
 Owner: spi_regs in rtl/spi_regs.sv via interrupts.
 SSOT item context: name=RX_OVERRUN; clear=INT_CLEAR.W1C[2].
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -100,14 +100,14 @@ SSOT item context: name=RX_OVERRUN; clear=INT_CLEAR.W1C[2].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.RX_UNDERRUN
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.RX_UNDERRUN.
 Owner: spi_regs in rtl/spi_regs.sv via interrupts.
 SSOT item context: name=RX_UNDERRUN; clear=INT_CLEAR.W1C[3].
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -121,14 +121,14 @@ SSOT item context: name=RX_UNDERRUN; clear=INT_CLEAR.W1C[3].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.MODE_FAULT
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.MODE_FAULT.
 Owner: spi_regs in rtl/spi_regs.sv via interrupts.
 SSOT item context: name=MODE_FAULT; clear=INT_CLEAR.W1C[4].
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -142,14 +142,14 @@ SSOT item context: name=MODE_FAULT; clear=INT_CLEAR.W1C[4].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.ILLEGAL_ACCESS
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.ILLEGAL_ACCESS.
 Owner: spi_regs in rtl/spi_regs.sv via interrupts.
 SSOT item context: name=ILLEGAL_ACCESS; clear=INT_CLEAR.W1C[5].
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -163,14 +163,14 @@ SSOT item context: name=ILLEGAL_ACCESS; clear=INT_CLEAR.W1C[5].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.TX_EMPTY
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.TX_EMPTY.
 Owner: spi_regs in rtl/spi_regs.sv via interrupts.
 SSOT item context: name=TX_EMPTY; clear=not_w1c.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -184,14 +184,14 @@ SSOT item context: name=TX_EMPTY; clear=not_w1c.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.RX_FULL
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.RX_FULL.
 Owner: spi_regs in rtl/spi_regs.sv via interrupts.
 SSOT item context: name=RX_FULL; clear=not_w1c.
-- Current reason: Owner RTL file is missing: rtl/spi_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

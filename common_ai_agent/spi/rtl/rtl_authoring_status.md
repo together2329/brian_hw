@@ -4,9 +4,9 @@
 
 - Top: spi
 - Packets: 20
-- LLM-actionable tasks: 242
+- LLM-actionable tasks: 16
 - Human-locked tasks: 3
-- Tool-evidence tasks: 7
+- Tool-evidence tasks: 5
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: True
@@ -15,18 +15,16 @@
 
 ## Next LLM Packets
 
-- module__spi_regs__registers: rtl/authoring_packets/module__spi_regs__registers.json (llm_open=37, human_locked=0)
-- module__spi_regs__io_list: rtl/authoring_packets/module__spi_regs__io_list.json (llm_open=16, human_locked=0)
-- module__spi_regs__interrupts: rtl/authoring_packets/module__spi_regs__interrupts.json (llm_open=8, human_locked=0)
-- module__spi_regs__error_handling: rtl/authoring_packets/module__spi_regs__error_handling.json (llm_open=2, human_locked=0)
-- module__spi_regs__equivalence: rtl/authoring_packets/module__spi_regs__equivalence.json (llm_open=1, human_locked=0)
-- module__spi_regs__workflow_todo: rtl/authoring_packets/module__spi_regs__workflow_todo.json (llm_open=1, human_locked=0)
-- module__spi_fifo: rtl/authoring_packets/module__spi_fifo.json (llm_open=9, human_locked=0)
-- module__spi_clkgen: rtl/authoring_packets/module__spi_clkgen.json (llm_open=21, human_locked=0)
+- module__spi_clkgen: rtl/authoring_packets/module__spi_clkgen.json (llm_open=2, human_locked=0)
+- module__spi_shift__function_model_01: rtl/authoring_packets/module__spi_shift__function_model_01.json (llm_open=5, human_locked=0)
+- module__spi_shift__function_model_02: rtl/authoring_packets/module__spi_shift__function_model_02.json (llm_open=5, human_locked=0)
+- module__spi_shift__cycle_model: rtl/authoring_packets/module__spi_shift__cycle_model.json (llm_open=1, human_locked=0)
+- module__spi_shift__features: rtl/authoring_packets/module__spi_shift__features.json (llm_open=1, human_locked=0)
+- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
 
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=7, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=5, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 

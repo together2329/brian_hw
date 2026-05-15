@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 18
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.ordering, cycle_model.pipeline, features, fsm, fsm.channel_level, function_model, function_model.transactions
 - Module slice: 4/7 section=fsm task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.channel_level.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.states.state_0.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: value=IDLE.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -62,14 +62,14 @@ SSOT item context: value=IDLE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.channel_level.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.states.state_1.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: value=CHECK_LAUNCH.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -83,14 +83,14 @@ SSOT item context: value=CHECK_LAUNCH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.channel_level.states.state_2
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.states.state_2.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: value=ASSERT_CS.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -104,14 +104,14 @@ SSOT item context: value=ASSERT_CS.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.channel_level.states.state_3
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.states.state_3.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: value=SHIFT_EDGE.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -125,14 +125,14 @@ SSOT item context: value=SHIFT_EDGE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.channel_level.states.state_4
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.states.state_4.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: value=SAMPLE_EDGE.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -146,14 +146,14 @@ SSOT item context: value=SAMPLE_EDGE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.channel_level.states.state_5
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.states.state_5.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: value=COMPLETE.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -167,14 +167,14 @@ SSOT item context: value=COMPLETE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.channel_level.states.state_6
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.states.state_6.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: value=ERROR_SUPPRESS.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -188,14 +188,14 @@ SSOT item context: value=ERROR_SUPPRESS.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.channel_level.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.transitions.transition_0.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: from=IDLE; to=CHECK_LAUNCH; condition=start_pulse.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -210,14 +210,14 @@ SSOT item context: from=IDLE; to=CHECK_LAUNCH; condition=start_pulse.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.channel_level.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.transitions.transition_1.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: from=CHECK_LAUNCH; to=ASSERT_CS; condition=launch_gate_true.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -232,14 +232,14 @@ SSOT item context: from=CHECK_LAUNCH; to=ASSERT_CS; condition=launch_gate_true.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.channel_level.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.transitions.transition_2.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: from=CHECK_LAUNCH; to=ERROR_SUPPRESS; condition=illegal_cs_or_width.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -254,14 +254,14 @@ SSOT item context: from=CHECK_LAUNCH; to=ERROR_SUPPRESS; condition=illegal_cs_or
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.channel_level.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.transitions.transition_3.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: from=CHECK_LAUNCH; to=IDLE; condition=launch_gate_false_without_fault.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -276,14 +276,14 @@ SSOT item context: from=CHECK_LAUNCH; to=IDLE; condition=launch_gate_false_witho
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.channel_level.transitions.transition_4
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.transitions.transition_4.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: from=ASSERT_CS; to=SHIFT_EDGE; condition=prescale_tick.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -298,14 +298,14 @@ SSOT item context: from=ASSERT_CS; to=SHIFT_EDGE; condition=prescale_tick.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.channel_level.transitions.transition_5
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.transitions.transition_5.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: from=SHIFT_EDGE; to=SAMPLE_EDGE; condition=mode_edge_progress.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -320,14 +320,14 @@ SSOT item context: from=SHIFT_EDGE; to=SAMPLE_EDGE; condition=mode_edge_progress
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.channel_level.transitions.transition_6
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.transitions.transition_6.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: from=SAMPLE_EDGE; to=SHIFT_EDGE; condition=bit_index_not_last.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -342,14 +342,14 @@ SSOT item context: from=SAMPLE_EDGE; to=SHIFT_EDGE; condition=bit_index_not_last
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.channel_level.transitions.transition_7
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.transitions.transition_7.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: from=SAMPLE_EDGE; to=COMPLETE; condition=bit_index_last.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -364,14 +364,14 @@ SSOT item context: from=SAMPLE_EDGE; to=COMPLETE; condition=bit_index_last.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.channel_level.transitions.transition_8
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.transitions.transition_8.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: from=COMPLETE; to=ASSERT_CS; condition=continuous_cs_and_next_launch_ready.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -386,14 +386,14 @@ SSOT item context: from=COMPLETE; to=ASSERT_CS; condition=continuous_cs_and_next
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.channel_level.transitions.transition_9
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.transitions.transition_9.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: from=COMPLETE; to=IDLE; condition=otherwise.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -408,14 +408,14 @@ SSOT item context: from=COMPLETE; to=IDLE; condition=otherwise.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.channel_level.transitions.transition_10
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.channel_level.transitions.transition_10.
 Owner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.
 SSOT item context: from=ERROR_SUPPRESS; to=IDLE; condition=one_cycle_report_done.
-- Current reason: Owner RTL file is missing: rtl/spi_shift.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented

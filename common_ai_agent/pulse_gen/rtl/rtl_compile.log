@@ -1,0 +1,2 @@
+rtl/pulse_gen.sv:25: error: 'PRESETn' has already been declared in this scope.
+rtl/pulse_gen.sv:9:      : It was declared here as a net.
