@@ -1864,10 +1864,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     if (centerLayout !== 'tabbed') return;
     if (_qcardActiveFlow && !_qcardSubmitted && mainTab !== 'qa') {
       setMainTab('qa');
-    } else if (!_qcardActiveFlow && mainTab === 'qa') {
+    } else if (!_qcardActiveFlow && mainTab === 'qa' && workflow !== 'ssot-gen') {
       setMainTab('chat');
     }
-  }, [centerLayout, _qcardActiveFlow, _qcardSubmitted]);
+  }, [centerLayout, _qcardActiveFlow, _qcardSubmitted, workflow]);
 
   // Keyboard navigation cursor for the ask_user inline form.
   // Index space: 0..opts.length-1 = option rows, opts.length = custom-text row,
@@ -1893,6 +1893,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     }
     if (workflow === 'coverage') {
       setMainTab(WORKFLOW_REPORT_TABS[workflow] ? 'workflow_report' : 'coverage');
+      return;
+    }
+    if (workflow === 'ssot-gen') {
+      setMainTab('qa');
       return;
     }
     if (WORKFLOW_REPORT_TABS[workflow]) {
@@ -3529,6 +3533,32 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 }}
               >{workflowReportMeta.label}</span>
             )}
+            {showQaTab && workflow === 'ssot-gen' && (
+              <span
+                className="tab-chip"
+                onClick={() => setMainTab('qa')}
+                title={pendingQcard ? 'Answer the agent\'s questions' : 'SSOT Q&A session'}
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2,
+                  position: 'relative',
+                  color: mainTab === 'qa' ? 'var(--warn)' : (pendingQcard ? 'var(--warn)' : 'var(--fg-mute)'),
+                  background: mainTab === 'qa' ? 'color-mix(in oklch, var(--warn) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'qa' ? 'var(--warn)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                }}
+              >
+                Q&amp;A Session
+                {pendingQcard && mainTab !== 'qa' && (
+                  <span style={{
+                    position: 'absolute', top: 1, right: 1,
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: 'var(--warn)',
+                    animation: 'pulse 1.5s infinite',
+                  }} />
+                )}
+              </span>
+            )}
             <span
               className="tab-chip"
               onClick={() => setMainTab('chat')}
@@ -3556,7 +3586,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 }}
               >ssot</span>
             )}
-            {showQaTab && (
+            {showQaTab && workflow !== 'ssot-gen' && (
               <span
                 className="tab-chip"
                 onClick={() => setMainTab('qa')}
@@ -3806,15 +3836,23 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 Git · loading…
               </div>
             )
-          ) : (
+            ) : (
             /* mainTab === 'qa' — SSOT-GEN QA board or active ask_user */
-            <div style={{ flex: 1, overflow: 'auto', padding: '14px 18px' }}>
+            <div style={{
+              flex: 1,
+              minHeight: 0,
+              overflow: pendingQcard ? 'auto' : 'hidden',
+              padding: pendingQcard ? '14px 18px' : 0,
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
               {pendingQcard ? (
                 <AskUserPrompt
                   flowId={pendingQcard.flowId}
                   state={qaState[pendingQcard.flowId]}
                   sel={askSel}
                   intent={intent}
+                  fullHeight={true}
                   onSel={setAskSel}
                   onToggle={toggleOpt}
                   onCustom={setCustom}
@@ -3832,6 +3870,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   onSelectSession={activateSsotQaSession}
                   onBack={() => setMainTab('chat')}
                   onRefresh={() => { refreshSsotQa(); refreshSsotQaSessions(); }}
+                  onRunCommand={submitMsg}
                   onUsePending={(_, text, opts = {}) => {
                     setInput(text || '');
                     if (opts?.focusChat !== false) {
@@ -3904,9 +3943,6 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                     setMainTab('chat');
                   }}
                 />
-              )}
-              {visibleQaHistory.length > 0 && (
-                <QaHistoryPanel history={visibleQaHistory} onClear={clearQaHistory} />
               )}
             </div>
           )}
@@ -5668,7 +5704,7 @@ const QaHistoryPanel = ({ history, onClear }) => {
 // ☐/☒ "answered" marker, plus a final ✔ Submit tab. Active tab
 // content is shown using the same option/custom widgets; state lives
 // in `state.states[active]` instead of the flat `state.opts/state.custom`.
-const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmit, onChat, onSel, onSetTab, onAdvance }) => {
+const AskUserPrompt = ({ flowId, state, sel, intent, fullHeight = false, onToggle, onCustom, onSubmit, onChat, onSel, onSetTab, onAdvance }) => {
   const flow = window.QA_FLOWS[flowId];
   if (!flow || !state) return null;
 
@@ -5822,6 +5858,9 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
         padding: '10px 14px 8px',
         outline: 'none',
         boxShadow: '0 -2px 0 0 color-mix(in oklch, var(--accent) 25%, transparent)',
+        height: fullHeight ? '100%' : undefined,
+        minHeight: fullHeight ? 0 : undefined,
+        overflow: fullHeight ? 'auto' : undefined,
       }}
     >
       {/* header — mimics the screenshot: "▸ ask_user · ✓ Submit" */}

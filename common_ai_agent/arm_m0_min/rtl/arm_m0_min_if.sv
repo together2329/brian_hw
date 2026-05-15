@@ -20,7 +20,10 @@ module arm_m0_min_if #(
     output logic             i_hmastlock,
     input  logic             i_hready,
     input  logic [31:0]      i_hrdata,
-    input  logic             i_hresp
+    input  logic             i_hresp,
+    input  logic             d_hready,
+    input  logic [XLEN-1:0]  d_hwdata,
+    input  logic [1:0]       d_htrans
 );
 
     localparam [1:0] HTRANS_IDLE   = 2'b00,

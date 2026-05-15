@@ -47,11 +47,13 @@ module arm_m0_min #(
         .clk(clk), .rst(rst), .fault_halt(fault_halt), .hold_pc(hold_pc), .branch_taken(branch_taken),
         .branch_target(branch_target), .pc_out(pc), .if_valid(if_valid), .if_instr(if_instr), .i_haddr(i_haddr),
         .i_htrans(i_htrans), .i_hwrite(i_hwrite), .i_hsize(i_hsize), .i_hburst(i_hburst), .i_hprot(i_hprot),
-        .i_hmastlock(i_hmastlock), .i_hready(i_hready), .i_hrdata(i_hrdata), .i_hresp(i_hresp)
+        .i_hmastlock(i_hmastlock), .i_hready(i_hready), .i_hrdata(i_hrdata), .i_hresp(i_hresp),
+        .d_hready(d_hready), .d_hwdata(d_hwdata), .d_htrans(d_htrans)
     );
 
     arm_m0_min_id #(.XLEN(XLEN)) u_id (
-        .fault_halt(fault_halt), .if_valid(if_valid), .if_instr(if_instr), .pc_in(pc), .nzcv(nzcv),
+        .fault_halt(fault_halt), .i_hready(i_hready), .i_hresp(i_hresp), .d_hready(d_hready), .d_hresp(d_hresp),
+        .if_valid(if_valid), .if_instr(if_instr), .pc_in(pc), .nzcv(nzcv),
         .id_valid(id_valid), .rs1_addr(rs1_addr), .rs2_addr(rs2_addr), .rd_addr(rd_addr), .imm_ext(imm_ext), .alu_op(alu_op),
         .is_cmp(is_cmp), .is_ldr(is_ldr), .is_str(is_str), .is_b(is_b), .is_beq(is_beq), .is_bne(is_bne), .is_undef(is_undef)
     );
