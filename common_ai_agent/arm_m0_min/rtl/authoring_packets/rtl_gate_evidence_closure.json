@@ -985,7 +985,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=27 required=66; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=1 required=5; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=5",
+        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=52 required=66; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=4 required=5; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=5",
         "required": true,
         "status": "open"
       }
