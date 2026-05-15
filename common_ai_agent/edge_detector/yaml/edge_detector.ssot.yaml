@@ -80,6 +80,13 @@ io_list:
       description: "Edge detection output pulses"
       ports:
         - { name: "edge_o", width: "WIDTH", direction: "output", description: "One-cycle pulse per detected edge" }
+    - name: "interrupt"
+      type: "custom"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Edge detection interrupt output"
+      ports:
+        - { name: "irq_o", width: 1, direction: "output", description: "Interrupt output, active-high level" }
     - name: "apb_csr"
       type: "APB4"
       role: "slave"
