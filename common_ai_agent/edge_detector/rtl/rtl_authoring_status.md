@@ -5,7 +5,7 @@
 - Top: edge_detector
 - Packets: 20
 - LLM-actionable tasks: 1
-- Human-locked tasks: 2
+- Human-locked tasks: 1
 - Tool-evidence tasks: 4
 - Deferred human QA allowed: True
 - PASS allowed: False
@@ -23,7 +23,7 @@
 
 ## Human-Locked Queue
 
-- rtl_gate_human_closure: human_locked=2, json=rtl/authoring_packets/rtl_gate_human_closure.json
+- rtl_gate_human_closure: human_locked=1, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

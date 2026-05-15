@@ -291,7 +291,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "edge_detector",
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -300,7 +300,7 @@
       {
         "gate_kind": "protocol_assertion_evidence",
         "owner_module": "edge_detector",
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "status": "open",
@@ -309,7 +309,7 @@
       {
         "gate_kind": "fl_rtl_goal_audit",
         "owner_module": "edge_detector",
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "status": "open",
@@ -356,7 +356,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -381,7 +381,7 @@
           "SSOT cycle_model/protocol rules are machine-checkable.",
           "Simulation has run after RTL edits."
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "stage_sequence": [
           "ssot-protocol-assertions",
@@ -404,7 +404,7 @@
         "prerequisites": [
           "FL model, equivalence goals, TB, and simulation evidence are current."
         ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "stage_sequence": [
           "ssot-fl-model",
@@ -665,7 +665,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -713,7 +713,7 @@
           "rtl_todo_plan.json task criteria",
           "verify/protocol_assertions.sva"
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "required": true,
         "status": "open"
       }
@@ -762,7 +762,7 @@
           "rtl_todo_plan.json task criteria",
           "sim/fl_rtl_goal_audit.json"
         ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "required": true,
         "status": "open"
       }
@@ -819,7 +819,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "3c30a4f3a5718dde0b37733c98afe9bb34a0a29bc28e4390f27938df3af48ff4",
+  "todo_plan_sha256": "a1b1b474fbfb41ff24877fdaffc545131738cb075cb8a3f6ed7b2a806c2a2e59",
   "top": "edge_detector",
   "type": "rtl_authoring_packet"
 }

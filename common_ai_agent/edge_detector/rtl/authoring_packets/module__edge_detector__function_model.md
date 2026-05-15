@@ -315,7 +315,7 @@ SSOT item context: value=irq_o = |edge_o && irq_enable.
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.output_rules.edge_o.
 Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.edge_o.
-SSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}; width=WIDTH.
+SSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode_mask & enable; width=WIDTH.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
@@ -324,7 +324,7 @@ SSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode
   - Traceability keeps source_ref function_model.transactions.DETECT.output_rules.edge_o
   - Primary implementation evidence is in rtl/edge_detector.sv
   - edge_o width matches SSOT value WIDTH
-  - edge_o RTL expression implements SSOT expression (curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}
+  - edge_o RTL expression implements SSOT expression (curr_sync ^ prev_sync) & mode_mask & enable
   - DUT port edge_o is the implementation/observation point for edge_o
   - edge_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.DETECT.output_rules.edge_o
@@ -339,7 +339,7 @@ SSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.output_rules.irq_o.
 Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.irq_o.
-SSOT item context: name=irq_o; port=irq_o; expr=|edge_o && irq_enable; width=1.
+SSOT item context: name=irq_o; port=irq_o; expr=edge_o and irq_enable; width=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
@@ -348,7 +348,7 @@ SSOT item context: name=irq_o; port=irq_o; expr=|edge_o && irq_enable; width=1.
   - Traceability keeps source_ref function_model.transactions.DETECT.output_rules.irq_o
   - Primary implementation evidence is in rtl/edge_detector.sv
   - irq_o width matches SSOT value 1
-  - irq_o RTL expression implements SSOT expression |edge_o && irq_enable
+  - irq_o RTL expression implements SSOT expression edge_o and irq_enable
   - DUT port irq_o is the implementation/observation point for irq_o
   - irq_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.DETECT.output_rules.irq_o

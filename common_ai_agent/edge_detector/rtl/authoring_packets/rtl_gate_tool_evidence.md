@@ -29,9 +29,9 @@
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, decomposition.units.csr_decode, decomposition.units.edge_detect, decomposition.units.sync, features, function_model, function_model.state_variables.control_reg, function_model.state_variables.prev_sync, function_model.state_variables.status_overflow, function_model.state_variables.status_sticky, function_model.state_variables.sync_chain, function_model.transactions.DETECT, function_model.transactions.DETECT.inputs.signal_i_at_PCLK_domain_after_sync
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=2, min_procedural_blocks=4, min_source_files=2, min_state_updates=4
 - Tool-evidence blockers:
-  - dynamic_todo_closure: 6 required non-closure TODO(s) remain open.
-  - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
-  - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
+  - dynamic_todo_closure: 5 required non-closure TODO(s) remain open.
+  - protocol_assertion_evidence: Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.
+  - fl_rtl_goal_audit: FL-vs-RTL goal audit is not clean.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
 - Tool-evidence runbook:
   - dynamic_todo_closure: stages=audit-rtl; artifact=edge_detector/rtl/rtl_todo_plan.json
@@ -124,7 +124,7 @@ Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
-- Current reason: 6 required non-closure TODO(s) remain open.
+- Current reason: 5 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero
@@ -143,7 +143,7 @@ Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 - Detail: PL330-level RTL needs protocol-checker style evidence for interface, ordering, valid/ready, reset, and backpressure rules. The assertion source comes from SSOT cycle_model; the pass condition comes from real simulation evidence.
 SSOT ref: quality_gates.rtl_gen.protocol_assertion_evidence.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
-- Current reason: Missing protocol assertion artifact: verify/protocol_assertions.sva.
+- Current reason: Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.
 - Criteria:
   - verify/protocol_assertions.sva exists
   - verify/protocol_assertions.summary.json has assertions_total > 0
@@ -165,7 +165,7 @@ Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 - Detail: Passing compile/lint is not enough. The final RTL must be proven against FunctionalModel-derived equivalence goals using real RTL-observed evidence.
 SSOT ref: quality_gates.rtl_gen.fl_rtl_goal_audit.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
-- Current reason: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
+- Current reason: FL-vs-RTL goal audit is not clean.
 - Criteria:
   - sim/fl_rtl_goal_audit.json exists
   - fl_rtl_goal_audit.json is newer than or equal to every listed DUT RTL source

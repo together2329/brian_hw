@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 7,
+    "open_required_todos": 6,
     "orphan_tasks": 0,
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:28:03Z",
+  "generated_at": "2026-05-15T02:36:46Z",
   "ip": "edge_detector",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 5,
@@ -1474,7 +1474,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1529,7 +1529,7 @@
           "rtl_todo_plan.json task criteria",
           "governance/authority.json"
         ],
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json",
         "required": true,
         "status": "open"
       }
@@ -1670,9 +1670,9 @@
           "rtl_todo_plan.json task criteria",
           "model/cycle_model.py"
         ],
-        "reason": "Missing executable cycle model: model/cycle_model.py.",
+        "reason": "Cycle model artifact and self-check are present.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1720,7 +1720,7 @@
           "rtl_todo_plan.json task criteria",
           "verify/protocol_assertions.sva"
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "required": true,
         "status": "open"
       }
@@ -1771,7 +1771,7 @@
           "rtl_todo_plan.json task criteria",
           "sim/fl_rtl_goal_audit.json"
         ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "required": true,
         "status": "open"
       }
@@ -3610,13 +3610,12 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.output_rules.edge_o",
         "Primary implementation evidence is in rtl/edge_detector.sv",
         "edge_o width matches SSOT value WIDTH",
-        "edge_o RTL expression implements SSOT expression (curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}",
+        "edge_o RTL expression implements SSOT expression (curr_sync ^ prev_sync) & mode_mask & enable",
         "DUT port edge_o is the implementation/observation point for edge_o",
         "edge_o is not implemented only in FunctionalModel or scoreboard code"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.edge_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.edge_o.\nSSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}; width=WIDTH.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.edge_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.edge_o.\nSSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode_mask & enable; width=WIDTH.",
       "evidence_terms": [
-        "WIDTH",
         "curr",
         "curr_sync",
         "edge",
@@ -3637,7 +3636,7 @@
       "requires_static_rtl_evidence": true,
       "source_ref": "function_model.transactions.DETECT.output_rules.edge_o",
       "ssot_context": {
-        "expr": "(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}",
+        "expr": "(curr_sync ^ prev_sync) & mode_mask & enable",
         "name": "edge_o",
         "port": "edge_o",
         "width": "WIDTH"
@@ -3646,9 +3645,8 @@
         "function_model.transactions.DETECT.output_rules.edge_o"
       ],
       "static_evidence": {
-        "matched_count": 11,
+        "matched_count": 10,
         "matched_terms": [
-          "WIDTH",
           "curr",
           "curr_sync",
           "edge",
@@ -3664,7 +3662,6 @@
         "required": true,
         "required_match_count": 2,
         "required_terms": [
-          "WIDTH",
           "curr",
           "curr_sync",
           "edge",
@@ -3702,11 +3699,11 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.output_rules.irq_o",
         "Primary implementation evidence is in rtl/edge_detector.sv",
         "irq_o width matches SSOT value 1",
-        "irq_o RTL expression implements SSOT expression |edge_o && irq_enable",
+        "irq_o RTL expression implements SSOT expression edge_o and irq_enable",
         "DUT port irq_o is the implementation/observation point for irq_o",
         "irq_o is not implemented only in FunctionalModel or scoreboard code"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.irq_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.irq_o.\nSSOT item context: name=irq_o; port=irq_o; expr=|edge_o && irq_enable; width=1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.irq_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.irq_o.\nSSOT item context: name=irq_o; port=irq_o; expr=edge_o and irq_enable; width=1.",
       "evidence_terms": [
         "edge",
         "edge_o",
@@ -3724,7 +3721,7 @@
       "requires_static_rtl_evidence": true,
       "source_ref": "function_model.transactions.DETECT.output_rules.irq_o",
       "ssot_context": {
-        "expr": "|edge_o && irq_enable",
+        "expr": "edge_o and irq_enable",
         "name": "irq_o",
         "port": "irq_o",
         "width": "1"
@@ -7061,17 +7058,17 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 7,
+    "open_required_tasks": 6,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
         "task_id": "RTL-0020"
       },
@@ -7083,19 +7080,13 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing executable cycle model: model/cycle_model.py.",
-        "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-        "task_id": "RTL-0023"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "task_id": "RTL-0024"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "task_id": "RTL-0025"
       },
@@ -7106,7 +7097,7 @@
         "task_id": "RTL-0026"
       }
     ],
-    "required_passed": 121,
+    "required_passed": 122,
     "required_total": 128,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

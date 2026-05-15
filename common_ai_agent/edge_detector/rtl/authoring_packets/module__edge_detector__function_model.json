@@ -1087,13 +1087,12 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.output_rules.edge_o",
         "Primary implementation evidence is in rtl/edge_detector.sv",
         "edge_o width matches SSOT value WIDTH",
-        "edge_o RTL expression implements SSOT expression (curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}",
+        "edge_o RTL expression implements SSOT expression (curr_sync ^ prev_sync) & mode_mask & enable",
         "DUT port edge_o is the implementation/observation point for edge_o",
         "edge_o is not implemented only in FunctionalModel or scoreboard code"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.edge_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.edge_o.\nSSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}; width=WIDTH.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.edge_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.edge_o.\nSSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode_mask & enable; width=WIDTH.",
       "evidence_terms": [
-        "WIDTH",
         "curr",
         "curr_sync",
         "edge",
@@ -1112,7 +1111,7 @@
       "required": true,
       "source_ref": "function_model.transactions.DETECT.output_rules.edge_o",
       "ssot_context": {
-        "expr": "(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}",
+        "expr": "(curr_sync ^ prev_sync) & mode_mask & enable",
         "name": "edge_o",
         "port": "edge_o",
         "width": "WIDTH"
@@ -1121,9 +1120,8 @@
         "function_model.transactions.DETECT.output_rules.edge_o"
       ],
       "static_evidence": {
-        "matched_count": 11,
+        "matched_count": 10,
         "matched_terms": [
-          "WIDTH",
           "curr",
           "curr_sync",
           "edge",
@@ -1139,7 +1137,6 @@
         "required": true,
         "required_match_count": 2,
         "required_terms": [
-          "WIDTH",
           "curr",
           "curr_sync",
           "edge",
@@ -1177,11 +1174,11 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.output_rules.irq_o",
         "Primary implementation evidence is in rtl/edge_detector.sv",
         "irq_o width matches SSOT value 1",
-        "irq_o RTL expression implements SSOT expression |edge_o && irq_enable",
+        "irq_o RTL expression implements SSOT expression edge_o and irq_enable",
         "DUT port irq_o is the implementation/observation point for irq_o",
         "irq_o is not implemented only in FunctionalModel or scoreboard code"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.irq_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.irq_o.\nSSOT item context: name=irq_o; port=irq_o; expr=|edge_o && irq_enable; width=1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.irq_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.irq_o.\nSSOT item context: name=irq_o; port=irq_o; expr=edge_o and irq_enable; width=1.",
       "evidence_terms": [
         "edge",
         "edge_o",
@@ -1197,7 +1194,7 @@
       "required": true,
       "source_ref": "function_model.transactions.DETECT.output_rules.irq_o",
       "ssot_context": {
-        "expr": "|edge_o && irq_enable",
+        "expr": "edge_o and irq_enable",
         "name": "irq_o",
         "port": "irq_o",
         "width": "1"
@@ -1538,7 +1535,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "3c30a4f3a5718dde0b37733c98afe9bb34a0a29bc28e4390f27938df3af48ff4",
+  "todo_plan_sha256": "a1b1b474fbfb41ff24877fdaffc545131738cb075cb8a3f6ed7b2a806c2a2e59",
   "top": "edge_detector",
   "type": "rtl_authoring_packet"
 }

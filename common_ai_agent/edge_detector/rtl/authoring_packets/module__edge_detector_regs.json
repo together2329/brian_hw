@@ -200,7 +200,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "3c30a4f3a5718dde0b37733c98afe9bb34a0a29bc28e4390f27938df3af48ff4",
+  "todo_plan_sha256": "a1b1b474fbfb41ff24877fdaffc545131738cb075cb8a3f6ed7b2a806c2a2e59",
   "top": "edge_detector",
   "type": "rtl_authoring_packet"
 }

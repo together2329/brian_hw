@@ -47,7 +47,7 @@
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:35:05Z",
+  "generated_at": "2026-05-15T02:36:40Z",
   "ip": "fifo_sync",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 18,
@@ -144,7 +144,7 @@
       "control_flow": 17,
       "depth_score": 185,
       "instances": 5,
-      "lines": 471,
+      "lines": 472,
       "logic_modules": 6,
       "modules": 6,
       "nonconstant_assigns": 29,
@@ -15908,7 +15908,7 @@
     ],
     "issues": [
       {
-        "actual_range": "[COUNT_WIDTH-1:0]",
+        "actual_range": "[CLOG2_DEPTH_PLUS_ONE-1:0]",
         "expected_width": "$clog2(DEPTH+1)",
         "issue": "RTL top port width/range does not match SSOT",
         "port": "count_o",

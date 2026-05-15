@@ -25,12 +25,11 @@
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 2
+- Human-locked open tasks: 1
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, decomposition.units.csr_decode, decomposition.units.edge_detect, decomposition.units.sync, features, function_model, function_model.state_variables.control_reg, function_model.state_variables.prev_sync, function_model.state_variables.status_overflow, function_model.state_variables.status_sticky, function_model.state_variables.sync_chain, function_model.transactions.DETECT, function_model.transactions.DETECT.inputs.signal_i_at_PCLK_domain_after_sync
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=2, min_procedural_blocks=4, min_source_files=2, min_state_updates=4
 - Locked-truth blockers:
-  - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
-  - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
+  - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json
 - SSOT connection contracts:
   - edge_detector.PCLK <= PCLK (integration.connections[0])
   - edge_detector.PRESETn <= PRESETn (integration.connections[1])
@@ -128,7 +127,7 @@ Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 - Detail: PL330-level RTL cannot proceed from prose alone. It must carry machine-readable authority artifacts that separate human-owned truth from LLM-editable implementation.
 SSOT ref: quality_gates.rtl_gen.golden_authority_artifacts.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
-- Current reason: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
+- Current reason: Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json
 - Criteria:
   - governance/authority.json exists
   - authority.json is the current IP human_llm_authority_manifest
@@ -168,13 +167,13 @@ Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.cycle_model_artifacts
 - Detail: Complex DMA-class RTL needs a cycle-level oracle for latency, handshake, ordering, backpressure, and performance-sensitive behavior.
 SSOT ref: quality_gates.rtl_gen.cycle_model_artifacts.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
-- Current reason: Missing executable cycle model: model/cycle_model.py.
+- Current reason: Cycle model artifact and self-check are present.
 - Criteria:
   - model/cycle_model.py exists
   - model/cl_model_check.json passed=true

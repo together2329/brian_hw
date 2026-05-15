@@ -20,27 +20,18 @@
       {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "edge_detector",
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
         "status": "open",
         "task_id": "RTL-0020"
-      },
-      {
-        "gate_kind": "cycle_model_artifacts",
-        "owner_module": "edge_detector",
-        "reason": "Missing executable cycle model: model/cycle_model.py.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-        "status": "open",
-        "task_id": "RTL-0023"
       }
     ],
     "blocked_by_tool_evidence": [
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "edge_detector",
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -49,7 +40,7 @@
       {
         "gate_kind": "protocol_assertion_evidence",
         "owner_module": "edge_detector",
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "status": "open",
@@ -58,7 +49,7 @@
       {
         "gate_kind": "fl_rtl_goal_audit",
         "owner_module": "edge_detector",
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "status": "open",
@@ -95,7 +86,7 @@
     "draft_allowed": true,
     "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 7,
+    "open_required_todos": 6,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -118,7 +109,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -143,7 +134,7 @@
           "SSOT cycle_model/protocol rules are machine-checkable.",
           "Simulation has run after RTL edits."
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "stage_sequence": [
           "ssot-protocol-assertions",
@@ -166,7 +157,7 @@
         "prerequisites": [
           "FL model, equivalence goals, TB, and simulation evidence are current."
         ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "stage_sequence": [
           "ssot-fl-model",
@@ -267,20 +258,11 @@
           {
             "gate_kind": "golden_authority_artifacts",
             "owner_module": "edge_detector",
-            "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+            "reason": "Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
             "status": "open",
             "task_id": "RTL-0020"
-          },
-          {
-            "gate_kind": "cycle_model_artifacts",
-            "owner_module": "edge_detector",
-            "reason": "Missing executable cycle model: model/cycle_model.py.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-            "status": "open",
-            "task_id": "RTL-0023"
           }
         ],
         "blocked_by_tool_evidence": [],
@@ -288,11 +270,11 @@
         "deferred_human_qa_allowed": true,
         "draft_allowed": false,
         "evidence_closure_allowed": true,
-        "human_locked_open_count": 2,
+        "human_locked_open_count": 1,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 2,
+        "open_required_count": 1,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -314,7 +296,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 2,
+        "open_required_count": 1,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.ssot_required_sections",
@@ -326,8 +308,8 @@
           "quality_gates.rtl_gen.cycle_model_artifacts"
         ],
         "status_counts": {
-          "open": 2,
-          "pass": 5
+          "open": 1,
+          "pass": 6
         },
         "task_count": 7
       }
@@ -339,7 +321,7 @@
           {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "edge_detector",
-            "reason": "6 required non-closure TODO(s) remain open.",
+            "reason": "5 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -348,7 +330,7 @@
           {
             "gate_kind": "protocol_assertion_evidence",
             "owner_module": "edge_detector",
-            "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+            "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
             "status": "open",
@@ -357,7 +339,7 @@
           {
             "gate_kind": "fl_rtl_goal_audit",
             "owner_module": "edge_detector",
-            "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+            "reason": "FL-vs-RTL goal audit is not clean.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
             "status": "open",
@@ -404,7 +386,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "6 required non-closure TODO(s) remain open.",
+            "reason": "5 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -429,7 +411,7 @@
               "SSOT cycle_model/protocol rules are machine-checkable.",
               "Simulation has run after RTL edits."
             ],
-            "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+            "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
             "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
             "stage_sequence": [
               "ssot-protocol-assertions",
@@ -452,7 +434,7 @@
             "prerequisites": [
               "FL model, equivalence goals, TB, and simulation evidence are current."
             ],
-            "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+            "reason": "FL-vs-RTL goal audit is not clean.",
             "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
             "stage_sequence": [
               "ssot-fl-model",
@@ -1616,7 +1598,7 @@
     "deferred_human_qa_allowed": true,
     "gate_packets": 3,
     "human_locked_packets": 1,
-    "human_locked_tasks": 2,
+    "human_locked_tasks": 1,
     "llm_actionable_packets": 1,
     "llm_actionable_tasks": 1,
     "max_packet_required_tasks": 20,
@@ -1649,7 +1631,7 @@
     "min_state_updates": 4,
     "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
   },
-  "todo_plan_sha256": "3c30a4f3a5718dde0b37733c98afe9bb34a0a29bc28e4390f27938df3af48ff4",
+  "todo_plan_sha256": "a1b1b474fbfb41ff24877fdaffc545131738cb075cb8a3f6ed7b2a806c2a2e59",
   "top": "edge_detector",
   "type": "rtl_authoring_plan"
 }

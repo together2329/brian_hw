@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "ip": "edge_detector",
-  "generated_at": "2026-05-15T02:32:27Z",
+  "generated_at": "2026-05-15T02:37:07Z",
   "emitter": "fl-model-gen",
   "produced": [
     "model/functional_model.py",
