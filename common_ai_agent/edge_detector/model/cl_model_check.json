@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "edge_detector",
+  "source": "model/cycle_model.py",
+  "backend": "python",
+  "pymtl3_available": true,
+  "timestamp": "2026-05-15T02:32:25Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "python",
+    "pymtl3_available": true,
+    "transactions": 1,
+    "results_observed": 1,
+    "coverage_bins": 6,
+    "coverage_hit": 6,
+    "performance_targets": {
+      "frequency_mhz": 50,
+      "throughput": {
+        "sustained_edges_per_cycle": 1,
+        "condition": "No missed edges when input changes slower than PCLK period"
+      },
+      "outstanding": {
+        "read_max": 0,
+        "write_max": 0,
+        "description": "No outstanding transactions; purely register/pipeline IP"
+      },
+      "pipeline_stages": "SYNC_STAGES + 1",
+      "queue_depth": 0
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 50,
+    "throughput": {
+      "sustained_edges_per_cycle": 1,
+      "condition": "No missed edges when input changes slower than PCLK period"
+    },
+    "outstanding": {
+      "read_max": 0,
+      "write_max": 0,
+      "description": "No outstanding transactions; purely register/pipeline IP"
+    },
+    "pipeline_stages": "SYNC_STAGES + 1",
+    "queue_depth": 0
+  },
+  "decomposition_units": 1,
+  "fcov_bins": 6
+}

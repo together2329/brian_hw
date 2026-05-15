@@ -1,0 +1,2742 @@
+{
+  "ip": "edge_detector",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "edge_detector/yaml/edge_detector.ssot.yaml",
+    "functional_model": "edge_detector/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "edge_detector/model/decomposition.json",
+    "coverage_plan": "edge_detector/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "edge_detector/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "edge_detector/yaml/edge_detector.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "edge_detector/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "edge_detector/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "edge_detector/yaml/edge_detector.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "edge_detector/yaml/edge_detector.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "edge_detector/rtl/",
+        "edge_detector/tb/",
+        "edge_detector/sim/",
+        "edge_detector/reports/",
+        "edge_detector/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 38,
+    "required": 38,
+    "optional": 0,
+    "blocked": 0,
+    "module_total": 1,
+    "module_required": 1,
+    "module_blocked": 0
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_DETECT",
+      "title": "Transaction edge_detect matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "SC2_executed",
+        "SC3_executed",
+        "fcov_rising_edge",
+        "fcov_falling_edge",
+        "fcov_both_edge",
+        "function_edge_detect",
+        "cycle_latency_edge_detect_latency",
+        "error_error_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "title": "Scenario SC1: Basic rising edge detection",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "SC10_executed",
+        "SC11_executed",
+        "SC12_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC1",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Set EDGE_MODE=1, enable=1, toggle signal_i[0] low->high"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "title": "Scenario SC2: Basic falling edge detection",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC2_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC2",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Set EDGE_MODE=2, enable=1, toggle signal_i[0] high->low"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "title": "Scenario SC3: Both-edge detection",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC3_executed",
+        "fcov_both_edge"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC3",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Set EDGE_MODE=0, enable=1, toggle signal_i[0] both directions"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[0]=1 on each transition"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "title": "Scenario SC4: Synchronizer latency",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC4",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Toggle signal_i after reset; observe first edge_o"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "First edge_o appears after SYNC_STAGES+1 cycles"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC5",
+      "title": "Scenario SC5: Sticky and overflow behavior",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC5_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC5",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Generate edge, do not clear sticky, generate another edge"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "STATUS.overflow=1; edge_o still pulses"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC6",
+      "title": "Scenario SC6: W1C clear",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[5]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC6_executed",
+        "fcov_w1c_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC6",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write 1s to STATUS after edge detection"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "STATUS.edge_sticky and STATUS.overflow cleared to 0"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC7",
+      "title": "Scenario SC7: Enable gating",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[6]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC7_executed",
+        "fcov_enable_gate"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC7",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Set enable=0, toggle signal_i"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o remains 0; STATUS unchanged"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC8",
+      "title": "Scenario SC8: Reserved mode safety",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[7]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC8_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC8",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Set EDGE_MODE=3, toggle signal_i"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o remains 0 regardless of input"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC9",
+      "title": "Scenario SC9: Interrupt generation",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[8]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC9_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC9",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Set irq_enable=1, generate edge"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "irq_o=1 same cycle as edge_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC10",
+      "title": "Scenario SC10: APB register read/write",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[9]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC10",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write CONTROL, read back; write STATUS W1C, read back"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Read data matches expected register state"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC11",
+      "title": "Scenario SC11: Illegal APB address",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[10]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC11_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC11",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Access unmapped address offset"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "PSLVERR=1, no state change"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC12",
+      "title": "Scenario SC12: Multi-bit WIDTH operation",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[11]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "SC12_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC12",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "WIDTH=8, toggle multiple signal_i bits simultaneously"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o reflects all transitions; each bit independent"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "edge_detector_protocol_model"
+      ],
+      "coverage_refs": [
+        "ccov_apb_read",
+        "ccov_apb_write",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'PSEL', 'rule': 'PSEL must be asserted before PENABLE rises; transaction begins in SETUP phase (PSEL=1, PENABLE=0).'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'sync_latency': {'min_cycles': 'SYNC_STAGES', 'max_cycles': 'SYNC_STAGES', 'description': 'Input synchronizer delay'}, 'edge_detect_latency': {'min_cycles': 1, 'max_cycles': 1, 'description': 'One-cycle combinational decode after sync'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'interrupt_latency': {'min_cycles': 0, 'max_cycles': 1, 'description': 'irq_o asserts same cycle as edge_o when irq_enable set'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "title": "Cycle/handshake rule handshake_1",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "edge_detector_protocol_model"
+      ],
+      "coverage_refs": [
+        "ccov_apb_read",
+        "ccov_apb_write",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_1",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'PENABLE', 'rule': 'PENABLE rises one cycle after PSEL to enter ACCESS phase; sampled with PREADY to complete.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'sync_latency': {'min_cycles': 'SYNC_STAGES', 'max_cycles': 'SYNC_STAGES', 'description': 'Input synchronizer delay'}, 'edge_detect_latency': {'min_cycles': 1, 'max_cycles': 1, 'description': 'One-cycle combinational decode after sync'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'interrupt_latency': {'min_cycles': 0, 'max_cycles': 1, 'description': 'irq_o asserts same cycle as edge_o when irq_enable set'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "title": "Cycle/handshake rule handshake_2",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[2]"
+      ],
+      "decomposition_refs": [
+        "edge_detector_protocol_model"
+      ],
+      "coverage_refs": [
+        "ccov_apb_read",
+        "ccov_apb_write",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_2",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'PREADY', 'rule': 'PREADY must be asserted by slave to complete the ACCESS phase; PREADY may deassert to extend wait states.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'sync_latency': {'min_cycles': 'SYNC_STAGES', 'max_cycles': 'SYNC_STAGES', 'description': 'Input synchronizer delay'}, 'edge_detect_latency': {'min_cycles': 1, 'max_cycles': 1, 'description': 'One-cycle combinational decode after sync'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'interrupt_latency': {'min_cycles': 0, 'max_cycles': 1, 'description': 'irq_o asserts same cycle as edge_o when irq_enable set'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "edge_detector_protocol_model",
+        "edge_detector_datapath_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "edge_o for cycle N reflects signal_i transition captured at cycle N-SYNC_STAGES-1."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'sync_latency': {'min_cycles': 'SYNC_STAGES', 'max_cycles': 'SYNC_STAGES', 'description': 'Input synchronizer delay'}, 'edge_detect_latency': {'min_cycles': 1, 'max_cycles': 1, 'description': 'One-cycle combinational decode after sync'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'interrupt_latency': {'min_cycles': 0, 'max_cycles': 1, 'description': 'irq_o asserts same cycle as edge_o when irq_enable set'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "title": "Ordering rule ordering_1",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]"
+      ],
+      "decomposition_refs": [
+        "edge_detector_protocol_model",
+        "edge_detector_datapath_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_1",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Interrupt updates occur on the same rising edge as edge_o assertion."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'sync_latency': {'min_cycles': 'SYNC_STAGES', 'max_cycles': 'SYNC_STAGES', 'description': 'Input synchronizer delay'}, 'edge_detect_latency': {'min_cycles': 1, 'max_cycles': 1, 'description': 'One-cycle combinational decode after sync'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'interrupt_latency': {'min_cycles': 0, 'max_cycles': 1, 'description': 'irq_o asserts same cycle as edge_o when irq_enable set'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_CONTROL",
+      "title": "Register access CONTROL",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[0]"
+      ],
+      "decomposition_refs": [
+        "edge_detector_register_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed",
+        "fcov_w1c_clear",
+        "fcov_reserved_mode",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_perf_outstanding",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CONTROL', 'offset': 0, 'width': 32, 'access': 'rw', 'reset': 2, 'category': 'control', 'description': 'Edge detection control register', 'write_side_effects': ['Writing edge_mode updates detection polarity immediately.', 'Writing enable gates edge_o generation when 0.'], 'fields': [{'name': 'edge_mode', 'bits': [1, 0], 'access': 'rw', 'reset': 2, 'write_effect': '0=rising, 1=falling, 2=both, 3=reserved', 'description': 'Edge polarity mode'}, {'name': 'enable', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'write_effect': '1=enable edge detection, 0=disable', 'description': 'Global edge detection enable'}, {'name': 'irq_enable', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'write_effect': '1=enable interrupt on edge detection', 'description': 'Interrupt enable'}, {'name': 'reserved_31_4', 'bits': [31, 4], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_STATUS",
+      "title": "Register access STATUS",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[1]"
+      ],
+      "decomposition_refs": [
+        "edge_detector_register_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed",
+        "fcov_sticky_set",
+        "fcov_overflow_set",
+        "fcov_w1c_clear",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_perf_outstanding",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'STATUS', 'offset': 4, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'status', 'description': 'Edge detection status register', 'write_side_effects': ['Writing 1 to a sticky bit clears it (W1C).'], 'fields': [{'name': 'edge_sticky', 'bits': [7, 0], 'access': 'w1c', 'reset': 0, 'write_effect': 'Write-1 clears sticky bit per WIDTH lane', 'description': 'Sticky edge detected flags (up to 8 bits)'}, {'name': 'overflow', 'bits': [8, 8], 'access': 'w1c', 'reset': 0, 'write_effect': 'Write-1 clears overflow flag', 'description': 'Edge detected while previous sticky not cleared'}, {'name': 'reserved_31_9', 'bits': [31, 9], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "title": "Register access RAW_STATUS",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[2]"
+      ],
+      "decomposition_refs": [
+        "edge_detector_register_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed",
+        "fcov_w1c_clear",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_perf_outstanding",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'RAW_STATUS', 'offset': 8, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'status', 'description': 'Raw edge detection status (non-sticky, current cycle)', 'fields': [{'name': 'edge_raw', 'bits': [7, 0], 'access': 'ro', 'reset': 0, 'description': 'Current-cycle edge detection flags'}, {'name': 'reserved_31_8', 'bits': [31, 8], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "edge_detector_protocol_model",
+        "edge_detector_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_reserved_mode",
+        "error_error_0",
+        "error_error_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "None",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'id': 'ERR_ILLEGAL_ACCESS', 'condition': 'APB access to unmapped address', 'architectural_effect': 'PSLVERR=1, no register state change'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "['First error wins per access; no cascading error states.', 'Reserved EDGE_MODE value is silently ignored (edge_o forced to 0).']"
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "title": "Required debug/waveform observability exists",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "debug_observability.waveform_must_probe"
+      ],
+      "decomposition_refs": [
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "debug_probe_capture",
+        "required_fields": [
+          "waveform_path"
+        ],
+        "constraints": [
+          "sync_chain",
+          "prev_sync",
+          "edge_o",
+          "irq_o",
+          "function_model.state_variables"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "waveform contains required probes"
+        ],
+        "latency": "throughout simulation window",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Waveform includes SSOT-required debug probes",
+        "sim_debug can inspect those probes around checked scenarios"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "tb",
+          "coverage",
+          "rtl",
+          "ssot",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MODULE_EDGE_DETECTOR",
+      "title": "Module edge_detector functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "edge_detector",
+        "rtl_file": "rtl/edge_detector.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.penable",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.psel",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s0_sync",
+        "cycle_model.pipeline.s1_edge_decode",
+        "cycle_model.pipeline.s2_output",
+        "cycle_model.reset",
+        "dataflow",
+        "decomposition.units.csr_decode",
+        "decomposition.units.edge_detect",
+        "decomposition.units.sync",
+        "features",
+        "features.apb_lite_csr",
+        "features.edge_detection",
+        "features.input_synchronization",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables.control_reg",
+        "function_model.state_variables.prev_sync",
+        "function_model.state_variables.status_overflow",
+        "function_model.state_variables.status_sticky",
+        "function_model.state_variables.sync_chain",
+        "function_model.transactions.DETECT",
+        "function_model.transactions.DETECT.inputs.signal_i_at_PCLK_domain_after_sync",
+        "function_model.transactions.DETECT.output_rules.edge_o",
+        "function_model.transactions.DETECT.output_rules.irq_o",
+        "function_model.transactions.DETECT.outputs.edge_o_width_1_0_1_for_one_cycle_per_detected_edge_matching_EDGE_MODE",
+        "function_model.transactions.DETECT.outputs.irq_o_edge_o_irq_enable",
+        "function_model.transactions.DETECT.outputs.status_overflow_edge_o_status_sticky",
+        "function_model.transactions.DETECT.outputs.status_sticky_edge_o",
+        "function_model.transactions.DETECT.preconditions.enable_1",
+        "function_model.transactions.DETECT.preconditions.sync_chain_has_propagated_at_least_SYNC_STAGES_cycles_since_reset_deassertion",
+        "function_model.transactions.DETECT.side_effects.prev_sync_updates_to_last_stage_of_sync_chain",
+        "function_model.transactions.DETECT.side_effects.sync_chain_shifts_every_PCLK_cycle",
+        "function_model.transactions.detect",
+        "function_model.transactions.detect.inputs.input_0",
+        "function_model.transactions.detect.output_rules.edge_o",
+        "function_model.transactions.detect.output_rules.irq_o",
+        "function_model.transactions.detect.outputs.output_0",
+        "function_model.transactions.detect.outputs.output_1",
+        "function_model.transactions.detect.outputs.output_2",
+        "function_model.transactions.detect.outputs.output_3",
+        "function_model.transactions.detect.preconditions.precondition_0",
+        "function_model.transactions.detect.preconditions.precondition_1",
+        "function_model.transactions.detect.side_effects.side_effect_0",
+        "function_model.transactions.detect.side_effects.side_effect_1",
+        "parameters.clock_freq_mhz",
+        "parameters.edge_mode",
+        "parameters.reset_polarity",
+        "parameters.sync_stages",
+        "parameters.width",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.num_channels",
+        "registers.config.register_width",
+        "registers.register_list.control",
+        "registers.register_list.raw_status",
+        "registers.register_list.status"
+      ],
+      "decomposition_refs": [
+        "edge_detector"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_SYNC_LATENCY",
+      "title": "Functional coverage bin ccov_sync_latency: Synchronizer delay observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.sync_latency"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_sync_latency"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "Synchronizer delay observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_EDGE_DECODE",
+      "title": "Functional coverage bin ccov_edge_decode: Edge decode stage observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_EDGE_DECODE"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_edge_decode"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "Edge decode stage observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_IRQ_SAME_CYCLE",
+      "title": "Functional coverage bin ccov_irq_same_cycle: Interrupt same-cycle assertion",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.interrupt_latency"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_irq_same_cycle"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "Interrupt same-cycle assertion"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_SYNC_LATENCY",
+      "title": "Functional coverage bin cycle_latency_sync_latency: {'min_cycles': 'SYNC_STAGES', 'max_cycles': 'SYNC_STAGES', 'description': 'Input synchronizer delay'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.sync_latency"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_latency_sync_latency"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "{'min_cycles': 'SYNC_STAGES', 'max_cycles': 'SYNC_STAGES', 'description': 'Input synchronizer delay'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_INTERRUPT_LATENCY",
+      "title": "Functional coverage bin cycle_latency_interrupt_latency: {'min_cycles': 0, 'max_cycles': 1, 'description': 'irq_o asserts same cycle as edge_o when irq_enable set'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.interrupt_latency"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_latency_interrupt_latency"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "{'min_cycles': 0, 'max_cycles': 1, 'description': 'irq_o asserts same cycle as edge_o when irq_enable set'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC",
+      "title": "Functional coverage bin cycle_pipeline_s0_sync: Propagate signal_i through sync_chain flops",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[0]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s0_sync"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "Propagate signal_i through sync_chain flops"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_EDGE_DECODE",
+      "title": "Functional coverage bin cycle_pipeline_s1_edge_decode: Compare prev_sync vs curr_sync; decode per EDGE_MODE",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[1]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s1_edge_decode"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "Compare prev_sync vs curr_sync; decode per EDGE_MODE"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S2_OUTPUT",
+      "title": "Functional coverage bin cycle_pipeline_s2_output: Assert edge_o pulse; update sticky/overflow/irq",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[2]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s2_output"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "Assert edge_o pulse; update sticky/overflow/irq"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "title": "Functional coverage bin cycle_backpressure_0: No backpressure on edge_o; downstream must accept or drop the one-cycle pulse.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure[0]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_backpressure_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "No backpressure on edge_o; downstream must accept or drop the one-cycle pulse."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "title": "Functional coverage bin cycle_perf_depth: {'pipeline_stages': 'SYNC_STAGES + 1', 'queue_depth': 0, 'description': 'Sync chain plus decode stage'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.depth"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_depth"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "{'pipeline_stages': 'SYNC_STAGES + 1', 'queue_depth': 0, 'description': 'Sync chain plus decode stage'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "title": "Functional coverage bin cycle_perf_frequency_mhz: 50",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.frequency_mhz"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "50"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "title": "Functional coverage bin cycle_perf_throughput: {'sustained_edges_per_cycle': 1, 'condition': 'No missed edges when input changes slower than PCLK period'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.throughput"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_throughput"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "{'sustained_edges_per_cycle': 1, 'condition': 'No missed edges when input changes slower than PCLK period'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NOTE_SYNC_SAMPLE_TO_EDGE_DECODE_0",
+      "title": "Functional coverage bin fsm_note_sync_sample_to_edge_decode_0: every PCLK rising edge",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.note.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "fsm_note_sync_sample_to_edge_decode_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "every PCLK rising edge"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NOTE_EDGE_DECODE_TO_OUTPUT_PULSE_1",
+      "title": "Functional coverage bin fsm_note_edge_decode_to_output_pulse_1: edge_decode matches EDGE_MODE and enable==1",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.note.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "edge_detector",
+        "edge_detector_protocol_model",
+        "edge_detector_register_model",
+        "edge_detector_datapath_model",
+        "edge_detector_error_model",
+        "edge_detector_security_model"
+      ],
+      "coverage_refs": [
+        "fsm_note_edge_decode_to_output_pulse_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "edge_detect",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion",
+          "edge_decode matches EDGE_MODE and enable==1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE",
+          "status_sticky |= edge_o",
+          "status_overflow |= edge_o & status_sticky",
+          "irq_o = |edge_o && irq_enable",
+          "edge_o",
+          "irq_o"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sync_chain shifts every PCLK cycle",
+          "prev_sync updates to last stage of sync_chain"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    }
+  ]
+}

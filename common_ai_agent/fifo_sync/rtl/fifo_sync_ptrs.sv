@@ -47,6 +47,12 @@ module fifo_sync_ptrs #(
 
     assign wr_ptr_inc = (wr_ptr_q == ADDR_LAST) ? ADDR_ZERO : (wr_ptr_q + ADDR_ONE);
     assign rd_ptr_inc = (rd_ptr_q == ADDR_LAST) ? ADDR_ZERO : (rd_ptr_q + ADDR_ONE);
+    assign almost_full_o_level = count_q;
+    assign almost_empty_o_level = count_q;
+    assign almost_full_o_next = full_o ? 1'b1 : (almost_full_o_level >= COUNT_ONE);
+    assign almost_empty_o_next = empty_o ? 1'b1 : (almost_empty_o_level <= COUNT_ONE);
+    assign wr_data_i_count_effect = push_accepted_o ? COUNT_ONE : COUNT_ZERO;
+    assign rd_data_o_count_effect = pop_accepted_o ? COUNT_ONE : COUNT_ZERO;
 
     always @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
@@ -65,9 +71,9 @@ module fifo_sync_ptrs #(
                 rd_ptr_q <= rd_ptr_inc;
             end
             if (push_accepted_o && !pop_accepted_o) begin
-                count_q <= count_q + COUNT_ONE;
+                count_q <= count_q + wr_data_i_count_effect;
             end else if (!push_accepted_o && pop_accepted_o) begin
-                count_q <= count_q - COUNT_ONE;
+                count_q <= count_q - rd_data_o_count_effect;
             end else begin
                 count_q <= count_q;
             end

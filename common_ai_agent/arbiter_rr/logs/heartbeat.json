@@ -2,6 +2,6 @@
   "model": "glm-5.1",
   "phase": "finished",
   "state": "done",
-  "status": "blocked",
-  "ts": "2026-05-15T02:31:29Z"
+  "status": "fail",
+  "ts": "2026-05-15T02:32:30Z"
 }

@@ -19,16 +19,18 @@
       ],
       "source_id": "TB-0001",
       "source_plan": "tb/tb_todo_plan.json",
-      "status": "human_review_needed",
+      "status": "rejected",
       "todo_completion": {
         "evidence_basis": [
           "arbiter_rr/tb/cocotb/test_arbiter_rr.py",
           "arbiter_rr/tb/cocotb/test_runner.py",
           "arbiter_rr/tb/cocotb/tb_manifest.json",
           "arbiter_rr/tb/cocotb/tb_generation.json",
-          "emit_goal_scoreboard_cocotb"
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check"
         ],
-        "reason": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
+        "reason": "[ssot-tb-cocotb] FAIL - generated TB needs tb-gen repair",
         "status": "open"
       }
     },
@@ -45,14 +47,16 @@
       ],
       "source_id": "TB-0002",
       "source_plan": "tb/tb_todo_plan.json",
-      "status": "human_review_needed",
+      "status": "rejected",
       "todo_completion": {
         "evidence_basis": [
           "check_pyuvm_structure returncode 0",
           "equivalence_scoreboard_self_check returncode 0",
-          "emit_goal_scoreboard_cocotb"
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check"
         ],
-        "reason": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
+        "reason": "[ssot-tb-cocotb] FAIL - generated TB needs tb-gen repair",
         "status": "open"
       }
     }
