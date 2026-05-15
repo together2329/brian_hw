@@ -890,6 +890,9 @@ quality_gates:
   coverage:
     pass: "SSOT-declared functional/code/toggle/FSM/assertion coverage goals pass or have approved waivers."
     evidence: ["cov/coverage.json"]
+  dv:
+    pass: "All test_requirements scenarios pass in simulation; scoreboard expected/got matches function_model and cycle_model."
+    evidence: ["sim/simulation.log", "sim/scoreboard_report.json", "sim/test_results.xml"]
   eda:
     pass: "Synthesis meets 50 MHz timing at generic technology; no negative slack."
     evidence: ["syn report", "sta reports"]
