@@ -2,6 +2,25 @@
 
 ## 2026-05-16
 
+- New top-level ATLAS screen: [[atlas-pipeline-screen]] (`◫ Pipeline`,
+  branch `feature_pipeline_ui`). Replaces the mock `◫ Architect`
+  screen. Each of the 14 canonical stages becomes a click on a stage
+  card with a 3-5 dot KPI scoresheet read from on-disk evidence JSON;
+  the DAG MAP at the top shows token-flow animation along edges from
+  running stages. Failed cards offer `[ go fix <owner> ]`, never
+  `[ retry ]`, per [[workflow-ownership-and-boundaries]]. Live state
+  served from a new `GET /api/pipeline/state?ip=<ip>` endpoint that
+  composes `_job_artifact_recovery` + the existing `/api/jobs` poll +
+  per-stage evidence JSON readers.
+- New wiki page [[ui-design-references]] documents external UI
+  checkouts under `~/Desktop/Project/brian_hw/external_refs/`.
+  First entry: `nexu-io/open-design` (Apache-2.0). Pattern map: their
+  `Theater/ScoreTicker` → our `MiniScoresheet`, `PanelistLane`
+  `data-role` borders → our phase-band tints, `runtime/todos.ts`
+  reverse-walk → our running-card mini-todo list, `InterruptButton`
+  Esc keybind → our running-card `⏹`, `LiveArtifactBadges` → our
+  state badges. Conceptual borrowing only — no code copied, no
+  CSS / fonts / OKLch palettes / Next.js machinery imported.
 - New IP run captured: [[arm-m0-min-pipeline-run]] — first CPU-class IP
   driven end-to-end through `ssot-gen → fl-model-gen → rtl-gen → tb-gen →
   sim → lint` with green compile/lint/sim/coverage on the headless
@@ -51,3 +70,4 @@
 - Downstream readiness validator added to `repair_ssot_schema.py`: detects (a) cyclic same-cycle output_rule dependencies per transaction, (b) `sample_condition` strings that are not DSL-parseable, (c) `sub_modules[]` entries with no ownership refs. Writes `<ip>/req/ssot_downstream_blockers.json` after canonicalization; `--strict-downstream` makes the script exit non-zero so the ssot-gen stage gates instead of pushing the problem to fl/cl/equiv/rtl.
 - `workflow/ssot-gen/system_prompt.md` now has a "DOWNSTREAM READINESS" section that tells the ssot-gen LLM the DSL rules, the no-output-cycle rule, the SV fill literal rule, the sub_module ownership refs rule, and the helper reserved names. Goal: catch the same gaps during authoring instead of waiting for rtl-gen preflight.
 - SSOT Q&A Workbench UI contract added: `ssot-gen` now starts on Q&A Session, hides the old QA history panel, uses the full center card for ask_user, exposes Import / Deep Interview(`/grill-me`) / To SSOT(`/to-ssot`) buttons, and shows remaining SSOT requirement decisions. Verified by targeted pytest and ATLAS browser smoke.
+- RTL-GEN split-workspace guidance fix: `rtl-gen` now treats `workflow/` as source-repo tooling under `ATLAS_SOURCE_ROOT`, not as an IP-workspace artifact that must exist in CWD. This prevents UI ask_user cards that ask the user to mount/copy `workflow/rtl-gen/scripts/derive_rtl_todos.py` when the source root is already injected.

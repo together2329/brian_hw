@@ -9,9 +9,10 @@ workflow name, repair prompts, and human-gate signals.
 from __future__ import annotations
 
 import json
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, List, Literal
 
 try:
     from src.workflow_stage_engine import STAGE_WORKFLOW, WorkflowStageEngine, canonical_stage
@@ -226,3 +227,271 @@ def run_common_stage_surface(
         surface.keep_running = True
 
     return surface
+
+
+_KPI_DOT = Literal["pass", "warn", "fail", "idle"]
+
+
+def _read_json(path: Path) -> dict[str, Any] | None:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def _dot(condition: bool | None, *, missing_is: _KPI_DOT = "idle") -> _KPI_DOT:
+    if condition is None:
+        return missing_is
+    return "pass" if condition else "fail"
+
+
+def _kpi_ssot(ip_dir: Path, ip: str) -> List[_KPI_DOT]:
+    path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+    if not path.is_file():
+        return ["idle"] * 5
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception:
+        return ["idle"] * 5
+    lines = text.splitlines()
+    section_count = sum(1 for ln in lines if ln.startswith("  - name:") or ln.startswith("- name:"))
+    tbd_count = sum(1 for ln in lines if "TBD" in ln)
+    has_isa = any("isa" in ln.lower() for ln in lines)
+    has_reg = any("register" in ln.lower() or "regfile" in ln.lower() for ln in lines)
+    return [
+        "pass" if section_count > 0 else "warn",   # section_count
+        "warn",                                      # qa_resolved (no qa artifact here, conservative)
+        "pass" if tbd_count == 0 else "fail",        # tbd=0
+        "pass" if has_isa else "idle",               # isa_spec
+        "pass" if has_reg else "idle",               # register_file
+    ]
+
+
+def _kpi_fl_model(ip_dir: Path) -> List[_KPI_DOT]:
+    chk = _read_json(ip_dir / "model" / "fl_model_check.json")
+    fcov = _read_json(ip_dir / "cov" / "fcov_plan.json")
+    if chk is None and fcov is None:
+        return ["idle"] * 4
+    emit_passed: _KPI_DOT = "pass" if (chk or {}).get("emit_passed") else ("warn" if chk is None else "fail")
+    self_chk: _KPI_DOT = "pass" if (chk or {}).get("self_check", {}).get("passed") else ("idle" if chk is None else "warn")
+    fcov_plan: _KPI_DOT = "pass" if fcov is not None else "idle"
+    manifest_ok: _KPI_DOT = "pass" if (chk or {}).get("manifest_ok") else ("idle" if chk is None else "warn")
+    return [emit_passed, self_chk, fcov_plan, manifest_ok]
+
+
+def _kpi_cl_model(ip_dir: Path) -> List[_KPI_DOT]:
+    chk = _read_json(ip_dir / "model" / "cl_model_check.json")
+    if chk is None:
+        return ["idle"] * 3
+    emit_passed: _KPI_DOT = "pass" if chk.get("emit_passed") else "fail"
+    _cl_sc = chk.get("cl_self_check")
+    _cl_sc_ok = _cl_sc.get("passed") if isinstance(_cl_sc, dict) else bool(_cl_sc)
+    cl_self_chk: _KPI_DOT = "pass" if _cl_sc_ok else "warn"
+    cycle_cov: _KPI_DOT = "pass" if chk.get("cycle_cov_plan") else "idle"
+    return [emit_passed, cl_self_chk, cycle_cov]
+
+
+def _kpi_equivalence(ip_dir: Path) -> List[_KPI_DOT]:
+    doc = _read_json(ip_dir / "verify" / "equivalence_goals.json")
+    if doc is None:
+        return ["idle"] * 3
+    parses: _KPI_DOT = "pass"
+    goals_resolved: _KPI_DOT = "pass" if doc.get("goals_resolved") else "warn"
+    sub_refs: _KPI_DOT = "pass" if doc.get("sub_module_refs") else "idle"
+    return [parses, goals_resolved, sub_refs]
+
+
+def _kpi_rtl(ip_dir: Path) -> List[_KPI_DOT]:
+    compile_doc = _read_json(ip_dir / "rtl" / "rtl_compile.json")
+    lint_doc = _read_json(ip_dir / "lint" / "dut_lint.json")
+    todo_doc = _read_json(ip_dir / "rtl" / "rtl_todo_plan.json")
+    prov_path = ip_dir / "rtl" / "rtl_authoring_provenance.json"
+    if compile_doc is None and lint_doc is None and todo_doc is None and not prov_path.is_file():
+        return ["idle"] * 4
+    compile_rc: _KPI_DOT
+    if compile_doc is None:
+        compile_rc = "idle"
+    else:
+        rc = compile_doc.get("rc", compile_doc.get("return_code", 1))
+        compile_rc = "pass" if rc == 0 else "fail"
+    lint_clean: _KPI_DOT
+    if lint_doc is None:
+        lint_clean = "idle"
+    else:
+        errs = lint_doc.get("errors", lint_doc.get("error_count", 1))
+        lint_clean = "pass" if errs == 0 else "fail"
+    todo_audit: _KPI_DOT
+    if todo_doc is None:
+        todo_audit = "idle"
+    else:
+        todo_audit = "pass" if todo_doc.get("status") == "pass" else "warn"
+    provenance: _KPI_DOT = "pass" if prov_path.is_file() else "fail"
+    return [compile_rc, lint_clean, todo_audit, provenance]
+
+
+def _kpi_lint(ip_dir: Path) -> List[_KPI_DOT]:
+    doc = _read_json(ip_dir / "lint" / "dut_lint.json")
+    if doc is None:
+        return ["idle"] * 3
+    errors = doc.get("errors", doc.get("error_count", 0))
+    warnings = doc.get("warnings", doc.get("warning_count", 0))
+    waivers = doc.get("waivers", doc.get("waiver_count", 0))
+    errors_dot: _KPI_DOT = "pass" if errors == 0 else "fail"
+    warn_dot: _KPI_DOT = "pass" if warnings <= waivers else "warn"
+    waiver_dot: _KPI_DOT = "pass" if waivers >= 0 else "idle"
+    return [errors_dot, warn_dot, waiver_dot]
+
+
+def _kpi_tb(ip_dir: Path) -> List[_KPI_DOT]:
+    tb_dir = ip_dir / "tb" / "cocotb"
+    if not tb_dir.is_dir():
+        tb_dir = ip_dir / "tb"
+    if not tb_dir.is_dir():
+        return ["idle"] * 4
+    py_files = list(tb_dir.rglob("*.py"))
+    top_present: _KPI_DOT = "pass" if py_files else "fail"
+    has_scoreboard = any("scoreboard" in f.name.lower() for f in py_files)
+    scoreboard: _KPI_DOT = "pass" if has_scoreboard else "warn"
+    tc_count: _KPI_DOT = "pass" if len(py_files) >= 2 else "warn"
+    manifest_files = list(tb_dir.rglob("Makefile")) + list(tb_dir.rglob("*.yaml")) + list(tb_dir.rglob("*.json"))
+    manifest: _KPI_DOT = "pass" if manifest_files else "warn"
+    return [top_present, scoreboard, tc_count, manifest]
+
+
+def _kpi_sim(ip_dir: Path) -> List[_KPI_DOT]:
+    results_xml = ip_dir / "sim" / "results.xml"
+    if not results_xml.is_file():
+        results_xml = ip_dir / "tb" / "cocotb" / "results.xml"
+    compare_doc = _read_json(ip_dir / "sim" / "fl_rtl_compare.json")
+    if not results_xml.is_file() and compare_doc is None:
+        return ["idle"] * 4
+    xml_pass: _KPI_DOT = "idle"
+    if results_xml.is_file():
+        try:
+            root = ET.parse(str(results_xml)).getroot()
+            failures = int(root.get("failures", 0)) + int(root.get("errors", 0))
+            xml_pass = "pass" if failures == 0 else "fail"
+        except Exception:
+            xml_pass = "warn"
+    mismatches: _KPI_DOT = "idle"
+    if compare_doc is not None:
+        mm = compare_doc.get("mismatches", compare_doc.get("mismatch_count", -1))
+        mismatches = "pass" if mm == 0 else ("fail" if mm > 0 else "warn")
+    vcd_files = list((ip_dir / "sim").rglob("*.vcd")) if (ip_dir / "sim").is_dir() else []
+    vcd_present: _KPI_DOT = "pass" if vcd_files else "idle"
+    seed_cov: _KPI_DOT = "pass" if compare_doc and compare_doc.get("seed_coverage") else "idle"
+    return [xml_pass, mismatches, vcd_present, seed_cov]
+
+
+def _kpi_coverage(ip_dir: Path) -> List[_KPI_DOT]:
+    doc = _read_json(ip_dir / "cov" / "coverage.json")
+    if doc is None:
+        return ["idle"] * 4
+    bins_hit = doc.get("bins_hit", 0)
+    bins_total = doc.get("bins_total", doc.get("total_bins", 0))
+    bins_dot: _KPI_DOT = "pass" if bins_total > 0 and bins_hit >= bins_total else ("warn" if bins_total > 0 else "idle")
+    cycle_cov: _KPI_DOT = "pass" if doc.get("cycle_coverage") else "warn"
+    func_cov: _KPI_DOT = "pass" if doc.get("functional_coverage") else "warn"
+    uncov = doc.get("uncovered_count", doc.get("uncov_count", -1))
+    uncov_dot: _KPI_DOT = "pass" if uncov == 0 else ("warn" if uncov > 0 else "idle")
+    return [bins_dot, cycle_cov, func_cov, uncov_dot]
+
+
+def _kpi_sim_debug(ip_dir: Path) -> List[_KPI_DOT]:
+    doc = _read_json(ip_dir / "sim" / "mismatch_classification.json")
+    if doc is None:
+        return ["idle"] * 3
+    class_present: _KPI_DOT = "pass"
+    owner_routed: _KPI_DOT = "pass" if doc.get("owner_workflow") else "warn"
+    feedback: _KPI_DOT = "pass" if doc.get("feedback_packet") else "warn"
+    return [class_present, owner_routed, feedback]
+
+
+def _kpi_goal_audit(ip_dir: Path) -> List[_KPI_DOT]:
+    doc = _read_json(ip_dir / "sim" / "fl_rtl_goal_audit.json")
+    if doc is None:
+        return ["idle"] * 3
+    failed = doc.get("failed_checks", doc.get("failed_check_count", -1))
+    blockers = doc.get("blockers", doc.get("blocker_count", -1))
+    status = doc.get("status", "")
+    failed_dot: _KPI_DOT = "pass" if failed == 0 else ("fail" if failed > 0 else "warn")
+    blockers_dot: _KPI_DOT = "pass" if blockers == 0 else ("fail" if blockers > 0 else "warn")
+    status_dot: _KPI_DOT = "pass" if status == "pass" else ("fail" if status == "fail" else "warn")
+    return [failed_dot, blockers_dot, status_dot]
+
+
+def _kpi_signoff(ip_dir: Path, stage: str) -> List[_KPI_DOT]:
+    stage_dirs = {
+        "syn": "syn/out",
+        "sta": "sta/out",
+        "pnr": "pnr/out",
+        "sta-post": "sta-post/out",
+    }
+    rel = stage_dirs.get(stage)
+    if rel is None:
+        return ["idle"] * 5
+    out_dir = ip_dir / rel
+    if not out_dir.is_dir():
+        return ["idle"] * 5
+    report_files = list(out_dir.glob("*.json")) + list(out_dir.glob("*.md"))
+    if not report_files:
+        return ["idle"] * 5
+    doc: dict[str, Any] = {}
+    for f in report_files:
+        if f.suffix == ".json":
+            d = _read_json(f)
+            if isinstance(d, dict):
+                doc.update(d)
+    tool_rc: _KPI_DOT = "pass" if doc.get("rc", doc.get("return_code", 0)) == 0 else "fail"
+    area: _KPI_DOT = "pass" if doc.get("area") else "idle"
+    slack = doc.get("timing_slack", doc.get("wns"))
+    timing: _KPI_DOT = "pass" if isinstance(slack, (int, float)) and slack >= 0 else ("fail" if isinstance(slack, (int, float)) else "idle")
+    fanout: _KPI_DOT = "pass" if doc.get("fanout") else "idle"
+    power: _KPI_DOT = "pass" if doc.get("power") else "idle"
+    return [tool_rc, area, timing, fanout, power]
+
+
+_SIGNOFF_STAGES = {"syn", "sta", "pnr", "sta-post"}
+
+
+def compute_kpi_dots(
+    ip: str,
+    stage: str,
+    *,
+    root: Path | None = None,
+) -> List[Literal["pass", "warn", "fail", "idle"]]:
+    if root is None:
+        root = Path(__file__).resolve().parents[1]
+    ip_dir = root / ip
+    if not ip_dir.is_dir():
+        return ["idle"] * 5
+
+    dots: List[_KPI_DOT]
+    if stage in ("ssot", "ssot-gen"):
+        dots = _kpi_ssot(ip_dir, ip)
+    elif stage in ("fl-model", "fl-model-gen"):
+        dots = _kpi_fl_model(ip_dir)
+    elif stage in ("cl-model", "cl-model-gen"):
+        dots = _kpi_cl_model(ip_dir)
+    elif stage in ("equivalence", "equiv-goals"):
+        dots = _kpi_equivalence(ip_dir)
+    elif stage in ("rtl", "rtl-gen"):
+        dots = _kpi_rtl(ip_dir)
+    elif stage == "lint":
+        dots = _kpi_lint(ip_dir)
+    elif stage in ("tb", "tb-gen"):
+        dots = _kpi_tb(ip_dir)
+    elif stage == "sim":
+        dots = _kpi_sim(ip_dir)
+    elif stage == "coverage":
+        dots = _kpi_coverage(ip_dir)
+    elif stage == "sim-debug":
+        dots = _kpi_sim_debug(ip_dir)
+    elif stage == "goal-audit":
+        dots = _kpi_goal_audit(ip_dir)
+    elif stage in _SIGNOFF_STAGES:
+        dots = _kpi_signoff(ip_dir, stage)
+    else:
+        dots = ["idle"] * 5
+
+    return dots[:5]

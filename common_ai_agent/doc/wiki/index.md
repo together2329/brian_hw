@@ -19,6 +19,11 @@ follow the source docs for implementation detail.
 11. [[deterministic-emit-stages]] — why fl-model-gen and cl-model-gen run without an LLM, and what contract that places on the upstream SSOT.
 12. [[karpathy-llm-wiki-pattern]] — reference page for Andrej Karpathy's LLM Wiki concept (3-layer markdown + index + log + schema; no RAG, no vector DB) and how `doc/wiki/` already aligns to it.
 
+## UI
+
+- [[atlas-pipeline-screen]] — `◫ Pipeline` top-level screen: click-to-run stage dispatcher, per-stage scoresheet, owner-aware blame routing.
+- [[ui-design-references]] — external UI checkouts under `external_refs/` (currently `nexu-io/open-design`) and which patterns inform ATLAS.
+
 ## Reference Runs (working examples on real IPs)
 
 Reloadable snapshots live in [`ref_ip_flow/`](../../ref_ip_flow/README.md)

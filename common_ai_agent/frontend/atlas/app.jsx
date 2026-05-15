@@ -63,6 +63,32 @@ const atlasResolutionPreset = (key) =>
   ATLAS_UI_RESOLUTION_PRESETS.find(p => p.key === DEFAULT_ATLAS_RESOLUTION) ||
   ATLAS_UI_RESOLUTION_PRESETS[0];
 
+// ── PipelineRunningChip ───────────────────────────────────────────
+// Top-bar "[▶ N running]" chip. Reads window.ATLAS_PIPELINE_RUNNING
+// (set by AtlasPipeline's poll loop) and listens to the corresponding
+// custom event so the chip stays accurate even when the user is on
+// the Workspace screen. Visible only when count > 0.
+const PipelineRunningChip = ({ onClick }) => {
+  const [count, setCount] = React.useState(
+    typeof window.ATLAS_PIPELINE_RUNNING === 'number' ? window.ATLAS_PIPELINE_RUNNING : 0
+  );
+  React.useEffect(() => {
+    const onChange = (ev) => {
+      setCount((ev && ev.detail && typeof ev.detail.count === 'number') ? ev.detail.count : 0);
+    };
+    window.addEventListener('atlas:pipeline-running-changed', onChange);
+    return () => window.removeEventListener('atlas:pipeline-running-changed', onChange);
+  }, []);
+  if (!count) return null;
+  return (
+    <button className="dir-btn pipe-running-chip"
+            title={`${count} pipeline stage(s) running — click to open Pipeline`}
+            onClick={onClick}>
+      ▶ {count} running
+    </button>
+  );
+};
+
 const App = () => {
   const dir = 'B';     // Workbench is the only visible Atlas shell mode.
   const [theme, setTheme] = React.useState('light');
@@ -847,10 +873,21 @@ const App = () => {
   };
 
   // Top-level screen — 'workspace' (live agent + chat + sidebar) or
-  // 'architect' (SoC block-diagram + status grid + chat, mock data).
+  // 'pipeline' (live stage dispatcher + situation board + chat).
+  // Old 'architect' value (mock-data SoC view) migrates to 'pipeline'
+  // on first load so existing sessions don't get stranded on a screen
+  // that no longer exists.
   const [screen, setScreen] = React.useState(() => {
-    try { return localStorage.atlasScreen === 'architect' ? 'architect' : 'workspace'; }
-    catch (_) { return 'workspace'; }
+    try {
+      const saved = localStorage.atlasScreen;
+      if (saved === 'architect' || saved === 'pipeline') {
+        if (saved === 'architect') {
+          try { localStorage.atlasScreen = 'pipeline'; } catch (_) {}
+        }
+        return 'pipeline';
+      }
+      return 'workspace';
+    } catch (_) { return 'workspace'; }
   });
   React.useEffect(() => {
     try { localStorage.atlasScreen = screen; } catch (_) {}
@@ -870,14 +907,15 @@ const App = () => {
     // and the user's current workflow is whatever the server picked.
     // Only react to genuine user-initiated screen flips.
     if (!window.backend || typeof window.backend.send !== 'function') return;
-    if (screen === 'architect') {
+    if (screen === 'architect' || screen === 'pipeline') {
       // Disable via localStorage if user finds it disruptive.
       const optOut = (() => { try { return localStorage.getItem('atlasArchAutoSwitch') === 'off'; }
                               catch (_) { return false; } })();
       if (!optOut) window.backend.send({ type: 'prompt', text: '/workflow architect', ui_lang: window.ATLAS_UI_LANG || uiLang });
-    } else if (prev === 'architect') {
-      // Leaving architect → fall back to default (could be smarter and
-      // restore the prior workflow, but default keeps things simple).
+    } else if (prev === 'architect' || prev === 'pipeline') {
+      // Leaving pipeline/architect → fall back to default (could be
+      // smarter and restore the prior workflow, but default keeps
+      // things simple).
       const optOut = (() => { try { return localStorage.getItem('atlasArchAutoSwitch') === 'off'; }
                               catch (_) { return false; } })();
       if (!optOut) window.backend.send({ type: 'prompt', text: '/workflow default', ui_lang: window.ATLAS_UI_LANG || uiLang });
@@ -1178,9 +1216,10 @@ const App = () => {
         <button className={`dir-btn ${screen === 'workspace' ? 'active' : ''}`}
                 title="Live agent · chat · sidebar (sim/lint/scope)"
                 onClick={() => setScreen('workspace')}>⌂ Workspace</button>
-        <button className={`dir-btn ${screen === 'architect' ? 'active' : ''}`}
-                title="SoC block diagram + status grid · mock data"
-                onClick={() => setScreen('architect')}>◫ Architect</button>
+        <button className={`dir-btn ${screen === 'pipeline' ? 'active' : ''}`}
+                title="Live pipeline dispatcher · stage situation board"
+                onClick={() => setScreen('pipeline')}>◫ Pipeline</button>
+        <PipelineRunningChip onClick={() => setScreen('pipeline')} />
         <span style={{ width: 12 }} />
         <label className="dir-select-wrap" title="Change UI font family">
           <span>font</span>
@@ -1256,8 +1295,8 @@ const App = () => {
       <div className="app-main">
         <TitleBar ip="" screen={screen} onScreen={setScreen} />
         <div style={{ flex: 1, overflow: 'hidden' }}>
-          {screen === 'architect' && window.SocArchitect
-            ? <ErrorBoundary label="Architect"><window.SocArchitect /></ErrorBoundary>
+          {screen === 'pipeline' && window.AtlasPipeline
+            ? <ErrorBoundary label="Pipeline"><window.AtlasPipeline /></ErrorBoundary>
             : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} /></ErrorBoundary>}
         </div>
         {/* App-level StatusBar removed — model / tokens / iter / rate /
