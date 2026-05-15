@@ -555,6 +555,8 @@ def _drive_inputs(dut, manifest: dict[str, Any], stimulus: dict[str, Any]) -> No
     input_map = manifest.get("input_map") or {}
     driven = {clock, reset}
     for field, port in input_map.items():
+        if port in {clock, reset}:
+            continue
         _set_signal(dut, port, _fit_port_value(manifest, port, int(stimulus.get(field, 0))))
         driven.add(port)
     sample_active = bool(stimulus.get("_sample_active", True))

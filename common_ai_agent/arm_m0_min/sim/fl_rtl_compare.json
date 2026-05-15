@@ -1,0 +1,232 @@
+{
+  "ip": "arm_m0_min",
+  "source": "sim/scoreboard_events.jsonl",
+  "total_rows": 37,
+  "pass_rows": 0,
+  "mismatch_count": 37,
+  "all_matched": false,
+  "mismatches": [
+    {
+      "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
+      "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC",
+      "cycle": 1,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_TX_LOAD_STORE",
+      "scenario_id": "SC_002_EQ_TRANSACTION_TX_LOAD_STORE",
+      "cycle": 2,
+      "mismatch": "d_haddr: expected=39 observed=13; d_hwrite: expected=1 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_ALU",
+      "scenario_id": "SC_003_EQ_SCENARIO_SC_ALU",
+      "cycle": 3,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_CMP_BRANCH",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC_CMP_BRANCH",
+      "cycle": 4,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_LOAD_STORE",
+      "scenario_id": "SC_005_EQ_SCENARIO_SC_LOAD_STORE",
+      "cycle": 5,
+      "mismatch": "d_haddr: expected=39 observed=13; d_hwrite: expected=1 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_IF_STALL",
+      "scenario_id": "SC_006_EQ_SCENARIO_SC_IF_STALL",
+      "cycle": 6,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_BUS_ERROR",
+      "scenario_id": "SC_007_EQ_SCENARIO_SC_BUS_ERROR",
+      "cycle": 7,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "scenario_id": "SC_008_EQ_PROTOCOL_HANDSHAKE_0",
+      "cycle": 8,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "scenario_id": "SC_009_EQ_PROTOCOL_HANDSHAKE_1",
+      "cycle": 9,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+      "cycle": 10,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "scenario_id": "SC_011_EQ_TIMING_ORDERING_0",
+      "cycle": 11,
+      "mismatch": "i_haddr: expected=17 observed=0; d_hwdata: expected=19 observed=0"
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+      "cycle": 12,
+      "mismatch": "i_haddr: expected=17 observed=0; d_hwdata: expected=19 observed=0"
+    },
+    {
+      "goal_id": "EQ_MEMORY_IF_ID_INSTR",
+      "scenario_id": "SC_013_EQ_MEMORY_IF_ID_INSTR",
+      "cycle": 13,
+      "mismatch": "i_haddr: expected=20 observed=0; d_hwdata: expected=22 observed=0"
+    },
+    {
+      "goal_id": "EQ_MEMORY_ID_EX_CTRL",
+      "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL",
+      "cycle": 14,
+      "mismatch": "i_haddr: expected=20 observed=0; d_hwdata: expected=22 observed=0"
+    },
+    {
+      "goal_id": "EQ_ERROR_I_BUS_ERROR",
+      "scenario_id": "SC_015_EQ_ERROR_I_BUS_ERROR",
+      "cycle": 15,
+      "mismatch": "i_haddr: expected=17 observed=0; d_hwdata: expected=19 observed=0"
+    },
+    {
+      "goal_id": "EQ_ERROR_D_BUS_ERROR",
+      "scenario_id": "SC_016_EQ_ERROR_D_BUS_ERROR",
+      "cycle": 16,
+      "mismatch": "i_haddr: expected=17 observed=0; d_hwdata: expected=19 observed=0"
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RESET_TO_RUN_0",
+      "scenario_id": "SC_017_EQ_STATE_CORE_RESET_TO_RUN_0",
+      "cycle": 17,
+      "mismatch": "i_haddr: expected=18 observed=0; d_hwdata: expected=20 observed=0"
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RUN_TO_STALL_IF_1",
+      "scenario_id": "SC_018_EQ_STATE_CORE_RUN_TO_STALL_IF_1",
+      "cycle": 18,
+      "mismatch": "i_haddr: expected=18 observed=0; d_hwdata: expected=20 observed=0"
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_STALL_IF_TO_RUN_2",
+      "scenario_id": "SC_019_EQ_STATE_CORE_STALL_IF_TO_RUN_2",
+      "cycle": 19,
+      "mismatch": "i_haddr: expected=18 observed=0; d_hwdata: expected=20 observed=0"
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RUN_TO_STALL_MEM_3",
+      "scenario_id": "SC_020_EQ_STATE_CORE_RUN_TO_STALL_MEM_3",
+      "cycle": 20,
+      "mismatch": "i_haddr: expected=18 observed=0; d_hwdata: expected=20 observed=0"
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_STALL_MEM_TO_RUN_4",
+      "scenario_id": "SC_021_EQ_STATE_CORE_STALL_MEM_TO_RUN_4",
+      "cycle": 21,
+      "mismatch": "i_haddr: expected=18 observed=0; d_hwdata: expected=20 observed=0"
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RUN_TO_FAULT_HALT_5",
+      "scenario_id": "SC_022_EQ_STATE_CORE_RUN_TO_FAULT_HALT_5",
+      "cycle": 22,
+      "mismatch": "i_haddr: expected=18 observed=0; d_hwdata: expected=20 observed=0"
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_STALL_MEM_TO_FAULT_HALT_6",
+      "scenario_id": "SC_023_EQ_STATE_CORE_STALL_MEM_TO_FAULT_HALT_6",
+      "cycle": 23,
+      "mismatch": "i_haddr: expected=18 observed=0; d_hwdata: expected=20 observed=0"
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+      "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+      "cycle": 24,
+      "mismatch": "i_haddr: expected=18 observed=0; d_hwdata: expected=20 observed=0"
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "scenario_id": "SC_025_EQ_DEBUG_OBSERVABILITY",
+      "cycle": 25,
+      "mismatch": "i_haddr: expected=17 observed=0; d_hwdata: expected=19 observed=0"
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_IF",
+      "scenario_id": "SC_026_EQ_MODULE_ARM_M0_MIN_IF",
+      "cycle": 26,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_ID",
+      "scenario_id": "SC_027_EQ_MODULE_ARM_M0_MIN_ID",
+      "cycle": 27,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_EX",
+      "scenario_id": "SC_028_EQ_MODULE_ARM_M0_MIN_EX",
+      "cycle": 28,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_RF",
+      "scenario_id": "SC_029_EQ_MODULE_ARM_M0_MIN_RF",
+      "cycle": 29,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_IF_STALL",
+      "scenario_id": "SC_030_EQ_COVERAGE_CCOV_IF_STALL",
+      "cycle": 30,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
+      "scenario_id": "SC_031_EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
+      "cycle": 31,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
+      "scenario_id": "SC_032_EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
+      "cycle": 32,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
+      "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
+      "cycle": 33,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_IF",
+      "scenario_id": "SC_034_EQ_COVERAGE_CYCLE_PIPELINE_IF",
+      "cycle": 34,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_ID",
+      "scenario_id": "SC_035_EQ_COVERAGE_CYCLE_PIPELINE_ID",
+      "cycle": 35,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_EX",
+      "scenario_id": "SC_036_EQ_COVERAGE_CYCLE_PIPELINE_EX",
+      "cycle": 36,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_037_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "cycle": 37,
+      "mismatch": "i_haddr: expected=16 observed=0; d_hwdata: expected=18 observed=0"
+    }
+  ]
+}
