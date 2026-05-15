@@ -336,21 +336,45 @@ def _goal(
     return goal
 
 
-def _primary_transaction_contract(ssot: dict[str, Any]) -> dict[str, Any]:
-    fm = ssot.get("function_model") if isinstance(ssot.get("function_model"), dict) else {}
-    txs = [tx for tx in _as_list(fm.get("transactions")) if isinstance(tx, dict)]
+def _tx_label(tx: dict[str, Any], fallback: str = "primary_behavior") -> str:
+    return str(tx.get("name") or tx.get("id") or fallback).strip()
+
+
+def _tx_norm_text(tx: dict[str, Any]) -> str:
+    parts: list[str] = []
+    for key in ("id", "name", "description"):
+        value = tx.get(key)
+        if value:
+            parts.append(str(value))
+    for key in ("preconditions", "inputs", "outputs", "side_effects"):
+        parts.extend(str(item) for item in _as_list(tx.get(key)) if str(item).strip())
+    return " ".join(parts).lower().replace("_", " ").replace("-", " ")
+
+
+def _select_primary_transaction(txs: list[dict[str, Any]]) -> dict[str, Any]:
+    """Pick a useful nominal transaction instead of blindly using tx[0].
+
+    SSOTs often list clear/reset/hold before the main operation. Scenario and
+    coverage closure goals should exercise the nominal behavior path when the
+    scenario only says "primary".
+    """
     if not txs:
-        return {
-            "transaction_type": "undefined",
-            "required_fields": [],
-            "constraints": [],
-            "observables": [],
-            "state_updates": [],
-            "error_policy": "",
-            "blocked": True,
-        }
-    tx = txs[0]
-    name = str(tx.get("name") or tx.get("id") or "primary_behavior").strip()
+        return {}
+    preferred_tokens = ("primary", "start", "accept", "request", "transfer", "command", "packet", "operation")
+    avoid_tokens = ("reset", "clear", "hold", "idle", "error", "fault", "unsupported")
+    for tx in txs:
+        text = _tx_norm_text(tx)
+        if any(token in text for token in preferred_tokens) and not any(token in text for token in ("reset", "error", "fault")):
+            return tx
+    for tx in txs:
+        text = _tx_norm_text(tx)
+        if not any(token in text for token in avoid_tokens):
+            return tx
+    return txs[0]
+
+
+def _transaction_contract_from_tx(tx: dict[str, Any], *, fallback: str = "primary_behavior") -> dict[str, Any]:
+    name = _tx_label(tx, fallback)
     outputs = [str(x) for x in _as_list(tx.get("outputs")) if str(x).strip()]
     output_rule_names = _rule_names(_rule_list(tx.get("output_rules")), "output")
     side_effects = [str(x) for x in _as_list(tx.get("side_effects")) if str(x).strip()]
@@ -368,6 +392,61 @@ def _primary_transaction_contract(ssot: dict[str, Any]) -> dict[str, Any]:
         "state_updates": structured_state,
         "error_policy": "; ".join(error_cases),
         "blocked": not observables and not structured_state and not error_cases,
+    }
+
+
+def _primary_transaction_contract(ssot: dict[str, Any]) -> dict[str, Any]:
+    fm = ssot.get("function_model") if isinstance(ssot.get("function_model"), dict) else {}
+    txs = [tx for tx in _as_list(fm.get("transactions")) if isinstance(tx, dict)]
+    if not txs:
+        return {
+            "transaction_type": "undefined",
+            "required_fields": [],
+            "constraints": [],
+            "observables": [],
+            "state_updates": [],
+            "error_policy": "",
+            "blocked": True,
+        }
+    return _transaction_contract_from_tx(_select_primary_transaction(txs))
+
+
+def _scenario_transaction_contract(ssot: dict[str, Any], sc: dict[str, Any], sid: str) -> dict[str, Any]:
+    fm = ssot.get("function_model") if isinstance(ssot.get("function_model"), dict) else {}
+    txs = [tx for tx in _as_list(fm.get("transactions")) if isinstance(tx, dict)]
+    if not txs:
+        return {
+            "transaction_type": sid,
+            "required_fields": ["scenario_id", "kind"],
+            "constraints": [],
+            "observables": ["Scenario expected result from SSOT"],
+            "state_updates": [],
+            "error_policy": "",
+            "blocked": True,
+        }
+    scenario_text = " ".join(
+        str(sc.get(key) or "")
+        for key in ("id", "name", "stimulus", "expected", "checker")
+    ).lower().replace("_", " ").replace("-", " ")
+    for item in _as_list(sc.get("coverage")):
+        scenario_text += " " + str(item).lower().replace("_", " ").replace("-", " ")
+    for tx in txs:
+        aliases = [
+            str(tx.get("id") or "").lower().replace("_", " ").replace("-", " "),
+            str(tx.get("name") or "").lower().replace("_", " ").replace("-", " "),
+        ]
+        if any(alias and alias in scenario_text for alias in aliases):
+            return _transaction_contract_from_tx(tx)
+    if "primary" in scenario_text or "nominal" in scenario_text or "legal" in scenario_text:
+        return _primary_transaction_contract(ssot)
+    return {
+        "transaction_type": sid,
+        "required_fields": ["scenario_id", "kind"],
+        "constraints": [],
+        "observables": ["Scenario expected result from SSOT"],
+        "state_updates": [],
+        "error_policy": "",
+        "blocked": False,
     }
 
 
@@ -427,6 +506,7 @@ def _scenario_goals(ssot: dict[str, Any], decomp: dict[str, Any], fcov: dict[str
         stimulus = str(sc.get("stimulus") or "").strip()
         expected = str(sc.get("expected") or "").strip()
         checker = str(sc.get("checker") or "").strip()
+        tx_contract = _scenario_transaction_contract(ssot, sc, sid)
         blocked = not stimulus or not expected or not checker
         goals.append(_goal(
             f"EQ_SCENARIO_{_safe_name(sid, str(idx + 1).zfill(3))}",
@@ -435,21 +515,34 @@ def _scenario_goals(ssot: dict[str, Any], decomp: dict[str, Any], fcov: dict[str
             [f"test_requirements.scenarios[{idx}]"],
             _unit_refs(decomp),
             _coverage_refs(fcov, sid, name),
-            sid,
-            ["scenario_id", "kind"],
-            [stimulus] if stimulus else [],
-            [expected] if expected else ["Scenario expected result from SSOT"],
+            str(tx_contract["transaction_type"]),
+            ["scenario_id"] + [
+                field for field in list(tx_contract["required_fields"])
+                if field not in {"scenario_id"}
+            ],
+            ([stimulus] if stimulus else []) + list(tx_contract["constraints"]),
+            ([expected] if expected else []) + [
+                item for item in list(tx_contract["observables"])
+                if item not in {expected}
+            ],
             "cycle_model latency/handshake constraints apply to the scenario",
-            [],
-            "",
+            list(tx_contract["state_updates"]),
+            str(tx_contract["error_policy"]),
             [
                 "Generated sequence executes the SSOT stimulus",
                 "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
                 "RTL observed result matches expected result",
                 "Scenario coverage bin is hit",
             ],
-            blocked=blocked,
-            blocker="scenario must define stimulus, expected, and checker" if blocked else "",
+            blocked=blocked or bool(tx_contract["blocked"]),
+            blocker=(
+                "scenario must define stimulus, expected, and checker"
+                if blocked
+                else (
+                    "scenario references a FunctionalModel transaction without executable observables/state/error behavior"
+                    if tx_contract["blocked"] else ""
+                )
+            ),
         ))
     return goals
 

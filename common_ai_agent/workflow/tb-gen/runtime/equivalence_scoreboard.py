@@ -281,6 +281,11 @@ class EquivalenceScoreboard:
             if key in self.model_transaction_aliases:
                 return self.model_transaction_aliases[key]
 
+        text_norm = _norm(text)
+        for key, preferred in sorted(self.model_transaction_aliases.items(), key=lambda item: len(item[0]), reverse=True):
+            if key and (key in text_norm or key.replace("_", " ") in text):
+                return preferred
+
         goal_kind = _norm(goal.get("kind"))
         if "reset" in text or goal_kind == "reset":
             for preferred in ("fm_reset", "reset"):
@@ -309,6 +314,11 @@ class EquivalenceScoreboard:
                     key = _norm(preferred)
                     if key in self.model_transaction_aliases:
                         return self.model_transaction_aliases[key]
+
+        if "primary" in text_tokens:
+            for key, preferred in self.model_transaction_aliases.items():
+                if not any(token in key for token in ("reset", "clear", "hold", "idle", "error")):
+                    return preferred
 
         if self.model_transaction_aliases:
             return next(iter(self.model_transaction_aliases.values()))
