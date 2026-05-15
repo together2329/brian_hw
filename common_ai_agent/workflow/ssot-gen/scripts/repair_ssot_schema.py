@@ -2733,10 +2733,125 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     return ordered
 
 
+def _validate_output_rule_cycles(doc: dict[str, Any]) -> list[dict[str, Any]]:
+    """Detect cyclic same-cycle dependencies between output_rules per transaction."""
+    issues: list[dict[str, Any]] = []
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    for tx in fm.get("transactions") or []:
+        if not isinstance(tx, dict):
+            continue
+        rules = tx.get("output_rules") or []
+        names = {
+            _norm_token(str(r.get("name") or r.get("output") or r.get("port") or ""))
+            for r in rules if isinstance(r, dict)
+        }
+        names.discard("")
+        graph: dict[str, set[str]] = {}
+        for rule in rules:
+            if not isinstance(rule, dict):
+                continue
+            name = _norm_token(str(rule.get("name") or rule.get("output") or rule.get("port") or ""))
+            if not name:
+                continue
+            expr = str(rule.get("expr") or rule.get("expression") or rule.get("value") or "")
+            tokens = set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", expr))
+            tokens = {_norm_token(t) for t in tokens}
+            graph[name] = (tokens & names) - {name}
+        WHITE, GRAY, BLACK = 0, 1, 2
+        color = {n: WHITE for n in graph}
+        def _dfs(node: str, stack: list[str]) -> list[str] | None:
+            color[node] = GRAY
+            for nxt in graph.get(node, ()):
+                if color.get(nxt, WHITE) == GRAY:
+                    return stack + [node, nxt]
+                if color.get(nxt, WHITE) == WHITE:
+                    cycle = _dfs(nxt, stack + [node])
+                    if cycle:
+                        return cycle
+            color[node] = BLACK
+            return None
+        seen_cycle = False
+        for start in list(graph):
+            if color[start] != WHITE or seen_cycle:
+                continue
+            cycle = _dfs(start, [])
+            if cycle:
+                issues.append({
+                    "id": f"SSOT_OUTPUT_DEP_CYCLE_{_norm_token(tx.get('id') or tx.get('name') or 'tx').upper()}",
+                    "transaction": tx.get("id") or tx.get("name"),
+                    "cycle": cycle,
+                    "fix": "Break the cycle by introducing a helper expression in state_updates or splitting the output rule.",
+                })
+                seen_cycle = True
+    return issues
+
+
+def _validate_sample_conditions(doc: dict[str, Any]) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    rtl_contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
+    samples: list[tuple[str, Any]] = []
+    if rtl_contract.get("sample_condition"):
+        samples.append(("rtl_contract.sample_condition", rtl_contract.get("sample_condition")))
+    for tx in fm.get("transactions") or []:
+        if isinstance(tx, dict) and tx.get("sample_condition") not in (None, ""):
+            samples.append((
+                f"function_model.transactions.{tx.get('id') or tx.get('name')}.sample_condition",
+                tx.get("sample_condition"),
+            ))
+    import ast as _ast
+    for where, expr in samples:
+        text = str(expr or "").strip()
+        if not text:
+            continue
+        normalized = text.replace("&&", " and ").replace("||", " or ")
+        normalized = re.sub(r"(?<![=!<>])!(?!=)", " not ", normalized)
+        try:
+            _ast.parse(normalized, mode="eval")
+        except SyntaxError as exc:
+            issues.append({
+                "id": "SSOT_SAMPLE_CONDITION_DSL",
+                "field": where,
+                "expression": text,
+                "error": f"{exc.msg} at column {exc.offset}",
+                "fix": "Rewrite using DSL: Python comparisons (==, !=, <=, >=), and/or/not, & | ^ ~ for bitwise.",
+            })
+    return issues
+
+
+def _validate_submodule_ownership(doc: dict[str, Any]) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+    ref_keys = ("implements", "function_model_refs", "cycle_model_refs", "fsm_refs", "register_refs", "dataflow_refs")
+    for entry in doc.get("sub_modules") or []:
+        if not isinstance(entry, dict):
+            continue
+        if any(entry.get(key) for key in ref_keys):
+            continue
+        issues.append({
+            "id": f"SSOT_SUBMODULE_REFS_MISSING_{_norm_token(entry.get('name') or 'submodule').upper()}",
+            "submodule": entry.get("name"),
+            "fix": "Add at least one of implements / function_model_refs / cycle_model_refs / fsm_refs / register_refs / dataflow_refs.",
+        })
+    return issues
+
+
+def _validate_downstream_readiness(doc: dict[str, Any], ip: str, root: Path) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+    issues.extend(_validate_output_rule_cycles(doc))
+    issues.extend(_validate_sample_conditions(doc))
+    issues.extend(_validate_submodule_ownership(doc))
+    return issues
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("ip")
     ap.add_argument("--root", default=".")
+    ap.add_argument(
+        "--strict-downstream",
+        action="store_true",
+        help="Fail with non-zero exit when downstream readiness validators report issues.",
+    )
     ns = ap.parse_args()
     root = Path(ns.root).resolve()
     ssot = _find_ssot(root, ns.ip)
@@ -2750,6 +2865,31 @@ def main() -> int:
         raise SystemExit("[repair_ssot_schema] missing after repair: " + ", ".join(missing))
     print(f"[repair_ssot_schema] wrote {ssot.relative_to(root)}")
     print(f"[repair_ssot_schema] sections: {len([k for k in REQUIRED_ORDER if k in loaded])}/{len(REQUIRED_ORDER)}")
+    downstream_issues = _validate_downstream_readiness(loaded, ns.ip, root)
+    blockers_path = root / ns.ip / "req" / "ssot_downstream_blockers.json"
+    blockers_path.parent.mkdir(parents=True, exist_ok=True)
+    blockers_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "ssot_downstream_blockers.v1",
+                "ip": ns.ip,
+                "ssot": str(ssot.relative_to(root)),
+                "issues": downstream_issues,
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    if downstream_issues:
+        print(f"[repair_ssot_schema] downstream_readiness: {len(downstream_issues)} issue(s)")
+        for issue in downstream_issues:
+            print(f"  - {issue.get('id')}: {issue.get('fix') or issue.get('error') or ''}")
+        if ns.strict_downstream:
+            return 2
+    else:
+        print("[repair_ssot_schema] downstream_readiness: clean")
     print("[repair_ssot_schema] next: bash workflow/ssot-gen/scripts/check_ssot_disk.sh " + ns.ip)
     return 0
 

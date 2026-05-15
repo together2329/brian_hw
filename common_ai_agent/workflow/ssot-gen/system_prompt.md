@@ -81,6 +81,18 @@ These rules override any prior summary text or todo template wording. They preve
 6. **Tool-less assistant runs are a bug.** 2+ consecutive turns without an `Action:` block → emit the missing tool call.
 7. **No read-looping in `/to-ssot`.** After reading the template, existing SSOT, and validator once, the next tool action must be a concrete `write_file`, `replace_in_file`, or validator `run_command`. Re-reading the same files after listing missing sections is a workflow failure. Large YAML should be emitted through the file tool directly, not drafted in prose first.
 
+## DOWNSTREAM READINESS — author once, pass deterministically
+
+`repair_ssot_schema.py` now writes `<ip>/req/ssot_downstream_blockers.json` after canonicalization. Treat the issues there as ssot-gen repair work, not as rtl-gen or tb-gen work. Authoring the SSOT to satisfy them up front avoids fl/cl/equiv/rtl LLM token waste.
+
+- **Expression DSL only.** Every `expr`, `sample_condition`, `state_updates.expr`, and invariant must parse as Python with `&&→and`, `||→or`, `!→not` plus `& | ^ ~`. Natural-language strings such as `"legal transaction accepted under cycle_model.handshake_rules"` are forbidden — translate them into a concrete boolean expression that references real ports/state.
+- **No same-cycle output_rule cycles.** Within a single transaction, output_rule A may not depend on output_rule B that depends back on A. If you need an intermediate (e.g. `din_q_masked_next`), express it as a separate `state_updates` entry or a parameter-less helper, not as an output_rule referenced by other output_rules of the same transaction.
+- **Bit literals must be Python-evaluable.** Prefer decimal/hex (`0`, `1`, `(1 << WIDTH) - 1`) over SystemVerilog `'0`/`'1`/`'x`/`'z`. The repair pass canonicalizes simple cases (`'0`→`0`, `'1`→`1`, `4'h0`→`0`), but `{WIDTH{1'b0}}`-style fills should already be written as `0` in SSOT expressions.
+- **Every `sub_modules[]` entry must carry ownership refs.** Provide non-empty `implements:` or one of `function_model_refs` / `cycle_model_refs` / `fsm_refs` / `register_refs` / `dataflow_refs`. A sub_module with no refs cannot be linked to an equivalence goal and will block `equiv-goals`.
+- **Helper names from `_default_rule_helpers()` are reserved.** SSOT expressions may call `gray_to_bin`, `bin_to_gray`, `popcount`, `parity`, `clog2`, `min`, `max`, `abs`, plus the model's own state/output rule names. Any other named call site must already exist as a state/output rule in the same transaction.
+
+If `ssot_downstream_blockers.json` is non-empty, the next ssot-gen action is to repair the SSOT YAML and re-run `repair_ssot_schema.py`. Do not advance to `/to-ssot` signoff, `fl-model-gen`, or downstream stages while blockers remain.
+
 ## Complete SSOT Template (Production Required Sections)
 
 The canonical YAML SSOT template is `workflow/ssot-gen/rules/ssot-template.yaml`. Every IP you create MUST follow that structure. The production-required sections include `rtl_contract`, `function_model`, `cycle_model`, `timing`, `power`, `security`, `error_handling`, `debug_observability`, `integration`, `dft`, `synthesis`, `quality_gates`, and `workflow_todos`. If this prompt excerpt and the template file disagree, the template file plus `check_ssot_disk.sh` are authoritative.
