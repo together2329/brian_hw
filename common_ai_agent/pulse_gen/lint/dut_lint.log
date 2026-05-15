@@ -7,8 +7,12 @@ errors=0 warnings=0
 
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/pulse_gen.f --top-module pulse_gen
-returncode: 0
-errors: 0 warnings: 0
-- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
-- Verilator: Built from 0.092 MB sources in 4 modules, into 0.035 MB in 3 C++ files needing 0.000 MB
-- Verilator: Walltime 0.267 s (elab=0.019, cvt=0.043, bld=0.000); cpu 0.048 s on 1 threads; allocated 11.344 MB
+returncode: 1
+errors: 0 warnings: 1
+%Warning-UNUSEDSIGNAL: rtl/pulse_gen_core.sv:37:11: Signal is not used: 'sw_trigger_allowed'
+                                                  : ... note: In instance 'pulse_gen.u_core'
+   37 |     logic sw_trigger_allowed;
+      |           ^~~~~~~~~~~~~~~~~~
+                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
+                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
+%Error: Exiting due to 1 warning(s)
