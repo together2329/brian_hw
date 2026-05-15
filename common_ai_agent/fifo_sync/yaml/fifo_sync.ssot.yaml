@@ -45,9 +45,10 @@ sub_modules:
   source_sections:
   - function_model
   - cycle_model
-  - fsm
   function_model_refs:
-  - function_model.state_variables
+  - function_model.state_variables.wr_ptr
+  - function_model.state_variables.rd_ptr
+  - function_model.state_variables.count
   decomposition_refs:
   - decomposition.units.pointer_control
   cycle_model_refs:

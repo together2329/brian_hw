@@ -4,41 +4,45 @@
   "scope": "dut",
   "dut_only": true,
   "tool": "pyslang+verilator",
-  "command": "pyslang rtl/arbiter_rr_regs.sv rtl/arbiter_rr_core.sv rtl/arbiter_rr.sv && verilator --lint-only -Wall -Irtl -f list/arbiter_rr.f --top-module arbiter_rr",
-  "cwd": "arbiter_rr",
-  "top": "arbiter_rr",
-  "filelist": "arbiter_rr/list/arbiter_rr.f",
+  "command": "pyslang rtl/clkdiv_regs.sv rtl/clkdiv_core.sv rtl/clkdiv.sv && verilator --lint-only -Wall -Irtl -f list/clkdiv.f --top-module clkdiv",
+  "cwd": "clkdiv",
+  "top": "clkdiv",
+  "filelist": "clkdiv/list/clkdiv.f",
   "rtl_files": [
-    "rtl/arbiter_rr_regs.sv",
-    "rtl/arbiter_rr_core.sv",
-    "rtl/arbiter_rr.sv",
-    "rtl/arbiter_rr_param.vh"
+    "rtl/clkdiv_regs.sv",
+    "rtl/clkdiv_core.sv",
+    "rtl/clkdiv.sv"
   ],
-  "timestamp": "2026-05-15T02:29:20.019893+00:00",
-  "returncode": 0,
-  "errors": 0,
+  "timestamp": "2026-05-15T02:28:28.209525+00:00",
+  "returncode": 1,
+  "errors": 3,
   "warnings": 0,
   "waived_warnings": 0,
   "tool_results": [
     {
       "tool": "pyslang",
       "available": true,
-      "command": "pyslang rtl/arbiter_rr_regs.sv rtl/arbiter_rr_core.sv rtl/arbiter_rr.sv",
-      "returncode": 0,
-      "errors": 0,
+      "command": "pyslang rtl/clkdiv_regs.sv rtl/clkdiv_core.sv rtl/clkdiv.sv",
+      "returncode": 1,
+      "errors": 1,
       "warnings": 0,
-      "diagnostics": [],
-      "passed": true
+      "diagnostics": [
+        {
+          "severity": "error",
+          "message": "pyslang missing file(s): rtl/clkdiv_regs.sv"
+        }
+      ],
+      "passed": false
     },
     {
       "tool": "verilator",
       "available": true,
-      "command": "verilator --lint-only -Wall -Irtl -f list/arbiter_rr.f --top-module arbiter_rr",
-      "returncode": 0,
-      "errors": 0,
+      "command": "verilator --lint-only -Wall -Irtl -f list/clkdiv.f --top-module clkdiv",
+      "returncode": 1,
+      "errors": 2,
       "warnings": 0,
       "diagnostics": [],
-      "passed": true
+      "passed": false
     }
   ],
   "suppression_violation_count": 0,
@@ -46,5 +50,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": true
+  "passed": false
 }

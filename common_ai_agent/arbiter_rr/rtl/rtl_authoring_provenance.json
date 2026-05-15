@@ -1,22 +1,24 @@
 {
-  "schema_version": 1,
-  "type": "rtl_authoring_provenance",
   "agent": "common_ai_agent",
-  "workflow": "rtl-gen",
-  "surface": "atlas_ui",
+  "filelist": "list/arbiter_rr.f",
+  "generated_at": "2026-05-15T02:10:12.762139+00:00",
+  "headers": [
+    "rtl/arbiter_rr_param.vh"
+  ],
   "ip": "arbiter_rr",
-  "todo_plan": "rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "2d1561a954904117833c1c46727040b38013287f602cfb9cb5d9d205fa4a83a6",
+  "refresh_reason": "SSOT metadata gate update refreshed rtl_todo_plan hash without changing RTL files.",
+  "refreshed_at": "2026-05-15T02:23:47.044615+00:00",
   "rtl_files": [
     "rtl/arbiter_rr_regs.sv",
     "rtl/arbiter_rr_core.sv",
     "rtl/arbiter_rr.sv"
   ],
-  "headers": [
-    "rtl/arbiter_rr_param.vh"
-  ],
-  "filelist": "list/arbiter_rr.f",
+  "schema_version": 1,
   "source": "arbiter_rr/yaml/arbiter_rr.ssot.yaml",
-  "generated_at": "2026-05-15T02:10:12.762139+00:00",
-  "refreshed_at": "2026-05-15T02:23:47.044615+00:00"
+  "surface": "atlas_ui",
+  "todo_plan": "rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "57a0bb887bd3dc03af9cb6dc20da2a398bd0f8f5de49c2960ce3509bde81c58c",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-15T02:29:17Z",
+  "workflow": "rtl-gen"
 }

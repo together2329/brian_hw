@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 38,
-    "orphan_tasks": 0,
-    "static_missing": 29,
-    "status": "fail"
+    "open_required_todos": 50,
+    "orphan_tasks": 14,
+    "static_missing": 27,
+    "status": "blocked"
   },
-  "generated_at": "2026-05-15T02:25:58Z",
+  "generated_at": "2026-05-15T02:29:12Z",
   "ip": "fifo_sync",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 18,
@@ -117,7 +117,92 @@
     ],
     "status": "pass"
   },
-  "orphans": [],
+  "orphans": [
+    {
+      "category": "fsm.state",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.states.state_0",
+      "task_id": "RTL-0192"
+    },
+    {
+      "category": "fsm.state",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.states.state_1",
+      "task_id": "RTL-0193"
+    },
+    {
+      "category": "fsm.state",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.states.state_2",
+      "task_id": "RTL-0194"
+    },
+    {
+      "category": "fsm.state",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.states.state_3",
+      "task_id": "RTL-0195"
+    },
+    {
+      "category": "fsm.state",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.states.state_4",
+      "task_id": "RTL-0196"
+    },
+    {
+      "category": "fsm.transition",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.transitions.transition_0",
+      "task_id": "RTL-0197"
+    },
+    {
+      "category": "fsm.transition",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.transitions.transition_1",
+      "task_id": "RTL-0198"
+    },
+    {
+      "category": "fsm.transition",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.transitions.transition_2",
+      "task_id": "RTL-0199"
+    },
+    {
+      "category": "fsm.transition",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.transitions.transition_3",
+      "task_id": "RTL-0200"
+    },
+    {
+      "category": "fsm.transition",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.transitions.transition_4",
+      "task_id": "RTL-0201"
+    },
+    {
+      "category": "fsm.transition",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.transitions.transition_5",
+      "task_id": "RTL-0202"
+    },
+    {
+      "category": "fsm.transition",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.transitions.transition_6",
+      "task_id": "RTL-0203"
+    },
+    {
+      "category": "fsm.transition",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.transitions.transition_7",
+      "task_id": "RTL-0204"
+    },
+    {
+      "category": "fsm.transition",
+      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
+      "source_ref": "fsm.ptr_fsm.transitions.transition_8",
+      "task_id": "RTL-0205"
+    }
+  ],
   "owner_logic_evidence": {
     "checked": 6,
     "issues": [],
@@ -740,7 +825,7 @@
   ],
   "static_rtl_evidence": {
     "checked": 108,
-    "missing": 29,
+    "missing": 27,
     "missing_tasks": [
       {
         "category": "function_model.precondition",
@@ -1169,43 +1254,17 @@
         "category": "fsm.state",
         "matched_count": 0,
         "matched_terms": [],
-        "owner_file": "rtl/fifo_sync_ptrs.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "ALMOST_EMPTY"
-        ],
-        "source_ref": "fsm.ptr_fsm.states.state_1",
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "task_id": "RTL-0193"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/fifo_sync_ptrs.sv",
+        "owner_file": "",
         "required_match_count": 1,
         "required_terms": [
           "NORMAL"
         ],
         "source_ref": "fsm.ptr_fsm.states.state_2",
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "task_id": "RTL-0194"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/fifo_sync_ptrs.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "ALMOST_FULL"
-        ],
-        "source_ref": "fsm.ptr_fsm.states.state_3",
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "task_id": "RTL-0195"
       }
     ],
-    "passed": 79,
+    "passed": 81,
     "sources": [
       "rtl/fifo_sync.sv",
       "rtl/fifo_sync_flags.sv",
@@ -1276,7 +1335,7 @@
       "test_requirements": 20,
       "workflow_todo": 6
     },
-    "orphan_tasks": 0,
+    "orphan_tasks": 14,
     "owner_modules": [
       {
         "file": "rtl/fifo_sync_mem.sv",
@@ -1299,10 +1358,11 @@
           "cycle_model.handshake_rules",
           "cycle_model.pipeline",
           "decomposition.units.pointer_control",
-          "fsm",
-          "fsm.ptr_fsm",
           "function_model",
-          "function_model.state_variables"
+          "function_model.state_variables",
+          "function_model.state_variables.count",
+          "function_model.state_variables.rd_ptr",
+          "function_model.state_variables.wr_ptr"
         ],
         "wiring_only": false
       },
@@ -1604,9 +1664,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Every required SSOT-derived RTL behavior has an owner module.",
+        "reason": "14 required SSOT-derived RTL task(s) still have no owner module.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1703,7 +1763,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "29 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "27 static-evidence-required task(s) still lack DUT RTL evidence.",
         "required": true,
         "status": "open"
       }
@@ -2275,7 +2335,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "37 required non-closure TODO(s) remain open.",
+        "reason": "49 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -4533,11 +4593,11 @@
         "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "wr_ptr reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.wr_ptr.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=wr_ptr; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.wr_ptr.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.wr_ptr.\nSSOT item context: name=wr_ptr; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0061",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "function_model.state_variables",
+      "owner_match": "function_model.state_variables.wr_ptr",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
       "required": true,
@@ -4578,11 +4638,11 @@
         "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "rd_ptr reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.rd_ptr.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=rd_ptr; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.rd_ptr.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.rd_ptr.\nSSOT item context: name=rd_ptr; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0062",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "function_model.state_variables",
+      "owner_match": "function_model.state_variables.rd_ptr",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
       "required": true,
@@ -4623,11 +4683,11 @@
         "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "count reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.count.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=count; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.count.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.count.\nSSOT item context: name=count; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0063",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "function_model.state_variables",
+      "owner_match": "function_model.state_variables.count",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
       "required": true,
@@ -12203,17 +12263,16 @@
         "Reset/entry/exit behavior matches SSOT",
         "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
         "Coverage can observe the state or equivalent condition",
-        "Traceability keeps source_ref fsm.ptr_fsm.states.state_0",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+        "Traceability keeps source_ref fsm.ptr_fsm.states.state_0"
       ],
-      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: value=EMPTY.",
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_0.\nSSOT item context: value=EMPTY.",
       "evidence_terms": [
         "EMPTY"
       ],
       "id": "RTL-0192",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12229,26 +12288,26 @@
         "matched_terms": [
           "EMPTY"
         ],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
         "required_terms": [
           "EMPTY"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 6,
+        "criteria_total": 5,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -12259,17 +12318,16 @@
         "Reset/entry/exit behavior matches SSOT",
         "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
         "Coverage can observe the state or equivalent condition",
-        "Traceability keeps source_ref fsm.ptr_fsm.states.state_1",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+        "Traceability keeps source_ref fsm.ptr_fsm.states.state_1"
       ],
-      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_1.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: value=ALMOST_EMPTY.",
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_1.\nSSOT item context: value=ALMOST_EMPTY.",
       "evidence_terms": [
         "ALMOST_EMPTY"
       ],
       "id": "RTL-0193",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12281,26 +12339,28 @@
         "fsm.ptr_fsm.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
+        "matched_count": 1,
+        "matched_terms": [
+          "ALMOST_EMPTY"
+        ],
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
         "required_terms": [
           "ALMOST_EMPTY"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "status": "missing"
+        "source_scope": "all_sources_without_owner",
+        "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 6,
+        "criteria_total": 5,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
         "status": "open"
       }
@@ -12313,17 +12373,16 @@
         "Reset/entry/exit behavior matches SSOT",
         "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
         "Coverage can observe the state or equivalent condition",
-        "Traceability keeps source_ref fsm.ptr_fsm.states.state_2",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+        "Traceability keeps source_ref fsm.ptr_fsm.states.state_2"
       ],
-      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_2.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: value=NORMAL.",
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_2.\nSSOT item context: value=NORMAL.",
       "evidence_terms": [
         "NORMAL"
       ],
       "id": "RTL-0194",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12337,24 +12396,24 @@
       "static_evidence": {
         "matched_count": 0,
         "matched_terms": [],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
         "required_terms": [
           "NORMAL"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "missing"
       },
       "todo_completion": {
-        "criteria_total": 6,
+        "criteria_total": 5,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
         "status": "open"
       }
@@ -12367,17 +12426,16 @@
         "Reset/entry/exit behavior matches SSOT",
         "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
         "Coverage can observe the state or equivalent condition",
-        "Traceability keeps source_ref fsm.ptr_fsm.states.state_3",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+        "Traceability keeps source_ref fsm.ptr_fsm.states.state_3"
       ],
-      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_3.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: value=ALMOST_FULL.",
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_3.\nSSOT item context: value=ALMOST_FULL.",
       "evidence_terms": [
         "ALMOST_FULL"
       ],
       "id": "RTL-0195",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12389,26 +12447,28 @@
         "fsm.ptr_fsm.states.state_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
+        "matched_count": 1,
+        "matched_terms": [
+          "ALMOST_FULL"
+        ],
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
         "required_terms": [
           "ALMOST_FULL"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "status": "missing"
+        "source_scope": "all_sources_without_owner",
+        "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 6,
+        "criteria_total": 5,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
         "status": "open"
       }
@@ -12421,17 +12481,16 @@
         "Reset/entry/exit behavior matches SSOT",
         "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
         "Coverage can observe the state or equivalent condition",
-        "Traceability keeps source_ref fsm.ptr_fsm.states.state_4",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+        "Traceability keeps source_ref fsm.ptr_fsm.states.state_4"
       ],
-      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_4.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: value=FULL.",
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_4.\nSSOT item context: value=FULL.",
       "evidence_terms": [
         "FULL"
       ],
       "id": "RTL-0196",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12447,26 +12506,26 @@
         "matched_terms": [
           "FULL"
         ],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
         "required_terms": [
           "FULL"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 6,
+        "criteria_total": 5,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -12477,11 +12536,10 @@
         "Transition action/state update is implemented",
         "Illegal/missing transition behavior is handled per SSOT",
         "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_0",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "fsm.ptr_fsm.transitions.transition_0 condition is implemented as RTL control logic: push_accepted && count becomes > ALMOST_EMPTY_THRESHOLD",
         "fsm.ptr_fsm.transitions.transition_0 transition path EMPTY -> NORMAL is encoded or explicitly proven equivalent"
       ],
-      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=EMPTY; to=NORMAL; condition=push_accepted && count becomes > ALMOST_EMPTY_THRESHOLD.",
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_0.\nSSOT item context: from=EMPTY; to=NORMAL; condition=push_accepted && count becomes > ALMOST_EMPTY_THRESHOLD.",
       "evidence_terms": [
         "ALMOST",
         "ALMOST_EMPTY_THRESHOLD",
@@ -12493,9 +12551,9 @@
         "push_accepted"
       ],
       "id": "RTL-0197",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12509,14 +12567,17 @@
         "fsm.ptr_fsm.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 7,
         "matched_terms": [
+          "ALMOST",
+          "ALMOST_EMPTY_THRESHOLD",
           "EMPTY",
+          "THRESHOLD",
           "accepted",
           "push",
           "push_accepted"
         ],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -12529,20 +12590,20 @@
           "push",
           "push_accepted"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 7,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -12553,11 +12614,10 @@
         "Transition action/state update is implemented",
         "Illegal/missing transition behavior is handled per SSOT",
         "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_1",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "fsm.ptr_fsm.transitions.transition_1 condition is implemented as RTL control logic: push_accepted && count becomes <= ALMOST_EMPTY_THRESHOLD && count > 0",
         "fsm.ptr_fsm.transitions.transition_1 transition path EMPTY -> ALMOST_EMPTY is encoded or explicitly proven equivalent"
       ],
-      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_1.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=EMPTY; to=ALMOST_EMPTY; condition=push_accepted && count becomes <= ALMOST_EMPTY_THRESHOLD && count > 0.",
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_1.\nSSOT item context: from=EMPTY; to=ALMOST_EMPTY; condition=push_accepted && count becomes <= ALMOST_EMPTY_THRESHOLD && count > 0.",
       "evidence_terms": [
         "ALMOST",
         "ALMOST_EMPTY",
@@ -12569,9 +12629,9 @@
         "push_accepted"
       ],
       "id": "RTL-0198",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12585,14 +12645,18 @@
         "fsm.ptr_fsm.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 8,
         "matched_terms": [
+          "ALMOST",
+          "ALMOST_EMPTY",
+          "ALMOST_EMPTY_THRESHOLD",
           "EMPTY",
+          "THRESHOLD",
           "accepted",
           "push",
           "push_accepted"
         ],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -12605,20 +12669,20 @@
           "push",
           "push_accepted"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 7,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -12629,11 +12693,10 @@
         "Transition action/state update is implemented",
         "Illegal/missing transition behavior is handled per SSOT",
         "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_2",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "fsm.ptr_fsm.transitions.transition_2 condition is implemented as RTL control logic: pop_accepted && count becomes 0",
         "fsm.ptr_fsm.transitions.transition_2 transition path ALMOST_EMPTY -> EMPTY is encoded or explicitly proven equivalent"
       ],
-      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_2.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=ALMOST_EMPTY; to=EMPTY; condition=pop_accepted && count becomes 0.",
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_2.\nSSOT item context: from=ALMOST_EMPTY; to=EMPTY; condition=pop_accepted && count becomes 0.",
       "evidence_terms": [
         "ALMOST_EMPTY",
         "EMPTY",
@@ -12642,9 +12705,9 @@
         "pop_accepted"
       ],
       "id": "RTL-0199",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12658,14 +12721,15 @@
         "fsm.ptr_fsm.transitions.transition_2"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
+          "ALMOST_EMPTY",
           "EMPTY",
           "accepted",
           "pop",
           "pop_accepted"
         ],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -12675,20 +12739,20 @@
           "pop",
           "pop_accepted"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 7,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -12699,11 +12763,10 @@
         "Transition action/state update is implemented",
         "Illegal/missing transition behavior is handled per SSOT",
         "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_3",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "fsm.ptr_fsm.transitions.transition_3 condition is implemented as RTL control logic: push_accepted && count > ALMOST_EMPTY_THRESHOLD",
         "fsm.ptr_fsm.transitions.transition_3 transition path ALMOST_EMPTY -> NORMAL is encoded or explicitly proven equivalent"
       ],
-      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_3.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=ALMOST_EMPTY; to=NORMAL; condition=push_accepted && count > ALMOST_EMPTY_THRESHOLD.",
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_3.\nSSOT item context: from=ALMOST_EMPTY; to=NORMAL; condition=push_accepted && count > ALMOST_EMPTY_THRESHOLD.",
       "evidence_terms": [
         "ALMOST",
         "ALMOST_EMPTY",
@@ -12716,9 +12779,9 @@
         "push_accepted"
       ],
       "id": "RTL-0200",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12732,14 +12795,18 @@
         "fsm.ptr_fsm.transitions.transition_3"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 8,
         "matched_terms": [
+          "ALMOST",
+          "ALMOST_EMPTY",
+          "ALMOST_EMPTY_THRESHOLD",
           "EMPTY",
+          "THRESHOLD",
           "accepted",
           "push",
           "push_accepted"
         ],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -12753,20 +12820,20 @@
           "push",
           "push_accepted"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 7,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -12777,11 +12844,10 @@
         "Transition action/state update is implemented",
         "Illegal/missing transition behavior is handled per SSOT",
         "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_4",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "fsm.ptr_fsm.transitions.transition_4 condition is implemented as RTL control logic: push_accepted && count >= ALMOST_FULL_THRESHOLD",
         "fsm.ptr_fsm.transitions.transition_4 transition path NORMAL -> ALMOST_FULL is encoded or explicitly proven equivalent"
       ],
-      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_4.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=NORMAL; to=ALMOST_FULL; condition=push_accepted && count >= ALMOST_FULL_THRESHOLD.",
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_4.\nSSOT item context: from=NORMAL; to=ALMOST_FULL; condition=push_accepted && count >= ALMOST_FULL_THRESHOLD.",
       "evidence_terms": [
         "ALMOST",
         "ALMOST_FULL",
@@ -12794,9 +12860,9 @@
         "push_accepted"
       ],
       "id": "RTL-0201",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12810,14 +12876,18 @@
         "fsm.ptr_fsm.transitions.transition_4"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 8,
         "matched_terms": [
+          "ALMOST",
+          "ALMOST_FULL",
+          "ALMOST_FULL_THRESHOLD",
           "FULL",
+          "THRESHOLD",
           "accepted",
           "push",
           "push_accepted"
         ],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -12831,20 +12901,20 @@
           "push",
           "push_accepted"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 7,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -12855,11 +12925,10 @@
         "Transition action/state update is implemented",
         "Illegal/missing transition behavior is handled per SSOT",
         "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_5",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "fsm.ptr_fsm.transitions.transition_5 condition is implemented as RTL control logic: pop_accepted && count <= ALMOST_EMPTY_THRESHOLD",
         "fsm.ptr_fsm.transitions.transition_5 transition path NORMAL -> ALMOST_EMPTY is encoded or explicitly proven equivalent"
       ],
-      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_5.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=NORMAL; to=ALMOST_EMPTY; condition=pop_accepted && count <= ALMOST_EMPTY_THRESHOLD.",
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_5.\nSSOT item context: from=NORMAL; to=ALMOST_EMPTY; condition=pop_accepted && count <= ALMOST_EMPTY_THRESHOLD.",
       "evidence_terms": [
         "ALMOST",
         "ALMOST_EMPTY",
@@ -12872,9 +12941,9 @@
         "pop_accepted"
       ],
       "id": "RTL-0202",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12888,14 +12957,18 @@
         "fsm.ptr_fsm.transitions.transition_5"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 8,
         "matched_terms": [
+          "ALMOST",
+          "ALMOST_EMPTY",
+          "ALMOST_EMPTY_THRESHOLD",
           "EMPTY",
+          "THRESHOLD",
           "accepted",
           "pop",
           "pop_accepted"
         ],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -12909,20 +12982,20 @@
           "pop",
           "pop_accepted"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 7,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -12933,11 +13006,10 @@
         "Transition action/state update is implemented",
         "Illegal/missing transition behavior is handled per SSOT",
         "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_6",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "fsm.ptr_fsm.transitions.transition_6 condition is implemented as RTL control logic: push_accepted && count == DEPTH",
         "fsm.ptr_fsm.transitions.transition_6 transition path ALMOST_FULL -> FULL is encoded or explicitly proven equivalent"
       ],
-      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_6.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=ALMOST_FULL; to=FULL; condition=push_accepted && count == DEPTH.",
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_6.\nSSOT item context: from=ALMOST_FULL; to=FULL; condition=push_accepted && count == DEPTH.",
       "evidence_terms": [
         "ALMOST_FULL",
         "DEPTH",
@@ -12947,9 +13019,9 @@
         "push_accepted"
       ],
       "id": "RTL-0203",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12963,15 +13035,16 @@
         "fsm.ptr_fsm.transitions.transition_6"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
+          "ALMOST_FULL",
           "DEPTH",
           "FULL",
           "accepted",
           "push",
           "push_accepted"
         ],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -12982,20 +13055,20 @@
           "push",
           "push_accepted"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 7,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -13006,11 +13079,10 @@
         "Transition action/state update is implemented",
         "Illegal/missing transition behavior is handled per SSOT",
         "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_7",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "fsm.ptr_fsm.transitions.transition_7 condition is implemented as RTL control logic: pop_accepted && count < ALMOST_FULL_THRESHOLD",
         "fsm.ptr_fsm.transitions.transition_7 transition path ALMOST_FULL -> NORMAL is encoded or explicitly proven equivalent"
       ],
-      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_7.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=ALMOST_FULL; to=NORMAL; condition=pop_accepted && count < ALMOST_FULL_THRESHOLD.",
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_7.\nSSOT item context: from=ALMOST_FULL; to=NORMAL; condition=pop_accepted && count < ALMOST_FULL_THRESHOLD.",
       "evidence_terms": [
         "ALMOST",
         "ALMOST_FULL",
@@ -13023,9 +13095,9 @@
         "pop_accepted"
       ],
       "id": "RTL-0204",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -13039,14 +13111,18 @@
         "fsm.ptr_fsm.transitions.transition_7"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 8,
         "matched_terms": [
+          "ALMOST",
+          "ALMOST_FULL",
+          "ALMOST_FULL_THRESHOLD",
           "FULL",
+          "THRESHOLD",
           "accepted",
           "pop",
           "pop_accepted"
         ],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -13060,20 +13136,20 @@
           "pop",
           "pop_accepted"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 7,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -13084,11 +13160,10 @@
         "Transition action/state update is implemented",
         "Illegal/missing transition behavior is handled per SSOT",
         "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_8",
-        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
         "fsm.ptr_fsm.transitions.transition_8 condition is implemented as RTL control logic: pop_accepted && count == DEPTH-1",
         "fsm.ptr_fsm.transitions.transition_8 transition path FULL -> ALMOST_FULL is encoded or explicitly proven equivalent"
       ],
-      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_8.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=FULL; to=ALMOST_FULL; condition=pop_accepted && count == DEPTH-1.",
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_8.\nSSOT item context: from=FULL; to=ALMOST_FULL; condition=pop_accepted && count == DEPTH-1.",
       "evidence_terms": [
         "ALMOST_FULL",
         "DEPTH",
@@ -13098,9 +13173,9 @@
         "pop_accepted"
       ],
       "id": "RTL-0205",
-      "owner_file": "rtl/fifo_sync_ptrs.sv",
-      "owner_match": "fsm.ptr_fsm",
-      "owner_module": "fifo_sync_ptrs",
+      "owner_file": "",
+      "owner_match": "",
+      "owner_module": "",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -13114,15 +13189,16 @@
         "fsm.ptr_fsm.transitions.transition_8"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
+          "ALMOST_FULL",
           "DEPTH",
           "FULL",
           "accepted",
           "pop",
           "pop_accepted"
         ],
-        "owner_file_scoped": true,
+        "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -13133,20 +13209,20 @@
           "pop",
           "pop_accepted"
         ],
-        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "source_scope": "all_sources_without_owner",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 7,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Task has no RTL owner file.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -16172,8 +16248,14 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 38,
+    "open_required_tasks": 50,
     "open_tasks": [
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "14 required SSOT-derived RTL task(s) still have no owner module.",
+        "source_ref": "quality_gates.rtl_gen.owner_traceability",
+        "task_id": "RTL-0005"
+      },
       {
         "category": "rtl_gate.rtl_gen",
         "reason": "Missing common_ai_agent RTL authoring provenance.",
@@ -16182,7 +16264,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "29 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "27 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "task_id": "RTL-0007"
       },
@@ -16194,7 +16276,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "37 required non-closure TODO(s) remain open.",
+        "reason": "49 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -16386,24 +16468,90 @@
       },
       {
         "category": "fsm.state",
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task has no RTL owner file.",
+        "source_ref": "fsm.ptr_fsm.states.state_0",
+        "task_id": "RTL-0192"
+      },
+      {
+        "category": "fsm.state",
+        "reason": "Task has no RTL owner file.",
         "source_ref": "fsm.ptr_fsm.states.state_1",
         "task_id": "RTL-0193"
       },
       {
         "category": "fsm.state",
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task has no RTL owner file.",
         "source_ref": "fsm.ptr_fsm.states.state_2",
         "task_id": "RTL-0194"
       },
       {
         "category": "fsm.state",
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task has no RTL owner file.",
         "source_ref": "fsm.ptr_fsm.states.state_3",
         "task_id": "RTL-0195"
+      },
+      {
+        "category": "fsm.state",
+        "reason": "Task has no RTL owner file.",
+        "source_ref": "fsm.ptr_fsm.states.state_4",
+        "task_id": "RTL-0196"
+      },
+      {
+        "category": "fsm.transition",
+        "reason": "Task has no RTL owner file.",
+        "source_ref": "fsm.ptr_fsm.transitions.transition_0",
+        "task_id": "RTL-0197"
+      },
+      {
+        "category": "fsm.transition",
+        "reason": "Task has no RTL owner file.",
+        "source_ref": "fsm.ptr_fsm.transitions.transition_1",
+        "task_id": "RTL-0198"
+      },
+      {
+        "category": "fsm.transition",
+        "reason": "Task has no RTL owner file.",
+        "source_ref": "fsm.ptr_fsm.transitions.transition_2",
+        "task_id": "RTL-0199"
+      },
+      {
+        "category": "fsm.transition",
+        "reason": "Task has no RTL owner file.",
+        "source_ref": "fsm.ptr_fsm.transitions.transition_3",
+        "task_id": "RTL-0200"
+      },
+      {
+        "category": "fsm.transition",
+        "reason": "Task has no RTL owner file.",
+        "source_ref": "fsm.ptr_fsm.transitions.transition_4",
+        "task_id": "RTL-0201"
+      },
+      {
+        "category": "fsm.transition",
+        "reason": "Task has no RTL owner file.",
+        "source_ref": "fsm.ptr_fsm.transitions.transition_5",
+        "task_id": "RTL-0202"
+      },
+      {
+        "category": "fsm.transition",
+        "reason": "Task has no RTL owner file.",
+        "source_ref": "fsm.ptr_fsm.transitions.transition_6",
+        "task_id": "RTL-0203"
+      },
+      {
+        "category": "fsm.transition",
+        "reason": "Task has no RTL owner file.",
+        "source_ref": "fsm.ptr_fsm.transitions.transition_7",
+        "task_id": "RTL-0204"
+      },
+      {
+        "category": "fsm.transition",
+        "reason": "Task has no RTL owner file.",
+        "source_ref": "fsm.ptr_fsm.transitions.transition_8",
+        "task_id": "RTL-0205"
       }
     ],
-    "required_passed": 231,
+    "required_passed": 219,
     "required_total": 269,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

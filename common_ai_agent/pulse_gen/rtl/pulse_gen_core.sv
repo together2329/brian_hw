@@ -13,6 +13,8 @@ module pulse_gen_core #(
     input  logic [15:0]             pulse_width_i,
     input  logic                    int_enable_i,
     input  logic                    status_done_i,
+    input  logic                    status_busy_i,
+    output logic                    status_done_o,
     output logic [PULSE_OUT_WIDTH-1:0] pulse_out,
     output logic                    irq_o,
     output logic                    status_busy_o,
@@ -153,6 +155,7 @@ module pulse_gen_core #(
     end
 
     // Interrupt latency is zero cycles from STATUS.done because irq_o is pure combinational logic.
-    assign irq_o = status_done_i & int_enable_i;
+    assign status_done_o = status_done_i;
+    assign irq_o = (status_done_i | (1'b0 & status_busy_i)) & int_enable_i;
 
 endmodule

@@ -4,15 +4,15 @@
   "scope": "dut",
   "dut_only": true,
   "tool": "pyslang+verilator",
-  "command": "pyslang rtl/edge_detector_regs.sv rtl/edge_detector.sv && verilator --lint-only -Wall -Irtl -f list/edge_detector.f --top-module edge_detector",
+  "command": "pyslang rtl/edge_detector.sv rtl/edge_detector_regs.sv && verilator --lint-only -Wall -Irtl -f list/edge_detector.f --top-module edge_detector",
   "cwd": "edge_detector",
   "top": "edge_detector",
   "filelist": "edge_detector/list/edge_detector.f",
   "rtl_files": [
-    "rtl/edge_detector_regs.sv",
-    "rtl/edge_detector.sv"
+    "rtl/edge_detector.sv",
+    "rtl/edge_detector_regs.sv"
   ],
-  "timestamp": "2026-05-15T02:26:33.245928+00:00",
+  "timestamp": "2026-05-15T02:28:27.380603+00:00",
   "returncode": 0,
   "errors": 0,
   "warnings": 0,
@@ -21,7 +21,7 @@
     {
       "tool": "pyslang",
       "available": true,
-      "command": "pyslang rtl/edge_detector_regs.sv rtl/edge_detector.sv",
+      "command": "pyslang rtl/edge_detector.sv rtl/edge_detector_regs.sv",
       "returncode": 0,
       "errors": 0,
       "warnings": 0,

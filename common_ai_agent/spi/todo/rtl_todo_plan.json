@@ -47,7 +47,7 @@
     "static_missing": 14,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:25:47Z",
+  "generated_at": "2026-05-15T02:29:07Z",
   "ip": "spi",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 5,
@@ -2175,7 +2175,7 @@
           "rtl_todo_plan.json task criteria",
           "sim/fl_rtl_goal_audit.json"
         ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "required": true,
         "status": "open"
       }
@@ -14137,7 +14137,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "task_id": "RTL-0025"
       },

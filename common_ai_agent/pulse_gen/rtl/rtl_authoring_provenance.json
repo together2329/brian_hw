@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "type": "rtl_authoring_provenance",
+  "agent": "common_ai_agent",
+  "workflow": "rtl-gen",
+  "surface": "atlas_ui",
+  "ip": "pulse_gen",
+  "top": "pulse_gen",
+  "todo_plan": "rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "22302dc1fd200f8b4c5ec2376445d2b6c926fe548ac0949d9f59f709fbaf99ba",
+  "rtl_files": [
+    "rtl/pulse_gen_regs.sv",
+    "rtl/pulse_gen_core.sv",
+    "rtl/pulse_gen.sv"
+  ],
+  "headers": [
+    "rtl/pulse_gen_param.vh"
+  ],
+  "filelist": "list/pulse_gen.f",
+  "authored_at": "2026-05-15T02:28:14.822602+00:00",
+  "source": "pulse_gen/yaml/pulse_gen.ssot.yaml"
+}

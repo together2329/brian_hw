@@ -31,7 +31,7 @@
 - Tool-evidence blockers:
   - dynamic_todo_closure: 22 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
-  - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
+  - fl_rtl_goal_audit: FL-vs-RTL goal audit is not clean.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
 - Tool-evidence runbook:
   - dynamic_todo_closure: stages=audit-rtl; artifact=spi/rtl/rtl_todo_plan.json
@@ -165,7 +165,7 @@ Owner: spi in rtl/spi.sv via top_module.
 - Detail: Passing compile/lint is not enough. The final RTL must be proven against FunctionalModel-derived equivalence goals using real RTL-observed evidence.
 SSOT ref: quality_gates.rtl_gen.fl_rtl_goal_audit.
 Owner: spi in rtl/spi.sv via top_module.
-- Current reason: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
+- Current reason: FL-vs-RTL goal audit is not clean.
 - Criteria:
   - sim/fl_rtl_goal_audit.json exists
   - fl_rtl_goal_audit.json is newer than or equal to every listed DUT RTL source

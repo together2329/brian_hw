@@ -1,0 +1,22 @@
+===== pyslang =====
+command: pyslang rtl/clkdiv_regs.sv rtl/clkdiv_core.sv rtl/clkdiv.sv
+returncode: 1
+errors: 1 warnings: 0
+pyslang missing file(s): rtl/clkdiv_regs.sv
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/clkdiv.f --top-module clkdiv
+returncode: 1
+errors: 2 warnings: 0
+%Error: Cannot find file containing module: 'rtl/clkdiv_regs.sv'
+        ... See the manual at https://verilator.org/verilator_doc.html?v=5.046 for more assistance.
+        ... Looked in:
+             rtl/rtl/clkdiv_regs.sv
+             rtl/rtl/clkdiv_regs.sv.v
+             rtl/rtl/clkdiv_regs.sv.sv
+             rtl/clkdiv_regs.sv
+             rtl/clkdiv_regs.sv.v
+             rtl/clkdiv_regs.sv.sv
+             obj_dir/rtl/clkdiv_regs.sv
+             obj_dir/rtl/clkdiv_regs.sv.v
+             obj_dir/rtl/clkdiv_regs.sv.sv
+%Error: Exiting due to 1 error(s)

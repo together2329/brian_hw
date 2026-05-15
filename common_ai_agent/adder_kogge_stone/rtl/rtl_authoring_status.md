@@ -6,7 +6,7 @@
 - Packets: 11
 - LLM-actionable tasks: 0
 - Human-locked tasks: 2
-- Tool-evidence tasks: 5
+- Tool-evidence tasks: 4
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: True
@@ -15,7 +15,7 @@
 
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=5, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=4, next_tool=audit-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 

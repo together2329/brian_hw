@@ -1,0 +1,4 @@
+rtl/pulse_gen.sv:97: error: Unresolved net/uwire pulse_gen_regs.status_done cannot have multiple drivers.
+rtl/pulse_gen.sv:97: error: Output port expression must support continuous assignment.
+rtl/pulse_gen.sv:97:      : Port 12 (status_done_o) of pulse_gen_core is connected to pulse_gen_regs.status_done
+2 error(s) during elaboration.

@@ -19,8 +19,8 @@
 ## Context
 
 - Quality profile: production
-- Work allowed: True
-- Draft allowed: True
+- Work allowed: False
+- Draft allowed: False
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True

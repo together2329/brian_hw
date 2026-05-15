@@ -76,7 +76,7 @@
       {
         "gate_kind": "fl_rtl_goal_audit",
         "owner_module": "spi",
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "status": "open",
@@ -184,7 +184,7 @@
         "prerequisites": [
           "FL model, equivalence goals, TB, and simulation evidence are current."
         ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "stage_sequence": [
           "ssot-fl-model",
@@ -740,7 +740,7 @@
           {
             "gate_kind": "fl_rtl_goal_audit",
             "owner_module": "spi",
-            "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+            "reason": "FL-vs-RTL goal audit is not clean.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
             "status": "open",
@@ -835,7 +835,7 @@
             "prerequisites": [
               "FL model, equivalence goals, TB, and simulation evidence are current."
             ],
-            "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+            "reason": "FL-vs-RTL goal audit is not clean.",
             "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
             "stage_sequence": [
               "ssot-fl-model",

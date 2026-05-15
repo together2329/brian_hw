@@ -510,6 +510,15 @@
   "execution_policy": {
     "blocked_by_locked_truth": [
       {
+        "gate_kind": "owner_traceability",
+        "owner_module": "fifo_sync",
+        "reason": "14 required SSOT-derived RTL task(s) still have no owner module.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.owner_traceability",
+        "status": "open",
+        "task_id": "RTL-0005"
+      },
+      {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "fifo_sync",
         "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
@@ -530,14 +539,14 @@
     ],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": false,
-    "evidence_closure_allowed": true,
-    "human_locked_open_count": 2,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 3,
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 2,
+    "open_required_count": 3,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -546,7 +555,7 @@
     ],
     "tool_evidence_open_count": 0,
     "tool_evidence_plan": [],
-    "work_allowed": true
+    "work_allowed": false
   },
   "ip": "fifo_sync",
   "kind": "gate",
@@ -569,7 +578,7 @@
       "rtl_gate.rtl_gen": 7
     },
     "module_slice": {},
-    "open_required_count": 2,
+    "open_required_count": 3,
     "required_count": 7,
     "source_refs": [
       "quality_gates.rtl_gen.ssot_required_sections",
@@ -581,8 +590,8 @@
       "quality_gates.rtl_gen.cycle_model_artifacts"
     ],
     "status_counts": {
-      "open": 2,
-      "pass": 5
+      "open": 3,
+      "pass": 4
     },
     "task_count": 7
   },
@@ -718,9 +727,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Every required SSOT-derived RTL behavior has an owner module.",
+        "reason": "14 required SSOT-derived RTL task(s) still have no owner module.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -912,7 +921,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "7f458f6bfdb9b16a17f4e9d38e3575fb165fea4c3e449c3d83165af4f6474d43",
+  "todo_plan_sha256": "5a8c1a9f79737e2d3ee1b4d3bb79dc93d2c2a726816e73ecd8c792be5d6badad",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

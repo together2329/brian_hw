@@ -30,6 +30,7 @@ module pulse_gen #(
     logic [15:0] \pulse_gen_core.pulse_width_i ;
     logic \pulse_gen_core.int_enable_i ;
     logic \pulse_gen_regs.status_done ;
+    logic \pulse_gen_core.status_done_o ;
     logic pulse_gen_regs_status_done_set;
     logic \pulse_gen_regs.status_busy ;
     logic [15:0] \pulse_gen_core.fired_count ;
@@ -93,6 +94,8 @@ module pulse_gen #(
         .pulse_width_i(\pulse_gen_core.pulse_width_i ),
         .int_enable_i(\pulse_gen_core.int_enable_i ),
         .status_done_i(\pulse_gen_regs.status_done ),
+        .status_busy_i(\pulse_gen_regs.status_busy ),
+        .status_done_o(\pulse_gen_core.status_done_o ),
         .pulse_out(pulse_out),
         .irq_o(irq_o),
         .status_busy_o(\pulse_gen_regs.status_busy ),

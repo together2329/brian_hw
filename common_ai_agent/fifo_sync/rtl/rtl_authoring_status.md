@@ -4,10 +4,10 @@
 
 - Top: fifo_sync
 - Packets: 22
-- LLM-actionable tasks: 31
-- Human-locked tasks: 2
+- LLM-actionable tasks: 42
+- Human-locked tasks: 3
 - Tool-evidence tasks: 5
-- Deferred human QA allowed: True
+- Deferred human QA allowed: False
 - PASS allowed: False
 - Target scale locked: False
 - Pending connection-contract suggestions: 0
@@ -17,8 +17,8 @@
 
 - module__fifo_sync_ptrs__function_model_02: rtl/authoring_packets/module__fifo_sync_ptrs__function_model_02.json (llm_open=18, human_locked=0)
 - module__fifo_sync_ptrs__function_model_01: rtl/authoring_packets/module__fifo_sync_ptrs__function_model_01.json (llm_open=6, human_locked=0)
-- module__fifo_sync_ptrs__fsm: rtl/authoring_packets/module__fifo_sync_ptrs__fsm.json (llm_open=3, human_locked=0)
 - module__fifo_sync_ptrs__cycle_model: rtl/authoring_packets/module__fifo_sync_ptrs__cycle_model.json (llm_open=2, human_locked=0)
+- unowned_tasks: rtl/authoring_packets/unowned_tasks.json (llm_open=14, human_locked=0)
 - rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
 
 ## Tool Evidence Queue
@@ -27,7 +27,7 @@
 
 ## Human-Locked Queue
 
-- rtl_gate_human_closure: human_locked=2, json=rtl/authoring_packets/rtl_gate_human_closure.json
+- rtl_gate_human_closure: human_locked=3, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

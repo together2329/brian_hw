@@ -19,16 +19,16 @@
 ## Context
 
 - Quality profile: production
-- Work allowed: True
-- Draft allowed: True
+- Work allowed: False
+- Draft allowed: False
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 6
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, decomposition.units.pointer_control, fsm, fsm.ptr_fsm, function_model, function_model.state_variables
-- Module slice: 1/6 section=function_model task_limit=48
-- Slice rule: Owner module fifo_sync_ptrs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, decomposition.units.pointer_control, function_model, function_model.state_variables, function_model.state_variables.count, function_model.state_variables.rd_ptr, function_model.state_variables.wr_ptr
+- Module slice: 1/5 section=function_model task_limit=48
+- Slice rule: Owner module fifo_sync_ptrs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - fifo_sync_ptrs.clk_i <= PCLK (integration.connections[0])
   - fifo_sync_ptrs.rst_ni <= PRESETn (integration.connections[1])
@@ -44,7 +44,7 @@
 - Source ref: function_model.state_variables.wr_ptr
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.wr_ptr.
-Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.
+Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.wr_ptr.
 SSOT item context: name=wr_ptr; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -65,7 +65,7 @@ SSOT item context: name=wr_ptr; reset=0.
 - Source ref: function_model.state_variables.rd_ptr
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.rd_ptr.
-Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.
+Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.rd_ptr.
 SSOT item context: name=rd_ptr; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -86,7 +86,7 @@ SSOT item context: name=rd_ptr; reset=0.
 - Source ref: function_model.state_variables.count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.count.
-Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.
+Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.count.
 SSOT item context: name=count; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
