@@ -1549,9 +1549,9 @@ test_requirements:
         class: handshake
         description: Flush priority over concurrent push/pop observed
       - id: CCOV_PTR_WRAP
-        source_ref: function_model.state_variables.wr_ptr
+        source_ref: cycle_model.pipeline.S2_UPDATE_PTRS
         class: boundary
-        description: Pointer wrap-around observed (wr_ptr and rd_ptr)
+        description: Pointer wrap-around observed at S2_UPDATE_PTRS stage (wr_ptr and rd_ptr)
     functional: 'Legacy alias: function + cycle coverage must both close.'
     line: '>= 90% instrumented line coverage or explicit project waiver'
     branch: '>= 85% instrumented branch coverage or explicit project waiver'

@@ -706,8 +706,8 @@ test_requirements:
       bins:
         - { id: "FCOV_GRANT_SINGLE", source_ref: "function_model.transactions.FM1", class: "transaction", description: "Single requestor grant observed" }
         - { id: "FCOV_GRANT_ALL_ROTATION", source_ref: "function_model.transactions.FM1", class: "transaction", description: "All 4 requestors granted in round-robin rotation" }
-        - { id: "FCOV_MASK_EACH_BIT", source_ref: "registers.REQ_MASK", class: "register_field", description: "Each mask bit exercised enabled and disabled" }
-        - { id: "FCOV_ENABLE_TOGGLE", source_ref: "registers.CTRL.enable", class: "register_field", description: "Enable toggled 1→0 and 0→1" }
+        - { id: "FCOV_MASK_EACH_BIT", source_ref: "function_model.state_variables.req_mask", class: "register_field", description: "Each mask bit exercised enabled and disabled" }
+        - { id: "FCOV_ENABLE_TOGGLE", source_ref: "function_model.state_variables.arb_enabled", class: "register_field", description: "Enable toggled 1→0 and 0→1" }
         - { id: "FCOV_NO_GRANT_IDLE", source_ref: "function_model.transactions.FM2", class: "transaction", description: "No-grant idle path observed" }
     cycle:
       target_pct: 100

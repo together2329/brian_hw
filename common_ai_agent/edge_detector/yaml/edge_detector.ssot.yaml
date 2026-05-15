@@ -261,7 +261,9 @@ registers:
       fields:
         - { name: "edge_raw", bits: [7, 0], access: "ro", reset: 0x0, description: "Current-cycle edge detection flags" }
         - { name: "reserved_31_8", bits: [31, 8], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-memory: TBD
+memory:
+  instances: []
+  note: "No SRAM/FIFO in edge detector. All state is in registers (sync_chain, prev_sync, CONTROL, STATUS, RAW_STATUS)."
 interrupts:
   sources:
     - { name: "EDGE_DETECTED", bit: 0, type: "level", enable_reg: "CONTROL.irq_enable", status_reg: "STATUS.edge_sticky", clear: "W1C", description: "Edge detected on any enabled input lane" }
@@ -343,9 +345,55 @@ security:
   privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
   safety_goals:
     - "No missed edge when enable is set and input meets minimum pulse width"
-error_handling: TBD
-debug_observability: TBD
-integration: TBD
+error_handling:
+  error_sources:
+    - { id: "ERR_ILLEGAL_ACCESS", condition: "APB access to unmapped address", architectural_effect: "PSLVERR=1, no register state change" }
+    - { id: "ERR_RESERVED_MODE", condition: "EDGE_MODE=3 (reserved)", architectural_effect: "No edge detection; edge_o remains zero regardless of input" }
+  propagation:
+    - "First error wins per access; no cascading error states."
+    - "Reserved EDGE_MODE value is silently ignored (edge_o forced to 0)."
+  recovery:
+    - { action: "software writes valid EDGE_MODE", clears: ["ERR_RESERVED_MODE"], preserves: ["register state except CONTROL.edge_mode"] }
+debug_observability:
+  waveform_must_probe:
+    - "sync_chain"
+    - "prev_sync"
+    - "edge_o"
+    - "irq_o"
+    - "function_model.state_variables"
+  status_outputs:
+    - { name: "RAW_STATUS.edge_raw", description: "Current-cycle non-sticky edge flags" }
+    - { name: "STATUS.edge_sticky", description: "Sticky edge-detected flags" }
+    - { name: "STATUS.overflow", description: "Overflow indicator" }
+  trace_events:
+    - { name: "edge_detected", trigger: "edge_o assertion" }
+    - { name: "irq_asserted", trigger: "irq_o assertion" }
+    - { name: "sticky_cleared", trigger: "W1C write to STATUS" }
+  debug_registers:
+    - "CONTROL"
+    - "STATUS"
+    - "RAW_STATUS"
+integration:
+  bus_attachment:
+    control: "APB4 slave"
+  connections:
+    - { module: "edge_detector", port: "PCLK", signal: "PCLK" }
+    - { module: "edge_detector", port: "PRESETn", signal: "PRESETn" }
+    - { module: "edge_detector", port: "signal_i", signal: "signal_i" }
+    - { module: "edge_detector", port: "edge_o", signal: "edge_o" }
+    - { module: "edge_detector", port: "irq_o", signal: "irq_o" }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "SoC interconnect"
+    illegal_access_response: "pslverr for unsupported APB access"
+  dependencies:
+    external_modules: []
+    external_clocks: ["PCLK"]
+    external_resets: ["PRESETn"]
+  integration_notes:
+    - "SoC must provide APB-compliant PREADY behavior."
+    - "signal_i may be asynchronous to PCLK; IP handles synchronization internally."
+    - "Interrupt controller samples irq_o as active-high level."
 coding_rules: TBD
 reuse_modules: TBD
 custom: TBD
