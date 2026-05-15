@@ -12,7 +12,7 @@
   "clock": "clk",
   "reset": "rst",
   "reset_active": "high",
-  "latency_cycles": 1,
+  "latency_cycles": 2,
   "parameters": {
     "XLEN": 32,
     "RESET_PC": 0,

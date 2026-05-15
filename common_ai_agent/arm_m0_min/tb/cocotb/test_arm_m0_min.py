@@ -57,6 +57,8 @@ def _get_signal(dut, name: str) -> int | str:
 
 def _default_field_value(field: str, idx: int) -> int:
     low = field.lower()
+    if low.endswith("_hresp") or low == "hresp" or low.endswith("_resp"):
+        return 0
     bool_exact = {
         "valid", "in_valid", "cfg_valid", "req_valid", "ready", "result_valid",
         "packet_ok", "ack", "nack", "rw", "read", "write", "broadcast",
@@ -635,6 +637,13 @@ async def fl_rtl_equivalence_goals(dut):
     for idx, goal in enumerate(goals):
         goal_id = str(goal["goal_id"])
         stimulus = _stimulus_for_goal(goal, manifest, idx)
+        await _reset_dut(dut, manifest)
+        stimulus["i_hrdata"] = 0
+        stimulus["d_hrdata"] = 0
+        stimulus["i_hready"] = 1
+        stimulus["d_hready"] = 1
+        stimulus["i_hresp"] = 0
+        stimulus["d_hresp"] = 0
         if _is_reset_stimulus(stimulus):
             await _reset_dut(dut, manifest)
         else:

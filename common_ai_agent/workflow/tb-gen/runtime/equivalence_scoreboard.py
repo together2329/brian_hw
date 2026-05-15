@@ -148,6 +148,9 @@ def _expected_observable_view(
         if is_register and not is_memory and "pready" in observed:
             view.setdefault("pready", 1)
 
+    if is_reset and "pc" in view and "i_haddr" in observed:
+        view.setdefault("i_haddr", view.get("pc"))
+
     is_write = bool(model_result.get("write"))
     is_read = bool(model_result.get("read"))
     if is_memory and is_write:
@@ -262,8 +265,11 @@ class EquivalenceScoreboard:
 
     def _best_model_kind(self, goal: dict[str, Any], stimulus: dict[str, Any]) -> str:
         explicit = stimulus.get("kind") or stimulus.get("op") or stimulus.get("transaction")
-        if _norm(explicit) in self.model_transaction_aliases:
-            return self.model_transaction_aliases[_norm(explicit)]
+        explicit_norm = _norm(explicit)
+        if explicit_norm in {"reset", "rst"}:
+            return "reset"
+        if explicit_norm in self.model_transaction_aliases:
+            return self.model_transaction_aliases[explicit_norm]
 
         contract = goal.get("stimulus_contract") if isinstance(goal.get("stimulus_contract"), dict) else {}
         candidates = [contract.get("transaction_type"), goal.get("goal_id"), goal.get("title"), goal.get("kind")]
@@ -410,8 +416,17 @@ class EquivalenceScoreboard:
                 pass
         known.update({"read_mux", "reduction_or"})
         for name in sorted(names - known):
-            if name and name not in txn:
-                txn[name] = len(txn) + 1
+            if not name or name in txn:
+                continue
+            low = name.lower()
+            if low in {"branch_taken", "is_store", "is_ldr", "is_str", "is_cmp", "is_b", "is_beq", "is_bne", "fault_halt", "i_hresp", "d_hresp"}:
+                txn[name] = 0
+            elif low in {"branch_target", "rs2", "base", "imm", "pc", "addr", "data", "value"}:
+                txn[name] = 0
+            elif low in {"i_hready", "d_hready"}:
+                txn[name] = 1
+            else:
+                txn[name] = 0
 
     def expected_for_goal(
         self,
