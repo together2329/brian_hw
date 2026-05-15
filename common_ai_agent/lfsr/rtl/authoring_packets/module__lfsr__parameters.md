@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 8
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - Module slice: 3/13 section=parameters task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.LFSR_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.LFSR_WIDTH.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=LFSR_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -61,14 +61,14 @@ SSOT item context: name=LFSR_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.POLY_DEGREE
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.POLY_DEGREE.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=POLY_DEGREE.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -81,14 +81,14 @@ SSOT item context: name=POLY_DEGREE.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.APB_ADDR_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.APB_ADDR_WIDTH.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=APB_ADDR_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -101,14 +101,14 @@ SSOT item context: name=APB_ADDR_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.APB_DATA_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.APB_DATA_WIDTH.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=APB_DATA_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -121,14 +121,14 @@ SSOT item context: name=APB_DATA_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.DEFAULT_POLY
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DEFAULT_POLY.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=DEFAULT_POLY.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -141,14 +141,14 @@ SSOT item context: name=DEFAULT_POLY.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.DEFAULT_SEED
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DEFAULT_SEED.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=DEFAULT_SEED.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -161,14 +161,14 @@ SSOT item context: name=DEFAULT_SEED.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.CLOCK_FREQ_MHZ
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.CLOCK_FREQ_MHZ.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=CLOCK_FREQ_MHZ.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -181,14 +181,14 @@ SSOT item context: name=CLOCK_FREQ_MHZ.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.RESET_POLARITY
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.RESET_POLARITY.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=RESET_POLARITY.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects

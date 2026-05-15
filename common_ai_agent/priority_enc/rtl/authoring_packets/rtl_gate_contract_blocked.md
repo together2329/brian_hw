@@ -29,6 +29,17 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
 - Connection contract gap: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
+- Pending connection-contract suggestions: 21 rows in rtl/connection_contract_suggestions.json
+- Draft top integration fragment: rtl/connection_contract_draft_top.svfrag
+- Suggestion usage: draft RTL wiring may use these rows to close hierarchy/signal-flow evidence, but they are not SSOT authority and cannot close connection-contract signoff.
+  - priority_enc_regs.PADDR <= PADDR (observed_named_port_map)
+  - priority_enc_regs.PCLK <= PCLK (observed_named_port_map)
+  - priority_enc_regs.PENABLE <= PENABLE (observed_named_port_map)
+  - priority_enc_regs.PRDATA <= PRDATA (observed_named_port_map)
+  - priority_enc_regs.PREADY <= PREADY (observed_named_port_map)
+  - priority_enc_regs.PRESETn <= PRESETn (observed_named_port_map)
+  - priority_enc_regs.PSEL <= PSEL (observed_named_port_map)
+  - priority_enc_regs.PSLVERR <= PSLVERR (observed_named_port_map)
 - Locked-truth blockers:
   - manifest_connection_contract_evidence: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
   - manifest_connection_contract_evidence: 1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts

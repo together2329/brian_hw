@@ -229,8 +229,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 7,
-    "open_required_count": 7,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -262,7 +262,7 @@
       "rtl_gate.rtl_gen": 9
     },
     "module_slice": {},
-    "open_required_count": 7,
+    "open_required_count": 1,
     "required_count": 9,
     "source_refs": [
       "quality_gates.rtl_gen.static_rtl_evidence",
@@ -276,8 +276,8 @@
       "quality_gates.rtl_gen.manifest_signal_flow_evidence"
     ],
     "status_counts": {
-      "open": 7,
-      "pass": 2
+      "open": 1,
+      "pass": 8
     },
     "task_count": 9
   },
@@ -323,9 +323,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "33 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -368,9 +368,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 owner logic structure issue(s) remain. lfsr: Behavior-owner module is not declared in its owner file",
+        "reason": "Behavior-owner RTL modules contain real implementation structure.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -416,9 +416,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -461,7 +461,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top IO contract issue(s) remain. lfsr: SSOT top module is not declared in listed RTL sources",
+        "reason": "1 top IO contract issue(s) remain. PCLK: RTL top port width/range does not match SSOT",
         "required": true,
         "status": "open"
       }
@@ -506,9 +506,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top output drive issue(s) remain. lfsr: SSOT top module is not declared, so output drive evidence cannot be checked",
+        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -551,9 +551,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top input consumption issue(s) remain. lfsr: SSOT top module is not declared, so input consumption evidence cannot be checked",
+        "reason": "SSOT top inputs have RTL consumption evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -596,9 +596,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 manifest hierarchy integration issue(s) remain. lfsr: SSOT top module is not declared in listed RTL sources",
+        "reason": "Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {

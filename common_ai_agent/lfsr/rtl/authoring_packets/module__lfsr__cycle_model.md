@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 10
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - Module slice: 6/13 section=cycle_model task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: lfsr in rtl/lfsr.sv via cycle_model.
 SSOT item context: value=PCLK.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -62,13 +62,13 @@ SSOT item context: value=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: lfsr in rtl/lfsr.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -82,13 +82,13 @@ Owner: lfsr in rtl/lfsr.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: lfsr in rtl/lfsr.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -102,14 +102,14 @@ Owner: lfsr in rtl/lfsr.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.PSEL_PENABLE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.PSEL_PENABLE.
 Owner: lfsr in rtl/lfsr.sv via cycle_model.
 SSOT item context: signal=PSEL/PENABLE.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -123,14 +123,14 @@ SSOT item context: signal=PSEL/PENABLE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S0_IDLE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_IDLE.
 Owner: lfsr in rtl/lfsr.sv via cycle_model.
 SSOT item context: stage=S0_IDLE; action=Hold state; sample APB decode and enable; cycle=0.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -145,14 +145,14 @@ SSOT item context: stage=S0_IDLE; action=Hold state; sample APB decode and enabl
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S1_STEP
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_STEP.
 Owner: lfsr in rtl/lfsr.sv via cycle_model.
 SSOT item context: stage=S1_STEP; action=Compute next LFSR state if enabled; update prbs_out/prbs_bit/prbs_valid; cycle=1.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -167,14 +167,14 @@ SSOT item context: stage=S1_STEP; action=Compute next LFSR state if enabled; upd
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: lfsr in rtl/lfsr.sv via cycle_model.
 SSOT item context: value=APB write to SEED takes effect on the same cycle as the completing PREADY..
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -188,14 +188,14 @@ SSOT item context: value=APB write to SEED takes effect on the same cycle as the
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: lfsr in rtl/lfsr.sv via cycle_model.
 SSOT item context: value=LFSR state update occurs on the rising edge after enable is sampled high..
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -209,14 +209,14 @@ SSOT item context: value=LFSR state update occurs on the rising edge after enabl
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: lfsr in rtl/lfsr.sv via cycle_model.
 SSOT item context: value=No backpressure on PRBS output; downstream must sample prbs_out/prbs_bit on appropriate cycles..
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -230,14 +230,14 @@ SSOT item context: value=No backpressure on PRBS output; downstream must sample 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: lfsr in rtl/lfsr.sv via cycle_model.
 SSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior

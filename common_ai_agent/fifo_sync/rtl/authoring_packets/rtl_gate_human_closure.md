@@ -25,10 +25,9 @@
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 3
+- Human-locked open tasks: 2
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Locked-truth blockers:
-  - manifest_connection_contract_evidence: 18 SSOT connection contract issue(s) remain. fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_mem: SSOT connection contract targets a module not declared in RTL
   - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
   - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
 - SSOT connection contracts:
@@ -110,13 +109,13 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: 18 SSOT connection contract issue(s) remain. fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_mem: SSOT connection contract targets a module not declared in RTL
+- Current reason: SSOT connection contracts are satisfied by reachable RTL named port maps.
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

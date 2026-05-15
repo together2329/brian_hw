@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, function_model, function_model.transactions, function_model.transactions.output_rules
 - Module slice: 4/4 section=workflow_todo task_limit=48
@@ -42,14 +42,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[2]
 - Detail: full_o = (count == DEPTH), empty_o = (count == 0), almost_full_o = (count >= ALMOST_FULL_THRESHOLD), almost_empty_o = (count <= ALMOST_EMPTY_THRESHOLD), count_o = count. Flags are combinational functions of registered count.
 SSOT ref: workflow_todos.rtl-gen[2].
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_FIFO_FLAGS.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - All 5 flags/count outputs match function_model output_rules expressions
   - Flags are combinational functions of count

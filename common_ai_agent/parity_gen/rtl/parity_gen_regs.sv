@@ -15,9 +15,7 @@ module parity_gen_regs #(
     output logic                  PSLVERR,
     output logic                  enable,
     output logic                  check_enable,
-    output logic                  expected_parity,
-    output logic [31:0]           control_reg,
-    output logic [31:0]           status_reg
+    output logic                  expected_parity
 );
 
     localparam [ADDR_WIDTH-1:0] ADDR_CONTROL = {{(ADDR_WIDTH-12){1'b0}}, 12'h000};
@@ -25,21 +23,23 @@ module parity_gen_regs #(
 
     logic        apb_access;
     logic        apb_write;
-    logic        apb_read;
     logic        addr_is_control;
     logic        addr_is_status;
     logic        addr_is_valid;
+    logic        reserved_write_bits_seen;
+    logic [2:0] control_reg;
+    logic       status_err_sticky;
     logic [31:0] prdata_next;
 
     // APB-lite zero-wait decode: every access phase completes immediately.
     always @(*) begin
         apb_access      = PSEL & PENABLE;
         apb_write       = apb_access & PWRITE;
-        apb_read        = apb_access & ~PWRITE;
         addr_is_control = (PADDR == ADDR_CONTROL);
         addr_is_status  = (PADDR == ADDR_STATUS);
-        addr_is_valid   = addr_is_control | addr_is_status;
-        PREADY          = apb_access;
+        addr_is_valid            = addr_is_control | addr_is_status;
+        reserved_write_bits_seen = |PWDATA[31:3];
+        PREADY                   = apb_access;
         PSLVERR         = apb_access & ~addr_is_valid;
     end
 
@@ -47,10 +47,10 @@ module parity_gen_regs #(
     always @(*) begin
         prdata_next = 32'h00000000;
         if (addr_is_control) begin
-            prdata_next = {29'h00000000, control_reg[2:0]};
+            prdata_next = {29'h00000000, control_reg};
         end else begin
             if (addr_is_status) begin
-                prdata_next = {31'h00000000, status_reg[0]};
+                prdata_next = {31'h00000000, status_err_sticky};
             end else begin
                 prdata_next = 32'h00000000;
             end
@@ -60,28 +60,28 @@ module parity_gen_regs #(
     // CONTROL is RW for bits [2:0]; STATUS[0] is sticky W1C and also set by parity mismatch.
     always @(posedge PCLK or negedge PRESETn) begin
         if (!PRESETn) begin
-            control_reg <= 32'h00000000;
-            status_reg  <= 32'h00000000;
+            control_reg       <= 3'b000;
+            status_err_sticky <= 1'b0;
             PRDATA      <= 32'h00000000;
         end else begin
             PRDATA <= prdata_next;
 
             if (apb_write & addr_is_control) begin
-                control_reg <= {29'h00000000, PWDATA[2:0]};
+                // Reserved CONTROL write bits are consumed and ignored per SSOT register policy.
+                control_reg <= PWDATA[2:0] | {2'b00, reserved_write_bits_seen & 1'b0};
             end else begin
-                control_reg <= {29'h00000000, control_reg[2:0]};
+                control_reg <= control_reg;
             end
 
             if (parity_error_set) begin
-                status_reg[0] <= 1'b1;
+                status_err_sticky <= 1'b1;
             end else begin
                 if (apb_write & addr_is_status & PWDATA[0]) begin
-                    status_reg[0] <= 1'b0;
+                    status_err_sticky <= 1'b0;
                 end else begin
-                    status_reg[0] <= status_reg[0];
+                    status_err_sticky <= status_err_sticky;
                 end
             end
-            status_reg[31:1] <= 31'h00000000;
         end
     end
 

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 46
+- LLM-actionable open tasks: 7
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, fsm, fsm.ptr_fsm, function_model, function_model.state_variables
 - SSOT connection contracts:
@@ -37,14 +37,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Translate function_model state_variables (wr_ptr, rd_ptr, count) and cycle_model pipeline stages into sequential always block with push/pop acceptance logic. Wrapping is modular at DEPTH. Count increments on push, decrements on pop, clamped to [0..DEPTH].
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_FIFO_PTRS.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - wr_ptr and rd_ptr are declared with correct width ($clog2(DEPTH))
   - count is declared with width $clog2(DEPTH+1)
@@ -63,14 +63,14 @@ SSOT item context: id=RTL_TODO_FIFO_PTRS.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.wr_ptr
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.wr_ptr.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.
 SSOT item context: name=wr_ptr; reset=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -84,14 +84,14 @@ SSOT item context: name=wr_ptr; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.rd_ptr
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.rd_ptr.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.
 SSOT item context: name=rd_ptr; reset=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -105,14 +105,14 @@ SSOT item context: name=rd_ptr; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.count.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.
 SSOT item context: name=count; reset=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -126,14 +126,14 @@ SSOT item context: name=count; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.mem
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.mem.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.
 SSOT item context: name=mem; reset=0x0 per entry.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -147,14 +147,14 @@ SSOT item context: name=mem; reset=0x0 per entry.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_0
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_0.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: value=count is always in range [0, DEPTH]..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -174,7 +174,7 @@ SSOT item context: value=count is always in range [0, DEPTH]..
 SSOT ref: function_model.invariants.invariant_1.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: value=full_o == 1 if and only if count == DEPTH..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -194,7 +194,7 @@ SSOT item context: value=full_o == 1 if and only if count == DEPTH..
 SSOT ref: function_model.invariants.invariant_2.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: value=empty_o == 1 if and only if count == 0..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -207,14 +207,14 @@ SSOT item context: value=empty_o == 1 if and only if count == 0..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_3
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_3.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: value=wr_ptr and rd_ptr are always in range [0, DEPTH-1]..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -227,14 +227,14 @@ SSOT item context: value=wr_ptr and rd_ptr are always in range [0, DEPTH-1]..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_4
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_4.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: value=No read data changes unless rd_en_i is accepted or flush occurs..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -247,14 +247,14 @@ SSOT item context: value=No read data changes unless rd_en_i is accepted or flus
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_5
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_5.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: value=Simultaneous push/pop leaves count unchanged..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -267,14 +267,14 @@ SSOT item context: value=Simultaneous push/pop leaves count unchanged..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_6
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_6.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: value=Overflow and underflow are silently rejected with no state corruption..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -287,14 +287,14 @@ SSOT item context: value=Overflow and underflow are silently rejected with no st
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.
 SSOT item context: value=PCLK.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -308,13 +308,13 @@ SSOT item context: value=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -328,14 +328,14 @@ Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.wr_en_i
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.wr_en_i.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.handshake_rules.
 SSOT item context: signal=wr_en_i.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -349,14 +349,14 @@ SSOT item context: signal=wr_en_i.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.rd_en_i
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.rd_en_i.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.handshake_rules.
 SSOT item context: signal=rd_en_i.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -377,7 +377,7 @@ SSOT item context: signal=rd_en_i.
 SSOT ref: cycle_model.handshake_rules.full_o.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.handshake_rules.
 SSOT item context: signal=full_o.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -398,7 +398,7 @@ SSOT item context: signal=full_o.
 SSOT ref: cycle_model.handshake_rules.empty_o.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.handshake_rules.
 SSOT item context: signal=empty_o.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -412,14 +412,14 @@ SSOT item context: signal=empty_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.flush_i
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.flush_i.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.handshake_rules.
 SSOT item context: signal=flush_i.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -433,14 +433,14 @@ SSOT item context: signal=flush_i.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S0_SAMPLE_INPUTS
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_SAMPLE_INPUTS.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.pipeline.
 SSOT item context: stage=S0_SAMPLE_INPUTS; action=Sample wr_en_i, rd_en_i, flush_i, wr_data_i on rising PCLK edge; cycle=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -455,14 +455,14 @@ SSOT item context: stage=S0_SAMPLE_INPUTS; action=Sample wr_en_i, rd_en_i, flush
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S1_EVAL_ACCEPT
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_EVAL_ACCEPT.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.pipeline.
 SSOT item context: stage=S1_EVAL_ACCEPT; action=Combinational: determine push_accepted = wr_en_i && !full_o && !flush_i; pop_accepted = rd_en_i && !empty_o && !flush_i; cycle=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -477,14 +477,14 @@ SSOT item context: stage=S1_EVAL_ACCEPT; action=Combinational: determine push_ac
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S2_UPDATE_PTRS
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S2_UPDATE_PTRS.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.pipeline.
 SSOT item context: stage=S2_UPDATE_PTRS; action=Update wr_ptr, rd_ptr, count registers based on push/pop acceptance; cycle=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -499,14 +499,14 @@ SSOT item context: stage=S2_UPDATE_PTRS; action=Update wr_ptr, rd_ptr, count reg
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S3_WRITE_MEM
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S3_WRITE_MEM.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.pipeline.
 SSOT item context: stage=S3_WRITE_MEM; action=Write wr_data_i to mem[wr_ptr] when push_accepted; cycle=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -521,14 +521,14 @@ SSOT item context: stage=S3_WRITE_MEM; action=Write wr_data_i to mem[wr_ptr] whe
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S4_UPDATE_FLAGS
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S4_UPDATE_FLAGS.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.pipeline.
 SSOT item context: stage=S4_UPDATE_FLAGS; action=Flags (full, empty, almost_full, almost_empty, count) reflect new pointer state; cycle=1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -543,14 +543,14 @@ SSOT item context: stage=S4_UPDATE_FLAGS; action=Flags (full, empty, almost_full
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.
 SSOT item context: value=Push data is captured into memory in the same cycle as pointer update..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -564,14 +564,14 @@ SSOT item context: value=Push data is captured into memory in the same cycle as 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.
 SSOT item context: value=Pop data is available combinationally from memory (USE_OUTPUT_REGISTER=0) or one cycle later (USE_OUTPUT_REGISTER=1)..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -585,14 +585,14 @@ SSOT item context: value=Pop data is available combinationally from memory (USE_
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_2
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_2.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.
 SSOT item context: value=Flush clears all state in the cycle it is sampled; concurrent push/pop are ignored..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -606,14 +606,14 @@ SSOT item context: value=Flush clears all state in the cycle it is sampled; conc
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_3
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_3.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.
 SSOT item context: value=Flag updates are visible on the cycle after pointer/count changes..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -627,14 +627,14 @@ SSOT item context: value=Flag updates are visible on the cycle after pointer/cou
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.
 SSOT item context: value=full_o provides natural backpressure to the writer; the writer must deassert wr_en_i or accept rejection..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -648,14 +648,14 @@ SSOT item context: value=full_o provides natural backpressure to the writer; the
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_1.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.
 SSOT item context: value=empty_o provides natural backpressure to the reader; the reader must deassert rd_en_i or accept undefined data..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -669,14 +669,14 @@ SSOT item context: value=empty_o provides natural backpressure to the reader; th
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.
 SSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -690,14 +690,14 @@ SSOT item context: value=Every function_model transaction maps to at least one c
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.ptr_fsm.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.states.state_0.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: value=EMPTY.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -718,7 +718,7 @@ SSOT item context: value=EMPTY.
 SSOT ref: fsm.ptr_fsm.states.state_1.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: value=ALMOST_EMPTY.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -739,7 +739,7 @@ SSOT item context: value=ALMOST_EMPTY.
 SSOT ref: fsm.ptr_fsm.states.state_2.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: value=NORMAL.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -760,7 +760,7 @@ SSOT item context: value=NORMAL.
 SSOT ref: fsm.ptr_fsm.states.state_3.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: value=ALMOST_FULL.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -774,14 +774,14 @@ SSOT item context: value=ALMOST_FULL.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.ptr_fsm.states.state_4
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.states.state_4.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: value=FULL.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -795,14 +795,14 @@ SSOT item context: value=FULL.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.ptr_fsm.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.transitions.transition_0.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: from=EMPTY; to=NORMAL; condition=push_accepted && count becomes > ALMOST_EMPTY_THRESHOLD.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -817,14 +817,14 @@ SSOT item context: from=EMPTY; to=NORMAL; condition=push_accepted && count becom
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.ptr_fsm.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.transitions.transition_1.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: from=EMPTY; to=ALMOST_EMPTY; condition=push_accepted && count becomes <= ALMOST_EMPTY_THRESHOLD && count > 0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -839,14 +839,14 @@ SSOT item context: from=EMPTY; to=ALMOST_EMPTY; condition=push_accepted && count
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.ptr_fsm.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.transitions.transition_2.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: from=ALMOST_EMPTY; to=EMPTY; condition=pop_accepted && count becomes 0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -861,14 +861,14 @@ SSOT item context: from=ALMOST_EMPTY; to=EMPTY; condition=pop_accepted && count 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.ptr_fsm.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.transitions.transition_3.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: from=ALMOST_EMPTY; to=NORMAL; condition=push_accepted && count > ALMOST_EMPTY_THRESHOLD.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -883,14 +883,14 @@ SSOT item context: from=ALMOST_EMPTY; to=NORMAL; condition=push_accepted && coun
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.ptr_fsm.transitions.transition_4
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.transitions.transition_4.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: from=NORMAL; to=ALMOST_FULL; condition=push_accepted && count >= ALMOST_FULL_THRESHOLD.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -905,14 +905,14 @@ SSOT item context: from=NORMAL; to=ALMOST_FULL; condition=push_accepted && count
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.ptr_fsm.transitions.transition_5
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.transitions.transition_5.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: from=NORMAL; to=ALMOST_EMPTY; condition=pop_accepted && count <= ALMOST_EMPTY_THRESHOLD.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -927,14 +927,14 @@ SSOT item context: from=NORMAL; to=ALMOST_EMPTY; condition=pop_accepted && count
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.ptr_fsm.transitions.transition_6
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.transitions.transition_6.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: from=ALMOST_FULL; to=FULL; condition=push_accepted && count == DEPTH.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -949,14 +949,14 @@ SSOT item context: from=ALMOST_FULL; to=FULL; condition=push_accepted && count =
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.ptr_fsm.transitions.transition_7
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.transitions.transition_7.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: from=ALMOST_FULL; to=NORMAL; condition=pop_accepted && count < ALMOST_FULL_THRESHOLD.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -971,14 +971,14 @@ SSOT item context: from=ALMOST_FULL; to=NORMAL; condition=pop_accepted && count 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.ptr_fsm.transitions.transition_8
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.transitions.transition_8.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: from=FULL; to=ALMOST_FULL; condition=pop_accepted && count == DEPTH-1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -993,13 +993,13 @@ SSOT item context: from=FULL; to=ALMOST_FULL; condition=pop_accepted && count ==
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.fifo_sync_ptrs.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.fifo_sync_ptrs.module_equivalence.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

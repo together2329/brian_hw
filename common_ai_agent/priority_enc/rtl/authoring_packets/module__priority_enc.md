@@ -24,11 +24,22 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: False
-- LLM-actionable open tasks: 38
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
 - Connection contract gap: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
+- Pending connection-contract suggestions: 21 rows in rtl/connection_contract_suggestions.json
+- Draft top integration fragment: rtl/connection_contract_draft_top.svfrag
+- Suggestion usage: draft RTL wiring may use these rows to close hierarchy/signal-flow evidence, but they are not SSOT authority and cannot close connection-contract signoff.
+  - priority_enc_regs.PADDR <= PADDR (observed_named_port_map)
+  - priority_enc_regs.PCLK <= PCLK (observed_named_port_map)
+  - priority_enc_regs.PENABLE <= PENABLE (observed_named_port_map)
+  - priority_enc_regs.PRDATA <= PRDATA (observed_named_port_map)
+  - priority_enc_regs.PREADY <= PREADY (observed_named_port_map)
+  - priority_enc_regs.PRESETn <= PRESETn (observed_named_port_map)
+  - priority_enc_regs.PSEL <= PSEL (observed_named_port_map)
+  - priority_enc_regs.PSLVERR <= PSLVERR (observed_named_port_map)
 - SSOT top IO contracts: 13
 
 ## Tasks
@@ -56,14 +67,14 @@ Owner: priority_enc in rtl/priority_enc.sv via top_module.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
 SSOT item context: value=priority_enc.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width
@@ -76,14 +87,14 @@ SSOT item context: value=priority_enc.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[2]
 - Detail: Instantiate priority_enc_regs and priority_enc_core; connect APB ports to regs, data_in to core, core outputs to top ports and STATUS register feedback.
 SSOT ref: workflow_todos.rtl-gen[2].
 Owner: priority_enc in rtl/priority_enc.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_TOP.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top-level connects all submodules per integration spec
   - Lint clean
@@ -98,14 +109,14 @@ SSOT item context: id=RTL_TODO_TOP.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Priority_Encoding
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Priority_Encoding.
 Owner: priority_enc in rtl/priority_enc.sv via features.
 SSOT item context: name=Priority Encoding; output=index_out (encoded index) and valid_out (any bit set).
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -118,14 +129,14 @@ SSOT item context: name=Priority Encoding; output=index_out (encoded index) and 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Runtime_Masking
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Runtime_Masking.
 Owner: priority_enc in rtl/priority_enc.sv via features.
 SSOT item context: name=Runtime Masking; output=Masked inputs ignored in priority computation.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -138,14 +149,14 @@ SSOT item context: name=Runtime Masking; output=Masked inputs ignored in priorit
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Enable_Gating
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Enable_Gating.
 Owner: priority_enc in rtl/priority_enc.sv via features.
 SSOT item context: name=Enable Gating; output=When disabled, index_out=0 and valid_out=0.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -158,14 +169,14 @@ SSOT item context: name=Enable Gating; output=When disabled, index_out=0 and val
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_0
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_0.
 Owner: priority_enc in rtl/priority_enc.sv via error_handling.
 SSOT item context: value=Software retry with corrected address..
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -178,13 +189,13 @@ SSOT item context: value=Software retry with corrected address..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.asset_0
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.asset_0.
 Owner: priority_enc in rtl/priority_enc.sv via security.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -197,14 +208,14 @@ Owner: priority_enc in rtl/priority_enc.sv via security.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_0
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_0.
 Owner: priority_enc in rtl/priority_enc.sv via synthesis.
 SSOT item context: value=PCLK period 20ns.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -217,14 +228,14 @@ SSOT item context: value=PCLK period 20ns.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_1
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_1.
 Owner: priority_enc in rtl/priority_enc.sv via synthesis.
 SSOT item context: value=Input delay 2ns.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -237,14 +248,14 @@ SSOT item context: value=Input delay 2ns.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_2
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_2.
 Owner: priority_enc in rtl/priority_enc.sv via synthesis.
 SSOT item context: value=Output delay 3ns.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -257,14 +268,14 @@ SSOT item context: value=Output delay 3ns.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.area_um2
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.area_um2.
 Owner: priority_enc in rtl/priority_enc.sv via synthesis.
 SSOT item context: name=area_um2.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -277,14 +288,14 @@ SSOT item context: name=area_um2.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.power_mw
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.power_mw.
 Owner: priority_enc in rtl/priority_enc.sv via synthesis.
 SSOT item context: name=power_mw.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -297,14 +308,14 @@ SSOT item context: name=power_mw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.timing_met
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.timing_met.
 Owner: priority_enc in rtl/priority_enc.sv via synthesis.
 SSOT item context: name=timing_met; value=True.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -317,13 +328,13 @@ SSOT item context: name=timing_met; value=True.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.priority_enc.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.priority_enc.module_equivalence.
 Owner: priority_enc in rtl/priority_enc.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -338,14 +349,14 @@ Owner: priority_enc in rtl/priority_enc.sv via module_equivalence.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.N
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.N.
 Owner: priority_enc in rtl/priority_enc.sv via parameters.
 SSOT item context: name=N.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -358,14 +369,14 @@ SSOT item context: name=N.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.INDEX_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.INDEX_WIDTH.
 Owner: priority_enc in rtl/priority_enc.sv via parameters.
 SSOT item context: name=INDEX_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -378,14 +389,14 @@ SSOT item context: name=INDEX_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.PCLK_FREQ_MHZ
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.PCLK_FREQ_MHZ.
 Owner: priority_enc in rtl/priority_enc.sv via parameters.
 SSOT item context: name=PCLK_FREQ_MHZ.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -398,14 +409,14 @@ SSOT item context: name=PCLK_FREQ_MHZ.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.RESET_POLARITY
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.RESET_POLARITY.
 Owner: priority_enc in rtl/priority_enc.sv via parameters.
 SSOT item context: name=RESET_POLARITY.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -418,14 +429,14 @@ SSOT item context: name=RESET_POLARITY.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.clock_domains.PCLK.ports.PCLK
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.PCLK.ports.PCLK.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=PCLK; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -440,14 +451,14 @@ SSOT item context: name=PCLK; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.resets.PRESETn.ports.PRESETn
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.PRESETn.ports.PRESETn.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=PRESETn; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -462,14 +473,14 @@ SSOT item context: name=PRESETn; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.priority_inputs.ports.data_in
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.priority_inputs.ports.data_in.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=data_in; width=N; direction=input.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -484,14 +495,14 @@ SSOT item context: name=data_in; width=N; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.priority_outputs.ports.index_out
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.priority_outputs.ports.index_out.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=index_out; width=INDEX_WIDTH; direction=output.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -506,14 +517,14 @@ SSOT item context: name=index_out; width=INDEX_WIDTH; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.priority_outputs.ports.valid_out
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.priority_outputs.ports.valid_out.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=valid_out; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -528,14 +539,14 @@ SSOT item context: name=valid_out; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.PADDR
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.PADDR.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=PADDR; width=12; direction=input.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -550,14 +561,14 @@ SSOT item context: name=PADDR; width=12; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.PSEL
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.PSEL.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=PSEL; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -572,14 +583,14 @@ SSOT item context: name=PSEL; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.PENABLE
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.PENABLE.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=PENABLE; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -594,14 +605,14 @@ SSOT item context: name=PENABLE; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.PWRITE
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.PWRITE.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=PWRITE; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -616,14 +627,14 @@ SSOT item context: name=PWRITE; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.PWDATA
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.PWDATA.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=PWDATA; width=32; direction=input.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -638,14 +649,14 @@ SSOT item context: name=PWDATA; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.PRDATA
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.PRDATA.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=PRDATA; width=32; direction=output.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -660,14 +671,14 @@ SSOT item context: name=PRDATA; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.PREADY
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.PREADY.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=PREADY; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -682,14 +693,14 @@ SSOT item context: name=PREADY; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.PSLVERR
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.PSLVERR.
 Owner: priority_enc in rtl/priority_enc.sv via io_list.
 SSOT item context: name=PSLVERR; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -704,14 +715,14 @@ SSOT item context: name=PSLVERR; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC1
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC1.
 Owner: priority_enc in rtl/priority_enc.sv via test_requirements.
 SSOT item context: id=SC1; name=Basic priority encode; expected=index_out = bit position, valid_out = 1.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -725,14 +736,14 @@ SSOT item context: id=SC1; name=Basic priority encode; expected=index_out = bit 
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC2
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC2.
 Owner: priority_enc in rtl/priority_enc.sv via test_requirements.
 SSOT item context: id=SC2; name=Multiple inputs priority resolution; expected=index_out reflects highest-numbered asserted bit.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -746,14 +757,14 @@ SSOT item context: id=SC2; name=Multiple inputs priority resolution; expected=in
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC3
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC3.
 Owner: priority_enc in rtl/priority_enc.sv via test_requirements.
 SSOT item context: id=SC3; name=Mask functionality; expected=Masked bits ignored in index_out/valid_out computation.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -767,14 +778,14 @@ SSOT item context: id=SC3; name=Mask functionality; expected=Masked bits ignored
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC4
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC4.
 Owner: priority_enc in rtl/priority_enc.sv via test_requirements.
 SSOT item context: id=SC4; name=Enable gating; expected=index_out=0, valid_out=0 regardless of inputs.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -788,14 +799,14 @@ SSOT item context: id=SC4; name=Enable gating; expected=index_out=0, valid_out=0
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC5
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC5.
 Owner: priority_enc in rtl/priority_enc.sv via test_requirements.
 SSOT item context: id=SC5; name=APB CSR read/write; expected=Register values match writes; STATUS reflects current core output.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -809,14 +820,14 @@ SSOT item context: id=SC5; name=APB CSR read/write; expected=Register values mat
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC6
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC6.
 Owner: priority_enc in rtl/priority_enc.sv via test_requirements.
 SSOT item context: id=SC6; name=Reset behavior; expected=CTRL=0x1, MASK=0x0, STATUS=0x0, index_out=0, valid_out=0.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -830,14 +841,14 @@ SSOT item context: id=SC6; name=Reset behavior; expected=CTRL=0x1, MASK=0x0, STA
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC7
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC7.
 Owner: priority_enc in rtl/priority_enc.sv via test_requirements.
 SSOT item context: id=SC7; name=APB bad address; expected=PSLVERR=1, PRDATA=0, no register state change.
-- Current reason: Owner RTL file is missing: rtl/priority_enc.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared

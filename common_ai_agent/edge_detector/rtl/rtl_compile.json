@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "type": "rtl_compile",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "iverilog",
+  "command": "iverilog -g2012 -Irtl -f list/edge_detector.f -s edge_detector -o /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/edge_detector_rtl_check.vvp",
+  "cwd": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector",
+  "top": "edge_detector",
+  "filelist": "list/edge_detector.f",
+  "rtl_files": [
+    "rtl/edge_detector_regs.sv",
+    "rtl/edge_detector.sv"
+  ],
+  "timestamp": "2026-05-15T02:08:14Z",
+  "returncode": 0,
+  "errors": 0,
+  "diagnostics": 0,
+  "style_violations": 0,
+  "style_violation_details": [],
+  "passed": true,
+  "policy": "returncode==0, no error/fatal/warning/sorry diagnostics, no procedural parameterized part-select style violations, and no generated-RTL policy violations: .sv filenames with SystemVerilog logic-port syntax, rtl/<ip>_param.vh for shared parameters, no package/import/interface/modport/function/task/for/while, and no typedef/enum/always_ff/always_comb"
+}

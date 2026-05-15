@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 9/9 section=workflow_todo task_limit=48
@@ -51,14 +51,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[2]
 - Detail: Instantiate arbiter_rr_regs and arbiter_rr_core. Wire top-level ports to sub-module ports per integration.connections. Include arbiter_rr_param.vh. No behavioral logic in top — wiring only.
 SSOT ref: workflow_todos.rtl-gen[2].
 Owner: arbiter_rr in rtl/arbiter_rr.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_TOP_WIRING.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - All top-level io_list ports connected to correct sub-module ports
   - Integration connections match SSOT integration.connections list

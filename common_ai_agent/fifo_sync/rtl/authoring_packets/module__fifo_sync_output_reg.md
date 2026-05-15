@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 11
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.latency.registered_read, parameters, parameters.USE_OUTPUT_REGISTER
 - SSOT connection contracts:
@@ -38,14 +38,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[3]
 - Detail: When USE_OUTPUT_REGISTER=1, insert a pipeline register between mem[rd_ptr] and rd_data_o. Register loads on pop_accepted. When USE_OUTPUT_REGISTER=0, bypass directly.
 SSOT ref: workflow_todos.rtl-gen[3].
 Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_FIFO_OUTPUT_REG.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Output register is conditionally instantiated based on USE_OUTPUT_REGISTER parameter
   - Registered path: rd_data_o updated 1 cycle after pop_accepted
@@ -61,13 +61,13 @@ SSOT item context: id=RTL_TODO_FIFO_OUTPUT_REG.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via cycle_model.latency.registered_read.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -81,13 +81,13 @@ Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via cycle_model.laten
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.fifo_sync_output_reg.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.fifo_sync_output_reg.module_equivalence.
 Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -102,14 +102,14 @@ Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via module_equivalenc
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.DATA_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DATA_WIDTH.
 Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.
 SSOT item context: name=DATA_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -122,14 +122,14 @@ SSOT item context: name=DATA_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.DEPTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DEPTH.
 Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.
 SSOT item context: name=DEPTH.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -142,14 +142,14 @@ SSOT item context: name=DEPTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.ALMOST_FULL_THRESHOLD
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.ALMOST_FULL_THRESHOLD.
 Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.
 SSOT item context: name=ALMOST_FULL_THRESHOLD.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -162,14 +162,14 @@ SSOT item context: name=ALMOST_FULL_THRESHOLD.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.ALMOST_EMPTY_THRESHOLD
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.ALMOST_EMPTY_THRESHOLD.
 Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.
 SSOT item context: name=ALMOST_EMPTY_THRESHOLD.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -182,14 +182,14 @@ SSOT item context: name=ALMOST_EMPTY_THRESHOLD.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.USE_OUTPUT_REGISTER
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.USE_OUTPUT_REGISTER.
 Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.USE_OUTPUT_REGISTER.
 SSOT item context: name=USE_OUTPUT_REGISTER.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -202,14 +202,14 @@ SSOT item context: name=USE_OUTPUT_REGISTER.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.USE_APB
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.USE_APB.
 Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.
 SSOT item context: name=USE_APB.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -222,14 +222,14 @@ SSOT item context: name=USE_APB.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.USE_ECC
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.USE_ECC.
 Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.
 SSOT item context: name=USE_ECC.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -242,14 +242,14 @@ SSOT item context: name=USE_ECC.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.CLOCK_FREQ_MHZ
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.CLOCK_FREQ_MHZ.
 Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.
 SSOT item context: name=CLOCK_FREQ_MHZ.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects

@@ -1,0 +1,449 @@
+top_module:
+  name: "shift_reg"
+  file: "rtl/shift_reg.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "Parameterized serial-in/parallel-out and parallel-load shift register with enable-controlled shifting."
+  reference_spec: "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+sub_modules:
+  - name: "shift_reg_core"
+    file: "rtl/shift_reg_core.sv"
+    ownership: "manifest"
+    ssot_gen: false
+    implements: ["function_model.transactions.FM_SHIFT", "function_model.transactions.FM_LOAD", "cycle_model.pipeline", "fsm.control"]
+    source_sections: ["function_model", "cycle_model", "fsm", "dataflow", "features"]
+    function_model_refs: ["function_model.transactions.FM_SHIFT", "function_model.transactions.FM_LOAD", "function_model.state_variables.shift_q"]
+    cycle_model_refs: ["cycle_model.handshake_rules.enable_sample", "cycle_model.pipeline"]
+    dataflow_refs: ["dataflow.serial_path", "dataflow.parallel_load_path"]
+    fsm_refs: ["fsm.control"]
+    feature_refs: ["features.serial_shift", "features.parallel_load"]
+    description: "Core shift register state and datapath behavior"
+  - name: "shift_reg_wrapper"
+    file: "rtl/shift_reg.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    wiring_only: true
+    source_sections: ["io_list", "integration"]
+    ports: ["all top-level io_list ports"]
+    connections: "Named port wiring from top-level ports to shift_reg_core"
+    description: "Top-level integration shell sharing the required top module filename"
+decomposition:
+  units:
+    - id: "datapath"
+      kind: "sequential_datapath"
+      source_refs: ["function_model.transactions.FM_SHIFT", "function_model.transactions.FM_LOAD", "dataflow"]
+      rtl_candidates: ["shift_reg_core"]
+      verification_impact: ["test_requirements.scenarios.SC_SHIFT", "test_requirements.coverage_goals.function"]
+    - id: "control"
+      kind: "priority_control"
+      source_refs: ["cycle_model.pipeline", "fsm.control", "features"]
+      rtl_candidates: ["shift_reg_core"]
+      verification_impact: ["test_requirements.scenarios.SC_PRIORITY", "test_requirements.coverage_goals.cycle"]
+rtl_contract:
+  transaction: "FM_SHIFT/FM_LOAD"
+  sample_condition: "State updates on rising edge of clk when rst_n is high"
+  input_map:
+    reset: "rst_n active low asynchronously clears shift_q to RESET_VALUE"
+    load_command: "load high samples parallel_in with priority over enable shifting"
+    shift_command: "enable high and load low shifts according to SHIFT_DIRECTION"
+    serial_data: "serial_in inserts at the vacated bit position"
+  output_map:
+    parallel_out: "parallel_out reflects current shift_q"
+    serial_out: "serial_out reflects the bit shifted out side according to SHIFT_DIRECTION"
+  state_updates:
+    - { name: "shift_q", reset: "RESET_VALUE", expr: "parallel_in when load else shifted shift_q when enable else held" }
+    - { name: "serial_out", reset: 0, expr: "MSB before left shift or LSB before right shift; combinationally mirrors selected endpoint" }
+  reset_behavior:
+    async_assert: "rst_n low immediately drives shift_q to RESET_VALUE and serial_out to RESET_VALUE endpoint"
+    sync_deassert: "Normal operation resumes on first clk rising edge after rst_n high"
+parameters:
+  - name: "WIDTH"
+    default: 8
+    type: int
+    legal_values: "WIDTH >= 1"
+    description: "Number of shift register bits"
+    drives: ["rtl/shift_reg.sv", "rtl/shift_reg_core.sv", "test_requirements"]
+  - name: "SHIFT_DIRECTION"
+    default: "LEFT"
+    type: enum
+    values: ["LEFT", "RIGHT"]
+    description: "Direction used for enable-controlled serial shifts"
+    drives: ["function_model.transactions.FM_SHIFT", "cycle_model.pipeline", "rtl/shift_reg_core.sv"]
+  - name: "RESET_VALUE"
+    default: 0
+    type: int
+    legal_values: "0 <= RESET_VALUE < 2**WIDTH"
+    description: "Architectural reset value for shift_q"
+    drives: ["rtl_contract.reset_behavior", "registers.STATUS", "function_model.state_variables.shift_q"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 100
+    type: int
+    description: "Target operating frequency"
+    drives: ["timing.target_clocks", "synthesis.ppa_targets"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low"]
+    description: "Reset polarity is fixed active-low for this IP"
+    drives: ["clock_reset_domains", "io_list.resets"]
+io_list:
+  clock_domains:
+    - name: "clk"
+      frequency_mhz: 100
+      description: "Main synchronous clock"
+      ports:
+        - { name: "clk", width: 1, direction: "input", description: "Rising-edge system clock" }
+  resets:
+    - name: "rst_n"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Active-low reset for shift state"
+      ports:
+        - { name: "rst_n", width: 1, direction: "input", description: "Asynchronous active-low reset" }
+  interfaces:
+    - name: "shift_control"
+      type: "custom_parallel_control"
+      role: "slave"
+      clock_domain: "clk"
+      reset_domain: "rst_n"
+      description: "Control and data pins for load/enable shift operation"
+      protocol:
+        sampling: "load, enable, serial_in, and parallel_in are sampled on clk rising edge when rst_n is high."
+        priority: "load has priority over enable; when load=1 the value of enable is ignored for that cycle."
+        hold_rule: "When load=0 and enable=0, shift_q holds its previous value."
+        output_timing: "parallel_out changes after the active clock edge that updates shift_q; serial_out reflects the endpoint bit selected by SHIFT_DIRECTION."
+        illegal_values: "No illegal 1-bit control encodings; simultaneous load and enable is legal and resolves as load."
+      ports:
+        - { name: "load", width: 1, direction: "input", description: "Parallel load strobe" }
+        - { name: "enable", width: 1, direction: "input", description: "Shift enable when load is low" }
+        - { name: "serial_in", width: 1, direction: "input", description: "Serial bit inserted during shift" }
+        - { name: "parallel_in", width: "WIDTH", direction: "input", description: "Parallel data loaded when load is high" }
+        - { name: "parallel_out", width: "WIDTH", direction: "output", description: "Current shift register state" }
+        - { name: "serial_out", width: 1, direction: "output", description: "Bit shifted out at selected endpoint" }
+features:
+  - id: "serial_shift"
+    name: "Enable-controlled serial shift"
+    trigger: "enable=1 and load=0 sampled on clk rising edge"
+    datapath: "shift_q shifts one bit in SHIFT_DIRECTION and serial_in fills the vacated position"
+    control: "RUN state self-transition with enable_sample rule"
+    output: "parallel_out updates to shifted value and serial_out exposes shifted-out endpoint bit"
+  - id: "parallel_load"
+    name: "Synchronous parallel load"
+    trigger: "load=1 sampled on clk rising edge"
+    datapath: "parallel_in is copied into shift_q"
+    control: "RUN state with load priority over shift enable"
+    output: "parallel_out equals loaded parallel_in after the update edge"
+  - id: "hold_state"
+    name: "Hold when idle"
+    trigger: "load=0 and enable=0 sampled on clk rising edge"
+    datapath: "shift_q retains prior value"
+    control: "RUN state idle self-transition"
+    output: "parallel_out and serial_out remain stable except reset effects"
+dataflow:
+  serial_path:
+    source: "serial_in"
+    destination: "shift_q[0] for LEFT shifts or shift_q[WIDTH-1] for RIGHT shifts"
+    sequence: "serial_in -> shift mux -> shift_q next-state -> parallel_out"
+    shifted_out: "shift_q[WIDTH-1] for LEFT shifts or shift_q[0] for RIGHT shifts"
+  parallel_load_path:
+    source: "parallel_in[WIDTH-1:0]"
+    destination: "shift_q[WIDTH-1:0]"
+    sequence: "parallel_in -> load mux -> shift_q next-state -> parallel_out"
+  hold_path:
+    source: "shift_q current value"
+    destination: "shift_q next value"
+    sequence: "feedback selected when load=0 and enable=0"
+  priority_control:
+    order: ["reset", "parallel_load", "serial_shift", "hold"]
+    rule: "reset dominates asynchronously; load dominates enable during normal clocked operation"
+function_model:
+  purpose: "Cycle-independent behavioral contract for a parameterized shift register."
+  state_variables:
+    - { name: "shift_q", source: "internal state", reset: "RESET_VALUE", width: "WIDTH", description: "Architectural shift register contents" }
+    - { name: "serial_out_value", source: "shift_q endpoint", reset: 0, width: 1, description: "Endpoint bit exposed as serial_out" }
+  transactions:
+    - id: "FM_LOAD"
+      name: "parallel_load"
+      preconditions:
+        - "rst_n == 1"
+        - "load == 1 at the sampling edge"
+      inputs:
+        - "parallel_in[WIDTH-1:0]"
+      outputs:
+        - "parallel_out equals parallel_in after the update edge"
+        - "serial_out equals endpoint bit of loaded shift_q according to SHIFT_DIRECTION"
+      output_rules:
+        - { name: "parallel_out", expr: "parallel_in", width: "WIDTH", port: "parallel_out" }
+        - { name: "serial_out", expr: "parallel_in[WIDTH-1] if SHIFT_DIRECTION==LEFT else parallel_in[0]", width: 1, port: "serial_out" }
+      side_effects:
+        - "shift_q becomes parallel_in"
+      error_cases: []
+    - id: "FM_SHIFT"
+      name: "serial_shift_one_bit"
+      preconditions:
+        - "rst_n == 1"
+        - "load == 0"
+        - "enable == 1 at the sampling edge"
+      inputs:
+        - "serial_in"
+        - "previous shift_q"
+      outputs:
+        - "parallel_out equals shifted shift_q with serial_in inserted"
+        - "serial_out equals bit shifted out from the selected endpoint"
+      output_rules:
+        - { name: "parallel_out", expr: "{shift_q[WIDTH-2:0], serial_in} for LEFT else {serial_in, shift_q[WIDTH-1:1]}", width: "WIDTH", port: "parallel_out" }
+        - { name: "serial_out", expr: "shift_q[WIDTH-1] for LEFT else shift_q[0]", width: 1, port: "serial_out" }
+      side_effects:
+        - "shift_q shifts by one bit in SHIFT_DIRECTION"
+      error_cases: []
+    - id: "FM_HOLD"
+      name: "hold_state"
+      preconditions:
+        - "rst_n == 1"
+        - "load == 0"
+        - "enable == 0 at the sampling edge"
+      inputs:
+        - "previous shift_q"
+      outputs:
+        - "parallel_out remains equal to shift_q"
+        - "serial_out remains endpoint bit of shift_q"
+      output_rules:
+        - { name: "parallel_out", expr: "shift_q", width: "WIDTH", port: "parallel_out" }
+        - { name: "serial_out", expr: "shift_q[WIDTH-1] if SHIFT_DIRECTION==LEFT else shift_q[0]", width: 1, port: "serial_out" }
+      side_effects:
+        - "No architectural state changes"
+      error_cases: []
+  invariants:
+    - "parallel_out always reflects shift_q after reset/update propagation."
+    - "load and enable simultaneous assertion performs FM_LOAD, not FM_SHIFT."
+    - "No output depends on undeclared state."
+  reference_model_hint: "tb-gen should implement a Python model with update(load, enable, serial_in, parallel_in) and compare parallel_out/serial_out every cycle."
+cycle_model:
+  purpose: "Cycle/edge timing contract for reset, load, shift, hold, and output updates."
+  executable: "pymtl3"
+  backend_policy: "Use a small clocked Python/PyMTL3 model as behavioral oracle; RTL is authored downstream from this YAML."
+  clock: "clk"
+  reset:
+    assertion: "rst_n low asynchronously clears shift_q to RESET_VALUE."
+    deassertion: "State is usable on the first rising edge after rst_n is high."
+  latency:
+    reset_to_output: { min_cycles: 0, max_cycles: 0, description: "Async reset immediately drives reset value to registered state/output contract." }
+    load_to_parallel_out: { min_cycles: 1, max_cycles: 1, description: "parallel_in sampled on one rising edge, visible after that update edge." }
+    shift_to_parallel_out: { min_cycles: 1, max_cycles: 1, description: "serial_in sampled on one rising edge, shifted result visible after that update edge." }
+  handshake_rules:
+    - { id: "enable_sample", signal: "enable", rule: "enable is sampled only on clk rising edge when rst_n=1 and load=0." }
+    - { id: "load_priority", signal: "load", rule: "load=1 overrides enable during the same sampling edge." }
+    - { id: "input_stability", signal: "parallel_in/serial_in/load/enable", rule: "Inputs must meet setup/hold to clk; SSOT assumes synchronous source or external timing closure." }
+  pipeline:
+    - { stage: "S0_SAMPLE", cycle: 0, action: "Sample load, enable, serial_in, and parallel_in on rising clk when rst_n=1." }
+    - { stage: "S1_UPDATE", cycle: 0, action: "Update shift_q according to priority reset/load/shift/hold." }
+    - { stage: "S2_OBSERVE", cycle: "0_after_edge", action: "parallel_out and serial_out expose the updated architectural state." }
+  ordering:
+    - "Asynchronous reset assertion dominates all clocked operations."
+    - "For non-reset cycles, load is evaluated before enable shift."
+    - "Hold preserves state when neither load nor enable is asserted."
+  backpressure:
+    - "No ready/valid backpressure exists; caller controls load and enable directly."
+  performance:
+    frequency_mhz: 100
+    throughput: { sustained_updates_per_cycle: 1, condition: "One load, shift, or hold decision can be accepted every clk cycle." }
+    outstanding: { max_operations: 1, description: "The shift register has no queued outstanding operations." }
+    depth: { pipeline_stages: 1, storage_bits: "WIDTH", description: "Single-stage registered storage." }
+  observability:
+    - "Every function_model transaction maps to S0_SAMPLE/S1_UPDATE/S2_OBSERVE and a DV scenario."
+clock_reset_domains:
+  domains:
+    - { name: "clk", frequency_mhz: 100, description: "Single functional clock domain" }
+  reset_scheme:
+    signal: "rst_n"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain; all control/data inputs are assumed synchronous to clk or constrained externally."
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain; no reset-domain crossing logic required."
+registers:
+  config:
+    register_width: 32
+    addr_width: 4
+    byte_addressable: true
+    no_bus_register_access: true
+    access_model: "No software bus is present; STATUS is a verification/documentation pseudo-register mirroring outputs."
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "No storage is allocated for reserved pseudo-register bits."
+  register_list:
+    - name: "STATUS"
+      offset: 0x0
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Pseudo-register for documentation and DV observability of shift register state."
+      fields:
+        - { name: "parallel_out_value", bits: [7, 0], access: "ro", reset: 0x00, description: "Lower eight bits of parallel_out for default WIDTH=8 configuration" }
+        - { name: "serial_out_value", bits: [8, 8], access: "ro", reset: 0x0, description: "Current serial_out value" }
+        - { name: "reserved_31_9", bits: [31, 9], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero in pseudo-register model" }
+memory:
+  instances:
+    - { name: "shift_q", type: "register", depth: 1, width: "WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "Architectural shift register storage" }
+  note: "No SRAM, FIFO, or external memory macros are required."
+interrupts:
+  sources: []
+  output:
+    signal: null
+    polarity: null
+    type: "none"
+  note: "No interrupt output is defined for this simple datapath IP."
+fsm:
+  control:
+    states:
+      - "RESET"
+      - "RUN"
+    transitions:
+      - { from: "RESET", to: "RESET", condition: "rst_n=0" }
+      - { from: "RESET", to: "RUN", condition: "rst_n=1" }
+      - { from: "RUN", to: "RESET", condition: "rst_n=0" }
+      - { from: "RUN", to: "RUN", condition: "rst_n=1" }
+    actions:
+      RESET: "Drive shift_q to RESET_VALUE."
+      RUN: "Apply load/enable/hold priority on each clk edge."
+    note: "The RTL may implement this as reset-qualified sequential logic rather than an explicit state register if behavior is preserved."
+timing:
+  target_clocks:
+    - { name: "clk", frequency_mhz: 100, duty_cycle: 0.5, uncertainty_ns: 0.1 }
+  latency_budget:
+    reset_to_parallel_out_cycles: { min: 0, max: 0, measured_from: "rst_n asserted low", measured_to: "parallel_out reset value" }
+    load_to_parallel_out_cycles: { min: 1, max: 1, measured_from: "load sampled high", measured_to: "parallel_out updated" }
+    shift_to_parallel_out_cycles: { min: 1, max: 1, measured_from: "enable sampled high with load low", measured_to: "parallel_out shifted" }
+  throughput:
+    sustained_operations_per_cycle: 1
+    conditions: "Every clk cycle can accept one load, shift, or hold operation."
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "all_inputs_except_clk_rst_n", clock: "clk", delay_ns: 1.0, source: "generic synchronous integration budget" }
+    outputs:
+      - { ports: "all_outputs", clock: "clk", delay_ns: 1.0, source: "generic synchronous integration budget" }
+  false_paths:
+    - { from: "rst_n", to: "all_registers", reason: "asynchronous reset assertion" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["clk"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "enable already prevents shift_q data toggling when idle; explicit integrated clock gating is not required."
+  reset_retention:
+    retention_required: false
+    reset_value_source: "RESET_VALUE parameter and rtl_contract.reset_behavior"
+  power_states:
+    - { name: "ON", entry: "rst_n deasserted", exit: "rst_n asserted", guarantees: ["Load, shift, and hold behavior active"] }
+  upf_required: false
+security:
+  classification: "non_secure_datapath_ip"
+  assets:
+    - { name: "shift_q_state", protection: "Integrity depends on synchronous control inputs and reset correctness" }
+    - { name: "parallel_output_data", protection: "No confidentiality protection; output is intentionally visible" }
+  threat_model:
+    - { threat: "unexpected control toggle", mitigation: "cycle_model requires setup/hold compliance and defines deterministic load priority" }
+    - { threat: "reset ambiguity", mitigation: "active-low async reset behavior is explicitly defined in rtl_contract and clock_reset_domains" }
+  privilege_model: "No bus or privilege state inside this IP"
+  safety_goals:
+    - "No unknown priority when load and enable are both asserted."
+    - "Reset deterministically initializes all architectural state."
+error_handling:
+  error_sources:
+    - { id: "ERR_PARAM_WIDTH", condition: "WIDTH < 1 at elaboration", architectural_effect: "Configuration is illegal; downstream RTL/testbench must reject or fail elaboration." }
+    - { id: "ERR_UNKNOWN_CONTROL", condition: "X/Z observed on load or enable in simulation", architectural_effect: "DV checker flags protocol violation; synthesizable RTL behavior remains 2-state after synthesis." }
+  propagation:
+    - "There is no hardware error output; errors are verification/elaboration contract violations."
+    - "Simultaneous load and enable is not an error and resolves to load."
+  recovery:
+    - { action: "assert rst_n low", clears: ["shift_q"], preserves: ["parameters"] }
+    - { action: "drive legal synchronous controls", clears: ["ERR_UNKNOWN_CONTROL in DV environment"], preserves: ["shift_q unless load/enable changes it"] }
+debug_observability:
+  waveform_must_probe:
+    - "clk"
+    - "rst_n"
+    - "load"
+    - "enable"
+    - "serial_in"
+    - "parallel_in"
+    - "shift_q"
+    - "parallel_out"
+    - "serial_out"
+  status_outputs:
+    - "parallel_out"
+    - "serial_out"
+  trace_events:
+    - { name: "reset_assert", trigger: "rst_n falls low" }
+    - { name: "parallel_load", trigger: "rst_n=1 and load=1 at clk rising edge" }
+    - { name: "serial_shift", trigger: "rst_n=1 and load=0 and enable=1 at clk rising edge" }
+    - { name: "hold", trigger: "rst_n=1 and load=0 and enable=0 at clk rising edge" }
+  debug_registers: []
+integration:
+  bus_attachment:
+    control: "direct pins; no APB/AXI/Wishbone control bus"
+    data: "direct serial and parallel pins"
+  connections:
+    - { module: "shift_reg_core", port: "clk", signal: "clk" }
+    - { module: "shift_reg_core", port: "rst_n", signal: "rst_n" }
+    - { module: "shift_reg_core", port: "load", signal: "load" }
+    - { module: "shift_reg_core", port: "enable", signal: "enable" }
+    - { module: "shift_reg_core", port: "serial_in", signal: "serial_in" }
+    - { module: "shift_reg_core", port: "parallel_in", signal: "parallel_in" }
+    - { module: "shift_reg_core", port: "parallel_out", signal: "parallel_out" }
+    - { module: "shift_reg_core", port: "serial_out", signal: "serial_out" }
+  address_map_requirements:
+    alignment_bytes: null
+    decode_owner: "not_applicable_no_bus"
+    illegal_access_response: "not_applicable_no_bus"
+  dependencies:
+    external_modules: []
+    external_clocks: ["clk"]
+    external_resets: ["rst_n"]
+  integration_notes:
+    - "Parent logic must provide inputs synchronous to clk or close timing with declared IO delays."
+    - "Top module file remains rtl/shift_reg.sv per canonical entry-point rule."
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "rst_n must be controllable in test mode."
+    clocks: ["clk"]
+    data_inputs: ["load", "enable", "serial_in", "parallel_in"]
+  observability:
+    required_internal_points: ["shift_q"]
+    observable_outputs: ["parallel_out", "serial_out"]
+  mbist_required: false
+  notes: "No memory macro; scan insertion is optional SoC-level policy, not required by this leaf SSOT."
+synthesis: TBD
+pnr: TBD
+coding_rules: TBD
+reuse_modules: TBD
+custom: TBD
+dir_structure: TBD
+filelist: TBD
+test_requirements: TBD
+quality_gates: TBD
+traceability: TBD
+workflow_todos: TBD
+generation_flow: TBD

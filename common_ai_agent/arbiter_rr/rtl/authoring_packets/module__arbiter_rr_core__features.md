@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, features, fsm, fsm.arb_fsm, function_model, function_model.transactions, function_model.transactions.FM1, function_model.transactions.FM2
 - Module slice: 4/6 section=features task_limit=48
@@ -48,14 +48,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Round_Robin_Arbitration
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Round_Robin_Arbitration.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via features.
 SSOT item context: name=Round-Robin Arbitration; output=gnt_o (one-hot), gnt_valid_o, gnt_idx_o (binary index).
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -68,14 +68,14 @@ SSOT item context: name=Round-Robin Arbitration; output=gnt_o (one-hot), gnt_val
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Request_Masking
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Request_Masking.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via features.
 SSOT item context: name=Request Masking; output=Only unmasked requests participate in arbitration.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -88,14 +88,14 @@ SSOT item context: name=Request Masking; output=Only unmasked requests participa
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Enable_Disable
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Enable_Disable.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via features.
 SSOT item context: name=Enable/Disable; output=All grants deasserted when disabled.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT

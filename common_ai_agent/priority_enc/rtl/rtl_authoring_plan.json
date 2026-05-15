@@ -9,83 +9,11 @@
       {
         "gate_kind": "static_rtl_evidence",
         "owner_module": "priority_enc",
-        "reason": "23 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "7 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "status": "open",
         "task_id": "RTL-0007"
-      },
-      {
-        "gate_kind": "owner_logic_structure_evidence",
-        "owner_module": "priority_enc",
-        "reason": "3 owner logic structure issue(s) remain. priority_enc_regs: Behavior-owner module is not declared in its owner file; priority_enc_core: Behavior-owner module is not declared in its owner file; priority_enc: Behavior-owner module is not declared in its owner file",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "status": "open",
-        "task_id": "RTL-0008"
-      },
-      {
-        "gate_kind": "rtl_placeholder_free_evidence",
-        "owner_module": "priority_enc",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "status": "open",
-        "task_id": "RTL-0009"
-      },
-      {
-        "gate_kind": "top_io_contract_evidence",
-        "owner_module": "priority_enc",
-        "reason": "1 top IO contract issue(s) remain. priority_enc: SSOT top module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "status": "open",
-        "task_id": "RTL-0010"
-      },
-      {
-        "gate_kind": "top_output_drive_evidence",
-        "owner_module": "priority_enc",
-        "reason": "1 top output drive issue(s) remain. priority_enc: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "status": "open",
-        "task_id": "RTL-0011"
-      },
-      {
-        "gate_kind": "top_input_consumption_evidence",
-        "owner_module": "priority_enc",
-        "reason": "1 top input consumption issue(s) remain. priority_enc: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "status": "open",
-        "task_id": "RTL-0012"
-      },
-      {
-        "gate_kind": "manifest_hierarchy_integration",
-        "owner_module": "priority_enc",
-        "reason": "3 manifest hierarchy integration issue(s) remain. priority_enc: SSOT top module is not declared in listed RTL sources; priority_enc_regs: SSOT manifest child module is not declared in listed RTL sources; priority_enc_core: SSOT manifest child module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "status": "open",
-        "task_id": "RTL-0013"
-      },
-      {
-        "gate_kind": "manifest_signal_flow_evidence",
-        "owner_module": "priority_enc",
-        "reason": "1 manifest signal-flow issue(s) remain. priority_enc: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "status": "open",
-        "task_id": "RTL-0015"
-      },
-      {
-        "gate_kind": "rtl_implementation_depth_evidence",
-        "owner_module": "priority_enc",
-        "reason": "8 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL source-file count is below the SSOT-locked target scale: actual=0 required=3; Production RTL module count is below the SSOT-locked target scale: actual=0 required=3",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
-        "status": "open",
-        "task_id": "RTL-0022"
       }
     ],
     "blocked_by_locked_truth": [
@@ -94,19 +22,164 @@
         "pending_suggestions": {
           "path": "rtl/connection_contract_suggestions.json",
           "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
-          "sample_rows": [],
+          "sample_rows": [
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "PADDR",
+              "review_status": "pending",
+              "signal": "PADDR"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "PCLK",
+              "review_status": "pending",
+              "signal": "PCLK"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "PENABLE",
+              "review_status": "pending",
+              "signal": "PENABLE"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "PRDATA",
+              "review_status": "pending",
+              "signal": "PRDATA"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "PREADY",
+              "review_status": "pending",
+              "signal": "PREADY"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "PRESETn",
+              "review_status": "pending",
+              "signal": "PRESETn"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "PSEL",
+              "review_status": "pending",
+              "signal": "PSEL"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "PSLVERR",
+              "review_status": "pending",
+              "signal": "PSLVERR"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "PWDATA",
+              "review_status": "pending",
+              "signal": "PWDATA"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "PWRITE",
+              "review_status": "pending",
+              "signal": "PWRITE"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "ctrl_enable_o",
+              "review_status": "pending",
+              "signal": "ctrl_enable"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "mask_o",
+              "review_status": "pending",
+              "signal": "mask"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "status_index_i",
+              "review_status": "pending",
+              "signal": "core_index"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_priority_enc_regs",
+              "module": "priority_enc_regs",
+              "port": "status_valid_i",
+              "review_status": "pending",
+              "signal": "core_valid"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_priority_enc_core",
+              "module": "priority_enc_core",
+              "port": "PCLK",
+              "review_status": "pending",
+              "signal": "PCLK"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_priority_enc_core",
+              "module": "priority_enc_core",
+              "port": "PRESETn",
+              "review_status": "pending",
+              "signal": "PRESETn"
+            }
+          ],
           "summary": {
             "applied_to_ssot": false,
             "child_modules": 2,
-            "draft_top_integration_fragment": "",
-            "observed_named_port_map_rows": 0,
-            "pending_review": 0,
+            "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+            "observed_named_port_map_rows": 21,
+            "pending_review": 21,
             "proposed_rows": 0,
             "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
-            "status": "unavailable",
-            "suggested_rows": 0,
+            "status": "pending_review",
+            "suggested_rows": 21,
             "top": "priority_enc",
-            "top_module": ""
+            "top_module": "priority_enc"
           }
         },
         "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
@@ -181,7 +254,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "priority_enc",
-        "reason": "102 required non-closure TODO(s) remain open.",
+        "reason": "18 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -224,19 +297,164 @@
     "connection_contract_suggestions": {
       "path": "rtl/connection_contract_suggestions.json",
       "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
-      "sample_rows": [],
+      "sample_rows": [
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PADDR",
+          "review_status": "pending",
+          "signal": "PADDR"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PCLK",
+          "review_status": "pending",
+          "signal": "PCLK"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PENABLE",
+          "review_status": "pending",
+          "signal": "PENABLE"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PRDATA",
+          "review_status": "pending",
+          "signal": "PRDATA"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PREADY",
+          "review_status": "pending",
+          "signal": "PREADY"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PRESETn",
+          "review_status": "pending",
+          "signal": "PRESETn"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PSEL",
+          "review_status": "pending",
+          "signal": "PSEL"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PSLVERR",
+          "review_status": "pending",
+          "signal": "PSLVERR"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PWDATA",
+          "review_status": "pending",
+          "signal": "PWDATA"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PWRITE",
+          "review_status": "pending",
+          "signal": "PWRITE"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "ctrl_enable_o",
+          "review_status": "pending",
+          "signal": "ctrl_enable"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "mask_o",
+          "review_status": "pending",
+          "signal": "mask"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "status_index_i",
+          "review_status": "pending",
+          "signal": "core_index"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "status_valid_i",
+          "review_status": "pending",
+          "signal": "core_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "PCLK",
+          "review_status": "pending",
+          "signal": "PCLK"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "PRESETn",
+          "review_status": "pending",
+          "signal": "PRESETn"
+        }
+      ],
       "summary": {
         "applied_to_ssot": false,
         "child_modules": 2,
-        "draft_top_integration_fragment": "",
-        "observed_named_port_map_rows": 0,
-        "pending_review": 0,
+        "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+        "observed_named_port_map_rows": 21,
+        "pending_review": 21,
         "proposed_rows": 0,
         "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
-        "status": "unavailable",
-        "suggested_rows": 0,
+        "status": "pending_review",
+        "suggested_rows": 21,
         "top": "priority_enc",
-        "top_module": ""
+        "top_module": "priority_enc"
       }
     },
     "deferred_human_qa_allowed": false,
@@ -281,7 +499,7 @@
         "task_id": "RTL-0005"
       }
     ],
-    "open_required_todos": 103,
+    "open_required_todos": 19,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -374,7 +592,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "102 required non-closure TODO(s) remain open.",
+        "reason": "18 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -473,74 +691,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 12,
-        "open_required_count": 12,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__priority_enc_regs.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__priority_enc_regs.md",
-      "owner_file": "rtl/priority_enc_regs.sv",
-      "owner_module": "priority_enc_regs",
-      "packet_id": "module__priority_enc_regs",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1,
-          "registers.field": 7,
-          "registers.register": 3,
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 12,
-          "task_limit": 48
-        },
-        "open_required_count": 12,
-        "required_count": 12,
-        "source_refs": [
-          "workflow_todos.rtl-gen[0]",
-          "registers.register_list.CTRL",
-          "registers.register_list.CTRL.fields.enable",
-          "registers.register_list.CTRL.fields.rsvd",
-          "registers.register_list.MASK",
-          "registers.register_list.MASK.fields.mask",
-          "registers.register_list.MASK.fields.rsvd",
-          "registers.register_list.STATUS",
-          "registers.register_list.STATUS.fields.index",
-          "registers.register_list.STATUS.fields.valid",
-          "registers.register_list.STATUS.fields.rsvd",
-          "sub_modules.priority_enc_regs.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 12
-        },
-        "task_count": 12
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 29,
-        "open_required_count": 29,
+        "llm_actionable_open_count": 3,
+        "open_required_count": 3,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -587,7 +739,7 @@
           "module_task_count": 29,
           "task_limit": 48
         },
-        "open_required_count": 29,
+        "open_required_count": 3,
         "required_count": 29,
         "source_refs": [
           "workflow_todos.rtl-gen[1]",
@@ -616,96 +768,10 @@
           "cycle_model.pipeline.S1_REG"
         ],
         "status_counts": {
-          "open": 29
+          "open": 3,
+          "pass": 26
         },
         "task_count": 29
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": false,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 38,
-        "open_required_count": 38,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__priority_enc.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__priority_enc.md",
-      "owner_file": "rtl/priority_enc.sv",
-      "owner_module": "priority_enc",
-      "packet_id": "module__priority_enc",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1,
-          "error_handling.recovery": 1,
-          "features.item": 3,
-          "io_list.port": 13,
-          "parameters.item": 4,
-          "rtl_flow.seed": 1,
-          "rtl_flow.top": 1,
-          "security.assets": 1,
-          "synthesis.constraints": 3,
-          "synthesis.ppa_targets": 3,
-          "test_requirements.scenario": 7,
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 39,
-          "task_limit": 48
-        },
-        "open_required_count": 38,
-        "required_count": 39,
-        "source_refs": [
-          "top_module",
-          "io_list",
-          "workflow_todos.rtl-gen[2]",
-          "features.Priority_Encoding",
-          "features.Runtime_Masking",
-          "features.Enable_Gating",
-          "error_handling.recovery.recovery_0",
-          "security.assets.asset_0",
-          "synthesis.constraints.constraint_0",
-          "synthesis.constraints.constraint_1",
-          "synthesis.constraints.constraint_2",
-          "synthesis.ppa_targets.area_um2",
-          "synthesis.ppa_targets.power_mw",
-          "synthesis.ppa_targets.timing_met",
-          "sub_modules.priority_enc.module_equivalence",
-          "parameters.N",
-          "parameters.INDEX_WIDTH",
-          "parameters.PCLK_FREQ_MHZ",
-          "parameters.RESET_POLARITY",
-          "io_list.clock_domains.PCLK.ports.PCLK",
-          "io_list.resets.PRESETn.ports.PRESETn",
-          "io_list.interfaces.priority_inputs.ports.data_in",
-          "io_list.interfaces.priority_outputs.ports.index_out",
-          "io_list.interfaces.priority_outputs.ports.valid_out"
-        ],
-        "status_counts": {
-          "open": 38,
-          "pass": 1
-        },
-        "task_count": 39
       }
     },
     {
@@ -768,8 +834,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": false,
         "llm_actionable": true,
-        "llm_actionable_open_count": 9,
-        "open_required_count": 9,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -791,7 +857,7 @@
           "rtl_gate.rtl_gen": 10
         },
         "module_slice": {},
-        "open_required_count": 9,
+        "open_required_count": 1,
         "required_count": 10,
         "source_refs": [
           "quality_gates.rtl_gen.static_rtl_evidence",
@@ -806,8 +872,8 @@
           "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
         ],
         "status_counts": {
-          "open": 9,
-          "pass": 1
+          "open": 1,
+          "pass": 9
         },
         "task_count": 10
       }
@@ -992,7 +1058,7 @@
           {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "priority_enc",
-            "reason": "102 required non-closure TODO(s) remain open.",
+            "reason": "18 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -1127,7 +1193,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "102 required non-closure TODO(s) remain open.",
+            "reason": "18 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -1240,6 +1306,158 @@
         },
         "task_count": 7
       }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__priority_enc_regs.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__priority_enc_regs.md",
+      "owner_file": "rtl/priority_enc_regs.sv",
+      "owner_module": "priority_enc_regs",
+      "packet_id": "module__priority_enc_regs",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "registers.field": 7,
+          "registers.register": 3,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 12,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 12,
+        "source_refs": [
+          "workflow_todos.rtl-gen[0]",
+          "registers.register_list.CTRL",
+          "registers.register_list.CTRL.fields.enable",
+          "registers.register_list.CTRL.fields.rsvd",
+          "registers.register_list.MASK",
+          "registers.register_list.MASK.fields.mask",
+          "registers.register_list.MASK.fields.rsvd",
+          "registers.register_list.STATUS",
+          "registers.register_list.STATUS.fields.index",
+          "registers.register_list.STATUS.fields.valid",
+          "registers.register_list.STATUS.fields.rsvd",
+          "sub_modules.priority_enc_regs.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 12
+        },
+        "task_count": 12
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__priority_enc.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__priority_enc.md",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "packet_id": "module__priority_enc",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "error_handling.recovery": 1,
+          "features.item": 3,
+          "io_list.port": 13,
+          "parameters.item": 4,
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1,
+          "security.assets": 1,
+          "synthesis.constraints": 3,
+          "synthesis.ppa_targets": 3,
+          "test_requirements.scenario": 7,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 39,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 39,
+        "source_refs": [
+          "top_module",
+          "io_list",
+          "workflow_todos.rtl-gen[2]",
+          "features.Priority_Encoding",
+          "features.Runtime_Masking",
+          "features.Enable_Gating",
+          "error_handling.recovery.recovery_0",
+          "security.assets.asset_0",
+          "synthesis.constraints.constraint_0",
+          "synthesis.constraints.constraint_1",
+          "synthesis.constraints.constraint_2",
+          "synthesis.ppa_targets.area_um2",
+          "synthesis.ppa_targets.power_mw",
+          "synthesis.ppa_targets.timing_met",
+          "sub_modules.priority_enc.module_equivalence",
+          "parameters.N",
+          "parameters.INDEX_WIDTH",
+          "parameters.PCLK_FREQ_MHZ",
+          "parameters.RESET_POLARITY",
+          "io_list.clock_domains.PCLK.ports.PCLK",
+          "io_list.resets.PRESETn.ports.PRESETn",
+          "io_list.interfaces.priority_inputs.ports.data_in",
+          "io_list.interfaces.priority_outputs.ports.index_out",
+          "io_list.interfaces.priority_outputs.ports.valid_out"
+        ],
+        "status_counts": {
+          "pass": 39
+        },
+        "task_count": 39
+      }
     }
   ],
   "policy": {
@@ -1281,26 +1499,24 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "status_markdown": "rtl/rtl_authoring_status.md",
   "summary": {
-    "connection_contract_suggestions_present": false,
+    "connection_contract_suggestions_present": true,
     "deferred_human_qa_allowed": false,
     "gate_packets": 4,
     "human_locked_packets": 2,
     "human_locked_tasks": 6,
-    "llm_actionable_packets": 5,
-    "llm_actionable_tasks": 92,
+    "llm_actionable_packets": 3,
+    "llm_actionable_tasks": 8,
     "max_packet_required_tasks": 39,
     "module_packets": 3,
     "next_llm_packets": [
-      "module__priority_enc_regs",
       "module__priority_enc_core",
-      "module__priority_enc",
       "unowned_tasks",
       "rtl_gate_evidence_closure"
     ],
     "packet_task_limit": 48,
     "packets": 8,
     "pass_allowed": false,
-    "pending_connection_contract_suggestions": 0,
+    "pending_connection_contract_suggestions": 21,
     "recommended_packet_batch_limit": 4,
     "reference_profile_present": false,
     "reference_scale_gap_present": false,

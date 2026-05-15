@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 7
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 3/9 section=features task_limit=48
@@ -50,14 +50,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Synchronous_Push
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Synchronous_Push.
 Owner: fifo_sync in rtl/fifo_sync.sv via features.
 SSOT item context: name=Synchronous Push; output=full_o and almost_full_o update combinationally after pointer advance.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -70,14 +70,14 @@ SSOT item context: name=Synchronous Push; output=full_o and almost_full_o update
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Synchronous_Pop
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Synchronous_Pop.
 Owner: fifo_sync in rtl/fifo_sync.sv via features.
 SSOT item context: name=Synchronous Pop; output=empty_o and almost_empty_o update combinationally after pointer advance.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -90,14 +90,14 @@ SSOT item context: name=Synchronous Pop; output=empty_o and almost_empty_o updat
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Simultaneous_Push_Pop
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Simultaneous_Push_Pop.
 Owner: fifo_sync in rtl/fifo_sync.sv via features.
 SSOT item context: name=Simultaneous Push/Pop; output=All flags remain stable when simultaneous push/pop maintains the same fill level.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -110,14 +110,14 @@ SSOT item context: name=Simultaneous Push/Pop; output=All flags remain stable wh
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Overflow_Protection
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Overflow_Protection.
 Owner: fifo_sync in rtl/fifo_sync.sv via features.
 SSOT item context: name=Overflow Protection; output=No state change; count unchanged.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -130,14 +130,14 @@ SSOT item context: name=Overflow Protection; output=No state change; count uncha
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Underflow_Protection
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Underflow_Protection.
 Owner: fifo_sync in rtl/fifo_sync.sv via features.
 SSOT item context: name=Underflow Protection; output=No state change; count unchanged.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -150,14 +150,14 @@ SSOT item context: name=Underflow Protection; output=No state change; count unch
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Synchronous_Flush
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Synchronous_Flush.
 Owner: fifo_sync in rtl/fifo_sync.sv via features.
 SSOT item context: name=Synchronous Flush; output=empty_o=1, full_o=0, almost_full_o=0, almost_empty_o=1 immediately after flush.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -170,14 +170,14 @@ SSOT item context: name=Synchronous Flush; output=empty_o=1, full_o=0, almost_fu
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.APB_CSR_Access
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.APB_CSR_Access.
 Owner: fifo_sync in rtl/fifo_sync.sv via features.
 SSOT item context: name=APB CSR Access; output=prdata/pslverr driven per register decode.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT

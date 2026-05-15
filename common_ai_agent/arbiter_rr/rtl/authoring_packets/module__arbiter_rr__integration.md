@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 27
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 3/9 section=integration task_limit=48
@@ -51,14 +51,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_modules
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_modules.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: name=external_modules.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -71,14 +71,14 @@ SSOT item context: name=external_modules.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_clocks
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_clocks.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: name=external_clocks; value=["PCLK"].
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -91,14 +91,14 @@ SSOT item context: name=external_clocks; value=["PCLK"].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_resets
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_resets.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: name=external_resets; value=["PRESETn"].
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -111,14 +111,14 @@ SSOT item context: name=external_resets; value=["PRESETn"].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PCLK
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PCLK.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=PCLK; signal=PCLK.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -132,14 +132,14 @@ SSOT item context: port=PCLK; signal=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PRESETn
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PRESETn.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=PRESETn; signal=PRESETn.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -153,14 +153,14 @@ SSOT item context: port=PRESETn; signal=PRESETn.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PADDR
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PADDR.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=PADDR; signal=PADDR.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -174,14 +174,14 @@ SSOT item context: port=PADDR; signal=PADDR.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PSEL
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PSEL.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=PSEL; signal=PSEL.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -195,14 +195,14 @@ SSOT item context: port=PSEL; signal=PSEL.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PENABLE
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PENABLE.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=PENABLE; signal=PENABLE.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -216,14 +216,14 @@ SSOT item context: port=PENABLE; signal=PENABLE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PWRITE
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PWRITE.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=PWRITE; signal=PWRITE.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -237,14 +237,14 @@ SSOT item context: port=PWRITE; signal=PWRITE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PWDATA
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PWDATA.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=PWDATA; signal=PWDATA.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -258,14 +258,14 @@ SSOT item context: port=PWDATA; signal=PWDATA.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PRDATA
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PRDATA.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=PRDATA; signal=PRDATA.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -279,14 +279,14 @@ SSOT item context: port=PRDATA; signal=PRDATA.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PREADY
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PREADY.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=PREADY; signal=PREADY.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -300,14 +300,14 @@ SSOT item context: port=PREADY; signal=PREADY.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PSLVERR
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PSLVERR.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=PSLVERR; signal=PSLVERR.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -321,14 +321,14 @@ SSOT item context: port=PSLVERR; signal=PSLVERR.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.arb_enable
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.arb_enable.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=enable_o; signal=arb_enable.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -342,14 +342,14 @@ SSOT item context: port=enable_o; signal=arb_enable.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.req_mask
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.req_mask.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=mask_o; signal=req_mask.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -363,14 +363,14 @@ SSOT item context: port=mask_o; signal=req_mask.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PCLK
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PCLK.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=clk_i; signal=PCLK.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -384,14 +384,14 @@ SSOT item context: port=clk_i; signal=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PRESETn
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PRESETn.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=rst_ni; signal=PRESETn.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -405,14 +405,14 @@ SSOT item context: port=rst_ni; signal=PRESETn.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.req_i
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.req_i.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=req_i; signal=req_i.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -426,14 +426,14 @@ SSOT item context: port=req_i; signal=req_i.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.req_mask
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.req_mask.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=mask_i; signal=req_mask.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -447,14 +447,14 @@ SSOT item context: port=mask_i; signal=req_mask.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.arb_enable
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.arb_enable.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=enable_i; signal=arb_enable.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -468,14 +468,14 @@ SSOT item context: port=enable_i; signal=arb_enable.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.gnt_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.gnt_o.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=gnt_o; signal=gnt_o.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -489,14 +489,14 @@ SSOT item context: port=gnt_o; signal=gnt_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.gnt_valid_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.gnt_valid_o.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=gnt_valid_o; signal=gnt_valid_o.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -510,14 +510,14 @@ SSOT item context: port=gnt_valid_o; signal=gnt_valid_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.gnt_idx_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.gnt_idx_o.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=gnt_idx_o; signal=gnt_idx_o.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -531,14 +531,14 @@ SSOT item context: port=gnt_idx_o; signal=gnt_idx_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.status_winner
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.status_winner.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=winner_oh_o; signal=status_winner.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -552,14 +552,14 @@ SSOT item context: port=winner_oh_o; signal=status_winner.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.status_active_req
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.status_active_req.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=active_req_o; signal=status_active_req.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -573,14 +573,14 @@ SSOT item context: port=active_req_o; signal=status_active_req.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.status_winner
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.status_winner.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=winner_oh_i; signal=status_winner.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -594,14 +594,14 @@ SSOT item context: port=winner_oh_i; signal=status_winner.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.status_active_req
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.status_active_req.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via integration.
 SSOT item context: port=active_req_i; signal=status_active_req.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

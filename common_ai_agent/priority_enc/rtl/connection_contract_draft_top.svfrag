@@ -1,0 +1,31 @@
+// DRAFT ONLY: generated from pending connection_contract_suggestions.
+// This fragment is not SSOT authority and must be reviewed before signoff.
+// Paste/adapt inside the top module only after checking directions, widths, and reset/clock domains.
+
+// Suggested child instances.
+priority_enc_core u_priority_enc_core (
+  .PCLK(PCLK), // observed_named_port_map; review_status=pending
+  .PRESETn(PRESETn), // observed_named_port_map; review_status=pending
+  .data_in(data_in), // observed_named_port_map; review_status=pending
+  .enable_i(ctrl_enable), // observed_named_port_map; review_status=pending
+  .index_out(core_index), // observed_named_port_map; review_status=pending
+  .mask_i(mask), // observed_named_port_map; review_status=pending
+  .valid_out(core_valid) // observed_named_port_map; review_status=pending
+);
+
+priority_enc_regs u_priority_enc_regs (
+  .PADDR(PADDR), // observed_named_port_map; review_status=pending
+  .PCLK(PCLK), // observed_named_port_map; review_status=pending
+  .PENABLE(PENABLE), // observed_named_port_map; review_status=pending
+  .PRDATA(PRDATA), // observed_named_port_map; review_status=pending
+  .PREADY(PREADY), // observed_named_port_map; review_status=pending
+  .PRESETn(PRESETn), // observed_named_port_map; review_status=pending
+  .PSEL(PSEL), // observed_named_port_map; review_status=pending
+  .PSLVERR(PSLVERR), // observed_named_port_map; review_status=pending
+  .PWDATA(PWDATA), // observed_named_port_map; review_status=pending
+  .PWRITE(PWRITE), // observed_named_port_map; review_status=pending
+  .ctrl_enable_o(ctrl_enable), // observed_named_port_map; review_status=pending
+  .mask_o(mask), // observed_named_port_map; review_status=pending
+  .status_index_i(core_index), // observed_named_port_map; review_status=pending
+  .status_valid_i(core_valid) // observed_named_port_map; review_status=pending
+);

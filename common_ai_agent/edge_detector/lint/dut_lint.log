@@ -1,0 +1,18 @@
+===== pyslang =====
+command: pyslang rtl/edge_detector_regs.sv rtl/edge_detector.sv
+returncode: 0
+errors: 0 warnings: 0
+pyslang files: 2
+errors=0 warnings=0
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/edge_detector.f --top-module edge_detector
+returncode: 1
+errors: 0 warnings: 1
+%Warning-UNUSEDSIGNAL: rtl/edge_detector_regs.sv:14:25: Bits of signal are not used: 'PWDATA'[31:9]
+                                                      : ... note: In instance 'edge_detector.u_regs'
+   14 |     input  logic [31:0] PWDATA,
+      |                         ^~~~~~
+                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
+                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
+%Error: Exiting due to 1 warning(s)

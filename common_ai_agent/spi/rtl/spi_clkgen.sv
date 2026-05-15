@@ -1,6 +1,7 @@
 // spi_clkgen.sv — PCLK-based SCLK half-period ticker from SSOT cycle_model/timing
 module spi_clkgen #(
-    `include "spi_param.vh"
+    parameter integer PRESCALE_WIDTH = 16,
+    parameter integer CPOL_RESET = 0
 ) (
     input  logic                      PCLK,
     input  logic                      PRESETn,

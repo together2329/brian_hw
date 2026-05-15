@@ -1,28 +1,506 @@
-top_module: TBD
-sub_modules: TBD
-decomposition: TBD
-rtl_contract: TBD
-parameters: TBD
-io_list: TBD
-features: TBD
-dataflow: TBD
-function_model: TBD
-cycle_model: TBD
-clock_reset_domains: TBD
-cdc_requirements: TBD
-rdc_requirements: TBD
-registers: TBD
-memory: TBD
-interrupts: TBD
-fsm: TBD
-timing: TBD
-power: TBD
-security: TBD
-error_handling: TBD
-debug_observability: TBD
-integration: TBD
-dft: TBD
-synthesis: TBD
+top_module:
+  name: "clkdiv"
+  file: "rtl/clkdiv.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "Programmable integer clock divider with APB4 control, glitchless enable, status, and optional terminal interrupt."
+  reference_spec: "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+sub_modules:
+  - name: "clkdiv_regs"
+    file: "rtl/clkdiv_regs.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    implements: ["registers.register_list", "io_list.interfaces.apb_slave", "interrupts", "error_handling"]
+    source_sections: ["registers", "io_list", "interrupts", "error_handling"]
+    register_refs: ["registers.register_list.CTRL", "registers.register_list.DIVISOR", "registers.register_list.STATUS", "registers.register_list.INTCLR"]
+    ssot_refs: ["io_list.interfaces.apb_slave"]
+    description: "APB register decode and software-visible control/status block."
+    connections:
+      - { module: "clkdiv_regs", port: "clk_i", signal: "clk_i" }
+      - { module: "clkdiv_regs", port: "rst_ni", signal: "rst_ni" }
+      - { module: "clkdiv_regs", port: "enable_o", signal: "enable" }
+      - { module: "clkdiv_regs", port: "divisor_o", signal: "active_divisor" }
+      - { module: "clkdiv_regs", port: "irq_pending_i", signal: "irq_pending" }
+  - name: "clkdiv_core"
+    file: "rtl/clkdiv_core.sv"
+    ownership: "manifest"
+    ssot_gen: false
+    implements: ["function_model.transactions.FM_DIVIDE", "cycle_model.pipeline", "fsm.divider_fsm", "dataflow"]
+    source_sections: ["function_model", "cycle_model", "fsm", "dataflow"]
+    function_model_refs: ["function_model.transactions.FM_DIVIDE", "function_model.state_variables"]
+    cycle_model_refs: ["cycle_model.handshake_rules", "cycle_model.pipeline", "cycle_model.performance"]
+    dataflow_refs: ["dataflow.control_path", "dataflow.clock_path"]
+    fsm_refs: ["fsm.divider_fsm"]
+    description: "Divider counter, output toggle, glitchless divisor update, and terminal event generation."
+    connections:
+      - { module: "clkdiv_core", port: "clk_i", signal: "clk_i" }
+      - { module: "clkdiv_core", port: "rst_ni", signal: "rst_ni" }
+      - { module: "clkdiv_core", port: "enable_i", signal: "enable" }
+      - { module: "clkdiv_core", port: "divisor_i", signal: "active_divisor" }
+      - { module: "clkdiv_core", port: "clk_o", signal: "clk_o" }
+      - { module: "clkdiv_core", port: "locked_o", signal: "locked_o" }
+      - { module: "clkdiv_core", port: "terminal_event_o", signal: "terminal_event" }
+decomposition:
+  units:
+    - { id: "apb_decode", kind: "control/status", source_refs: ["registers.register_list", "io_list.interfaces.apb_slave"], rtl_candidates: ["clkdiv_regs"], verification_impact: ["test_requirements.scenarios.SC_APB"] }
+    - { id: "divider_execute", kind: "datapath/control", source_refs: ["function_model.transactions.FM_DIVIDE", "cycle_model.pipeline", "fsm.divider_fsm"], rtl_candidates: ["clkdiv_core"], verification_impact: ["test_requirements.coverage_goals"] }
+rtl_contract:
+  transaction: "FM_DIVIDE"
+  sample_condition: "state and outputs update on clk_i rising edge after reset deassertion; APB writes sample on completing access phase."
+  input_map:
+    clock: "clk_i"
+    reset: "rst_ni"
+    enable: "registers.CTRL.enable"
+    divisor: "registers.DIVISOR.divisor"
+    clear_irq: "registers.INTCLR.clear_irq"
+  output_map:
+    divided_clock: "clk_o"
+    lock_indicator: "locked_o"
+    interrupt: "irq_o"
+    register_read_data: "prdata"
+    apb_error: "pslverr"
+  state_updates:
+    - { name: "counter", reset: 0, expr: "enable ? (terminal_count ? 0 : counter + 1) : 0" }
+    - { name: "clk_state", reset: 0, expr: "enable && terminal_count ? ~clk_state : (enable ? clk_state : 0)" }
+    - { name: "active_divisor", reset: 2, expr: "terminal_count ? pending_divisor : active_divisor" }
+    - { name: "irq_pending", reset: 0, expr: "set on terminal_event when irq_enable; clear on INTCLR.clear_irq W1C" }
+parameters:
+  - name: "DIV_WIDTH"
+    default: 16
+    type: int
+    description: "Width of programmable divisor register; legal divisor values are 1..2^DIV_WIDTH-1."
+    drives: ["rtl/clkdiv_core.sv", "rtl/clkdiv_regs.sv"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    description: "Reset polarity for rst_ni."
+    drives: ["ALL .sv files"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 100
+    type: int
+    description: "Nominal input clock frequency."
+    drives: ["sdc/clkdiv.sdc", "test_requirements"]
+io_list:
+  clock_domains:
+    - name: "clk_i"
+      frequency_mhz: 100
+      description: "Input/reference clock to be divided."
+      ports:
+        - { name: "clk_i", width: 1, direction: "input", description: "Reference input clock" }
+  resets:
+    - name: "rst_ni"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Active-low reset for register and divider state."
+      ports:
+        - { name: "rst_ni", width: 1, direction: "input", description: "Active-low reset" }
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4"
+      role: "slave"
+      clock_domain: "clk_i"
+      reset_domain: "rst_ni"
+      description: "Control/status register access interface."
+      protocol:
+        setup_phase: "psel=1 and penable=0 captures address/control."
+        access_phase: "psel=1 and penable=1 completes in one cycle with pready=1."
+        read_rule: "prdata is valid in the completing access phase for reads."
+        write_rule: "pwdata and pstrb are sampled in the completing access phase for writes."
+        error_rule: "pslverr asserts with pready for unsupported address or illegal write access."
+      ports:
+        - { name: "paddr", width: 8, direction: "input", description: "Byte address" }
+        - { name: "psel", width: 1, direction: "input", description: "APB select" }
+        - { name: "penable", width: 1, direction: "input", description: "APB enable" }
+        - { name: "pwrite", width: 1, direction: "input", description: "APB write qualifier" }
+        - { name: "pwdata", width: 32, direction: "input", description: "APB write data" }
+        - { name: "pstrb", width: 4, direction: "input", description: "APB byte strobes" }
+        - { name: "prdata", width: 32, direction: "output", description: "APB read data" }
+        - { name: "pready", width: 1, direction: "output", description: "APB ready" }
+        - { name: "pslverr", width: 1, direction: "output", description: "APB error" }
+    - name: "divided_clock"
+      type: "custom"
+      role: "source"
+      clock_domain: "clk_i"
+      reset_domain: "rst_ni"
+      description: "Generated divided clock and status outputs."
+      protocol:
+        output_timing: "clk_o changes only on rising edges of clk_i after reset deassertion."
+        enable_rule: "When enable is clear, clk_o is driven low and locked_o is 0."
+        divisor_rule: "A pending divisor write takes effect only when the divider counter returns to zero, avoiding runt pulses."
+        irq_rule: "irq_o is active high when enabled terminal-toggle event status is pending."
+      ports:
+        - { name: "clk_o", width: 1, direction: "output", description: "Divided output clock" }
+        - { name: "locked_o", width: 1, direction: "output", description: "Divider active/stable indicator" }
+        - { name: "irq_o", width: 1, direction: "output", description: "Optional terminal event interrupt" }
+features:
+  - name: "Programmable divide"
+    trigger: "CTRL.enable set and DIVISOR configured through APB"
+    datapath: "Counter counts clk_i edges up to divisor-1, then toggles clk_o and reloads."
+    control: "DISABLED, RUNNING_LOW, RUNNING_HIGH"
+    output: "clk_o toggles at a rate determined by DIVISOR."
+  - name: "Glitchless divisor update"
+    trigger: "Software writes DIVISOR while divider is enabled"
+    datapath: "Write updates pending divisor; active divisor updates only at terminal count/reload boundary."
+    control: "RUNNING_LOW and RUNNING_HIGH retain output polarity until terminal boundary."
+    output: "No runt pulse or asynchronous clk_o edge occurs due to divisor write."
+  - name: "Terminal event interrupt"
+    trigger: "Counter reaches terminal count and CTRL.irq_enable=1"
+    datapath: "terminal_event sets STATUS.irq_pending; INTCLR.clear_irq clears pending status."
+    control: "RUNNING_LOW/RUNNING_HIGH terminal transitions"
+    output: "irq_o asserted while interrupt is enabled and pending."
+dataflow:
+  control_path:
+    source: "APB writes to CTRL and DIVISOR"
+    staging: "DIVISOR writes update pending_divisor before active_divisor changes."
+    destination: "clkdiv_core enable_i and divisor_i inputs"
+    sequence: "APB write -> register storage -> core boundary sampling -> counter reload boundary"
+  clock_path:
+    source: "clk_i rising edges"
+    transform: "counter increments until active_divisor-1 and then toggles clk_o"
+    destination: "clk_o output"
+    sequence: "clk_i edge -> counter update -> optional terminal event -> clk_o toggle"
+  status_path:
+    source: "core running/locked/terminal_event signals"
+    destination: "STATUS fields, locked_o, irq_o"
+    sequence: "core event -> status latch -> APB read/IRQ output"
+function_model:
+  purpose: "Behavioral contract for programmable clock division independent of APB cycle timing."
+  state_variables:
+    - { name: "enable", source: "registers.CTRL.enable", reset: 0, description: "Divider enable state" }
+    - { name: "pending_divisor", source: "registers.DIVISOR.divisor", reset: 2, description: "Software-programmed divisor, with write value 0 coerced to 1" }
+    - { name: "active_divisor", source: "clkdiv_core.active_divisor", reset: 2, description: "Divisor currently used by the counter" }
+    - { name: "counter", source: "clkdiv_core.counter", reset: 0, description: "Counts input clock cycles toward terminal count" }
+    - { name: "clk_state", source: "clk_o", reset: 0, description: "Current divided clock output state" }
+    - { name: "irq_pending", source: "registers.STATUS.irq_pending", reset: 0, description: "Sticky terminal event interrupt pending bit" }
+  transactions:
+    - id: "FM_DIVIDE"
+      name: "integer_clock_divide"
+      preconditions:
+        - "rst_ni is deasserted"
+        - "CTRL.enable == 1"
+        - "active_divisor >= 1"
+      inputs:
+        - "clk_i rising edge"
+        - "active_divisor"
+        - "CTRL.irq_enable"
+      outputs:
+        - "clk_o toggles exactly when counter reaches active_divisor-1"
+        - "locked_o is 1 after the first terminal reload while enabled"
+        - "irq_o is 1 when irq_pending and CTRL.irq_enable are both 1"
+      output_rules:
+        - { name: "divided_clock", expr: "terminal_count ? ~clk_state : clk_state", width: 1, port: "clk_o" }
+        - { name: "lock_indicator", expr: "enable && first_reload_seen", width: 1, port: "locked_o" }
+        - { name: "interrupt", expr: "irq_pending && irq_enable", width: 1, port: "irq_o" }
+      side_effects:
+        - "If counter == active_divisor-1, counter resets to 0 and clk_state toggles."
+        - "If counter != active_divisor-1, counter increments by one and clk_state is stable."
+        - "At terminal count, active_divisor loads pending_divisor for the next half-period."
+        - "At terminal count, irq_pending is set when CTRL.irq_enable=1."
+        - "When enable=0, counter=0, clk_state=0, locked_o=0."
+      error_cases:
+        - { condition: "APB write to DIVISOR with value 0", result: "pending_divisor is coerced to 1; no pslverr" }
+        - { condition: "APB access to unsupported address", result: "pslverr asserted for the access and state is unchanged" }
+  invariants:
+    - "clk_o changes only on clk_i rising edges while rst_ni is deasserted."
+    - "DIVISOR writes do not directly toggle clk_o."
+    - "Reserved register fields read as zero and ignore writes."
+    - "irq_pending remains set until INTCLR.clear_irq is written as 1."
+  reference_model_hint: "tb-gen should model counter, active_divisor, pending_divisor, clk_state, locked, and irq_pending in Python and compare outputs cycle-by-cycle."
+cycle_model:
+  purpose: "Cycle and handshake contract for APB register access and divider output timing."
+  executable: "pymtl3"
+  backend_policy: "Use a clocked PyMTL3 model as cycle reference and direct Python smoke checks for divider timing."
+  clock: "clk_i"
+  reset:
+    assertion: "rst_ni low asynchronously clears registers, counter, clk_o, locked_o, and irq_pending to reset values."
+    deassertion: "State is usable on the first rising edge after synchronized deassertion."
+  latency:
+    register_read: { min_cycles: 1, max_cycles: 1, description: "APB access completes with pready in the access phase." }
+    register_write: { min_cycles: 1, max_cycles: 1, description: "APB writes update register storage on completing access phase." }
+    divisor_update: { min_cycles: 1, max_cycles: null, description: "A new divisor applies at the next terminal count boundary." }
+    output_toggle: { min_cycles: 1, max_cycles: null, description: "clk_o toggles after active_divisor input clock rising edges while enabled." }
+  handshake_rules:
+    - { signal: "pready", rule: "pready is asserted for every selected APB access phase; no wait states in baseline." }
+    - { signal: "pslverr", rule: "pslverr is asserted only with pready for unsupported address or illegal access." }
+    - { signal: "prdata", rule: "prdata is stable in the APB read completing access phase." }
+    - { signal: "clk_o", rule: "clk_o toggles only at terminal count on clk_i rising edge and is held low when disabled." }
+    - { signal: "irq_o", rule: "irq_o is combinational/registered reflection of irq_pending && irq_enable and deasserts after INTCLR clear." }
+  pipeline:
+    - { stage: "S0_APB_SETUP", cycle: 0, action: "Capture paddr/pwrite context when psel=1 and penable=0." }
+    - { stage: "S1_APB_ACCESS", cycle: 1, action: "Complete APB read/write; update CTRL/DIVISOR/INTCLR effects." }
+    - { stage: "S2_COUNT", cycle: "each enabled clk_i edge", action: "Increment counter while counter < active_divisor-1." }
+    - { stage: "S3_TERMINAL", cycle: "terminal edge", action: "Reset counter, toggle clk_o, load pending_divisor, set locked and optional irq_pending." }
+    - { stage: "S4_DISABLE", cycle: "first edge after enable=0", action: "Force counter and clk_o low and clear locked." }
+  ordering:
+    - "APB DIVISOR writes update pending_divisor before the next core reload boundary."
+    - "active_divisor changes only in S3_TERMINAL or reset."
+    - "INTCLR.clear_irq write clears irq_pending no later than the completing APB access edge."
+  backpressure:
+    - "No backpressure exists on divided_clock outputs; APB baseline has no wait states."
+  performance:
+    frequency_mhz: 100
+    throughput: { sustained_register_accesses_per_cycle: 0.5, condition: "APB requires setup and access phases" }
+    divider_range: { min_divisor: 1, max_divisor: 65535, description: "DIV_WIDTH=16 baseline" }
+    output_rate: { half_period_input_cycles: "active_divisor", full_period_input_cycles: "2*active_divisor" }
+  observability:
+    - "Every function_model transaction maps to S2_COUNT/S3_TERMINAL and a test_requirements scenario."
+clock_reset_domains:
+  domains:
+    - { name: "clk_i", frequency_mhz: 100, description: "Input/reference clock and APB/control clock" }
+  reset_scheme:
+    signal: "rst_ni"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clk_i domain; clk_o is a generated output and not a separate internal control domain in this IP revision."
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No reset domain crossings; all state uses rst_ni."
+registers:
+  config:
+    register_width: 32
+    addr_width: 8
+    byte_addressable: true
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and writes have no effect."
+  register_list:
+    - name: "CTRL"
+      offset: 0x00
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Divider control register."
+      write_side_effects:
+        - "enable controls whether clk_o toggles; disabling forces clk_o low and clears locked_o."
+        - "irq_enable gates terminal event interrupt generation."
+      fields:
+        - { name: "enable", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "1 enables divider, 0 disables and clears active output", description: "Divider enable" }
+        - { name: "irq_enable", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "1 enables irq_o when STATUS.irq_pending is set", description: "Interrupt enable" }
+        - { name: "reserved_31_2", bits: [31, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "DIVISOR"
+      offset: 0x04
+      width: 32
+      access: "rw"
+      reset: 0x00000002
+      category: "configuration"
+      description: "Programmable divide ratio."
+      write_side_effects:
+        - "Writing divisor stores pending_divisor; value 0 is coerced to 1 for safe behavior."
+        - "New divisor takes effect on the next counter reload boundary."
+      fields:
+        - { name: "divisor", bits: [15, 0], access: "rw", reset: 0x0002, write_effect: "Program divide ratio; 0 coerces to 1", description: "Integer divisor value" }
+        - { name: "reserved_31_16", bits: [31, 16], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "STATUS"
+      offset: 0x08
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Divider status."
+      fields:
+        - { name: "running", bits: [0, 0], access: "ro", reset: 0x0, description: "1 when divider is enabled" }
+        - { name: "locked", bits: [1, 1], access: "ro", reset: 0x0, description: "1 after first valid reload while enabled" }
+        - { name: "irq_pending", bits: [2, 2], access: "ro", reset: 0x0, description: "Terminal-toggle event pending until INTCLR write" }
+        - { name: "reserved_31_3", bits: [31, 3], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "INTCLR"
+      offset: 0x0C
+      width: 32
+      access: "wo"
+      reset: 0x00000000
+      category: "interrupt"
+      description: "Interrupt clear register."
+      write_side_effects:
+        - "Writing bit0=1 clears STATUS.irq_pending."
+      fields:
+        - { name: "clear_irq", bits: [0, 0], access: "wo", reset: 0x0, write_effect: "W1C clear of terminal event pending status", description: "Clear interrupt pending" }
+        - { name: "reserved_31_1", bits: [31, 1], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+memory:
+  instances: []
+  note: "No RAM, ROM, FIFO, or SRAM macros required; divider uses flops for registers and counter."
+interrupts:
+  sources:
+    - { name: "TERMINAL_EVENT", bit: 0, type: "level", enable_reg: "CTRL.irq_enable", status_reg: "STATUS.irq_pending", clear: "INTCLR.clear_irq W1C", description: "Divider terminal toggle event" }
+  output:
+    signal: "irq_o"
+    polarity: "active_high"
+    type: "level"
+fsm:
+  divider_fsm:
+    states:
+      - "DISABLED"
+      - "RUNNING_LOW"
+      - "RUNNING_HIGH"
+    transitions:
+      - { from: "DISABLED", to: "RUNNING_LOW", condition: "CTRL.enable=1" }
+      - { from: "RUNNING_LOW", to: "RUNNING_HIGH", condition: "counter reaches terminal count" }
+      - { from: "RUNNING_HIGH", to: "RUNNING_LOW", condition: "counter reaches terminal count" }
+      - { from: "RUNNING_LOW", to: "DISABLED", condition: "CTRL.enable=0 or reset asserted" }
+      - { from: "RUNNING_HIGH", to: "DISABLED", condition: "CTRL.enable=0 or reset asserted" }
+    reset_state: "DISABLED"
+    encoding: "localparam binary encoding selected by rtl-gen"
+timing:
+  target_clocks:
+    - { name: "clk_i", frequency_mhz: 100, duty_cycle: 0.5, uncertainty_ns: 0.1 }
+  latency_budget:
+    register_access_cycles: { min: 1, max: 1, measured_from: "psel && penable", measured_to: "pready" }
+    interrupt_latency_cycles: { min: 0, max: 1, measured_from: "terminal_event", measured_to: "irq_o assertion" }
+    divisor_update_cycles: { min: 1, max: null, measured_from: "DIVISOR write", measured_to: "next terminal boundary" }
+  throughput:
+    apb_accesses_per_two_cycles: 1
+    output_half_period_input_cycles: "active_divisor"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "all_inputs_except_clocks_resets", clock: "clk_i", delay_ns: 0.2, source: "default system-level timing budget" }
+    outputs:
+      - { ports: "all_outputs", clock: "clk_i", delay_ns: 0.2, source: "default system-level timing budget" }
+  false_paths:
+    - { from: "rst_ni", to: "all_registers", reason: "async reset assertion" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["clk_i"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "Divider enable prevents output toggling but no integrated clock gate is required by this SSOT."
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers and function_model state variables"
+  power_states:
+    - { name: "ON", entry: "rst_ni deasserted", exit: "rst_ni asserted", guarantees: ["Register access and divider behavior active"] }
+  upf_required: false
+security:
+  classification: "non_secure_control_ip"
+  assets:
+    - { name: "divider_configuration", protection: "External APB fabric enforces privilege; IP enforces field access and reserved behavior." }
+    - { name: "generated_clock_output", protection: "Glitchless update invariant prevents asynchronous/runt pulse from software writes." }
+  threat_model:
+    - { threat: "illegal register access", mitigation: "pslverr on unsupported address and no state mutation" }
+    - { threat: "software writes divisor 0", mitigation: "Coerce to divisor 1 to avoid stalled or undefined output" }
+    - { threat: "reserved field manipulation", mitigation: "Reserved fields read zero and ignore writes" }
+  privilege_model: "External bus fabric enforces privilege; no internal privilege levels."
+  safety_goals:
+    - "No runt output pulse on divisor update."
+    - "Divider output is forced low on reset or disable."
+error_handling:
+  error_sources:
+    - { id: "ERR_APB_ADDR", condition: "APB access to unsupported offset", architectural_effect: "pslverr=1 for access; no register state change on illegal write" }
+    - { id: "ERR_APB_WRITE_RO", condition: "APB write to read-only STATUS", architectural_effect: "pslverr=1 for access; no status mutation" }
+    - { id: "WARN_DIV_ZERO", condition: "DIVISOR write data divisor field is 0", architectural_effect: "pending_divisor coerced to 1 without pslverr" }
+  propagation:
+    - "APB errors are reported only during completing APB access phase."
+    - "WARN_DIV_ZERO is observable by reading back DIVISOR=1 after the write."
+  recovery:
+    - { action: "legal APB access", clears: ["pslverr transient"], preserves: ["valid configuration"] }
+    - { action: "INTCLR.clear_irq W1C", clears: ["STATUS.irq_pending"], preserves: ["CTRL", "DIVISOR"] }
+debug_observability:
+  waveform_must_probe:
+    - "clk_i"
+    - "rst_ni"
+    - "counter"
+    - "active_divisor"
+    - "pending_divisor"
+    - "clk_o"
+    - "locked_o"
+    - "irq_pending"
+    - "APB psel/penable/pwrite/paddr/prdata/pwdata/pready/pslverr"
+  status_outputs: ["locked_o", "irq_o", "STATUS.running", "STATUS.locked", "STATUS.irq_pending"]
+  trace_events:
+    - { name: "divider_enable", trigger: "CTRL.enable transitions 0->1" }
+    - { name: "divider_terminal", trigger: "counter reaches active_divisor-1" }
+    - { name: "divisor_update", trigger: "active_divisor loads pending_divisor" }
+    - { name: "irq_clear", trigger: "INTCLR.clear_irq W1C write" }
+  debug_registers: ["CTRL", "DIVISOR", "STATUS", "INTCLR"]
+integration:
+  bus_attachment:
+    control: "APB4 slave"
+    data: "custom divided_clock output"
+  connections:
+    - { module: "clkdiv_regs", port: "clk_i", signal: "clk_i" }
+    - { module: "clkdiv_regs", port: "rst_ni", signal: "rst_ni" }
+    - { module: "clkdiv_regs", port: "paddr", signal: "paddr" }
+    - { module: "clkdiv_regs", port: "psel", signal: "psel" }
+    - { module: "clkdiv_regs", port: "penable", signal: "penable" }
+    - { module: "clkdiv_regs", port: "pwrite", signal: "pwrite" }
+    - { module: "clkdiv_regs", port: "pwdata", signal: "pwdata" }
+    - { module: "clkdiv_regs", port: "pstrb", signal: "pstrb" }
+    - { module: "clkdiv_regs", port: "prdata", signal: "prdata" }
+    - { module: "clkdiv_regs", port: "pready", signal: "pready" }
+    - { module: "clkdiv_regs", port: "pslverr", signal: "pslverr" }
+    - { module: "clkdiv_core", port: "clk_i", signal: "clk_i" }
+    - { module: "clkdiv_core", port: "rst_ni", signal: "rst_ni" }
+    - { module: "clkdiv_core", port: "enable_i", signal: "enable" }
+    - { module: "clkdiv_core", port: "divisor_i", signal: "active_divisor" }
+    - { module: "clkdiv_core", port: "clk_o", signal: "clk_o" }
+    - { module: "clkdiv_core", port: "locked_o", signal: "locked_o" }
+    - { module: "clkdiv_core", port: "terminal_event_o", signal: "terminal_event" }
+    - { module: "clkdiv_regs", port: "terminal_event_i", signal: "terminal_event" }
+    - { module: "clkdiv_regs", port: "irq_o", signal: "irq_o" }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "clkdiv_regs"
+    illegal_access_response: "pslverr for unsupported APB access"
+  dependencies:
+    external_modules: []
+    external_clocks: ["clk_i"]
+    external_resets: ["rst_ni"]
+  integration_notes:
+    - "SoC must treat clk_o as a generated clock if used as a downstream clock."
+    - "SoC APB fabric must provide clk_i-synchronous APB accesses."
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "rst_ni must be controllable in test mode"
+    clocks: ["clk_i"]
+    registers: "APB can program CTRL/DIVISOR and clear IRQ"
+  observability:
+    required_internal_points: ["counter", "active_divisor", "clk_o", "locked_o", "irq_pending"]
+  mbist_required: false
+  notes: "No memory macros; scan insertion is an SoC-level decision."
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "clkdiv"
+  technology:
+    pdk: "sky130"
+    standard_cell_library: "sky130_fd_sc_hd"
+    liberty_corner: "ss_100C_1v40"
+    liberty_env: "SKY130_LIB"
+    lef_env: "SKY130_LEF"
+    tech_lef_env: "SKY130_TLEF"
+    rcx_rules_env: "SKY130_RCX_RULES"
+  constraints:
+    - "No inferred latches"
+    - "All architectural flops reset according to clock_reset_domains.reset_scheme"
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
+    - "clk_o must be driven by sequential logic only; no combinational clock gating for clk_o"
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 100
+  required_outputs:
+    - "syn/out/clkdiv.json or syn/out/clkdiv.v"
+    - "syn/out/area.rpt"
+    - "syn/out/timing_summary.rpt"
 pnr: TBD
 coding_rules: TBD
 reuse_modules: TBD

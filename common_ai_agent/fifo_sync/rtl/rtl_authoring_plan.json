@@ -9,95 +9,23 @@
       {
         "gate_kind": "static_rtl_evidence",
         "owner_module": "fifo_sync",
-        "reason": "108 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "33 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "status": "open",
         "task_id": "RTL-0007"
       },
       {
-        "gate_kind": "owner_logic_structure_evidence",
-        "owner_module": "fifo_sync",
-        "reason": "6 owner logic structure issue(s) remain. fifo_sync_mem: Behavior-owner module is not declared in its owner file; fifo_sync_ptrs: Behavior-owner module is not declared in its owner file; fifo_sync_flags: Behavior-owner module is not declared in its owner file",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "status": "open",
-        "task_id": "RTL-0008"
-      },
-      {
-        "gate_kind": "rtl_placeholder_free_evidence",
-        "owner_module": "fifo_sync",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "status": "open",
-        "task_id": "RTL-0009"
-      },
-      {
         "gate_kind": "top_io_contract_evidence",
         "owner_module": "fifo_sync",
-        "reason": "1 top IO contract issue(s) remain. fifo_sync: SSOT top module is not declared in listed RTL sources",
+        "reason": "1 top IO contract issue(s) remain. count_o: RTL top port width/range does not match SSOT",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
         "status": "open",
         "task_id": "RTL-0010"
-      },
-      {
-        "gate_kind": "top_output_drive_evidence",
-        "owner_module": "fifo_sync",
-        "reason": "1 top output drive issue(s) remain. fifo_sync: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "status": "open",
-        "task_id": "RTL-0011"
-      },
-      {
-        "gate_kind": "top_input_consumption_evidence",
-        "owner_module": "fifo_sync",
-        "reason": "1 top input consumption issue(s) remain. fifo_sync: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "status": "open",
-        "task_id": "RTL-0012"
-      },
-      {
-        "gate_kind": "manifest_hierarchy_integration",
-        "owner_module": "fifo_sync",
-        "reason": "6 manifest hierarchy integration issue(s) remain. fifo_sync: SSOT top module is not declared in listed RTL sources; fifo_sync_mem: SSOT manifest child module is not declared in listed RTL sources; fifo_sync_ptrs: SSOT manifest child module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "status": "open",
-        "task_id": "RTL-0013"
-      },
-      {
-        "gate_kind": "manifest_signal_flow_evidence",
-        "owner_module": "fifo_sync",
-        "reason": "1 manifest signal-flow issue(s) remain. fifo_sync: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "status": "open",
-        "task_id": "RTL-0015"
-      },
-      {
-        "gate_kind": "rtl_implementation_depth_evidence",
-        "owner_module": "fifo_sync",
-        "reason": "4 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=0 required=112; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=0 required=6",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
-        "status": "open",
-        "task_id": "RTL-0022"
       }
     ],
     "blocked_by_locked_truth": [
-      {
-        "gate_kind": "manifest_connection_contract_evidence",
-        "owner_module": "fifo_sync",
-        "reason": "18 SSOT connection contract issue(s) remain. fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_mem: SSOT connection contract targets a module not declared in RTL",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "status": "open",
-        "task_id": "RTL-0016"
-      },
       {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "fifo_sync",
@@ -128,27 +56,9 @@
         "task_id": "RTL-0006"
       },
       {
-        "gate_kind": "dut_compile",
-        "owner_module": "fifo_sync",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "gate_kind": "dut_lint",
-        "owner_module": "fifo_sync",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "fifo_sync",
-        "reason": "262 required non-closure TODO(s) remain open.",
+        "reason": "41 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -203,7 +113,7 @@
     "draft_allowed": true,
     "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 263,
+    "open_required_todos": 42,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -236,53 +146,6 @@
         "task_id": "RTL-0006"
       },
       {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "fifo_sync/rtl/rtl_compile.json",
-          "fifo_sync/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py fifo_sync --top fifo_sync --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py fifo_sync --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "fifo_sync/list/fifo_sync.f covers the current DUT RTL sources."
-        ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "artifact": "lint/dut_lint.json",
-        "artifacts": [
-          "fifo_sync/lint/dut_lint.json"
-        ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-        "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py fifo_sync --top fifo_sync",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py fifo_sync --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_lint",
-        "prerequisites": [
-          "fifo_sync/list/fifo_sync.f covers the current DUT RTL/header sources."
-        ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "stage_sequence": [
-          "lint",
-          "dut_lint"
-        ],
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
         "artifact": "rtl/rtl_todo_plan.json",
         "artifacts": [
           "fifo_sync/rtl/rtl_todo_plan.json",
@@ -296,7 +159,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "262 required non-closure TODO(s) remain open.",
+        "reason": "41 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -395,64 +258,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 3,
-        "open_required_count": 3,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync_mem.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync_mem.md",
-      "owner_file": "rtl/fifo_sync_mem.sv",
-      "owner_module": "fifo_sync_mem",
-      "packet_id": "module__fifo_sync_mem",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1,
-          "memory.instances": 1,
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 3,
-          "task_limit": 48
-        },
-        "open_required_count": 3,
-        "required_count": 3,
-        "source_refs": [
-          "workflow_todos.rtl-gen[1]",
-          "memory.instances.fifo_ram",
-          "sub_modules.fifo_sync_mem.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 3
-        },
-        "task_count": 3
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 46,
-        "open_required_count": 46,
+        "llm_actionable_open_count": 7,
+        "open_required_count": 7,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -493,7 +300,7 @@
           "module_task_count": 46,
           "task_limit": 48
         },
-        "open_required_count": 46,
+        "open_required_count": 7,
         "required_count": 46,
         "source_refs": [
           "workflow_todos.rtl-gen[0]",
@@ -522,7 +329,8 @@
           "cycle_model.pipeline.S4_UPDATE_FLAGS"
         ],
         "status_counts": {
-          "open": 46
+          "open": 7,
+          "pass": 39
         },
         "task_count": 46
       }
@@ -538,8 +346,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 48,
-        "open_required_count": 48,
+        "llm_actionable_open_count": 22,
+        "open_required_count": 22,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -578,7 +386,7 @@
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 48,
+        "open_required_count": 22,
         "required_count": 48,
         "source_refs": [
           "function_model.transactions.FM1",
@@ -607,7 +415,8 @@
           "function_model.transactions.FM2.outputs.output_3"
         ],
         "status_counts": {
-          "open": 48
+          "open": 22,
+          "pass": 26
         },
         "task_count": 48
       }
@@ -623,8 +432,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 37,
-        "open_required_count": 37,
+        "llm_actionable_open_count": 4,
+        "open_required_count": 4,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -662,7 +471,7 @@
           "section_chunk_index": 2,
           "task_limit": 48
         },
-        "open_required_count": 37,
+        "open_required_count": 4,
         "required_count": 37,
         "source_refs": [
           "function_model.transactions.FM3.state_updates.count",
@@ -691,826 +500,10 @@
           "function_model.transactions.FM6.outputs.output_1"
         ],
         "status_counts": {
-          "open": 37
+          "open": 4,
+          "pass": 33
         },
         "task_count": 37
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync_flags__equivalence.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync_flags__equivalence.md",
-      "owner_file": "rtl/fifo_sync_flags.sv",
-      "owner_module": "fifo_sync_flags",
-      "packet_id": "module__fifo_sync_flags__equivalence",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 4,
-          "enabled": true,
-          "index": 3,
-          "key": "equivalence",
-          "module_task_count": 87,
-          "rule": "Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "equivalence",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.fifo_sync_flags.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync_flags__workflow_todo.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync_flags__workflow_todo.md",
-      "owner_file": "rtl/fifo_sync_flags.sv",
-      "owner_module": "fifo_sync_flags",
-      "packet_id": "module__fifo_sync_flags__workflow_todo",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 4,
-          "enabled": true,
-          "index": 4,
-          "key": "workflow_todo",
-          "module_task_count": 87,
-          "rule": "Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "workflow_todo",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "workflow_todos.rtl-gen[2]"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 36,
-        "open_required_count": 36,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync_regs.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync_regs.md",
-      "owner_file": "rtl/fifo_sync_regs.sv",
-      "owner_module": "fifo_sync_regs",
-      "packet_id": "module__fifo_sync_regs",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1,
-          "io_list.port": 20,
-          "registers.field": 11,
-          "registers.register": 3,
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 36,
-          "task_limit": 48
-        },
-        "open_required_count": 36,
-        "required_count": 36,
-        "source_refs": [
-          "workflow_todos.rtl-gen[4]",
-          "registers.register_list.FIFO_STATUS",
-          "registers.register_list.FIFO_STATUS.fields.empty",
-          "registers.register_list.FIFO_STATUS.fields.full",
-          "registers.register_list.FIFO_STATUS.fields.almost_empty",
-          "registers.register_list.FIFO_STATUS.fields.almost_full",
-          "registers.register_list.FIFO_STATUS.fields.count",
-          "registers.register_list.FIFO_STATUS.fields.reserved_31_12",
-          "registers.register_list.FIFO_CONFIG",
-          "registers.register_list.FIFO_CONFIG.fields.almost_full_thresh",
-          "registers.register_list.FIFO_CONFIG.fields.almost_empty_thresh",
-          "registers.register_list.FIFO_CONFIG.fields.reserved_31_16",
-          "registers.register_list.FIFO_CONTROL",
-          "registers.register_list.FIFO_CONTROL.fields.flush",
-          "registers.register_list.FIFO_CONTROL.fields.reserved_31_1",
-          "sub_modules.fifo_sync_regs.module_equivalence",
-          "io_list.clock_domains.pclk.ports.PCLK",
-          "io_list.resets.PRESETn.ports.PRESETn",
-          "io_list.interfaces.fifo_write.ports.wr_en_i",
-          "io_list.interfaces.fifo_write.ports.wr_data_i",
-          "io_list.interfaces.fifo_write.ports.full_o",
-          "io_list.interfaces.fifo_write.ports.almost_full_o",
-          "io_list.interfaces.fifo_read.ports.rd_en_i",
-          "io_list.interfaces.fifo_read.ports.rd_data_o"
-        ],
-        "status_counts": {
-          "open": 36
-        },
-        "task_count": 36
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 11,
-        "open_required_count": 11,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync_output_reg.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync_output_reg.md",
-      "owner_file": "rtl/fifo_sync_output_reg.sv",
-      "owner_module": "fifo_sync_output_reg",
-      "packet_id": "module__fifo_sync_output_reg",
-      "summary": {
-        "categories": {
-          "cycle_model.latency": 1,
-          "equivalence.module": 1,
-          "parameters.item": 8,
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 11,
-          "task_limit": 48
-        },
-        "open_required_count": 11,
-        "required_count": 11,
-        "source_refs": [
-          "workflow_todos.rtl-gen[3]",
-          "cycle_model.latency",
-          "sub_modules.fifo_sync_output_reg.module_equivalence",
-          "parameters.DATA_WIDTH",
-          "parameters.DEPTH",
-          "parameters.ALMOST_FULL_THRESHOLD",
-          "parameters.ALMOST_EMPTY_THRESHOLD",
-          "parameters.USE_OUTPUT_REGISTER",
-          "parameters.USE_APB",
-          "parameters.USE_ECC",
-          "parameters.CLOCK_FREQ_MHZ"
-        ],
-        "status_counts": {
-          "open": 11
-        },
-        "task_count": 11
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 21,
-        "open_required_count": 21,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync__integration.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync__integration.md",
-      "owner_file": "rtl/fifo_sync.sv",
-      "owner_module": "fifo_sync",
-      "packet_id": "module__fifo_sync__integration",
-      "summary": {
-        "categories": {
-          "integration.connections": 18,
-          "integration.dependencies": 3
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 2,
-          "key": "integration",
-          "module_task_count": 62,
-          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "integration",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 21,
-        "required_count": 21,
-        "source_refs": [
-          "integration.dependencies.external_modules",
-          "integration.dependencies.external_clocks",
-          "integration.dependencies.external_resets",
-          "integration.connections.PCLK",
-          "integration.connections.PRESETn",
-          "integration.connections.PCLK",
-          "integration.connections.push_accepted",
-          "integration.connections.wr_ptr",
-          "integration.connections.wr_data_i",
-          "integration.connections.rd_ptr",
-          "integration.connections.mem_rd_data",
-          "integration.connections.count",
-          "integration.connections.full_o",
-          "integration.connections.empty_o",
-          "integration.connections.almost_full_o",
-          "integration.connections.almost_empty_o",
-          "integration.connections.mem_rd_data",
-          "integration.connections.pop_accepted",
-          "integration.connections.rd_data_o",
-          "integration.connections.PCLK",
-          "integration.connections.PRESETn"
-        ],
-        "status_counts": {
-          "open": 21
-        },
-        "task_count": 21
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 20,
-        "open_required_count": 20,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync__test_requirements.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync__test_requirements.md",
-      "owner_file": "rtl/fifo_sync.sv",
-      "owner_module": "fifo_sync",
-      "packet_id": "module__fifo_sync__test_requirements",
-      "summary": {
-        "categories": {
-          "test_requirements.scenario": 20
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 7,
-          "key": "test_requirements",
-          "module_task_count": 62,
-          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "test_requirements",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 20,
-        "required_count": 20,
-        "source_refs": [
-          "test_requirements.scenarios.SC1",
-          "test_requirements.scenarios.SC2",
-          "test_requirements.scenarios.SC3",
-          "test_requirements.scenarios.SC4",
-          "test_requirements.scenarios.SC5",
-          "test_requirements.scenarios.SC6",
-          "test_requirements.scenarios.SC7",
-          "test_requirements.scenarios.SC8",
-          "test_requirements.scenarios.SC9",
-          "test_requirements.scenarios.SC10",
-          "test_requirements.scenarios.SC11",
-          "test_requirements.scenarios.SC12",
-          "test_requirements.scenarios.SC13",
-          "test_requirements.scenarios.SC14",
-          "test_requirements.scenarios.SC15",
-          "test_requirements.scenarios.SC16",
-          "test_requirements.scenarios.SC17",
-          "test_requirements.scenarios.SC18",
-          "test_requirements.scenarios.SC19",
-          "test_requirements.scenarios.SC20"
-        ],
-        "status_counts": {
-          "open": 20
-        },
-        "task_count": 20
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 7,
-        "open_required_count": 7,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync__features.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync__features.md",
-      "owner_file": "rtl/fifo_sync.sv",
-      "owner_module": "fifo_sync",
-      "packet_id": "module__fifo_sync__features",
-      "summary": {
-        "categories": {
-          "features.item": 7
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 3,
-          "key": "features",
-          "module_task_count": 62,
-          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "features",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 7,
-        "required_count": 7,
-        "source_refs": [
-          "features.Synchronous_Push",
-          "features.Synchronous_Pop",
-          "features.Simultaneous_Push_Pop",
-          "features.Overflow_Protection",
-          "features.Underflow_Protection",
-          "features.Synchronous_Flush",
-          "features.APB_CSR_Access"
-        ],
-        "status_counts": {
-          "open": 7
-        },
-        "task_count": 7
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 6,
-        "open_required_count": 6,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync__synthesis.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync__synthesis.md",
-      "owner_file": "rtl/fifo_sync.sv",
-      "owner_module": "fifo_sync",
-      "packet_id": "module__fifo_sync__synthesis",
-      "summary": {
-        "categories": {
-          "synthesis.constraints": 3,
-          "synthesis.ppa_targets": 3
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 6,
-          "key": "synthesis",
-          "module_task_count": 62,
-          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "synthesis",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 6,
-        "required_count": 6,
-        "source_refs": [
-          "synthesis.constraints.constraint_0",
-          "synthesis.constraints.constraint_1",
-          "synthesis.constraints.constraint_2",
-          "synthesis.ppa_targets.area_um2_max",
-          "synthesis.ppa_targets.power_mw_max",
-          "synthesis.ppa_targets.frequency_mhz_min"
-        ],
-        "status_counts": {
-          "open": 6
-        },
-        "task_count": 6
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync__error_handling.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync__error_handling.md",
-      "owner_file": "rtl/fifo_sync.sv",
-      "owner_module": "fifo_sync",
-      "packet_id": "module__fifo_sync__error_handling",
-      "summary": {
-        "categories": {
-          "error_handling.recovery": 2
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 4,
-          "key": "error_handling",
-          "module_task_count": 62,
-          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "error_handling",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 2,
-        "required_count": 2,
-        "source_refs": [
-          "error_handling.recovery.recovery_0",
-          "error_handling.recovery.recovery_1"
-        ],
-        "status_counts": {
-          "open": 2
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync__security.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync__security.md",
-      "owner_file": "rtl/fifo_sync.sv",
-      "owner_module": "fifo_sync",
-      "packet_id": "module__fifo_sync__security",
-      "summary": {
-        "categories": {
-          "security.assets": 2
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 5,
-          "key": "security",
-          "module_task_count": 62,
-          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "security",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 2,
-        "required_count": 2,
-        "source_refs": [
-          "security.assets.fifo_data",
-          "security.assets.fifo_config"
-        ],
-        "status_counts": {
-          "open": 2
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync__equivalence.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync__equivalence.md",
-      "owner_file": "rtl/fifo_sync.sv",
-      "owner_module": "fifo_sync",
-      "packet_id": "module__fifo_sync__equivalence",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 8,
-          "key": "equivalence",
-          "module_task_count": 62,
-          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "equivalence",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.fifo_sync.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync__rtl_flow.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync__rtl_flow.md",
-      "owner_file": "rtl/fifo_sync.sv",
-      "owner_module": "fifo_sync",
-      "packet_id": "module__fifo_sync__rtl_flow",
-      "summary": {
-        "categories": {
-          "rtl_flow.seed": 1,
-          "rtl_flow.top": 1
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 1,
-          "key": "rtl_flow",
-          "module_task_count": 62,
-          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "rtl_flow",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 2,
-        "source_refs": [
-          "top_module",
-          "io_list"
-        ],
-        "status_counts": {
-          "open": 1,
-          "pass": 1
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__fifo_sync__workflow_todo.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__fifo_sync__workflow_todo.md",
-      "owner_file": "rtl/fifo_sync.sv",
-      "owner_module": "fifo_sync",
-      "packet_id": "module__fifo_sync__workflow_todo",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 9,
-          "key": "workflow_todo",
-          "module_task_count": 62,
-          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "workflow_todo",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "workflow_todos.rtl-gen[5]"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
       }
     },
     {
@@ -1524,8 +517,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 9,
-        "open_required_count": 9,
+        "llm_actionable_open_count": 2,
+        "open_required_count": 2,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1547,7 +540,7 @@
           "rtl_gate.rtl_gen": 10
         },
         "module_slice": {},
-        "open_required_count": 9,
+        "open_required_count": 2,
         "required_count": 10,
         "source_refs": [
           "quality_gates.rtl_gen.static_rtl_evidence",
@@ -1562,8 +555,8 @@
           "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
         ],
         "status_counts": {
-          "open": 9,
-          "pass": 1
+          "open": 2,
+          "pass": 8
         },
         "task_count": 10
       }
@@ -1571,15 +564,6 @@
     {
       "execution_policy": {
         "blocked_by_locked_truth": [
-          {
-            "gate_kind": "manifest_connection_contract_evidence",
-            "owner_module": "fifo_sync",
-            "reason": "18 SSOT connection contract issue(s) remain. fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_mem: SSOT connection contract targets a module not declared in RTL",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-            "status": "open",
-            "task_id": "RTL-0016"
-          },
           {
             "gate_kind": "golden_authority_artifacts",
             "owner_module": "fifo_sync",
@@ -1604,11 +588,11 @@
         "deferred_human_qa_allowed": true,
         "draft_allowed": false,
         "evidence_closure_allowed": true,
-        "human_locked_open_count": 3,
+        "human_locked_open_count": 2,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 3,
+        "open_required_count": 2,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1630,7 +614,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 3,
+        "open_required_count": 2,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.ssot_required_sections",
@@ -1642,8 +626,8 @@
           "quality_gates.rtl_gen.cycle_model_artifacts"
         ],
         "status_counts": {
-          "open": 3,
-          "pass": 4
+          "open": 2,
+          "pass": 5
         },
         "task_count": 7
       }
@@ -1662,27 +646,9 @@
             "task_id": "RTL-0006"
           },
           {
-            "gate_kind": "dut_compile",
-            "owner_module": "fifo_sync",
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "gate_kind": "dut_lint",
-            "owner_module": "fifo_sync",
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "status": "open",
-            "task_id": "RTL-0018"
-          },
-          {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "fifo_sync",
-            "reason": "262 required non-closure TODO(s) remain open.",
+            "reason": "41 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -1724,14 +690,14 @@
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 7,
+        "open_required_count": 5,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
           "Never use a fixed RTL template as the implementation."
         ],
-        "tool_evidence_open_count": 7,
+        "tool_evidence_open_count": 5,
         "tool_evidence_plan": [
           {
             "artifact": "rtl/rtl_authoring_provenance.json",
@@ -1757,53 +723,6 @@
             "task_id": "RTL-0006"
           },
           {
-            "artifact": "rtl/rtl_compile.json",
-            "artifacts": [
-              "fifo_sync/rtl/rtl_compile.json",
-              "fifo_sync/rtl/rtl_compile.log"
-            ],
-            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-            "commands": [
-              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py fifo_sync --top fifo_sync --project-root .",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py fifo_sync --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_compile",
-            "prerequisites": [
-              "fifo_sync/list/fifo_sync.f covers the current DUT RTL sources."
-            ],
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "stage_sequence": [
-              "ssot-rtl",
-              "dut_compile"
-            ],
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "artifact": "lint/dut_lint.json",
-            "artifacts": [
-              "fifo_sync/lint/dut_lint.json"
-            ],
-            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-            "commands": [
-              "python3 workflow/lint/scripts/dut_lint_report.py fifo_sync --top fifo_sync",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py fifo_sync --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_lint",
-            "prerequisites": [
-              "fifo_sync/list/fifo_sync.f covers the current DUT RTL/header sources."
-            ],
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "stage_sequence": [
-              "lint",
-              "dut_lint"
-            ],
-            "status": "open",
-            "task_id": "RTL-0018"
-          },
-          {
             "artifact": "rtl/rtl_todo_plan.json",
             "artifacts": [
               "fifo_sync/rtl/rtl_todo_plan.json",
@@ -1817,7 +736,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "262 required non-closure TODO(s) remain open.",
+            "reason": "41 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -1914,7 +833,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 7,
+        "open_required_count": 5,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -1926,9 +845,882 @@
           "quality_gates.rtl_gen.coverage_closure"
         ],
         "status_counts": {
-          "open": 7
+          "open": 5,
+          "pass": 2
         },
         "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync_mem.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync_mem.md",
+      "owner_file": "rtl/fifo_sync_mem.sv",
+      "owner_module": "fifo_sync_mem",
+      "packet_id": "module__fifo_sync_mem",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "memory.instances": 1,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 3,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "workflow_todos.rtl-gen[1]",
+          "memory.instances.fifo_ram",
+          "sub_modules.fifo_sync_mem.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync_flags__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync_flags__equivalence.md",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "packet_id": "module__fifo_sync_flags__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 4,
+          "enabled": true,
+          "index": 3,
+          "key": "equivalence",
+          "module_task_count": 87,
+          "rule": "Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.fifo_sync_flags.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync_flags__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync_flags__workflow_todo.md",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "packet_id": "module__fifo_sync_flags__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 4,
+          "enabled": true,
+          "index": 4,
+          "key": "workflow_todo",
+          "module_task_count": 87,
+          "rule": "Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[2]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync_regs.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync_regs.md",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "packet_id": "module__fifo_sync_regs",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "io_list.port": 20,
+          "registers.field": 11,
+          "registers.register": 3,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 36,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 36,
+        "source_refs": [
+          "workflow_todos.rtl-gen[4]",
+          "registers.register_list.FIFO_STATUS",
+          "registers.register_list.FIFO_STATUS.fields.empty",
+          "registers.register_list.FIFO_STATUS.fields.full",
+          "registers.register_list.FIFO_STATUS.fields.almost_empty",
+          "registers.register_list.FIFO_STATUS.fields.almost_full",
+          "registers.register_list.FIFO_STATUS.fields.count",
+          "registers.register_list.FIFO_STATUS.fields.reserved_31_12",
+          "registers.register_list.FIFO_CONFIG",
+          "registers.register_list.FIFO_CONFIG.fields.almost_full_thresh",
+          "registers.register_list.FIFO_CONFIG.fields.almost_empty_thresh",
+          "registers.register_list.FIFO_CONFIG.fields.reserved_31_16",
+          "registers.register_list.FIFO_CONTROL",
+          "registers.register_list.FIFO_CONTROL.fields.flush",
+          "registers.register_list.FIFO_CONTROL.fields.reserved_31_1",
+          "sub_modules.fifo_sync_regs.module_equivalence",
+          "io_list.clock_domains.pclk.ports.PCLK",
+          "io_list.resets.PRESETn.ports.PRESETn",
+          "io_list.interfaces.fifo_write.ports.wr_en_i",
+          "io_list.interfaces.fifo_write.ports.wr_data_i",
+          "io_list.interfaces.fifo_write.ports.full_o",
+          "io_list.interfaces.fifo_write.ports.almost_full_o",
+          "io_list.interfaces.fifo_read.ports.rd_en_i",
+          "io_list.interfaces.fifo_read.ports.rd_data_o"
+        ],
+        "status_counts": {
+          "pass": 36
+        },
+        "task_count": 36
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync_output_reg.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync_output_reg.md",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "packet_id": "module__fifo_sync_output_reg",
+      "summary": {
+        "categories": {
+          "cycle_model.latency": 1,
+          "equivalence.module": 1,
+          "parameters.item": 8,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 11,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 11,
+        "source_refs": [
+          "workflow_todos.rtl-gen[3]",
+          "cycle_model.latency",
+          "sub_modules.fifo_sync_output_reg.module_equivalence",
+          "parameters.DATA_WIDTH",
+          "parameters.DEPTH",
+          "parameters.ALMOST_FULL_THRESHOLD",
+          "parameters.ALMOST_EMPTY_THRESHOLD",
+          "parameters.USE_OUTPUT_REGISTER",
+          "parameters.USE_APB",
+          "parameters.USE_ECC",
+          "parameters.CLOCK_FREQ_MHZ"
+        ],
+        "status_counts": {
+          "pass": 11
+        },
+        "task_count": 11
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync__equivalence.md",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "packet_id": "module__fifo_sync__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 8,
+          "key": "equivalence",
+          "module_task_count": 62,
+          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.fifo_sync.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync__error_handling.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync__error_handling.md",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "packet_id": "module__fifo_sync__error_handling",
+      "summary": {
+        "categories": {
+          "error_handling.recovery": 2
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 4,
+          "key": "error_handling",
+          "module_task_count": 62,
+          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "error_handling",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "error_handling.recovery.recovery_0",
+          "error_handling.recovery.recovery_1"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync__features.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync__features.md",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "packet_id": "module__fifo_sync__features",
+      "summary": {
+        "categories": {
+          "features.item": 7
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 3,
+          "key": "features",
+          "module_task_count": 62,
+          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "features",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 7,
+        "source_refs": [
+          "features.Synchronous_Push",
+          "features.Synchronous_Pop",
+          "features.Simultaneous_Push_Pop",
+          "features.Overflow_Protection",
+          "features.Underflow_Protection",
+          "features.Synchronous_Flush",
+          "features.APB_CSR_Access"
+        ],
+        "status_counts": {
+          "pass": 7
+        },
+        "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync__integration.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync__integration.md",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "packet_id": "module__fifo_sync__integration",
+      "summary": {
+        "categories": {
+          "integration.connections": 18,
+          "integration.dependencies": 3
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 2,
+          "key": "integration",
+          "module_task_count": 62,
+          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "integration",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 21,
+        "source_refs": [
+          "integration.dependencies.external_modules",
+          "integration.dependencies.external_clocks",
+          "integration.dependencies.external_resets",
+          "integration.connections.PCLK",
+          "integration.connections.PRESETn",
+          "integration.connections.PCLK",
+          "integration.connections.push_accepted",
+          "integration.connections.wr_ptr",
+          "integration.connections.wr_data_i",
+          "integration.connections.rd_ptr",
+          "integration.connections.mem_rd_data",
+          "integration.connections.count",
+          "integration.connections.full_o",
+          "integration.connections.empty_o",
+          "integration.connections.almost_full_o",
+          "integration.connections.almost_empty_o",
+          "integration.connections.mem_rd_data",
+          "integration.connections.pop_accepted",
+          "integration.connections.rd_data_o",
+          "integration.connections.PCLK",
+          "integration.connections.PRESETn"
+        ],
+        "status_counts": {
+          "pass": 21
+        },
+        "task_count": 21
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync__rtl_flow.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync__rtl_flow.md",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "packet_id": "module__fifo_sync__rtl_flow",
+      "summary": {
+        "categories": {
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 1,
+          "key": "rtl_flow",
+          "module_task_count": 62,
+          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "rtl_flow",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "top_module",
+          "io_list"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync__security.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync__security.md",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "packet_id": "module__fifo_sync__security",
+      "summary": {
+        "categories": {
+          "security.assets": 2
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 5,
+          "key": "security",
+          "module_task_count": 62,
+          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "security",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "security.assets.fifo_data",
+          "security.assets.fifo_config"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync__synthesis.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync__synthesis.md",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "packet_id": "module__fifo_sync__synthesis",
+      "summary": {
+        "categories": {
+          "synthesis.constraints": 3,
+          "synthesis.ppa_targets": 3
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 6,
+          "key": "synthesis",
+          "module_task_count": 62,
+          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "synthesis",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 6,
+        "source_refs": [
+          "synthesis.constraints.constraint_0",
+          "synthesis.constraints.constraint_1",
+          "synthesis.constraints.constraint_2",
+          "synthesis.ppa_targets.area_um2_max",
+          "synthesis.ppa_targets.power_mw_max",
+          "synthesis.ppa_targets.frequency_mhz_min"
+        ],
+        "status_counts": {
+          "pass": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync__test_requirements.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync__test_requirements.md",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "packet_id": "module__fifo_sync__test_requirements",
+      "summary": {
+        "categories": {
+          "test_requirements.scenario": 20
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 7,
+          "key": "test_requirements",
+          "module_task_count": 62,
+          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "test_requirements",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 20,
+        "source_refs": [
+          "test_requirements.scenarios.SC1",
+          "test_requirements.scenarios.SC2",
+          "test_requirements.scenarios.SC3",
+          "test_requirements.scenarios.SC4",
+          "test_requirements.scenarios.SC5",
+          "test_requirements.scenarios.SC6",
+          "test_requirements.scenarios.SC7",
+          "test_requirements.scenarios.SC8",
+          "test_requirements.scenarios.SC9",
+          "test_requirements.scenarios.SC10",
+          "test_requirements.scenarios.SC11",
+          "test_requirements.scenarios.SC12",
+          "test_requirements.scenarios.SC13",
+          "test_requirements.scenarios.SC14",
+          "test_requirements.scenarios.SC15",
+          "test_requirements.scenarios.SC16",
+          "test_requirements.scenarios.SC17",
+          "test_requirements.scenarios.SC18",
+          "test_requirements.scenarios.SC19",
+          "test_requirements.scenarios.SC20"
+        ],
+        "status_counts": {
+          "pass": 20
+        },
+        "task_count": 20
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__fifo_sync__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__fifo_sync__workflow_todo.md",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "packet_id": "module__fifo_sync__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 9,
+          "key": "workflow_todo",
+          "module_task_count": 62,
+          "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[5]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
       }
     }
   ],
@@ -1966,20 +1758,16 @@
     "deferred_human_qa_allowed": true,
     "gate_packets": 3,
     "human_locked_packets": 1,
-    "human_locked_tasks": 3,
-    "llm_actionable_packets": 18,
-    "llm_actionable_tasks": 253,
+    "human_locked_tasks": 2,
+    "llm_actionable_packets": 4,
+    "llm_actionable_tasks": 35,
     "max_packet_required_tasks": 48,
     "module_packets": 17,
     "next_llm_packets": [
-      "module__fifo_sync_mem",
       "module__fifo_sync_ptrs",
       "module__fifo_sync_flags__function_model_01",
       "module__fifo_sync_flags__function_model_02",
-      "module__fifo_sync_flags__equivalence",
-      "module__fifo_sync_flags__workflow_todo",
-      "module__fifo_sync_regs",
-      "module__fifo_sync_output_reg"
+      "rtl_gate_evidence_closure"
     ],
     "packet_task_limit": 48,
     "packets": 20,
@@ -1992,7 +1780,7 @@
     "sliced_module_packets": 13,
     "target_scale_present": false,
     "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 7,
+    "tool_evidence_tasks": 5,
     "total_tasks": 269,
     "unowned_packets": 0
   },

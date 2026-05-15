@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 14
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, features, fsm, fsm.arb_fsm, function_model, function_model.transactions, function_model.transactions.FM1, function_model.transactions.FM2
 - Module slice: 2/6 section=cycle_model task_limit=48
@@ -48,14 +48,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.
 SSOT item context: value=PCLK.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -69,13 +69,13 @@ SSOT item context: value=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -89,13 +89,13 @@ Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -109,14 +109,14 @@ Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.req_i
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.req_i.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.handshake_rules.
 SSOT item context: signal=req_i.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -130,14 +130,14 @@ SSOT item context: signal=req_i.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.gnt_o
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.gnt_o.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.handshake_rules.
 SSOT item context: signal=gnt_o.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -151,14 +151,14 @@ SSOT item context: signal=gnt_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.gnt_valid_o
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.gnt_valid_o.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.handshake_rules.
 SSOT item context: signal=gnt_valid_o.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -172,14 +172,14 @@ SSOT item context: signal=gnt_valid_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.gnt_idx_o
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.gnt_idx_o.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.handshake_rules.
 SSOT item context: signal=gnt_idx_o.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -193,14 +193,14 @@ SSOT item context: signal=gnt_idx_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S0_SAMPLE_REQ
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_SAMPLE_REQ.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S0_SAMPLE_REQ; action=Latch req_i, apply mask (req_i & req_mask), read last_winner; cycle=0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -215,14 +215,14 @@ SSOT item context: stage=S0_SAMPLE_REQ; action=Latch req_i, apply mask (req_i & 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S1_GRANT
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_GRANT.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S1_GRANT; action=Priority encoder evaluates; gnt_o, gnt_idx_o, gnt_valid_o registered and driven to outputs; last_winner updated; cycle=1.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -237,14 +237,14 @@ SSOT item context: stage=S1_GRANT; action=Priority encoder evaluates; gnt_o, gnt
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.
 SSOT item context: value=Grant outputs reflect the arbitration decision from the previous cycle (1-stage pipeline)..
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -258,14 +258,14 @@ SSOT item context: value=Grant outputs reflect the arbitration decision from the
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.
 SSOT item context: value=last_winner update occurs on the same rising edge as the grant output registration..
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -279,14 +279,14 @@ SSOT item context: value=last_winner update occurs on the same rising edge as th
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_2
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_2.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.
 SSOT item context: value=CSR writes to REQ_MASK or CTRL take effect on the next arbitration cycle (registered config)..
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -300,14 +300,14 @@ SSOT item context: value=CSR writes to REQ_MASK or CTRL take effect on the next 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.
 SSOT item context: value=No backpressure mechanism — the arbiter produces a grant every cycle when enabled and requests are present. Requester....
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -321,14 +321,14 @@ SSOT item context: value=No backpressure mechanism — the arbiter produces a gr
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via cycle_model.
 SSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior

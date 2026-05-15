@@ -6,7 +6,82 @@
       "required_for_profile": true,
       "status": "missing"
     },
-    "connection_contract_suggestions": {},
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rows": [
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "PCLK",
+          "review_status": "pending",
+          "signal": "PCLK"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "PRESETn",
+          "review_status": "pending",
+          "signal": "PRESETn"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "data_in",
+          "review_status": "pending",
+          "signal": "data_in"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "enable_i",
+          "review_status": "pending",
+          "signal": "ctrl_enable"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "index_out",
+          "review_status": "pending",
+          "signal": "core_index"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "mask_i",
+          "review_status": "pending",
+          "signal": "mask"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "valid_out",
+          "review_status": "pending",
+          "signal": "core_valid"
+        }
+      ],
+      "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
+      "summary": {
+        "applied_to_ssot": false,
+        "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+        "pending_review": 21,
+        "status": "pending_review",
+        "suggested_rows": 21
+      }
+    },
     "module_slice": {
       "count": 1,
       "enabled": false,
@@ -69,8 +144,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 29,
-    "open_required_count": 29,
+    "llm_actionable_open_count": 3,
+    "open_required_count": 3,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -127,7 +202,7 @@
       "module_task_count": 29,
       "task_limit": 48
     },
-    "open_required_count": 29,
+    "open_required_count": 3,
     "required_count": 29,
     "source_refs": [
       "workflow_todos.rtl-gen[1]",
@@ -156,7 +231,8 @@
       "cycle_model.pipeline.S1_REG"
     ],
     "status_counts": {
-      "open": 29
+      "open": 3,
+      "pass": 26
     },
     "task_count": 29
   },
@@ -198,8 +274,14 @@
         "workflow_todos.rtl-gen[1]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "CORE",
+          "core",
+          "enc",
+          "priority",
+          "priority_enc_core"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -213,7 +295,7 @@
           "priority_enc_core"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -223,9 +305,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_CORE",
@@ -275,9 +357,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -318,9 +400,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -361,9 +443,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -404,9 +486,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -446,9 +528,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -487,9 +569,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -521,8 +603,12 @@
         "function_model.transactions.FM_ENCODE.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "data",
+          "data_in",
+          "in"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -532,7 +618,7 @@
           "in"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -542,9 +628,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -588,8 +674,18 @@
         "function_model.transactions.FM_ENCODE.outputs.index_out"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 9,
+        "matched_terms": [
+          "MASK",
+          "data",
+          "data_in",
+          "in",
+          "index",
+          "index_out",
+          "out",
+          "priority",
+          "priority_index"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -605,7 +701,7 @@
           "priority_index"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -615,9 +711,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -659,8 +755,16 @@
         "function_model.transactions.FM_ENCODE.outputs.valid_out"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "MASK",
+          "data",
+          "data_in",
+          "in",
+          "out",
+          "valid",
+          "valid_out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -674,7 +778,7 @@
           "valid_out"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -684,9 +788,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -728,8 +832,15 @@
         "function_model.transactions.FM_ENCODE.output_rules.index_out"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "data",
+          "data_in",
+          "in",
+          "index",
+          "index_out",
+          "out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -742,7 +853,7 @@
           "out"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -752,9 +863,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -796,8 +907,15 @@
         "function_model.transactions.FM_ENCODE.output_rules.valid_out"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "data",
+          "data_in",
+          "in",
+          "out",
+          "valid",
+          "valid_out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -810,7 +928,7 @@
           "valid_out"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -820,9 +938,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -854,8 +972,12 @@
         "function_model.transactions.FM_ENCODE.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "index",
+          "index_out",
+          "out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -865,7 +987,7 @@
           "out"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -875,9 +997,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -909,8 +1031,12 @@
         "function_model.transactions.FM_ENCODE.side_effects.side_effect_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "out",
+          "valid",
+          "valid_out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -920,7 +1046,7 @@
           "valid_out"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -930,9 +1056,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -982,7 +1108,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -1036,7 +1162,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -1072,8 +1198,14 @@
         "function_model.invariants.invariant_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "index",
+          "index_out",
+          "out",
+          "valid",
+          "valid_out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1085,7 +1217,7 @@
           "valid_out"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1095,9 +1227,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1129,8 +1261,12 @@
         "function_model.invariants.invariant_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "index",
+          "index_out",
+          "out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1140,7 +1276,7 @@
           "out"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1150,9 +1286,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1192,9 +1328,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1232,9 +1368,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1272,9 +1408,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1328,7 +1464,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -1368,8 +1504,14 @@
         "cycle_model.pipeline.S0_COMB"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "data",
+          "data_in",
+          "in",
+          "masked",
+          "masked_data"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1381,7 +1523,7 @@
           "masked_data"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1391,9 +1533,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1431,8 +1573,14 @@
         "cycle_model.pipeline.S1_REG"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "index",
+          "index_out",
+          "out",
+          "valid",
+          "valid_out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1444,7 +1592,7 @@
           "valid_out"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1454,9 +1602,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1496,9 +1644,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1538,9 +1686,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1580,9 +1728,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1622,9 +1770,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1663,9 +1811,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],

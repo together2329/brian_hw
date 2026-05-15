@@ -7,67 +7,13 @@
     ],
     "blocked_by_llm_work": [
       {
-        "gate_kind": "static_rtl_evidence",
-        "owner_module": "lfsr",
-        "reason": "33 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "status": "open",
-        "task_id": "RTL-0007"
-      },
-      {
-        "gate_kind": "owner_logic_structure_evidence",
-        "owner_module": "lfsr",
-        "reason": "1 owner logic structure issue(s) remain. lfsr: Behavior-owner module is not declared in its owner file",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "status": "open",
-        "task_id": "RTL-0008"
-      },
-      {
-        "gate_kind": "rtl_placeholder_free_evidence",
-        "owner_module": "lfsr",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "status": "open",
-        "task_id": "RTL-0009"
-      },
-      {
         "gate_kind": "top_io_contract_evidence",
         "owner_module": "lfsr",
-        "reason": "1 top IO contract issue(s) remain. lfsr: SSOT top module is not declared in listed RTL sources",
+        "reason": "1 top IO contract issue(s) remain. PCLK: RTL top port width/range does not match SSOT",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
         "status": "open",
         "task_id": "RTL-0010"
-      },
-      {
-        "gate_kind": "top_output_drive_evidence",
-        "owner_module": "lfsr",
-        "reason": "1 top output drive issue(s) remain. lfsr: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "status": "open",
-        "task_id": "RTL-0011"
-      },
-      {
-        "gate_kind": "top_input_consumption_evidence",
-        "owner_module": "lfsr",
-        "reason": "1 top input consumption issue(s) remain. lfsr: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "status": "open",
-        "task_id": "RTL-0012"
-      },
-      {
-        "gate_kind": "manifest_hierarchy_integration",
-        "owner_module": "lfsr",
-        "reason": "1 manifest hierarchy integration issue(s) remain. lfsr: SSOT top module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "status": "open",
-        "task_id": "RTL-0013"
       }
     ],
     "blocked_by_locked_truth": [
@@ -83,36 +29,9 @@
     ],
     "blocked_by_tool_evidence": [
       {
-        "gate_kind": "common_ai_agent_authoring",
-        "owner_module": "lfsr",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "gate_kind": "dut_compile",
-        "owner_module": "lfsr",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "gate_kind": "dut_lint",
-        "owner_module": "lfsr",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "lfsr",
-        "reason": "117 required non-closure TODO(s) remain open.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -140,7 +59,7 @@
     "draft_allowed": true,
     "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 118,
+    "open_required_todos": 3,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -149,76 +68,6 @@
       "Do not sign off top integration while required connection contracts are missing."
     ],
     "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_authoring_provenance.json",
-        "artifacts": [
-          "lfsr/rtl/rtl_authoring_provenance.json",
-          "lfsr/rtl/rtl_todo_plan.json"
-        ],
-        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-        "commands": [
-          "python3 src/headless_workflow.py --root . --ip lfsr --stages rtl-gen",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py lfsr --root . --audit-rtl"
-        ],
-        "gate_kind": "common_ai_agent_authoring",
-        "prerequisites": [
-          "An LLM authoring pass emitted or repaired DUT RTL files."
-        ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "stage_sequence": [
-          "ssot-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "lfsr/rtl/rtl_compile.json",
-          "lfsr/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py lfsr --top lfsr --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py lfsr --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "lfsr/list/lfsr.f covers the current DUT RTL sources."
-        ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "artifact": "lint/dut_lint.json",
-        "artifacts": [
-          "lfsr/lint/dut_lint.json"
-        ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-        "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py lfsr --top lfsr",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py lfsr --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_lint",
-        "prerequisites": [
-          "lfsr/list/lfsr.f covers the current DUT RTL/header sources."
-        ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "stage_sequence": [
-          "lint",
-          "dut_lint"
-        ],
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
       {
         "artifact": "rtl/rtl_todo_plan.json",
         "artifacts": [
@@ -233,7 +82,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "117 required non-closure TODO(s) remain open.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -252,847 +101,13 @@
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
         "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 32,
-        "open_required_count": 32,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__function_model.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__function_model.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__function_model",
-      "summary": {
-        "categories": {
-          "function_model.input": 4,
-          "function_model.invariant": 3,
-          "function_model.output": 3,
-          "function_model.precondition": 6,
-          "function_model.side_effect": 4,
-          "function_model.state_update": 4,
-          "function_model.state_variable": 4,
-          "function_model.transaction": 4
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 5,
-          "key": "function_model",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "function_model",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 32,
-        "required_count": 32,
-        "source_refs": [
-          "function_model.state_variables.lfsr_state",
-          "function_model.state_variables.poly_reg",
-          "function_model.state_variables.ctrl_reg",
-          "function_model.state_variables.status_reg",
-          "function_model.transactions.FM1",
-          "function_model.transactions.FM1.preconditions.precondition_0",
-          "function_model.transactions.FM1.preconditions.precondition_1",
-          "function_model.transactions.FM1.inputs.input_0",
-          "function_model.transactions.FM1.inputs.input_1",
-          "function_model.transactions.FM1.outputs.prbs_out",
-          "function_model.transactions.FM1.outputs.prbs_bit",
-          "function_model.transactions.FM1.state_updates.lfsr_state",
-          "function_model.transactions.FM1.side_effects.side_effect_0",
-          "function_model.transactions.FM2",
-          "function_model.transactions.FM2.preconditions.precondition_0",
-          "function_model.transactions.FM2.inputs.input_0",
-          "function_model.transactions.FM2.state_updates.lfsr_state",
-          "function_model.transactions.FM2.side_effects.side_effect_0",
-          "function_model.transactions.FM3",
-          "function_model.transactions.FM3.preconditions.precondition_0",
-          "function_model.transactions.FM3.preconditions.precondition_1",
-          "function_model.transactions.FM3.inputs.input_0",
-          "function_model.transactions.FM3.state_updates.poly_reg",
-          "function_model.transactions.FM4"
-        ],
-        "status_counts": {
-          "open": 32
-        },
-        "task_count": 32
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 14,
-        "open_required_count": 14,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__registers.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__registers.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__registers",
-      "summary": {
-        "categories": {
-          "registers.field": 9,
-          "registers.register": 5
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 8,
-          "key": "registers",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "registers",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 14,
-        "required_count": 14,
-        "source_refs": [
-          "registers.register_list.CTRL",
-          "registers.register_list.CTRL.fields.enable",
-          "registers.register_list.CTRL.fields.auto_reload",
-          "registers.register_list.CTRL.fields.reserved_31_2",
-          "registers.register_list.POLY",
-          "registers.register_list.POLY.fields.poly",
-          "registers.register_list.SEED",
-          "registers.register_list.SEED.fields.seed",
-          "registers.register_list.STATUS",
-          "registers.register_list.STATUS.fields.running",
-          "registers.register_list.STATUS.fields.lockup",
-          "registers.register_list.STATUS.fields.reserved_31_2",
-          "registers.register_list.PRBS",
-          "registers.register_list.PRBS.fields.prbs"
-        ],
-        "status_counts": {
-          "open": 14
-        },
-        "task_count": 14
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 13,
-        "open_required_count": 13,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__io_list.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__io_list.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__io_list",
-      "summary": {
-        "categories": {
-          "io_list.port": 13
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 2,
-          "key": "io_list",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "io_list",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 13,
-        "required_count": 13,
-        "source_refs": [
-          "io_list.clock_domains.PCLK.ports.PCLK",
-          "io_list.resets.PRESETn.ports.PRESETn",
-          "io_list.interfaces.apb_slave.ports.PADDR",
-          "io_list.interfaces.apb_slave.ports.PSEL",
-          "io_list.interfaces.apb_slave.ports.PENABLE",
-          "io_list.interfaces.apb_slave.ports.PWRITE",
-          "io_list.interfaces.apb_slave.ports.PWDATA",
-          "io_list.interfaces.apb_slave.ports.PRDATA",
-          "io_list.interfaces.apb_slave.ports.PREADY",
-          "io_list.interfaces.apb_slave.ports.PSLVERR",
-          "io_list.interfaces.prbs_output.ports.prbs_out",
-          "io_list.interfaces.prbs_output.ports.prbs_bit",
-          "io_list.interfaces.status.ports.prbs_valid"
-        ],
-        "status_counts": {
-          "open": 13
-        },
-        "task_count": 13
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 10,
-        "open_required_count": 10,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__cycle_model.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__cycle_model.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__cycle_model",
-      "summary": {
-        "categories": {
-          "cycle_model.backpressure": 1,
-          "cycle_model.clock": 1,
-          "cycle_model.handshake_rules": 1,
-          "cycle_model.latency": 1,
-          "cycle_model.observability": 1,
-          "cycle_model.ordering": 2,
-          "cycle_model.pipeline": 2,
-          "cycle_model.reset": 1
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 6,
-          "key": "cycle_model",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "cycle_model",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 10,
-        "required_count": 10,
-        "source_refs": [
-          "cycle_model.clock",
-          "cycle_model.reset",
-          "cycle_model.latency",
-          "cycle_model.handshake_rules.PSEL_PENABLE",
-          "cycle_model.pipeline.S0_IDLE",
-          "cycle_model.pipeline.S1_STEP",
-          "cycle_model.ordering.ordering_rule_0",
-          "cycle_model.ordering.ordering_rule_1",
-          "cycle_model.backpressure.backpressure_rule_0",
-          "cycle_model.observability.observability_signal_0"
-        ],
-        "status_counts": {
-          "open": 10
-        },
-        "task_count": 10
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 8,
-        "open_required_count": 8,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__fsm.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__fsm.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__fsm",
-      "summary": {
-        "categories": {
-          "fsm.state": 3,
-          "fsm.transition": 5
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 7,
-          "key": "fsm",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "fsm",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 8,
-        "required_count": 8,
-        "source_refs": [
-          "fsm.lfsr_control.states.state_0",
-          "fsm.lfsr_control.states.state_1",
-          "fsm.lfsr_control.states.state_2",
-          "fsm.lfsr_control.transitions.transition_0",
-          "fsm.lfsr_control.transitions.transition_1",
-          "fsm.lfsr_control.transitions.transition_2",
-          "fsm.lfsr_control.transitions.transition_3",
-          "fsm.lfsr_control.transitions.transition_4"
-        ],
-        "status_counts": {
-          "open": 8
-        },
-        "task_count": 8
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 8,
-        "open_required_count": 8,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__parameters.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__parameters.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__parameters",
-      "summary": {
-        "categories": {
-          "parameters.item": 8
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 3,
-          "key": "parameters",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "parameters",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 8,
-        "required_count": 8,
-        "source_refs": [
-          "parameters.LFSR_WIDTH",
-          "parameters.POLY_DEGREE",
-          "parameters.APB_ADDR_WIDTH",
-          "parameters.APB_DATA_WIDTH",
-          "parameters.DEFAULT_POLY",
-          "parameters.DEFAULT_SEED",
-          "parameters.CLOCK_FREQ_MHZ",
-          "parameters.RESET_POLARITY"
-        ],
-        "status_counts": {
-          "open": 8
-        },
-        "task_count": 8
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 6,
-        "open_required_count": 6,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__integration.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__integration.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__integration",
-      "summary": {
-        "categories": {
-          "integration.connections": 3,
-          "integration.dependencies": 3
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 4,
-          "key": "integration",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "integration",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 6,
-        "required_count": 6,
-        "source_refs": [
-          "integration.dependencies.external_modules",
-          "integration.dependencies.external_clocks",
-          "integration.dependencies.external_resets",
-          "integration.connections.PCLK",
-          "integration.connections.PRESETn",
-          "integration.connections.APB4"
-        ],
-        "status_counts": {
-          "open": 6
-        },
-        "task_count": 6
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 6,
-        "open_required_count": 6,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__synthesis.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__synthesis.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__synthesis",
-      "summary": {
-        "categories": {
-          "synthesis.constraints": 3,
-          "synthesis.ppa_targets": 3
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 12,
-          "key": "synthesis",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "synthesis",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 6,
-        "required_count": 6,
-        "source_refs": [
-          "synthesis.constraints.constraint_0",
-          "synthesis.constraints.constraint_1",
-          "synthesis.constraints.constraint_2",
-          "synthesis.ppa_targets.area_um2_max",
-          "synthesis.ppa_targets.power_mw_max",
-          "synthesis.ppa_targets.frequency_mhz_min"
-        ],
-        "status_counts": {
-          "open": 6
-        },
-        "task_count": 6
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 4,
-        "open_required_count": 4,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__features.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__features.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__features",
-      "summary": {
-        "categories": {
-          "features.item": 4
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 9,
-          "key": "features",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "features",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 4,
-        "required_count": 4,
-        "source_refs": [
-          "features.PRBS_Generation",
-          "features.Polynomial_Programming",
-          "features.Seed_Loading",
-          "features.Lock_up_Detection"
-        ],
-        "status_counts": {
-          "open": 4
-        },
-        "task_count": 4
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__security.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__security.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__security",
-      "summary": {
-        "categories": {
-          "security.assets": 2
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 11,
-          "key": "security",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "security",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 2,
-        "required_count": 2,
-        "source_refs": [
-          "security.assets.register_map",
-          "security.assets.prbs_sequence"
-        ],
-        "status_counts": {
-          "open": 2
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__equivalence.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__equivalence.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__equivalence",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 13,
-          "key": "equivalence",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "equivalence",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.lfsr.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__error_handling.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__error_handling.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__error_handling",
-      "summary": {
-        "categories": {
-          "error_handling.recovery": 1
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 10,
-          "key": "error_handling",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "error_handling",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "error_handling.recovery.recovery_0"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__lfsr__rtl_flow.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__lfsr__rtl_flow.md",
-      "owner_file": "rtl/lfsr.sv",
-      "owner_module": "lfsr",
-      "packet_id": "module__lfsr__rtl_flow",
-      "summary": {
-        "categories": {
-          "rtl_flow.seed": 1,
-          "rtl_flow.top": 1
-        },
-        "module_slice": {
-          "count": 13,
-          "enabled": true,
-          "index": 1,
-          "key": "rtl_flow",
-          "module_task_count": 107,
-          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "rtl_flow",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 2,
-        "source_refs": [
-          "top_module",
-          "io_list"
-        ],
-        "status_counts": {
-          "open": 1,
-          "pass": 1
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
         "draft_allowed": false,
         "evidence_closure_allowed": true,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 7,
-        "open_required_count": 7,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1114,7 +129,7 @@
           "rtl_gate.rtl_gen": 9
         },
         "module_slice": {},
-        "open_required_count": 7,
+        "open_required_count": 1,
         "required_count": 9,
         "source_refs": [
           "quality_gates.rtl_gen.static_rtl_evidence",
@@ -1128,8 +143,8 @@
           "quality_gates.rtl_gen.manifest_signal_flow_evidence"
         ],
         "status_counts": {
-          "open": 7,
-          "pass": 2
+          "open": 1,
+          "pass": 8
         },
         "task_count": 9
       }
@@ -1198,36 +213,9 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [
           {
-            "gate_kind": "common_ai_agent_authoring",
-            "owner_module": "lfsr",
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
-          {
-            "gate_kind": "dut_compile",
-            "owner_module": "lfsr",
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "gate_kind": "dut_lint",
-            "owner_module": "lfsr",
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "status": "open",
-            "task_id": "RTL-0018"
-          },
-          {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "lfsr",
-            "reason": "117 required non-closure TODO(s) remain open.",
+            "reason": "2 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -1242,85 +230,15 @@
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 4,
+        "open_required_count": 1,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
           "Never use a fixed RTL template as the implementation."
         ],
-        "tool_evidence_open_count": 4,
+        "tool_evidence_open_count": 1,
         "tool_evidence_plan": [
-          {
-            "artifact": "rtl/rtl_authoring_provenance.json",
-            "artifacts": [
-              "lfsr/rtl/rtl_authoring_provenance.json",
-              "lfsr/rtl/rtl_todo_plan.json"
-            ],
-            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-            "commands": [
-              "python3 src/headless_workflow.py --root . --ip lfsr --stages rtl-gen",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py lfsr --root . --audit-rtl"
-            ],
-            "gate_kind": "common_ai_agent_authoring",
-            "prerequisites": [
-              "An LLM authoring pass emitted or repaired DUT RTL files."
-            ],
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "stage_sequence": [
-              "ssot-rtl"
-            ],
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
-          {
-            "artifact": "rtl/rtl_compile.json",
-            "artifacts": [
-              "lfsr/rtl/rtl_compile.json",
-              "lfsr/rtl/rtl_compile.log"
-            ],
-            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-            "commands": [
-              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py lfsr --top lfsr --project-root .",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py lfsr --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_compile",
-            "prerequisites": [
-              "lfsr/list/lfsr.f covers the current DUT RTL sources."
-            ],
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "stage_sequence": [
-              "ssot-rtl",
-              "dut_compile"
-            ],
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "artifact": "lint/dut_lint.json",
-            "artifacts": [
-              "lfsr/lint/dut_lint.json"
-            ],
-            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-            "commands": [
-              "python3 workflow/lint/scripts/dut_lint_report.py lfsr --top lfsr",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py lfsr --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_lint",
-            "prerequisites": [
-              "lfsr/list/lfsr.f covers the current DUT RTL/header sources."
-            ],
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "stage_sequence": [
-              "lint",
-              "dut_lint"
-            ],
-            "status": "open",
-            "task_id": "RTL-0018"
-          },
           {
             "artifact": "rtl/rtl_todo_plan.json",
             "artifacts": [
@@ -1335,7 +253,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "117 required non-closure TODO(s) remain open.",
+            "reason": "2 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -1357,7 +275,7 @@
           "rtl_gate.rtl_gen": 4
         },
         "module_slice": {},
-        "open_required_count": 4,
+        "open_required_count": 1,
         "required_count": 4,
         "source_refs": [
           "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -1366,9 +284,843 @@
           "quality_gates.rtl_gen.dynamic_todo_closure"
         ],
         "status_counts": {
-          "open": 4
+          "open": 1,
+          "pass": 3
         },
         "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__cycle_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__cycle_model.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__cycle_model",
+      "summary": {
+        "categories": {
+          "cycle_model.backpressure": 1,
+          "cycle_model.clock": 1,
+          "cycle_model.handshake_rules": 1,
+          "cycle_model.latency": 1,
+          "cycle_model.observability": 1,
+          "cycle_model.ordering": 2,
+          "cycle_model.pipeline": 2,
+          "cycle_model.reset": 1
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 6,
+          "key": "cycle_model",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 10,
+        "source_refs": [
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency",
+          "cycle_model.handshake_rules.PSEL_PENABLE",
+          "cycle_model.pipeline.S0_IDLE",
+          "cycle_model.pipeline.S1_STEP",
+          "cycle_model.ordering.ordering_rule_0",
+          "cycle_model.ordering.ordering_rule_1",
+          "cycle_model.backpressure.backpressure_rule_0",
+          "cycle_model.observability.observability_signal_0"
+        ],
+        "status_counts": {
+          "pass": 10
+        },
+        "task_count": 10
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__equivalence.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 13,
+          "key": "equivalence",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.lfsr.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__error_handling.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__error_handling.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__error_handling",
+      "summary": {
+        "categories": {
+          "error_handling.recovery": 1
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 10,
+          "key": "error_handling",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "error_handling",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "error_handling.recovery.recovery_0"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__features.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__features.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__features",
+      "summary": {
+        "categories": {
+          "features.item": 4
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 9,
+          "key": "features",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "features",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 4,
+        "source_refs": [
+          "features.PRBS_Generation",
+          "features.Polynomial_Programming",
+          "features.Seed_Loading",
+          "features.Lock_up_Detection"
+        ],
+        "status_counts": {
+          "pass": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__fsm.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__fsm.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__fsm",
+      "summary": {
+        "categories": {
+          "fsm.state": 3,
+          "fsm.transition": 5
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 7,
+          "key": "fsm",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "fsm",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 8,
+        "source_refs": [
+          "fsm.lfsr_control.states.state_0",
+          "fsm.lfsr_control.states.state_1",
+          "fsm.lfsr_control.states.state_2",
+          "fsm.lfsr_control.transitions.transition_0",
+          "fsm.lfsr_control.transitions.transition_1",
+          "fsm.lfsr_control.transitions.transition_2",
+          "fsm.lfsr_control.transitions.transition_3",
+          "fsm.lfsr_control.transitions.transition_4"
+        ],
+        "status_counts": {
+          "pass": 8
+        },
+        "task_count": 8
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__function_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__function_model.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__function_model",
+      "summary": {
+        "categories": {
+          "function_model.input": 4,
+          "function_model.invariant": 3,
+          "function_model.output": 3,
+          "function_model.precondition": 6,
+          "function_model.side_effect": 4,
+          "function_model.state_update": 4,
+          "function_model.state_variable": 4,
+          "function_model.transaction": 4
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 5,
+          "key": "function_model",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 32,
+        "source_refs": [
+          "function_model.state_variables.lfsr_state",
+          "function_model.state_variables.poly_reg",
+          "function_model.state_variables.ctrl_reg",
+          "function_model.state_variables.status_reg",
+          "function_model.transactions.FM1",
+          "function_model.transactions.FM1.preconditions.precondition_0",
+          "function_model.transactions.FM1.preconditions.precondition_1",
+          "function_model.transactions.FM1.inputs.input_0",
+          "function_model.transactions.FM1.inputs.input_1",
+          "function_model.transactions.FM1.outputs.prbs_out",
+          "function_model.transactions.FM1.outputs.prbs_bit",
+          "function_model.transactions.FM1.state_updates.lfsr_state",
+          "function_model.transactions.FM1.side_effects.side_effect_0",
+          "function_model.transactions.FM2",
+          "function_model.transactions.FM2.preconditions.precondition_0",
+          "function_model.transactions.FM2.inputs.input_0",
+          "function_model.transactions.FM2.state_updates.lfsr_state",
+          "function_model.transactions.FM2.side_effects.side_effect_0",
+          "function_model.transactions.FM3",
+          "function_model.transactions.FM3.preconditions.precondition_0",
+          "function_model.transactions.FM3.preconditions.precondition_1",
+          "function_model.transactions.FM3.inputs.input_0",
+          "function_model.transactions.FM3.state_updates.poly_reg",
+          "function_model.transactions.FM4"
+        ],
+        "status_counts": {
+          "pass": 32
+        },
+        "task_count": 32
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__integration.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__integration.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__integration",
+      "summary": {
+        "categories": {
+          "integration.connections": 3,
+          "integration.dependencies": 3
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 4,
+          "key": "integration",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "integration",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 6,
+        "source_refs": [
+          "integration.dependencies.external_modules",
+          "integration.dependencies.external_clocks",
+          "integration.dependencies.external_resets",
+          "integration.connections.PCLK",
+          "integration.connections.PRESETn",
+          "integration.connections.APB4"
+        ],
+        "status_counts": {
+          "pass": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__io_list.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__io_list.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__io_list",
+      "summary": {
+        "categories": {
+          "io_list.port": 13
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 2,
+          "key": "io_list",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "io_list",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 13,
+        "source_refs": [
+          "io_list.clock_domains.PCLK.ports.PCLK",
+          "io_list.resets.PRESETn.ports.PRESETn",
+          "io_list.interfaces.apb_slave.ports.PADDR",
+          "io_list.interfaces.apb_slave.ports.PSEL",
+          "io_list.interfaces.apb_slave.ports.PENABLE",
+          "io_list.interfaces.apb_slave.ports.PWRITE",
+          "io_list.interfaces.apb_slave.ports.PWDATA",
+          "io_list.interfaces.apb_slave.ports.PRDATA",
+          "io_list.interfaces.apb_slave.ports.PREADY",
+          "io_list.interfaces.apb_slave.ports.PSLVERR",
+          "io_list.interfaces.prbs_output.ports.prbs_out",
+          "io_list.interfaces.prbs_output.ports.prbs_bit",
+          "io_list.interfaces.status.ports.prbs_valid"
+        ],
+        "status_counts": {
+          "pass": 13
+        },
+        "task_count": 13
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__parameters.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__parameters.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__parameters",
+      "summary": {
+        "categories": {
+          "parameters.item": 8
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 3,
+          "key": "parameters",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "parameters",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 8,
+        "source_refs": [
+          "parameters.LFSR_WIDTH",
+          "parameters.POLY_DEGREE",
+          "parameters.APB_ADDR_WIDTH",
+          "parameters.APB_DATA_WIDTH",
+          "parameters.DEFAULT_POLY",
+          "parameters.DEFAULT_SEED",
+          "parameters.CLOCK_FREQ_MHZ",
+          "parameters.RESET_POLARITY"
+        ],
+        "status_counts": {
+          "pass": 8
+        },
+        "task_count": 8
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__registers.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__registers.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__registers",
+      "summary": {
+        "categories": {
+          "registers.field": 9,
+          "registers.register": 5
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 8,
+          "key": "registers",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "registers",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 14,
+        "source_refs": [
+          "registers.register_list.CTRL",
+          "registers.register_list.CTRL.fields.enable",
+          "registers.register_list.CTRL.fields.auto_reload",
+          "registers.register_list.CTRL.fields.reserved_31_2",
+          "registers.register_list.POLY",
+          "registers.register_list.POLY.fields.poly",
+          "registers.register_list.SEED",
+          "registers.register_list.SEED.fields.seed",
+          "registers.register_list.STATUS",
+          "registers.register_list.STATUS.fields.running",
+          "registers.register_list.STATUS.fields.lockup",
+          "registers.register_list.STATUS.fields.reserved_31_2",
+          "registers.register_list.PRBS",
+          "registers.register_list.PRBS.fields.prbs"
+        ],
+        "status_counts": {
+          "pass": 14
+        },
+        "task_count": 14
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__rtl_flow.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__rtl_flow.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__rtl_flow",
+      "summary": {
+        "categories": {
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 1,
+          "key": "rtl_flow",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "rtl_flow",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "top_module",
+          "io_list"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__security.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__security.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__security",
+      "summary": {
+        "categories": {
+          "security.assets": 2
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 11,
+          "key": "security",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "security",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "security.assets.register_map",
+          "security.assets.prbs_sequence"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__lfsr__synthesis.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__lfsr__synthesis.md",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "packet_id": "module__lfsr__synthesis",
+      "summary": {
+        "categories": {
+          "synthesis.constraints": 3,
+          "synthesis.ppa_targets": 3
+        },
+        "module_slice": {
+          "count": 13,
+          "enabled": true,
+          "index": 12,
+          "key": "synthesis",
+          "module_task_count": 107,
+          "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "synthesis",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 6,
+        "source_refs": [
+          "synthesis.constraints.constraint_0",
+          "synthesis.constraints.constraint_1",
+          "synthesis.constraints.constraint_2",
+          "synthesis.ppa_targets.area_um2_max",
+          "synthesis.ppa_targets.power_mw_max",
+          "synthesis.ppa_targets.frequency_mhz_min"
+        ],
+        "status_counts": {
+          "pass": 6
+        },
+        "task_count": 6
       }
     }
   ],
@@ -1407,19 +1159,12 @@
     "gate_packets": 3,
     "human_locked_packets": 1,
     "human_locked_tasks": 1,
-    "llm_actionable_packets": 14,
-    "llm_actionable_tasks": 113,
+    "llm_actionable_packets": 1,
+    "llm_actionable_tasks": 1,
     "max_packet_required_tasks": 32,
     "module_packets": 13,
     "next_llm_packets": [
-      "module__lfsr__function_model",
-      "module__lfsr__registers",
-      "module__lfsr__io_list",
-      "module__lfsr__cycle_model",
-      "module__lfsr__fsm",
-      "module__lfsr__parameters",
-      "module__lfsr__integration",
-      "module__lfsr__synthesis"
+      "rtl_gate_evidence_closure"
     ],
     "packet_task_limit": 48,
     "packets": 16,
@@ -1432,7 +1177,7 @@
     "sliced_module_packets": 13,
     "target_scale_present": false,
     "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 4,
+    "tool_evidence_tasks": 1,
     "total_tasks": 124,
     "unowned_packets": 0
   },

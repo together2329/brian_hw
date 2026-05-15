@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 8
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - Module slice: 7/13 section=fsm task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.lfsr_control.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.lfsr_control.states.state_0.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: value=IDLE.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -62,14 +62,14 @@ SSOT item context: value=IDLE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.lfsr_control.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.lfsr_control.states.state_1.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: value=RUNNING.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -83,14 +83,14 @@ SSOT item context: value=RUNNING.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.lfsr_control.states.state_2
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.lfsr_control.states.state_2.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: value=LOCKUP.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -104,14 +104,14 @@ SSOT item context: value=LOCKUP.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.lfsr_control.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.lfsr_control.transitions.transition_0.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: from=IDLE; to=RUNNING; condition=CTRL.enable == 1 && lfsr_state != 0.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -126,14 +126,14 @@ SSOT item context: from=IDLE; to=RUNNING; condition=CTRL.enable == 1 && lfsr_sta
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.lfsr_control.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.lfsr_control.transitions.transition_1.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: from=RUNNING; to=IDLE; condition=CTRL.enable == 0.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -148,14 +148,14 @@ SSOT item context: from=RUNNING; to=IDLE; condition=CTRL.enable == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.lfsr_control.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.lfsr_control.transitions.transition_2.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: from=RUNNING; to=LOCKUP; condition=lfsr_state == 0.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -170,14 +170,14 @@ SSOT item context: from=RUNNING; to=LOCKUP; condition=lfsr_state == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.lfsr_control.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.lfsr_control.transitions.transition_3.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: from=LOCKUP; to=IDLE; condition=CTRL.enable == 0.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -192,14 +192,14 @@ SSOT item context: from=LOCKUP; to=IDLE; condition=CTRL.enable == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.lfsr_control.transitions.transition_4
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.lfsr_control.transitions.transition_4.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: from=LOCKUP; to=RUNNING; condition=CTRL.enable == 1 && CTRL.auto_reload == 1.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented

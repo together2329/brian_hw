@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, features, fsm, fsm.arb_fsm, function_model, function_model.transactions, function_model.transactions.FM1, function_model.transactions.FM2
 - Module slice: 6/6 section=workflow_todo task_limit=48
@@ -48,14 +48,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Translate function_model.FM1 output_rules (grant one-hot, grant_valid, grant_index) and state_updates (last_winner rotation) into arbiter_rr_core.sv. Implement circular priority scan starting from (last_winner+1)%NUM_REQ over masked requests. Register outputs for 1-cycle latency per cycle_model.pipeline.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_CORE_ARB.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - gnt_o is one-hot or all-zero every cycle
   - gnt_valid_o is 1 iff a valid grant is asserted

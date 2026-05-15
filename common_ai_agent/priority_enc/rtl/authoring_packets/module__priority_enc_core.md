@@ -24,11 +24,21 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 29
+- LLM-actionable open tasks: 3
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, function_model, function_model.state_updates, function_model.transactions
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
 - Connection contract gap: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
+- Pending connection-contract suggestions: 21 rows in rtl/connection_contract_suggestions.json
+- Draft top integration fragment: rtl/connection_contract_draft_top.svfrag
+- Suggestion usage: draft RTL wiring may use these rows to close hierarchy/signal-flow evidence, but they are not SSOT authority and cannot close connection-contract signoff.
+  - priority_enc_core.PCLK <= PCLK (observed_named_port_map)
+  - priority_enc_core.PRESETn <= PRESETn (observed_named_port_map)
+  - priority_enc_core.data_in <= data_in (observed_named_port_map)
+  - priority_enc_core.enable_i <= ctrl_enable (observed_named_port_map)
+  - priority_enc_core.index_out <= core_index (observed_named_port_map)
+  - priority_enc_core.mask_i <= mask (observed_named_port_map)
+  - priority_enc_core.valid_out <= core_valid (observed_named_port_map)
 
 ## Tasks
 
@@ -36,14 +46,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[1]
 - Detail: Combinational priority encoder tree finding highest set bit of masked data_in. Registered outputs index_out and valid_out, gated by CTRL.enable.
 SSOT ref: workflow_todos.rtl-gen[1].
 Owner: priority_enc_core in rtl/priority_enc_core.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_CORE.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Core implements function_model.state_updates.index and valid
   - 1-cycle registered latency verified in sim
@@ -58,14 +68,14 @@ SSOT item context: id=RTL_TODO_CORE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.enable
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.enable.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.
 SSOT item context: name=enable; reset=1.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -79,14 +89,14 @@ SSOT item context: name=enable; reset=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.mask
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.mask.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.
 SSOT item context: name=mask; reset=0.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -100,14 +110,14 @@ SSOT item context: name=mask; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.index
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.index.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.
 SSOT item context: name=index; reset=0.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -121,14 +131,14 @@ SSOT item context: name=index; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.valid
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.valid.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.
 SSOT item context: name=valid; reset=0.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -142,14 +152,14 @@ SSOT item context: name=valid; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_ENCODE
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_ENCODE.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: id=FM_ENCODE; name=priority_encode.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -162,14 +172,14 @@ SSOT item context: id=FM_ENCODE; name=priority_encode.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_ENCODE.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ENCODE.preconditions.precondition_0.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: value=CTRL.enable == 1.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -182,14 +192,14 @@ SSOT item context: value=CTRL.enable == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_ENCODE.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ENCODE.inputs.input_0.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: value=data_in[N-1:0].
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -202,14 +212,14 @@ SSOT item context: value=data_in[N-1:0].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ENCODE.outputs.index_out
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ENCODE.outputs.index_out.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: name=index_out; port=index_out; expr=priority_index(data_in & ~MASK.mask); width=INDEX_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -225,14 +235,14 @@ SSOT item context: name=index_out; port=index_out; expr=priority_index(data_in &
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ENCODE.outputs.valid_out
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ENCODE.outputs.valid_out.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: name=valid_out; port=valid_out; expr=|(data_in & ~MASK.mask); width=1.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -248,14 +258,14 @@ SSOT item context: name=valid_out; port=valid_out; expr=|(data_in & ~MASK.mask);
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_ENCODE.output_rules.index_out
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ENCODE.output_rules.index_out.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: name=index_out; port=index_out; expr=for i=N-1 downto 0: if ((data_in[i] & ~mask[i]) == 1) return i; return 0; width=INDEX_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -272,14 +282,14 @@ SSOT item context: name=index_out; port=index_out; expr=for i=N-1 downto 0: if (
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_ENCODE.output_rules.valid_out
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ENCODE.output_rules.valid_out.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: name=valid_out; port=valid_out; expr=|(data_in & ~mask); width=1.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -296,14 +306,14 @@ SSOT item context: name=valid_out; port=valid_out; expr=|(data_in & ~mask); widt
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_ENCODE.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ENCODE.side_effects.side_effect_0.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: value=STATUS.index updates to current index_out.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -316,14 +326,14 @@ SSOT item context: value=STATUS.index updates to current index_out.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_ENCODE.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ENCODE.side_effects.side_effect_1.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: value=STATUS.valid updates to current valid_out.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -343,7 +353,7 @@ SSOT item context: value=STATUS.valid updates to current valid_out.
 SSOT ref: function_model.transactions.FM_ENCODE.error_cases.error_case_0.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: condition=PADDR accesses undefined register offset.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -364,7 +374,7 @@ SSOT item context: condition=PADDR accesses undefined register offset.
 SSOT ref: function_model.transactions.FM_ENCODE.error_cases.error_case_1.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: condition=Write to read-only STATUS field.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -378,14 +388,14 @@ SSOT item context: condition=Write to read-only STATUS field.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_0
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_0.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.
 SSOT item context: value=When enable==0, index_out and valid_out are both 0 regardless of inputs..
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -398,14 +408,14 @@ SSOT item context: value=When enable==0, index_out and valid_out are both 0 rega
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_1
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_1.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.
 SSOT item context: value=When multiple inputs are asserted, index_out always reflects the highest-numbered (highest-priority) bit..
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -418,14 +428,14 @@ SSOT item context: value=When multiple inputs are asserted, index_out always ref
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
 SSOT item context: value=PCLK.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -439,13 +449,13 @@ SSOT item context: value=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -459,13 +469,13 @@ Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -486,7 +496,7 @@ Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
 SSOT ref: cycle_model.handshake_rules.apb_csr.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
 SSOT item context: signal=apb_csr.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -500,14 +510,14 @@ SSOT item context: signal=apb_csr.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S0_COMB
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_COMB.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S0_COMB; action=Combinational priority encode: masked_data = data_in & ~MASK; find highest set bit; cycle=0.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -522,14 +532,14 @@ SSOT item context: stage=S0_COMB; action=Combinational priority encode: masked_d
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S1_REG
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_REG.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S1_REG; action=Register index_out and valid_out on PCLK rising edge when CTRL.enable==1; cycle=1.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -544,14 +554,14 @@ SSOT item context: stage=S1_REG; action=Register index_out and valid_out on PCLK
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
 SSOT item context: value=Output register update occurs on PCLK rising edge after combinational priority logic settles..
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -565,14 +575,14 @@ SSOT item context: value=Output register update occurs on PCLK rising edge after
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
 SSOT item context: value=APB register writes take effect on the PCLK cycle after PENABLE handshake completes..
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -586,14 +596,14 @@ SSOT item context: value=APB register writes take effect on the PCLK cycle after
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
 SSOT item context: value=No backpressure on priority inputs; outputs are always valid or zero..
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -607,14 +617,14 @@ SSOT item context: value=No backpressure on priority inputs; outputs are always 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
 SSOT item context: value=Every function_model transaction maps to cycle_model pipeline stages S0_COMB and S1_REG..
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -628,13 +638,13 @@ SSOT item context: value=Every function_model transaction maps to cycle_model pi
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.priority_enc_core.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.priority_enc_core.module_equivalence.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/priority_enc_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

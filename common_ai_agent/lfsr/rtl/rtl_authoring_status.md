@@ -4,9 +4,9 @@
 
 - Top: lfsr
 - Packets: 16
-- LLM-actionable tasks: 113
+- LLM-actionable tasks: 1
 - Human-locked tasks: 1
-- Tool-evidence tasks: 4
+- Tool-evidence tasks: 1
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: False
@@ -15,18 +15,11 @@
 
 ## Next LLM Packets
 
-- module__lfsr__function_model: rtl/authoring_packets/module__lfsr__function_model.json (llm_open=32, human_locked=0)
-- module__lfsr__registers: rtl/authoring_packets/module__lfsr__registers.json (llm_open=14, human_locked=0)
-- module__lfsr__io_list: rtl/authoring_packets/module__lfsr__io_list.json (llm_open=13, human_locked=0)
-- module__lfsr__cycle_model: rtl/authoring_packets/module__lfsr__cycle_model.json (llm_open=10, human_locked=0)
-- module__lfsr__fsm: rtl/authoring_packets/module__lfsr__fsm.json (llm_open=8, human_locked=0)
-- module__lfsr__parameters: rtl/authoring_packets/module__lfsr__parameters.json (llm_open=8, human_locked=0)
-- module__lfsr__integration: rtl/authoring_packets/module__lfsr__integration.json (llm_open=6, human_locked=0)
-- module__lfsr__synthesis: rtl/authoring_packets/module__lfsr__synthesis.json (llm_open=6, human_locked=0)
+- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=1, human_locked=0)
 
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=4, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=1, next_tool=audit-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 

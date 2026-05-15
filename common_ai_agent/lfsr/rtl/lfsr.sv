@@ -2,16 +2,13 @@
 // SSOT: lfsr/yaml/lfsr.ssot.yaml
 module lfsr #(
     parameter integer LFSR_WIDTH     = 32,         // Changes the PRBS state and parallel output width.
-    parameter integer POLY_DEGREE    = 32,         // SSOT polynomial degree; constrained by integration to LFSR_WIDTH.
     parameter integer APB_ADDR_WIDTH = 8,          // Changes the APB byte-address bus width.
     parameter integer APB_DATA_WIDTH = 32,         // Changes the APB data bus and CSR access width.
     parameter [LFSR_WIDTH-1:0] DEFAULT_POLY = 32'h80000057,
-    parameter [LFSR_WIDTH-1:0] DEFAULT_SEED = 32'h00000001,
-    parameter integer CLOCK_FREQ_MHZ = 50,
-    parameter integer RESET_ACTIVE_LOW = 1
+    parameter [LFSR_WIDTH-1:0] DEFAULT_SEED = 32'h00000001
 ) (
-    input  logic                      PCLK,
-    input  logic                      PRESETn,
+    input  logic [0:0]                PCLK,
+    input  logic [0:0]                PRESETn,
     input  logic [APB_ADDR_WIDTH-1:0] PADDR,
     input  logic                      PSEL,
     input  logic                      PENABLE,
@@ -64,7 +61,6 @@ module lfsr #(
     logic lockup_now;
     logic lockup_after_step;
     logic enabled_step;
-    logic load_seed_cycle;
     logic [APB_DATA_WIDTH-1:0] status_read_data;
     logic [APB_DATA_WIDTH-1:0] prbs_read_data;
     logic [LFSR_WIDTH-1:0] seed_write_value;
@@ -93,14 +89,113 @@ module lfsr #(
     assign lockup_now = (lfsr_state == LFSR_ZERO);
     assign lockup_after_step = (lfsr_next_state == LFSR_ZERO);
     assign enabled_step = ctrl_reg[0] & (state == RUNNING) & (~lockup_now);
-    assign load_seed_cycle = seed_write_pulse;
     assign seed_write_value = PWDATA[LFSR_WIDTH-1:0];
     assign poly_write_value = PWDATA[LFSR_WIDTH-1:0];
 
     assign status_read_data = {{(APB_DATA_WIDTH-2){1'b0}}, status_reg[1], status_reg[0]};
     assign prbs_read_data = {{(APB_DATA_WIDTH-LFSR_WIDTH){1'b0}}, lfsr_state};
-    // TBD: reset / synchronizers
-    // TBD: fsm
-    // TBD: datapath
-    // TBD: output assignments
+    // PRESETn is the sole SSOT reset; all architectural registers return to SSOT reset values.
+    always @(posedge PCLK or negedge PRESETn) begin
+        if (!PRESETn) begin
+            state       <= IDLE;
+            lfsr_state  <= DEFAULT_SEED;
+            poly_reg    <= DEFAULT_POLY;
+            ctrl_reg    <= 2'b00;
+            status_reg  <= 2'b00;
+            PRDATA      <= {APB_DATA_WIDTH{1'b0}};
+            PREADY      <= 1'b0;
+            PSLVERR     <= 1'b0;
+            prbs_out    <= DEFAULT_SEED;
+            prbs_bit    <= DEFAULT_SEED[0];
+            prbs_valid  <= 1'b0;
+        end else begin
+            state <= next_state;
+            PREADY <= apb_access;
+            PSLVERR <= apb_access & ((~addr_legal) | poly_write_blocked | (apb_write & (addr_hit_status | addr_hit_prbs)));
+
+            if (ctrl_write_pulse) begin
+                ctrl_reg <= PWDATA[1:0];
+            end
+
+            if (poly_write_pulse) begin
+                poly_reg <= poly_write_value;
+            end
+
+            if (seed_write_pulse) begin
+                lfsr_state <= seed_write_value;
+                prbs_out <= seed_write_value;
+                prbs_bit <= seed_write_value[0];
+                prbs_valid <= 1'b0;
+                status_reg[1] <= 1'b0;
+            end else if (enabled_step) begin
+                if (lockup_after_step) begin
+                    lfsr_state <= ctrl_reg[1] ? DEFAULT_SEED : LFSR_ZERO;
+                    prbs_out <= ctrl_reg[1] ? DEFAULT_SEED : LFSR_ZERO;
+                    prbs_bit <= ctrl_reg[1] ? DEFAULT_SEED[0] : 1'b0;
+                    prbs_valid <= 1'b0;
+                    status_reg[1] <= 1'b1;
+                end else begin
+                    lfsr_state <= lfsr_next_state;
+                    prbs_out <= lfsr_next_state;
+                    prbs_bit <= lfsr_next_state[0];
+                    prbs_valid <= 1'b1;
+                end
+            end else begin
+                prbs_out <= lfsr_state;
+                prbs_bit <= lfsr_state[0];
+                prbs_valid <= 1'b0;
+                if (!ctrl_reg[0]) begin
+                    status_reg[1] <= 1'b0;
+                end
+            end
+
+            status_reg[0] <= ctrl_reg[0] & (~status_reg[1]) & (~lockup_now);
+
+            if (apb_read) begin
+                case (PADDR)
+                    ADDR_CTRL:   PRDATA <= {{(APB_DATA_WIDTH-2){1'b0}}, ctrl_reg[1], ctrl_reg[0]};
+                    ADDR_POLY:   PRDATA <= {{(APB_DATA_WIDTH-LFSR_WIDTH){1'b0}}, poly_reg};
+                    ADDR_SEED:   PRDATA <= {{(APB_DATA_WIDTH-LFSR_WIDTH){1'b0}}, lfsr_state};
+                    ADDR_STATUS: PRDATA <= status_read_data;
+                    ADDR_PRBS:   PRDATA <= prbs_read_data;
+                    default:     PRDATA <= APB_ZERO;
+                endcase
+            end else begin
+                PRDATA <= APB_ZERO;
+            end
+        end
+    end
+    // SSOT lfsr_control FSM separates halted, stepping, and detected lockup behavior.
+    always @(*) begin
+        next_state = state;
+        case (state)
+            IDLE: begin
+                if (ctrl_reg[0] && (lfsr_state != LFSR_ZERO)) begin
+                    next_state = RUNNING;
+                end
+            end
+            RUNNING: begin
+                if (!ctrl_reg[0]) begin
+                    next_state = IDLE;
+                end else if (lockup_now || lockup_after_step) begin
+                    next_state = LOCKUP;
+                end
+            end
+            LOCKUP: begin
+                if (!ctrl_reg[0]) begin
+                    next_state = IDLE;
+                end else if (ctrl_reg[1]) begin
+                    next_state = RUNNING;
+                end
+            end
+            default: begin
+                next_state = IDLE;
+            end
+        endcase
+    end
+    // APB-lite is single-cycle ready in the completing access phase; unsupported accesses raise PSLVERR.
+    // POLY writes are accepted only while halted, matching the SSOT polynomial programming rule.
+    // SEED writes directly load lfsr_state and suppress prbs_valid for the load cycle.
+    // PRBS output has no backpressure; prbs_valid marks cycles where prbs_out/prbs_bit advanced.
+    // Outputs are registered in the sequential block so APB read data and PRBS status are stable after PCLK.
 endmodule

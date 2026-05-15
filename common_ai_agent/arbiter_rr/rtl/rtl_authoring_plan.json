@@ -5,89 +5,7 @@
       "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
       "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority."
     ],
-    "blocked_by_llm_work": [
-      {
-        "gate_kind": "static_rtl_evidence",
-        "owner_module": "arbiter_rr",
-        "reason": "49 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "status": "open",
-        "task_id": "RTL-0007"
-      },
-      {
-        "gate_kind": "owner_logic_structure_evidence",
-        "owner_module": "arbiter_rr",
-        "reason": "3 owner logic structure issue(s) remain. arbiter_rr_regs: Behavior-owner module is not declared in its owner file; arbiter_rr_core: Behavior-owner module is not declared in its owner file; arbiter_rr: Behavior-owner module is not declared in its owner file",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "status": "open",
-        "task_id": "RTL-0008"
-      },
-      {
-        "gate_kind": "rtl_placeholder_free_evidence",
-        "owner_module": "arbiter_rr",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "status": "open",
-        "task_id": "RTL-0009"
-      },
-      {
-        "gate_kind": "top_io_contract_evidence",
-        "owner_module": "arbiter_rr",
-        "reason": "1 top IO contract issue(s) remain. arbiter_rr: SSOT top module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "status": "open",
-        "task_id": "RTL-0010"
-      },
-      {
-        "gate_kind": "top_output_drive_evidence",
-        "owner_module": "arbiter_rr",
-        "reason": "1 top output drive issue(s) remain. arbiter_rr: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "status": "open",
-        "task_id": "RTL-0011"
-      },
-      {
-        "gate_kind": "top_input_consumption_evidence",
-        "owner_module": "arbiter_rr",
-        "reason": "1 top input consumption issue(s) remain. arbiter_rr: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "status": "open",
-        "task_id": "RTL-0012"
-      },
-      {
-        "gate_kind": "manifest_hierarchy_integration",
-        "owner_module": "arbiter_rr",
-        "reason": "3 manifest hierarchy integration issue(s) remain. arbiter_rr: SSOT top module is not declared in listed RTL sources; arbiter_rr_regs: SSOT manifest child module is not declared in listed RTL sources; arbiter_rr_core: SSOT manifest child module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "status": "open",
-        "task_id": "RTL-0013"
-      },
-      {
-        "gate_kind": "manifest_signal_flow_evidence",
-        "owner_module": "arbiter_rr",
-        "reason": "1 manifest signal-flow issue(s) remain. arbiter_rr: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "status": "open",
-        "task_id": "RTL-0015"
-      },
-      {
-        "gate_kind": "rtl_implementation_depth_evidence",
-        "owner_module": "arbiter_rr",
-        "reason": "8 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL source-file count is below the SSOT-locked target scale: actual=0 required=3; Production RTL module count is below the SSOT-locked target scale: actual=0 required=3",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
-        "status": "open",
-        "task_id": "RTL-0022"
-      }
-    ],
+    "blocked_by_llm_work": [],
     "blocked_by_locked_truth": [
       {
         "gate_kind": "owner_traceability",
@@ -97,15 +15,6 @@
         "source_ref": "quality_gates.rtl_gen.owner_traceability",
         "status": "open",
         "task_id": "RTL-0005"
-      },
-      {
-        "gate_kind": "manifest_connection_contract_evidence",
-        "owner_module": "arbiter_rr",
-        "reason": "24 SSOT connection contract issue(s) remain. arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL; arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL; arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "status": "open",
-        "task_id": "RTL-0016"
       },
       {
         "gate_kind": "golden_authority_artifacts",
@@ -137,27 +46,9 @@
         "task_id": "RTL-0006"
       },
       {
-        "gate_kind": "dut_compile",
-        "owner_module": "arbiter_rr",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "gate_kind": "dut_lint",
-        "owner_module": "arbiter_rr",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "arbiter_rr",
-        "reason": "163 required non-closure TODO(s) remain open.",
+        "reason": "8 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -229,7 +120,7 @@
         "task_id": "RTL-0005"
       }
     ],
-    "open_required_todos": 164,
+    "open_required_todos": 9,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -262,53 +153,6 @@
         "task_id": "RTL-0006"
       },
       {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "arbiter_rr/rtl/rtl_compile.json",
-          "arbiter_rr/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py arbiter_rr --top arbiter_rr --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py arbiter_rr --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "arbiter_rr/list/arbiter_rr.f covers the current DUT RTL sources."
-        ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "artifact": "lint/dut_lint.json",
-        "artifacts": [
-          "arbiter_rr/lint/dut_lint.json"
-        ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-        "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py arbiter_rr --top arbiter_rr",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py arbiter_rr --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_lint",
-        "prerequisites": [
-          "arbiter_rr/list/arbiter_rr.f covers the current DUT RTL/header sources."
-        ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "stage_sequence": [
-          "lint",
-          "dut_lint"
-        ],
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
         "artifact": "rtl/rtl_todo_plan.json",
         "artifacts": [
           "arbiter_rr/rtl/rtl_todo_plan.json",
@@ -322,7 +166,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "163 required non-closure TODO(s) remain open.",
+        "reason": "8 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -421,1031 +265,6 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 26,
-        "open_required_count": 26,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr_regs.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr_regs.md",
-      "owner_file": "rtl/arbiter_rr_regs.sv",
-      "owner_module": "arbiter_rr_regs",
-      "packet_id": "module__arbiter_rr_regs",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1,
-          "io_list.port": 14,
-          "registers.field": 7,
-          "registers.register": 3,
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 26,
-          "task_limit": 48
-        },
-        "open_required_count": 26,
-        "required_count": 26,
-        "source_refs": [
-          "workflow_todos.rtl-gen[1]",
-          "registers.register_list.CTRL",
-          "registers.register_list.CTRL.fields.enable",
-          "registers.register_list.CTRL.fields.reserved_31_1",
-          "registers.register_list.REQ_MASK",
-          "registers.register_list.REQ_MASK.fields.mask",
-          "registers.register_list.REQ_MASK.fields.reserved_31_4",
-          "registers.register_list.STATUS",
-          "registers.register_list.STATUS.fields.winner",
-          "registers.register_list.STATUS.fields.active_req",
-          "registers.register_list.STATUS.fields.reserved_31_8",
-          "sub_modules.arbiter_rr_regs.module_equivalence",
-          "io_list.clock_domains.pclk.ports.PCLK",
-          "io_list.resets.presetn.ports.PRESETn",
-          "io_list.interfaces.apb_slave.ports.PADDR",
-          "io_list.interfaces.apb_slave.ports.PSEL",
-          "io_list.interfaces.apb_slave.ports.PENABLE",
-          "io_list.interfaces.apb_slave.ports.PWRITE",
-          "io_list.interfaces.apb_slave.ports.PWDATA",
-          "io_list.interfaces.apb_slave.ports.PRDATA",
-          "io_list.interfaces.apb_slave.ports.PREADY",
-          "io_list.interfaces.apb_slave.ports.PSLVERR",
-          "io_list.interfaces.request_inputs.ports.req_i",
-          "io_list.interfaces.grant_outputs.ports.gnt_o"
-        ],
-        "status_counts": {
-          "open": 26
-        },
-        "task_count": 26
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 38,
-        "open_required_count": 38,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr_core__function_model.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__function_model.md",
-      "owner_file": "rtl/arbiter_rr_core.sv",
-      "owner_module": "arbiter_rr_core",
-      "packet_id": "module__arbiter_rr_core__function_model",
-      "summary": {
-        "categories": {
-          "function_model.input": 5,
-          "function_model.invariant": 6,
-          "function_model.output": 8,
-          "function_model.output_rule": 6,
-          "function_model.precondition": 3,
-          "function_model.side_effect": 3,
-          "function_model.state_update": 2,
-          "function_model.state_variable": 3,
-          "function_model.transaction": 2
-        },
-        "module_slice": {
-          "count": 6,
-          "enabled": true,
-          "index": 1,
-          "key": "function_model",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "function_model",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 38,
-        "required_count": 38,
-        "source_refs": [
-          "function_model.state_variables.last_winner",
-          "function_model.state_variables.arb_enabled",
-          "function_model.state_variables.req_mask",
-          "function_model.transactions.FM1",
-          "function_model.transactions.FM1.preconditions.precondition_0",
-          "function_model.transactions.FM1.preconditions.precondition_1",
-          "function_model.transactions.FM1.inputs.input_0",
-          "function_model.transactions.FM1.inputs.input_1",
-          "function_model.transactions.FM1.inputs.input_2",
-          "function_model.transactions.FM1.outputs.output_0",
-          "function_model.transactions.FM1.outputs.output_1",
-          "function_model.transactions.FM1.outputs.output_2",
-          "function_model.transactions.FM1.outputs.output_3",
-          "function_model.transactions.FM1.output_rules.grant",
-          "function_model.transactions.FM1.output_rules.grant_valid",
-          "function_model.transactions.FM1.output_rules.grant_index",
-          "function_model.transactions.FM1.state_updates.last_winner",
-          "function_model.transactions.FM1.side_effects.side_effect_0",
-          "function_model.transactions.FM1.side_effects.side_effect_1",
-          "function_model.transactions.FM2",
-          "function_model.transactions.FM2.preconditions.precondition_0",
-          "function_model.transactions.FM2.inputs.input_0",
-          "function_model.transactions.FM2.inputs.input_1",
-          "function_model.transactions.FM2.outputs.output_0"
-        ],
-        "status_counts": {
-          "open": 38
-        },
-        "task_count": 38
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 14,
-        "open_required_count": 14,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr_core__cycle_model.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__cycle_model.md",
-      "owner_file": "rtl/arbiter_rr_core.sv",
-      "owner_module": "arbiter_rr_core",
-      "packet_id": "module__arbiter_rr_core__cycle_model",
-      "summary": {
-        "categories": {
-          "cycle_model.backpressure": 1,
-          "cycle_model.clock": 1,
-          "cycle_model.handshake_rules": 4,
-          "cycle_model.latency": 1,
-          "cycle_model.observability": 1,
-          "cycle_model.ordering": 3,
-          "cycle_model.pipeline": 2,
-          "cycle_model.reset": 1
-        },
-        "module_slice": {
-          "count": 6,
-          "enabled": true,
-          "index": 2,
-          "key": "cycle_model",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "cycle_model",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 14,
-        "required_count": 14,
-        "source_refs": [
-          "cycle_model.clock",
-          "cycle_model.reset",
-          "cycle_model.latency",
-          "cycle_model.handshake_rules.req_i",
-          "cycle_model.handshake_rules.gnt_o",
-          "cycle_model.handshake_rules.gnt_valid_o",
-          "cycle_model.handshake_rules.gnt_idx_o",
-          "cycle_model.pipeline.S0_SAMPLE_REQ",
-          "cycle_model.pipeline.S1_GRANT",
-          "cycle_model.ordering.ordering_rule_0",
-          "cycle_model.ordering.ordering_rule_1",
-          "cycle_model.ordering.ordering_rule_2",
-          "cycle_model.backpressure.backpressure_rule_0",
-          "cycle_model.observability.observability_signal_0"
-        ],
-        "status_counts": {
-          "open": 14
-        },
-        "task_count": 14
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 7,
-        "open_required_count": 7,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr_core__fsm.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__fsm.md",
-      "owner_file": "rtl/arbiter_rr_core.sv",
-      "owner_module": "arbiter_rr_core",
-      "packet_id": "module__arbiter_rr_core__fsm",
-      "summary": {
-        "categories": {
-          "fsm.state": 3,
-          "fsm.transition": 4
-        },
-        "module_slice": {
-          "count": 6,
-          "enabled": true,
-          "index": 3,
-          "key": "fsm",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "fsm",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 7,
-        "required_count": 7,
-        "source_refs": [
-          "fsm.arb_fsm.states.state_0",
-          "fsm.arb_fsm.states.state_1",
-          "fsm.arb_fsm.states.state_2",
-          "fsm.arb_fsm.transitions.transition_0",
-          "fsm.arb_fsm.transitions.transition_1",
-          "fsm.arb_fsm.transitions.transition_2",
-          "fsm.arb_fsm.transitions.transition_3"
-        ],
-        "status_counts": {
-          "open": 7
-        },
-        "task_count": 7
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 3,
-        "open_required_count": 3,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr_core__features.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__features.md",
-      "owner_file": "rtl/arbiter_rr_core.sv",
-      "owner_module": "arbiter_rr_core",
-      "packet_id": "module__arbiter_rr_core__features",
-      "summary": {
-        "categories": {
-          "features.item": 3
-        },
-        "module_slice": {
-          "count": 6,
-          "enabled": true,
-          "index": 4,
-          "key": "features",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "features",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 3,
-        "required_count": 3,
-        "source_refs": [
-          "features.Round_Robin_Arbitration",
-          "features.Request_Masking",
-          "features.Enable_Disable"
-        ],
-        "status_counts": {
-          "open": 3
-        },
-        "task_count": 3
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr_core__equivalence.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__equivalence.md",
-      "owner_file": "rtl/arbiter_rr_core.sv",
-      "owner_module": "arbiter_rr_core",
-      "packet_id": "module__arbiter_rr_core__equivalence",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 6,
-          "enabled": true,
-          "index": 5,
-          "key": "equivalence",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "equivalence",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.arbiter_rr_core.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr_core__workflow_todo.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__workflow_todo.md",
-      "owner_file": "rtl/arbiter_rr_core.sv",
-      "owner_module": "arbiter_rr_core",
-      "packet_id": "module__arbiter_rr_core__workflow_todo",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 6,
-          "enabled": true,
-          "index": 6,
-          "key": "workflow_todo",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "workflow_todo",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "workflow_todos.rtl-gen[0]"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 27,
-        "open_required_count": 27,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr__integration.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr__integration.md",
-      "owner_file": "rtl/arbiter_rr.sv",
-      "owner_module": "arbiter_rr",
-      "packet_id": "module__arbiter_rr__integration",
-      "summary": {
-        "categories": {
-          "integration.connections": 24,
-          "integration.dependencies": 3
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 3,
-          "key": "integration",
-          "module_task_count": 54,
-          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "integration",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 27,
-        "required_count": 27,
-        "source_refs": [
-          "integration.dependencies.external_modules",
-          "integration.dependencies.external_clocks",
-          "integration.dependencies.external_resets",
-          "integration.connections.PCLK",
-          "integration.connections.PRESETn",
-          "integration.connections.PADDR",
-          "integration.connections.PSEL",
-          "integration.connections.PENABLE",
-          "integration.connections.PWRITE",
-          "integration.connections.PWDATA",
-          "integration.connections.PRDATA",
-          "integration.connections.PREADY",
-          "integration.connections.PSLVERR",
-          "integration.connections.arb_enable",
-          "integration.connections.req_mask",
-          "integration.connections.PCLK",
-          "integration.connections.PRESETn",
-          "integration.connections.req_i",
-          "integration.connections.req_mask",
-          "integration.connections.arb_enable",
-          "integration.connections.gnt_o",
-          "integration.connections.gnt_valid_o",
-          "integration.connections.gnt_idx_o",
-          "integration.connections.status_winner"
-        ],
-        "status_counts": {
-          "open": 27
-        },
-        "task_count": 27
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 10,
-        "open_required_count": 10,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr__test_requirements.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr__test_requirements.md",
-      "owner_file": "rtl/arbiter_rr.sv",
-      "owner_module": "arbiter_rr",
-      "packet_id": "module__arbiter_rr__test_requirements",
-      "summary": {
-        "categories": {
-          "test_requirements.scenario": 10
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 7,
-          "key": "test_requirements",
-          "module_task_count": 54,
-          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "test_requirements",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 10,
-        "required_count": 10,
-        "source_refs": [
-          "test_requirements.scenarios.SC1",
-          "test_requirements.scenarios.SC2",
-          "test_requirements.scenarios.SC3",
-          "test_requirements.scenarios.SC4",
-          "test_requirements.scenarios.SC5",
-          "test_requirements.scenarios.SC6",
-          "test_requirements.scenarios.SC7",
-          "test_requirements.scenarios.SC8",
-          "test_requirements.scenarios.SC9",
-          "test_requirements.scenarios.SC10"
-        ],
-        "status_counts": {
-          "open": 10
-        },
-        "task_count": 10
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 6,
-        "open_required_count": 6,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr__synthesis.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr__synthesis.md",
-      "owner_file": "rtl/arbiter_rr.sv",
-      "owner_module": "arbiter_rr",
-      "packet_id": "module__arbiter_rr__synthesis",
-      "summary": {
-        "categories": {
-          "synthesis.constraints": 3,
-          "synthesis.ppa_targets": 3
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 6,
-          "key": "synthesis",
-          "module_task_count": 54,
-          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "synthesis",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 6,
-        "required_count": 6,
-        "source_refs": [
-          "synthesis.constraints.constraint_0",
-          "synthesis.constraints.constraint_1",
-          "synthesis.constraints.constraint_2",
-          "synthesis.ppa_targets.area_um2_max",
-          "synthesis.ppa_targets.power_mw_max",
-          "synthesis.ppa_targets.frequency_mhz_min"
-        ],
-        "status_counts": {
-          "open": 6
-        },
-        "task_count": 6
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 4,
-        "open_required_count": 4,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr__parameters.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr__parameters.md",
-      "owner_file": "rtl/arbiter_rr.sv",
-      "owner_module": "arbiter_rr",
-      "packet_id": "module__arbiter_rr__parameters",
-      "summary": {
-        "categories": {
-          "parameters.item": 4
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 2,
-          "key": "parameters",
-          "module_task_count": 54,
-          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "parameters",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 4,
-        "required_count": 4,
-        "source_refs": [
-          "parameters.NUM_REQ",
-          "parameters.IDX_WIDTH",
-          "parameters.APB_ADDR_WIDTH",
-          "parameters.APB_DATA_WIDTH"
-        ],
-        "status_counts": {
-          "open": 4
-        },
-        "task_count": 4
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr__security.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr__security.md",
-      "owner_file": "rtl/arbiter_rr.sv",
-      "owner_module": "arbiter_rr",
-      "packet_id": "module__arbiter_rr__security",
-      "summary": {
-        "categories": {
-          "security.assets": 2
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 5,
-          "key": "security",
-          "module_task_count": 54,
-          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "security",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 2,
-        "required_count": 2,
-        "source_refs": [
-          "security.assets.register_map",
-          "security.assets.arbitration_decision"
-        ],
-        "status_counts": {
-          "open": 2
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr__equivalence.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr__equivalence.md",
-      "owner_file": "rtl/arbiter_rr.sv",
-      "owner_module": "arbiter_rr",
-      "packet_id": "module__arbiter_rr__equivalence",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 8,
-          "key": "equivalence",
-          "module_task_count": 54,
-          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "equivalence",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.arbiter_rr.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr__error_handling.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr__error_handling.md",
-      "owner_file": "rtl/arbiter_rr.sv",
-      "owner_module": "arbiter_rr",
-      "packet_id": "module__arbiter_rr__error_handling",
-      "summary": {
-        "categories": {
-          "error_handling.recovery": 1
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 4,
-          "key": "error_handling",
-          "module_task_count": 54,
-          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "error_handling",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "error_handling.recovery.recovery_0"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr__rtl_flow.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr__rtl_flow.md",
-      "owner_file": "rtl/arbiter_rr.sv",
-      "owner_module": "arbiter_rr",
-      "packet_id": "module__arbiter_rr__rtl_flow",
-      "summary": {
-        "categories": {
-          "rtl_flow.seed": 1,
-          "rtl_flow.top": 1
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 1,
-          "key": "rtl_flow",
-          "module_task_count": 54,
-          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "rtl_flow",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 2,
-        "source_refs": [
-          "top_module",
-          "io_list"
-        ],
-        "status_counts": {
-          "open": 1,
-          "pass": 1
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__arbiter_rr__workflow_todo.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__arbiter_rr__workflow_todo.md",
-      "owner_file": "rtl/arbiter_rr.sv",
-      "owner_module": "arbiter_rr",
-      "packet_id": "module__arbiter_rr__workflow_todo",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 9,
-          "key": "workflow_todo",
-          "module_task_count": 54,
-          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "workflow_todo",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "workflow_todos.rtl-gen[2]"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
         "llm_actionable_open_count": 1,
         "open_required_count": 1,
         "pass_allowed": false,
@@ -1482,61 +301,6 @@
     },
     {
       "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 9,
-        "open_required_count": 9,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
-      "kind": "gate",
-      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
-      "owner_file": "rtl/arbiter_rr.sv",
-      "owner_module": "arbiter_rr",
-      "packet_id": "rtl_gate_evidence_closure",
-      "summary": {
-        "categories": {
-          "rtl_gate.rtl_gen": 10
-        },
-        "module_slice": {},
-        "open_required_count": 9,
-        "required_count": 10,
-        "source_refs": [
-          "quality_gates.rtl_gen.static_rtl_evidence",
-          "quality_gates.rtl_gen.owner_logic_structure_evidence",
-          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-          "quality_gates.rtl_gen.top_io_contract_evidence",
-          "quality_gates.rtl_gen.top_output_drive_evidence",
-          "quality_gates.rtl_gen.top_input_consumption_evidence",
-          "quality_gates.rtl_gen.manifest_hierarchy_integration",
-          "quality_gates.rtl_gen.manifest_port_connection_evidence",
-          "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-          "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
-        ],
-        "status_counts": {
-          "open": 9,
-          "pass": 1
-        },
-        "task_count": 10
-      }
-    },
-    {
-      "execution_policy": {
         "blocked_by_locked_truth": [
           {
             "gate_kind": "owner_traceability",
@@ -1546,15 +310,6 @@
             "source_ref": "quality_gates.rtl_gen.owner_traceability",
             "status": "open",
             "task_id": "RTL-0005"
-          },
-          {
-            "gate_kind": "manifest_connection_contract_evidence",
-            "owner_module": "arbiter_rr",
-            "reason": "24 SSOT connection contract issue(s) remain. arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL; arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL; arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-            "status": "open",
-            "task_id": "RTL-0016"
           },
           {
             "gate_kind": "golden_authority_artifacts",
@@ -1580,11 +335,11 @@
         "deferred_human_qa_allowed": false,
         "draft_allowed": false,
         "evidence_closure_allowed": false,
-        "human_locked_open_count": 4,
+        "human_locked_open_count": 3,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 4,
+        "open_required_count": 3,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1606,7 +361,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 4,
+        "open_required_count": 3,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.ssot_required_sections",
@@ -1618,8 +373,8 @@
           "quality_gates.rtl_gen.cycle_model_artifacts"
         ],
         "status_counts": {
-          "open": 4,
-          "pass": 3
+          "open": 3,
+          "pass": 4
         },
         "task_count": 7
       }
@@ -1638,27 +393,9 @@
             "task_id": "RTL-0006"
           },
           {
-            "gate_kind": "dut_compile",
-            "owner_module": "arbiter_rr",
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "gate_kind": "dut_lint",
-            "owner_module": "arbiter_rr",
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "status": "open",
-            "task_id": "RTL-0018"
-          },
-          {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "arbiter_rr",
-            "reason": "163 required non-closure TODO(s) remain open.",
+            "reason": "8 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -1700,14 +437,14 @@
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 7,
+        "open_required_count": 5,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
           "Never use a fixed RTL template as the implementation."
         ],
-        "tool_evidence_open_count": 7,
+        "tool_evidence_open_count": 5,
         "tool_evidence_plan": [
           {
             "artifact": "rtl/rtl_authoring_provenance.json",
@@ -1733,53 +470,6 @@
             "task_id": "RTL-0006"
           },
           {
-            "artifact": "rtl/rtl_compile.json",
-            "artifacts": [
-              "arbiter_rr/rtl/rtl_compile.json",
-              "arbiter_rr/rtl/rtl_compile.log"
-            ],
-            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-            "commands": [
-              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py arbiter_rr --top arbiter_rr --project-root .",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py arbiter_rr --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_compile",
-            "prerequisites": [
-              "arbiter_rr/list/arbiter_rr.f covers the current DUT RTL sources."
-            ],
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "stage_sequence": [
-              "ssot-rtl",
-              "dut_compile"
-            ],
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "artifact": "lint/dut_lint.json",
-            "artifacts": [
-              "arbiter_rr/lint/dut_lint.json"
-            ],
-            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-            "commands": [
-              "python3 workflow/lint/scripts/dut_lint_report.py arbiter_rr --top arbiter_rr",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py arbiter_rr --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_lint",
-            "prerequisites": [
-              "arbiter_rr/list/arbiter_rr.f covers the current DUT RTL/header sources."
-            ],
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "stage_sequence": [
-              "lint",
-              "dut_lint"
-            ],
-            "status": "open",
-            "task_id": "RTL-0018"
-          },
-          {
             "artifact": "rtl/rtl_todo_plan.json",
             "artifacts": [
               "arbiter_rr/rtl/rtl_todo_plan.json",
@@ -1793,7 +483,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "163 required non-closure TODO(s) remain open.",
+            "reason": "8 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -1890,7 +580,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 7,
+        "open_required_count": 5,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -1902,9 +592,1088 @@
           "quality_gates.rtl_gen.coverage_closure"
         ],
         "status_counts": {
-          "open": 7
+          "open": 5,
+          "pass": 2
         },
         "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr_regs.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr_regs.md",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "packet_id": "module__arbiter_rr_regs",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "io_list.port": 14,
+          "registers.field": 7,
+          "registers.register": 3,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 26,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 26,
+        "source_refs": [
+          "workflow_todos.rtl-gen[1]",
+          "registers.register_list.CTRL",
+          "registers.register_list.CTRL.fields.enable",
+          "registers.register_list.CTRL.fields.reserved_31_1",
+          "registers.register_list.REQ_MASK",
+          "registers.register_list.REQ_MASK.fields.mask",
+          "registers.register_list.REQ_MASK.fields.reserved_31_4",
+          "registers.register_list.STATUS",
+          "registers.register_list.STATUS.fields.winner",
+          "registers.register_list.STATUS.fields.active_req",
+          "registers.register_list.STATUS.fields.reserved_31_8",
+          "sub_modules.arbiter_rr_regs.module_equivalence",
+          "io_list.clock_domains.pclk.ports.PCLK",
+          "io_list.resets.presetn.ports.PRESETn",
+          "io_list.interfaces.apb_slave.ports.PADDR",
+          "io_list.interfaces.apb_slave.ports.PSEL",
+          "io_list.interfaces.apb_slave.ports.PENABLE",
+          "io_list.interfaces.apb_slave.ports.PWRITE",
+          "io_list.interfaces.apb_slave.ports.PWDATA",
+          "io_list.interfaces.apb_slave.ports.PRDATA",
+          "io_list.interfaces.apb_slave.ports.PREADY",
+          "io_list.interfaces.apb_slave.ports.PSLVERR",
+          "io_list.interfaces.request_inputs.ports.req_i",
+          "io_list.interfaces.grant_outputs.ports.gnt_o"
+        ],
+        "status_counts": {
+          "pass": 26
+        },
+        "task_count": 26
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr_core__cycle_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__cycle_model.md",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "packet_id": "module__arbiter_rr_core__cycle_model",
+      "summary": {
+        "categories": {
+          "cycle_model.backpressure": 1,
+          "cycle_model.clock": 1,
+          "cycle_model.handshake_rules": 4,
+          "cycle_model.latency": 1,
+          "cycle_model.observability": 1,
+          "cycle_model.ordering": 3,
+          "cycle_model.pipeline": 2,
+          "cycle_model.reset": 1
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 2,
+          "key": "cycle_model",
+          "module_task_count": 64,
+          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 14,
+        "source_refs": [
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency",
+          "cycle_model.handshake_rules.req_i",
+          "cycle_model.handshake_rules.gnt_o",
+          "cycle_model.handshake_rules.gnt_valid_o",
+          "cycle_model.handshake_rules.gnt_idx_o",
+          "cycle_model.pipeline.S0_SAMPLE_REQ",
+          "cycle_model.pipeline.S1_GRANT",
+          "cycle_model.ordering.ordering_rule_0",
+          "cycle_model.ordering.ordering_rule_1",
+          "cycle_model.ordering.ordering_rule_2",
+          "cycle_model.backpressure.backpressure_rule_0",
+          "cycle_model.observability.observability_signal_0"
+        ],
+        "status_counts": {
+          "pass": 14
+        },
+        "task_count": 14
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr_core__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__equivalence.md",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "packet_id": "module__arbiter_rr_core__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 5,
+          "key": "equivalence",
+          "module_task_count": 64,
+          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.arbiter_rr_core.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr_core__features.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__features.md",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "packet_id": "module__arbiter_rr_core__features",
+      "summary": {
+        "categories": {
+          "features.item": 3
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 4,
+          "key": "features",
+          "module_task_count": 64,
+          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "features",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "features.Round_Robin_Arbitration",
+          "features.Request_Masking",
+          "features.Enable_Disable"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr_core__fsm.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__fsm.md",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "packet_id": "module__arbiter_rr_core__fsm",
+      "summary": {
+        "categories": {
+          "fsm.state": 3,
+          "fsm.transition": 4
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 3,
+          "key": "fsm",
+          "module_task_count": 64,
+          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "fsm",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 7,
+        "source_refs": [
+          "fsm.arb_fsm.states.state_0",
+          "fsm.arb_fsm.states.state_1",
+          "fsm.arb_fsm.states.state_2",
+          "fsm.arb_fsm.transitions.transition_0",
+          "fsm.arb_fsm.transitions.transition_1",
+          "fsm.arb_fsm.transitions.transition_2",
+          "fsm.arb_fsm.transitions.transition_3"
+        ],
+        "status_counts": {
+          "pass": 7
+        },
+        "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr_core__function_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__function_model.md",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "packet_id": "module__arbiter_rr_core__function_model",
+      "summary": {
+        "categories": {
+          "function_model.input": 5,
+          "function_model.invariant": 6,
+          "function_model.output": 8,
+          "function_model.output_rule": 6,
+          "function_model.precondition": 3,
+          "function_model.side_effect": 3,
+          "function_model.state_update": 2,
+          "function_model.state_variable": 3,
+          "function_model.transaction": 2
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 1,
+          "key": "function_model",
+          "module_task_count": 64,
+          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 38,
+        "source_refs": [
+          "function_model.state_variables.last_winner",
+          "function_model.state_variables.arb_enabled",
+          "function_model.state_variables.req_mask",
+          "function_model.transactions.FM1",
+          "function_model.transactions.FM1.preconditions.precondition_0",
+          "function_model.transactions.FM1.preconditions.precondition_1",
+          "function_model.transactions.FM1.inputs.input_0",
+          "function_model.transactions.FM1.inputs.input_1",
+          "function_model.transactions.FM1.inputs.input_2",
+          "function_model.transactions.FM1.outputs.output_0",
+          "function_model.transactions.FM1.outputs.output_1",
+          "function_model.transactions.FM1.outputs.output_2",
+          "function_model.transactions.FM1.outputs.output_3",
+          "function_model.transactions.FM1.output_rules.grant",
+          "function_model.transactions.FM1.output_rules.grant_valid",
+          "function_model.transactions.FM1.output_rules.grant_index",
+          "function_model.transactions.FM1.state_updates.last_winner",
+          "function_model.transactions.FM1.side_effects.side_effect_0",
+          "function_model.transactions.FM1.side_effects.side_effect_1",
+          "function_model.transactions.FM2",
+          "function_model.transactions.FM2.preconditions.precondition_0",
+          "function_model.transactions.FM2.inputs.input_0",
+          "function_model.transactions.FM2.inputs.input_1",
+          "function_model.transactions.FM2.outputs.output_0"
+        ],
+        "status_counts": {
+          "pass": 38
+        },
+        "task_count": 38
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr_core__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__workflow_todo.md",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "packet_id": "module__arbiter_rr_core__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 6,
+          "key": "workflow_todo",
+          "module_task_count": 64,
+          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[0]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr__equivalence.md",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "packet_id": "module__arbiter_rr__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 8,
+          "key": "equivalence",
+          "module_task_count": 54,
+          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.arbiter_rr.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr__error_handling.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr__error_handling.md",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "packet_id": "module__arbiter_rr__error_handling",
+      "summary": {
+        "categories": {
+          "error_handling.recovery": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 4,
+          "key": "error_handling",
+          "module_task_count": 54,
+          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "error_handling",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "error_handling.recovery.recovery_0"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr__integration.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr__integration.md",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "packet_id": "module__arbiter_rr__integration",
+      "summary": {
+        "categories": {
+          "integration.connections": 24,
+          "integration.dependencies": 3
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 3,
+          "key": "integration",
+          "module_task_count": 54,
+          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "integration",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 27,
+        "source_refs": [
+          "integration.dependencies.external_modules",
+          "integration.dependencies.external_clocks",
+          "integration.dependencies.external_resets",
+          "integration.connections.PCLK",
+          "integration.connections.PRESETn",
+          "integration.connections.PADDR",
+          "integration.connections.PSEL",
+          "integration.connections.PENABLE",
+          "integration.connections.PWRITE",
+          "integration.connections.PWDATA",
+          "integration.connections.PRDATA",
+          "integration.connections.PREADY",
+          "integration.connections.PSLVERR",
+          "integration.connections.arb_enable",
+          "integration.connections.req_mask",
+          "integration.connections.PCLK",
+          "integration.connections.PRESETn",
+          "integration.connections.req_i",
+          "integration.connections.req_mask",
+          "integration.connections.arb_enable",
+          "integration.connections.gnt_o",
+          "integration.connections.gnt_valid_o",
+          "integration.connections.gnt_idx_o",
+          "integration.connections.status_winner"
+        ],
+        "status_counts": {
+          "pass": 27
+        },
+        "task_count": 27
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr__parameters.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr__parameters.md",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "packet_id": "module__arbiter_rr__parameters",
+      "summary": {
+        "categories": {
+          "parameters.item": 4
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 2,
+          "key": "parameters",
+          "module_task_count": 54,
+          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "parameters",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 4,
+        "source_refs": [
+          "parameters.NUM_REQ",
+          "parameters.IDX_WIDTH",
+          "parameters.APB_ADDR_WIDTH",
+          "parameters.APB_DATA_WIDTH"
+        ],
+        "status_counts": {
+          "pass": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr__rtl_flow.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr__rtl_flow.md",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "packet_id": "module__arbiter_rr__rtl_flow",
+      "summary": {
+        "categories": {
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 1,
+          "key": "rtl_flow",
+          "module_task_count": 54,
+          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "rtl_flow",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "top_module",
+          "io_list"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr__security.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr__security.md",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "packet_id": "module__arbiter_rr__security",
+      "summary": {
+        "categories": {
+          "security.assets": 2
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 5,
+          "key": "security",
+          "module_task_count": 54,
+          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "security",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "security.assets.register_map",
+          "security.assets.arbitration_decision"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr__synthesis.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr__synthesis.md",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "packet_id": "module__arbiter_rr__synthesis",
+      "summary": {
+        "categories": {
+          "synthesis.constraints": 3,
+          "synthesis.ppa_targets": 3
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 6,
+          "key": "synthesis",
+          "module_task_count": 54,
+          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "synthesis",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 6,
+        "source_refs": [
+          "synthesis.constraints.constraint_0",
+          "synthesis.constraints.constraint_1",
+          "synthesis.constraints.constraint_2",
+          "synthesis.ppa_targets.area_um2_max",
+          "synthesis.ppa_targets.power_mw_max",
+          "synthesis.ppa_targets.frequency_mhz_min"
+        ],
+        "status_counts": {
+          "pass": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr__test_requirements.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr__test_requirements.md",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "packet_id": "module__arbiter_rr__test_requirements",
+      "summary": {
+        "categories": {
+          "test_requirements.scenario": 10
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 7,
+          "key": "test_requirements",
+          "module_task_count": 54,
+          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "test_requirements",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 10,
+        "source_refs": [
+          "test_requirements.scenarios.SC1",
+          "test_requirements.scenarios.SC2",
+          "test_requirements.scenarios.SC3",
+          "test_requirements.scenarios.SC4",
+          "test_requirements.scenarios.SC5",
+          "test_requirements.scenarios.SC6",
+          "test_requirements.scenarios.SC7",
+          "test_requirements.scenarios.SC8",
+          "test_requirements.scenarios.SC9",
+          "test_requirements.scenarios.SC10"
+        ],
+        "status_counts": {
+          "pass": 10
+        },
+        "task_count": 10
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr__workflow_todo.md",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "packet_id": "module__arbiter_rr__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 9,
+          "key": "workflow_todo",
+          "module_task_count": 54,
+          "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[2]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "packet_id": "rtl_gate_evidence_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 10
+        },
+        "module_slice": {},
+        "open_required_count": 0,
+        "required_count": 10,
+        "source_refs": [
+          "quality_gates.rtl_gen.static_rtl_evidence",
+          "quality_gates.rtl_gen.owner_logic_structure_evidence",
+          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+          "quality_gates.rtl_gen.top_io_contract_evidence",
+          "quality_gates.rtl_gen.top_output_drive_evidence",
+          "quality_gates.rtl_gen.top_input_consumption_evidence",
+          "quality_gates.rtl_gen.manifest_hierarchy_integration",
+          "quality_gates.rtl_gen.manifest_port_connection_evidence",
+          "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+          "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
+        ],
+        "status_counts": {
+          "pass": 10
+        },
+        "task_count": 10
       }
     }
   ],
@@ -1951,20 +1720,13 @@
     "deferred_human_qa_allowed": false,
     "gate_packets": 3,
     "human_locked_packets": 1,
-    "human_locked_tasks": 4,
-    "llm_actionable_packets": 18,
-    "llm_actionable_tasks": 153,
+    "human_locked_tasks": 3,
+    "llm_actionable_packets": 1,
+    "llm_actionable_tasks": 1,
     "max_packet_required_tasks": 38,
     "module_packets": 16,
     "next_llm_packets": [
-      "module__arbiter_rr_regs",
-      "module__arbiter_rr_core__function_model",
-      "module__arbiter_rr_core__cycle_model",
-      "module__arbiter_rr_core__fsm",
-      "module__arbiter_rr_core__features",
-      "module__arbiter_rr_core__equivalence",
-      "module__arbiter_rr_core__workflow_todo",
-      "module__arbiter_rr__integration"
+      "unowned_tasks"
     ],
     "packet_task_limit": 48,
     "packets": 20,
@@ -1977,7 +1739,7 @@
     "sliced_module_packets": 15,
     "target_scale_present": true,
     "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 7,
+    "tool_evidence_tasks": 5,
     "total_tasks": 169,
     "unowned_packets": 1
   },

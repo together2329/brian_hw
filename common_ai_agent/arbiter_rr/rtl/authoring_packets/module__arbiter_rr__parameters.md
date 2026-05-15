@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 4
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 2/9 section=parameters task_limit=48
@@ -51,14 +51,14 @@
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.NUM_REQ
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.NUM_REQ.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via parameters.
 SSOT item context: name=NUM_REQ.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -71,14 +71,14 @@ SSOT item context: name=NUM_REQ.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.IDX_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.IDX_WIDTH.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via parameters.
 SSOT item context: name=IDX_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -91,14 +91,14 @@ SSOT item context: name=IDX_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.APB_ADDR_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.APB_ADDR_WIDTH.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via parameters.
 SSOT item context: name=APB_ADDR_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -111,14 +111,14 @@ SSOT item context: name=APB_ADDR_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.APB_DATA_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.APB_DATA_WIDTH.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via parameters.
 SSOT item context: name=APB_DATA_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects

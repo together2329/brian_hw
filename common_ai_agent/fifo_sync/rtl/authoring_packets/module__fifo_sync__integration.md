@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 21
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 2/9 section=integration task_limit=48
@@ -50,14 +50,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_modules
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_modules.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: name=external_modules.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -70,14 +70,14 @@ SSOT item context: name=external_modules.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_clocks
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_clocks.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: name=external_clocks; value=["PCLK"].
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -90,14 +90,14 @@ SSOT item context: name=external_clocks; value=["PCLK"].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_resets
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_resets.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: name=external_resets; value=["PRESETn"].
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -110,14 +110,14 @@ SSOT item context: name=external_resets; value=["PRESETn"].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PCLK
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PCLK.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=clk_i; signal=PCLK.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -131,14 +131,14 @@ SSOT item context: port=clk_i; signal=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PRESETn
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PRESETn.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=rst_ni; signal=PRESETn.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -152,14 +152,14 @@ SSOT item context: port=rst_ni; signal=PRESETn.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PCLK
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PCLK.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=clk_i; signal=PCLK.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -173,14 +173,14 @@ SSOT item context: port=clk_i; signal=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.push_accepted
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.push_accepted.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=wr_en_i; signal=push_accepted.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -194,14 +194,14 @@ SSOT item context: port=wr_en_i; signal=push_accepted.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.wr_ptr
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.wr_ptr.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=wr_addr_i; signal=wr_ptr.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -215,14 +215,14 @@ SSOT item context: port=wr_addr_i; signal=wr_ptr.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.wr_data_i
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.wr_data_i.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=wr_data_i; signal=wr_data_i.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -236,14 +236,14 @@ SSOT item context: port=wr_data_i; signal=wr_data_i.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.rd_ptr
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.rd_ptr.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=rd_addr_i; signal=rd_ptr.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -257,14 +257,14 @@ SSOT item context: port=rd_addr_i; signal=rd_ptr.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.mem_rd_data
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.mem_rd_data.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=rd_data_o; signal=mem_rd_data.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -278,14 +278,14 @@ SSOT item context: port=rd_data_o; signal=mem_rd_data.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.count
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.count.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=count_i; signal=count.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -299,14 +299,14 @@ SSOT item context: port=count_i; signal=count.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.full_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.full_o.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=full_o; signal=full_o.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -320,14 +320,14 @@ SSOT item context: port=full_o; signal=full_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.empty_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.empty_o.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=empty_o; signal=empty_o.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -341,14 +341,14 @@ SSOT item context: port=empty_o; signal=empty_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.almost_full_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.almost_full_o.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=almost_full_o; signal=almost_full_o.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -362,14 +362,14 @@ SSOT item context: port=almost_full_o; signal=almost_full_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.almost_empty_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.almost_empty_o.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=almost_empty_o; signal=almost_empty_o.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -383,14 +383,14 @@ SSOT item context: port=almost_empty_o; signal=almost_empty_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.mem_rd_data
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.mem_rd_data.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=din_i; signal=mem_rd_data.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -404,14 +404,14 @@ SSOT item context: port=din_i; signal=mem_rd_data.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.pop_accepted
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pop_accepted.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=load_i; signal=pop_accepted.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -425,14 +425,14 @@ SSOT item context: port=load_i; signal=pop_accepted.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.rd_data_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.rd_data_o.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=dout_o; signal=rd_data_o.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -446,14 +446,14 @@ SSOT item context: port=dout_o; signal=rd_data_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PCLK
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PCLK.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=clk_i; signal=PCLK.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -467,14 +467,14 @@ SSOT item context: port=clk_i; signal=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PRESETn
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PRESETn.
 Owner: fifo_sync in rtl/fifo_sync.sv via integration.
 SSOT item context: port=rst_ni; signal=PRESETn.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

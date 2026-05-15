@@ -400,8 +400,17 @@
         "dataflow.sequence.sequence_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "gnt",
+          "gnt_idx_o",
+          "gnt_o",
+          "gnt_valid_o",
+          "idx",
+          "req",
+          "req_i",
+          "valid"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
@@ -419,7 +428,7 @@
           "valid"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 4,

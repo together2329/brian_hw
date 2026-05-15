@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, dataflow.read_path, dataflow.write_path, memory, memory.instances
 - SSOT connection contracts:
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[1]
 - Detail: Behavioral reg array of DEPTH entries x DATA_WIDTH bits. Write port: mem[wr_ptr] <= wr_data_i on push acceptance. Read port: combinational rd_data_o = mem[rd_ptr] (or routed through output register).
 SSOT ref: workflow_todos.rtl-gen[1].
 Owner: fifo_sync_mem in rtl/fifo_sync_mem.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_FIFO_MEM.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_mem.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Memory array declared as reg [DATA_WIDTH-1:0] mem [0:DEPTH-1]
   - Write occurs when push_accepted
@@ -65,14 +65,14 @@ SSOT item context: id=RTL_TODO_FIFO_MEM.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: memory.instances
 - Source ref: memory.instances.fifo_ram
 - Detail: This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: memory.instances.fifo_ram.
 Owner: fifo_sync_mem in rtl/fifo_sync_mem.sv via memory.instances.
 SSOT item context: name=fifo_ram; width=DATA_WIDTH; depth=DEPTH; latency=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_mem.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -88,13 +88,13 @@ SSOT item context: name=fifo_ram; width=DATA_WIDTH; depth=DEPTH; latency=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.fifo_sync_mem.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.fifo_sync_mem.module_equivalence.
 Owner: fifo_sync_mem in rtl/fifo_sync_mem.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_mem.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

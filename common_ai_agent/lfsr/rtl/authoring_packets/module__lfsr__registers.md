@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 14
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - Module slice: 8/13 section=registers task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.CTRL
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CTRL.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -65,14 +65,14 @@ SSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTRL.fields.enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.enable.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=enable; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -91,14 +91,14 @@ SSOT item context: name=enable; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTRL.fields.auto_reload
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.auto_reload.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=auto_reload; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -117,14 +117,14 @@ SSOT item context: name=auto_reload; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTRL.fields.reserved_31_2
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.reserved_31_2.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=reserved_31_2; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -143,14 +143,14 @@ SSOT item context: name=reserved_31_2; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.POLY
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.POLY.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=POLY; width=32; reset=DEFAULT_POLY; access=rw; offset=4.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -167,14 +167,14 @@ SSOT item context: name=POLY; width=32; reset=DEFAULT_POLY; access=rw; offset=4.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.POLY.fields.poly
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.POLY.fields.poly.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=poly; reset=DEFAULT_POLY; access=rw.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -193,14 +193,14 @@ SSOT item context: name=poly; reset=DEFAULT_POLY; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.SEED
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.SEED.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=SEED; width=32; reset=DEFAULT_SEED; access=rw; offset=8.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -217,14 +217,14 @@ SSOT item context: name=SEED; width=32; reset=DEFAULT_SEED; access=rw; offset=8.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.SEED.fields.seed
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.SEED.fields.seed.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=seed; reset=DEFAULT_SEED; access=rw.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -243,14 +243,14 @@ SSOT item context: name=seed; reset=DEFAULT_SEED; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.STATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.STATUS.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=12.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -267,14 +267,14 @@ SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=12.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.running
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.running.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=running; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -293,14 +293,14 @@ SSOT item context: name=running; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.lockup
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.lockup.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=lockup; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -319,14 +319,14 @@ SSOT item context: name=lockup; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.reserved_31_2
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.reserved_31_2.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=reserved_31_2; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -345,14 +345,14 @@ SSOT item context: name=reserved_31_2; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.PRBS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.PRBS.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=PRBS; width=32; reset=DEFAULT_SEED; access=ro; offset=16.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -369,14 +369,14 @@ SSOT item context: name=PRBS; width=32; reset=DEFAULT_SEED; access=ro; offset=16
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.PRBS.fields.prbs
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.PRBS.fields.prbs.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=prbs; reset=DEFAULT_SEED; access=ro.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT

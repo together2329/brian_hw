@@ -21,9 +21,6 @@ module parity_gen #(
     logic        check_enable;
     logic        expected_parity;
     logic        parity_mismatch_comb;
-    logic [31:0] control_reg;
-    logic [31:0] status_reg;
-
     // Register block owns APB-lite CONTROL/STATUS storage and reserved-address errors.
     parity_gen_regs #(
         .ADDR_WIDTH(ADDR_WIDTH)
@@ -41,9 +38,7 @@ module parity_gen #(
         .PSLVERR(PSLVERR),
         .enable(enable),
         .check_enable(check_enable),
-        .expected_parity(expected_parity),
-        .control_reg(control_reg),
-        .status_reg(status_reg)
+        .expected_parity(expected_parity)
     );
 
     // Core owns the SSOT parity datapath and 1-cycle registered output timing.

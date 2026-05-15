@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "type": "rtl_compile",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "iverilog",
+  "command": "iverilog -g2012 -Irtl -f list/fifo_sync.f -s fifo_sync -o /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/fifo_sync_rtl_check.vvp",
+  "cwd": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/fifo_sync",
+  "top": "fifo_sync",
+  "filelist": "list/fifo_sync.f",
+  "rtl_files": [
+    "rtl/fifo_sync_mem.sv",
+    "rtl/fifo_sync_ptrs.sv",
+    "rtl/fifo_sync_flags.sv",
+    "rtl/fifo_sync_output_reg.sv",
+    "rtl/fifo_sync_regs.sv",
+    "rtl/fifo_sync.sv"
+  ],
+  "timestamp": "2026-05-15T02:08:33Z",
+  "returncode": 0,
+  "errors": 0,
+  "diagnostics": 0,
+  "style_violations": 0,
+  "style_violation_details": [],
+  "passed": true,
+  "policy": "returncode==0, no error/fatal/warning/sorry diagnostics, no procedural parameterized part-select style violations, and no generated-RTL policy violations: .sv filenames with SystemVerilog logic-port syntax, rtl/<ip>_param.vh for shared parameters, no package/import/interface/modport/function/task/for/while, and no typedef/enum/always_ff/always_comb"
+}

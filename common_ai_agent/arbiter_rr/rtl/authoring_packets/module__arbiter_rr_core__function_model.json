@@ -188,9 +188,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 38,
-    "open_required_count": 38,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -241,7 +241,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 38,
+    "open_required_count": 0,
     "required_count": 38,
     "source_refs": [
       "function_model.state_variables.last_winner",
@@ -270,7 +270,7 @@
       "function_model.transactions.FM2.outputs.output_0"
     ],
     "status_counts": {
-      "open": 38
+      "pass": 38
     },
     "task_count": 38
   },
@@ -313,9 +313,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -356,9 +356,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -399,9 +399,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -441,9 +441,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -475,8 +475,12 @@
         "function_model.transactions.FM1.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "arb",
+          "arb_enabled",
+          "enabled"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -486,7 +490,7 @@
           "enabled"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -496,9 +500,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -531,8 +535,12 @@
         "function_model.transactions.FM1.preconditions.precondition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "mask",
+          "req",
+          "req_i"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -543,7 +551,7 @@
           "req_mask"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -553,9 +561,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -586,8 +594,11 @@
         "function_model.transactions.FM1.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "req",
+          "req_i"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -596,7 +607,7 @@
           "req_i"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -606,9 +617,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -640,8 +651,11 @@
         "function_model.transactions.FM1.inputs.input_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "mask",
+          "req"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -651,7 +665,7 @@
           "req_mask"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -661,9 +675,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -695,8 +709,12 @@
         "function_model.transactions.FM1.inputs.input_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "last",
+          "last_winner",
+          "winner"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -706,7 +724,7 @@
           "winner"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -716,9 +734,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -752,8 +770,14 @@
         "function_model.transactions.FM1.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "gnt",
+          "gnt_o",
+          "index",
+          "selected",
+          "selected_index"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -765,7 +789,7 @@
           "selected_index"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -775,9 +799,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -809,8 +833,12 @@
         "function_model.transactions.FM1.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gnt",
+          "gnt_valid_o",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -820,7 +848,7 @@
           "valid"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -830,9 +858,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -867,8 +895,15 @@
         "function_model.transactions.FM1.outputs.output_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "gnt",
+          "gnt_idx_o",
+          "idx",
+          "index",
+          "selected",
+          "selected_index"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -881,7 +916,7 @@
           "selected_index"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -891,9 +926,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -928,8 +963,15 @@
         "function_model.transactions.FM1.outputs.output_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "index",
+          "last",
+          "last_winner",
+          "selected",
+          "selected_index",
+          "winner"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -942,7 +984,7 @@
           "winner"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -952,9 +994,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -998,8 +1040,14 @@
         "function_model.transactions.FM1.output_rules.grant"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "gnt",
+          "gnt_o",
+          "index",
+          "selected",
+          "selected_index"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1014,7 +1062,7 @@
           "selected_index"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1024,9 +1072,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1072,8 +1120,18 @@
         "function_model.transactions.FM1.output_rules.grant_valid"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 9,
+        "matched_terms": [
+          "arb",
+          "arb_enabled",
+          "enabled",
+          "gnt",
+          "gnt_valid_o",
+          "mask",
+          "req",
+          "req_i",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1090,7 +1148,7 @@
           "valid"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1100,9 +1158,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1150,8 +1208,21 @@
         "function_model.transactions.FM1.output_rules.grant_index"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 12,
+        "matched_terms": [
+          "NUM",
+          "NUM_REQ",
+          "REQ",
+          "gnt",
+          "gnt_idx_o",
+          "idx",
+          "index",
+          "last",
+          "last_winner",
+          "selected",
+          "selected_index",
+          "winner"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1170,7 +1241,7 @@
           "winner"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1180,9 +1251,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1219,8 +1290,12 @@
         "function_model.transactions.FM1.state_updates.last_winner"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "index",
+          "selected",
+          "selected_index"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1230,7 +1305,7 @@
           "selected_index"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1240,9 +1315,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1274,8 +1349,12 @@
         "function_model.transactions.FM1.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "last",
+          "last_winner",
+          "winner"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1285,7 +1364,7 @@
           "winner"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1295,9 +1374,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1336,9 +1415,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1378,9 +1457,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1416,8 +1495,15 @@
         "function_model.transactions.FM2.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "arb",
+          "arb_enabled",
+          "enabled",
+          "mask",
+          "req",
+          "req_i"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1431,7 +1517,7 @@
           "req_mask"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1441,9 +1527,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1474,8 +1560,11 @@
         "function_model.transactions.FM2.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "req",
+          "req_i"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1484,7 +1573,7 @@
           "req_i"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1494,9 +1583,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1528,8 +1617,11 @@
         "function_model.transactions.FM2.inputs.input_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "mask",
+          "req"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1539,7 +1631,7 @@
           "req_mask"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1549,9 +1641,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1582,8 +1674,11 @@
         "function_model.transactions.FM2.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "gnt",
+          "gnt_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1592,7 +1687,7 @@
           "gnt_o"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1602,9 +1697,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1636,8 +1731,12 @@
         "function_model.transactions.FM2.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gnt",
+          "gnt_valid_o",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1647,7 +1746,7 @@
           "valid"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1657,9 +1756,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1691,8 +1790,12 @@
         "function_model.transactions.FM2.outputs.output_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gnt",
+          "gnt_idx_o",
+          "idx"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1702,7 +1805,7 @@
           "idx"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1712,9 +1815,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1746,8 +1849,12 @@
         "function_model.transactions.FM2.outputs.output_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "last",
+          "last_winner",
+          "winner"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1757,7 +1864,7 @@
           "winner"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1767,9 +1874,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1807,8 +1914,11 @@
         "function_model.transactions.FM2.output_rules.grant"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "gnt",
+          "gnt_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1817,7 +1927,7 @@
           "gnt_o"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1827,9 +1937,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1868,8 +1978,12 @@
         "function_model.transactions.FM2.output_rules.grant_valid"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gnt",
+          "gnt_valid_o",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1879,7 +1993,7 @@
           "valid"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1889,9 +2003,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1930,8 +2044,12 @@
         "function_model.transactions.FM2.output_rules.grant_index"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gnt",
+          "gnt_idx_o",
+          "idx"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1941,7 +2059,7 @@
           "idx"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1951,9 +2069,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1990,8 +2108,12 @@
         "function_model.transactions.FM2.state_updates.last_winner"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "last",
+          "last_winner",
+          "winner"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2001,7 +2123,7 @@
           "winner"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2011,9 +2133,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2045,8 +2167,12 @@
         "function_model.transactions.FM2.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "last",
+          "last_winner",
+          "winner"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2056,7 +2182,7 @@
           "winner"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2066,9 +2192,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2099,8 +2225,11 @@
         "function_model.invariants.invariant_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "gnt",
+          "gnt_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2109,7 +2238,7 @@
           "gnt_o"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2119,9 +2248,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2154,8 +2283,13 @@
         "function_model.invariants.invariant_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "gnt",
+          "gnt_o",
+          "gnt_valid_o",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2166,7 +2300,7 @@
           "valid"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2176,9 +2310,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2213,8 +2347,15 @@
         "function_model.invariants.invariant_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "gnt",
+          "gnt_idx_o",
+          "gnt_o",
+          "gnt_valid_o",
+          "idx",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2227,7 +2368,7 @@
           "valid"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2237,9 +2378,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2270,8 +2411,11 @@
         "function_model.invariants.invariant_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "req",
+          "req_i"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2280,7 +2424,7 @@
           "req_i"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2290,9 +2434,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2327,8 +2471,15 @@
         "function_model.invariants.invariant_4"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "arb",
+          "arb_enabled",
+          "enabled",
+          "last",
+          "last_winner",
+          "winner"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2341,7 +2492,7 @@
           "winner"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2351,9 +2502,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2392,9 +2543,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],

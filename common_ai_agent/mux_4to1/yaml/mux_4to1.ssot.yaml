@@ -1,0 +1,541 @@
+top_module:
+  name: "mux_4to1"
+  file: "rtl/mux_4to1.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "Parameterized combinational 4-to-1 data multiplexer with four data inputs, a two-bit select, and one selected output."
+  reference_spec: "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 500
+    area_um2: null
+    power_mw: null
+
+sub_modules:
+  - name: "mux_4to1_core"
+    file: "rtl/mux_4to1_core.sv"
+    ownership: "manifest"
+    ssot_gen: false
+    implements: ["function_model.transactions.FM_SELECT", "cycle_model.latency.combinational_select", "dataflow.select_path", "features.primary_select"]
+    source_sections: ["function_model", "cycle_model", "dataflow", "features"]
+    function_model_refs: ["function_model.transactions.FM_SELECT", "function_model.invariants"]
+    cycle_model_refs: ["cycle_model.latency.combinational_select", "cycle_model.pipeline"]
+    dataflow_refs: ["dataflow.select_path"]
+    feature_refs: ["features.primary_select"]
+    description: "Pure combinational select datapath for four DATA_WIDTH inputs."
+
+decomposition:
+  units:
+    - id: "select_decode"
+      kind: "combinational_control"
+      source_refs: ["function_model.transactions.FM_SELECT", "io_list.interfaces.select"]
+      rtl_candidates: ["mux_4to1_core"]
+      verification_impact: ["test_requirements.scenarios.SC_SEL_ALL"]
+    - id: "data_route"
+      kind: "combinational_datapath"
+      source_refs: ["dataflow.select_path", "function_model.transactions.FM_SELECT"]
+      rtl_candidates: ["mux_4to1_core"]
+      verification_impact: ["test_requirements.coverage_goals.function"]
+
+parameters:
+  - name: "DATA_WIDTH"
+    default: 8
+    type: int
+    min: 1
+    description: "Width in bits of each data input and output."
+    drives: ["rtl/mux_4to1.sv", "rtl/mux_4to1_core.sv", "tb/cocotb"]
+  - name: "NUM_INPUTS"
+    default: 4
+    type: int
+    locked: true
+    description: "Fixed number of mux data inputs."
+    drives: ["rtl/mux_4to1.sv", "test_requirements"]
+  - name: "SEL_WIDTH"
+    default: 2
+    type: int
+    locked: true
+    description: "Select width required to encode four inputs."
+    drives: ["rtl/mux_4to1.sv", "function_model"]
+
+io_list:
+  clock_domains:
+    - name: "comb_eval"
+      frequency_mhz: 500
+      description: "Virtual integration timing reference only; no clock port exists in the mux."
+      ports: []
+  resets:
+    - name: "none"
+      polarity: "none"
+      sync_async: "not_applicable"
+      description: "No reset port; stateless combinational logic."
+      ports: []
+  interfaces:
+    - name: "data_inputs"
+      type: "custom_comb"
+      role: "sink"
+      clock_domain: "comb_eval"
+      reset_domain: "none"
+      description: "Four independent combinational data input buses."
+      protocol:
+        timing: "Inputs are sampled combinationally; no clock, reset, valid, or ready handshake is present."
+        stability: "If input or sel changes, y may change after combinational propagation delay."
+      ports:
+        - { name: "in0", width: "DATA_WIDTH", direction: "input", description: "Data selected when sel == 2'b00" }
+        - { name: "in1", width: "DATA_WIDTH", direction: "input", description: "Data selected when sel == 2'b01" }
+        - { name: "in2", width: "DATA_WIDTH", direction: "input", description: "Data selected when sel == 2'b10" }
+        - { name: "in3", width: "DATA_WIDTH", direction: "input", description: "Data selected when sel == 2'b11" }
+    - name: "select"
+      type: "custom_comb"
+      role: "control"
+      description: "Two-bit selector."
+      protocol:
+        legal_values: "All four 2-bit values are legal and select the matching input index."
+        unknown_policy: "X/Z simulation behavior is RTL-language dependent and not an architectural state; tests drive only 0,1 values."
+      ports:
+        - { name: "sel", width: 2, direction: "input", description: "Select code: 0=in0, 1=in1, 2=in2, 3=in3" }
+    - name: "data_output"
+      type: "custom_comb"
+      role: "source"
+      description: "Selected combinational output bus."
+      protocol:
+        timing: "Output reflects selected input after one combinational propagation delay; no registered latency."
+      ports:
+        - { name: "y", width: "DATA_WIDTH", direction: "output", description: "Selected data output" }
+
+features:
+  - id: "primary_select"
+    name: "4-to-1 combinational selection"
+    trigger: "Any change to sel or any data input."
+    datapath: "Route in0/in1/in2/in3 to y according to sel without storage."
+    control: "Two-bit select decode only; no sequential FSM."
+    output: "y equals the selected input bus."
+
+features_by_name:
+  primary_select: "Alias for features[0] used by sub_module ownership refs."
+
+dataflow:
+  select_path:
+    source: "in0, in1, in2, in3"
+    selector: "sel[1:0]"
+    destination: "y"
+    sequence: "Decode sel combinationally, then drive y from exactly one selected input."
+  truth_table:
+    - { sel: 0, output: "in0" }
+    - { sel: 1, output: "in1" }
+    - { sel: 2, output: "in2" }
+    - { sel: 3, output: "in3" }
+  side_effects: []
+
+function_model:
+  purpose: "Executable behavioral contract for a stateless 4-to-1 mux independent of cycle timing."
+  state_variables:
+    - { name: "comb_context", source: "io_list.interfaces", reset: "not_applicable", description: "Stateless combinational evaluation context; no storage is implemented." }
+  transactions:
+    - id: "FM_SELECT"
+      name: "select_one_of_four_inputs"
+      preconditions:
+        - "sel is a 2-bit value in {0,1,2,3}."
+        - "All data inputs are DATA_WIDTH bits."
+      inputs:
+        - "in0, in1, in2, in3, sel"
+      outputs:
+        - "y == in0 when sel == 0"
+        - "y == in1 when sel == 1"
+        - "y == in2 when sel == 2"
+        - "y == in3 when sel == 3"
+      output_rules:
+        - name: "mux_y_rule"
+          port: "y"
+          width: "DATA_WIDTH"
+          expr: "(sel == 0) ? in0 : (sel == 1) ? in1 : (sel == 2) ? in2 : in3"
+          description: "Executable combinational output rule for all legal 2-bit select values."
+      side_effects:
+        - "No architectural state changes; y is continuously driven as a pure function of inputs."
+      error_cases:
+        - { condition: "none_for_legal_2bit_sel", result: "No architectural error is raised; all 2-bit select values are legal." }
+  invariants:
+    - "The IP has no architectural state."
+    - "For stable inputs and stable sel, y remains stable."
+    - "Changing an unselected input alone must not change y after combinational settling."
+    - "No output value other than the selected input is driven for legal 2-state sel values."
+  reference_model_hint: "tb-gen can implement y = [in0, in1, in2, in3][sel] for 2-state select values."
+
+cycle_model:
+  purpose: "Cycle/handshake contract for a pure combinational mux; no clocked state and no ready/valid protocol."
+  executable: "python"
+  clock: "comb_eval"
+  reset:
+    assertion: "No reset input; stateless combinational logic has no resettable state."
+    deassertion: "Not applicable."
+  latency:
+    combinational_select: { min_cycles: 0, max_cycles: 0, description: "Output changes in the same abstract cycle after combinational settling." }
+  handshake_rules:
+    - { signal: "in0/in1/in2/in3/sel/y", rule: "No valid/ready handshake; combinational output y continuously reflects selected input after settling." }
+  pipeline:
+    - { stage: "COMB_SELECT", cycle: 0, action: "Continuously decode sel and drive y from selected input." }
+  ordering:
+    - "Selection is purely combinational; there is no transaction ordering or storage."
+  backpressure: []
+  performance:
+    frequency_mhz: 500
+    throughput: { sustained_selections_per_cycle: 1, condition: "Downstream samples stable combinational output once per cycle if integrated into a synchronous system." }
+    depth: { logic_levels_nominal: 2, pipeline_stages: 0, queue_depth: 0, description: "2-bit decode plus 4:1 data select." }
+  observability:
+    - "Each legal sel value maps to one function coverage bin and one cycle combinational stage observation."
+
+clock_reset_domains:
+  domains: []
+  reset_scheme:
+    signal: null
+    polarity: null
+    type: "none_stateless_combinational"
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No internal clocks; CDC responsibility belongs to the integrating synchronous boundary if inputs cross domains."
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No reset input and no state; no reset-domain crossing exists."
+
+registers:
+  config:
+    register_width: 0
+    addr_width: 0
+    byte_addressable: false
+  register_list: []
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "not_applicable_no_registers"
+    rtl_requirement: "No register decode is implemented for this leaf IP."
+
+memory:
+  instances: []
+  note: "No internal storage, FIFO, SRAM, or latch is required."
+
+interrupts:
+  sources: []
+  output:
+    signal: null
+    polarity: null
+    type: "none"
+
+fsm:
+  control:
+    states: []
+    transitions: []
+    note: "No FSM; combinational select only."
+
+rtl_contract:
+  transaction: "FM_SELECT"
+  sample_condition: "Combinational evaluation for legal two-state sel values."
+  input_map:
+    in0: "io_list.interfaces.data_inputs.ports.in0"
+    in1: "io_list.interfaces.data_inputs.ports.in1"
+    in2: "io_list.interfaces.data_inputs.ports.in2"
+    in3: "io_list.interfaces.data_inputs.ports.in3"
+    sel: "io_list.interfaces.select.ports.sel"
+  output_map:
+    y: "io_list.interfaces.data_output.ports.y"
+  state_updates: []
+  implementation_rules:
+    - "RTL shall implement a complete combinational case or equivalent continuous assignment for sel values 0..3."
+    - "RTL shall not infer latches, flops, memories, reset behavior, or handshakes."
+    - "Default branch, if present, shall drive y to a deterministic value only for simulation X handling; legal two-state behavior remains defined by truth_table."
+
+timing:
+  target_clocks: []
+  latency_budget:
+    combinational_select_cycles: { min: 0, max: 0, measured_from: "stable input/sel", measured_to: "stable y" }
+  throughput:
+    sustained_selections_per_cycle: 1
+    conditions: "When sampled by an external clock after timing closure of the combinational path."
+  timing_exceptions: []
+  io_delays:
+    inputs: []
+    outputs: []
+  false_paths: []
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+
+power:
+  domains:
+    - { name: "PD_COMB", voltage: "nominal", clock_domains: [], isolation: "not_required_stateless" }
+  clock_gating:
+    required: false
+    rationale: "No clock is present."
+  reset_retention:
+    retention_required: false
+    reset_value_source: "not_applicable_stateless"
+  power_states:
+    - { name: "ON", entry: "inputs valid", exit: "integration power removed", guarantees: ["Combinational selection active"] }
+  upf_required: false
+
+security:
+  classification: "non_secure_combinational_datapath"
+  assets:
+    - { name: "selected_data", protection: "No internal security boundary; integrator controls data confidentiality." }
+  threat_model:
+    - { threat: "incorrect select routing", mitigation: "truth-table verification for all sel values and randomized data patterns" }
+  privilege_model: "No bus access or privilege model inside this IP."
+  safety_goals:
+    - "Legal select values route only the intended input to y."
+    - "No stale state can be retained across input changes."
+
+error_handling:
+  error_sources: []
+  propagation: []
+  recovery: []
+  note: "No architectural error states; illegal select values do not exist for a 2-bit sel port in two-state verification."
+
+debug_observability:
+  waveform_must_probe: ["in0", "in1", "in2", "in3", "sel", "y"]
+  status_outputs: []
+  trace_events:
+    - { name: "select_0", trigger: "sel == 0" }
+    - { name: "select_1", trigger: "sel == 1" }
+    - { name: "select_2", trigger: "sel == 2" }
+    - { name: "select_3", trigger: "sel == 3" }
+  debug_registers: []
+
+integration:
+  bus_attachment:
+    control: "none"
+    data: "custom combinational data/control ports"
+  connections:
+    - { module: "mux_4to1_core", port: "in0_i", signal: "in0" }
+    - { module: "mux_4to1_core", port: "in1_i", signal: "in1" }
+    - { module: "mux_4to1_core", port: "in2_i", signal: "in2" }
+    - { module: "mux_4to1_core", port: "in3_i", signal: "in3" }
+    - { module: "mux_4to1_core", port: "sel_i", signal: "sel" }
+    - { module: "mux_4to1_core", port: "y_o", signal: "y" }
+  address_map_requirements:
+    alignment_bytes: null
+    decode_owner: "not_applicable_no_bus"
+    illegal_access_response: "not_applicable_no_bus"
+  dependencies:
+    external_modules: []
+    external_clocks: []
+    external_resets: []
+  integration_notes:
+    - "Integrator must register y externally if a clocked boundary is required."
+    - "Input CDC synchronization, if any, is outside this stateless combinational leaf."
+
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "not_applicable_no_reset"
+    clocks: []
+    inputs: ["in0", "in1", "in2", "in3", "sel"]
+  observability:
+    required_internal_points: ["y"]
+  mbist_required: false
+  notes: "Combinational logic is controllable through primary inputs and observable through primary output."
+
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "mux_4to1"
+  technology:
+    pdk: "sky130"
+    standard_cell_library: "sky130_fd_sc_hd"
+    liberty_corner: "ss_100C_1v40"
+    liberty_env: "SKY130_LIB"
+    lef_env: "SKY130_LEF"
+    tech_lef_env: "SKY130_TLEF"
+    rcx_rules_env: "SKY130_RCX_RULES"
+  constraints:
+    - "No inferred latches or flops."
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL."
+    - "Output y must be driven for every legal sel value."
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 500
+  required_outputs: ["syn/out/mux_4to1.json or syn/out/mux_4to1.v", "syn/out/area.rpt", "syn/out/timing_summary.rpt"]
+
+pnr:
+  utilization_pct: 50
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.50
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  placement: { density_target: 0.50, max_displacement_um: null }
+  cts: { buf_list: [], functional_mode_case_analysis: [] }
+  routing: { signal_layers: { min: "met1", max: "met5" }, clock_layers: { min: "met3", max: "met5" }, drc_waivers: [] }
+  required_outputs: ["pnr/out/floorplan.def", "pnr/out/placed.def", "pnr/out/routed.def", "pnr/out/routed.v", "pnr/out/routed.spef", "pnr/out/pnr.report.md"]
+
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/mux_4to1_param.vh"
+  conventions:
+    - "Use ANSI input logic/output logic ports."
+    - "Use complete combinational assignment with no latch inference."
+    - "Blocking assignment in combinational always @(*) if procedural style is used."
+    - "Continuous assign expression is permitted for pure mux logic."
+    - "Parameterize DATA_WIDTH."
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / interface / modport / function / task / for / while."
+  lint_waivers:
+    - "None expected for baseline combinational mux."
+
+reuse_modules: []
+
+custom:
+  assumptions:
+    - id: "ASM_DATA_WIDTH_DEFAULT"
+      text: "DATA_WIDTH defaults to 8 bits because the user specified only mux_4to1 without a width."
+      safe_for_rtl: true
+    - id: "ASM_NO_HANDSHAKE"
+      text: "The mux is modeled as pure combinational logic with no valid/ready protocol."
+      safe_for_rtl: true
+  qa_status: "Defaults are safe and recorded; user may override DATA_WIDTH or add registered/handshake behavior in a later SSOT change request."
+
+dir_structure:
+  template_dirs: { rtl: "templates/rtl/", sim: "templates/sim/" }
+  output_dirs: { rtl: "rtl/", sim: "sim/", firmware: "firmware/", docs: "docs/" }
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+filelist:
+  headers: ["rtl/mux_4to1_param.vh"]
+  rtl: ["rtl/mux_4to1.sv", "rtl/mux_4to1_core.sv"]
+  sim: ["tb/cocotb/test_mux_4to1.py"]
+  firmware: []
+  docs: ["doc/mux_4to1_mas.md"]
+
+test_requirements:
+  scenarios:
+    - id: "SC_SEL_ALL"
+      name: "All select values"
+      stimulus: "Drive distinct values on in0..in3 and iterate sel through 0,1,2,3."
+      expected: "y equals the selected input for every sel value."
+      checker: "Scoreboard compares y against function_model FM_SELECT."
+      coverage: ["FCOV_SEL0", "FCOV_SEL1", "FCOV_SEL2", "FCOV_SEL3", "CCOV_COMB_SELECT"]
+    - id: "SC_RANDOM_DATA"
+      name: "Randomized data patterns"
+      stimulus: "Randomize DATA_WIDTH input values and sel."
+      expected: "y equals selected input for all sampled random transactions."
+      checker: "Reference model y = inputs[sel]."
+      coverage: ["FCOV_RANDOM_DATA"]
+    - id: "SC_UNSELECTED_STABILITY"
+      name: "Unselected input isolation"
+      stimulus: "Hold sel fixed and toggle unselected inputs."
+      expected: "y remains equal to the selected input."
+      checker: "Assertion that unselected input changes do not change y when selected input and sel are stable."
+      coverage: ["FCOV_UNSELECTED_ISOLATION"]
+  scoreboard_checks: 6
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for all legal select cases and data patterns."
+      bins:
+        - { id: "FCOV_SEL0", source_ref: "function_model.transactions.FM_SELECT.outputs[0]", class: "truth_table", description: "sel 0 selects in0" }
+        - { id: "FCOV_SEL1", source_ref: "function_model.transactions.FM_SELECT.outputs[1]", class: "truth_table", description: "sel 1 selects in1" }
+        - { id: "FCOV_SEL2", source_ref: "function_model.transactions.FM_SELECT.outputs[2]", class: "truth_table", description: "sel 2 selects in2" }
+        - { id: "FCOV_SEL3", source_ref: "function_model.transactions.FM_SELECT.outputs[3]", class: "truth_table", description: "sel 3 selects in3" }
+        - { id: "FCOV_UNSELECTED_ISOLATION", source_ref: "function_model.invariants[2]", class: "invariant", description: "Unselected input toggle isolation" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/latency coverage for the combinational stage and zero-cycle architectural latency."
+      bins:
+        - { id: "CCOV_COMB_SELECT", source_ref: "cycle_model.pipeline.COMB_SELECT", class: "pipeline_stage", description: "Combinational select stage observed" }
+        - { id: "CCOV_ZERO_LATENCY", source_ref: "cycle_model.latency.combinational_select", class: "latency", description: "Zero-cycle abstract latency checked" }
+    functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
+    line: ">= 95% instrumented line coverage or explicit waiver"
+    branch: ">= 95% branch/condition coverage or explicit waiver"
+    assertions: "All combinational equivalence assertions pass."
+
+quality_gates:
+  ssot:
+    pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
+    evidence: ["check_ssot_disk.sh PASS", "YAML parse PASS"]
+  rtl_gen:
+    profile: "production"
+    target_scale:
+      basis: "Small combinational mux; structural minima intentionally low for leaf primitive."
+      source_files_min: 2
+      modules_min: 2
+      procedural_blocks_min: 0
+      state_updates_min: 0
+      depth_score_min: 1
+      logic_modules_min: 1
+      behavior_owner_logic_modules_min: 1
+    target_scale_waiver: { approved: true, reason: "Primitive stateless mux has no sequential depth.", owner: "ssot-gen" }
+    pass: "RTL implements FM_SELECT, compiles, has no placeholders/latches/flops, and all SSOT-derived mux truth-table and coverage gates close."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_traceability.json", "rtl/rtl_compile.json", "lint/dut_lint.json", "sim/fl_rtl_compare.json", "cov/coverage.json"]
+  rtl:
+    pass: "RTL output y matches function_model for every legal sel and randomized data sample."
+    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+  coverage:
+    pass: "Declared function and cycle bins reach 100% or have approved waivers."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved waivers."
+    evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
+
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "RTL top module mux_4to1" }
+    - { yaml: "parameters.DATA_WIDTH", output: "rtl/mux_4to1_param.vh and RTL bus widths" }
+    - { yaml: "io_list.interfaces", output: "RTL port list and TB drivers/monitors" }
+    - { yaml: "dataflow.truth_table", output: "RTL mux case/assign logic and scoreboard expected value" }
+    - { yaml: "function_model.transactions.FM_SELECT", output: "RTL combinational behavior and test reference model" }
+    - { yaml: "cycle_model.latency.combinational_select", output: "Latency checks and STA constraints" }
+    - { yaml: "test_requirements.scenarios", output: "TB scenario implementation" }
+    - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
+
+workflow_todos:
+  fl-model-gen:
+    - id: "FL_TODO_MUX_MODEL"
+      content: "Implement stateless mux functional model"
+      detail: "Create executable model for FM_SELECT using DATA_WIDTH inputs and sel index."
+      criteria: ["Model returns in0/in1/in2/in3 for sel 0/1/2/3", "No state is stored"]
+      source_refs: ["function_model.transactions.FM_SELECT", "dataflow.truth_table"]
+      owner_module: "mux_4to1"
+      owner_file: "model/mux_4to1_model.py"
+      priority: "high"
+      required: true
+  rtl-gen:
+    - id: "RTL_TODO_MUX_TOP"
+      content: "Implement mux_4to1 top and core from SSOT"
+      detail: "Translate io_list, parameters, dataflow.truth_table, and FM_SELECT into synthesizable combinational SystemVerilog."
+      criteria: ["rtl/mux_4to1.sv exposes in0,in1,in2,in3,sel,y", "rtl/mux_4to1_core.sv owns FM_SELECT behavior", "No flops, latches, clocks, resets, placeholders, or unconnected outputs", "All sub_module ownership refs are traced"]
+      source_refs: ["io_list.interfaces", "parameters", "dataflow.truth_table", "function_model.transactions.FM_SELECT", "rtl_contract"]
+      owner_module: "mux_4to1_core"
+      owner_file: "rtl/mux_4to1_core.sv"
+      priority: "high"
+      required: true
+  tb-gen:
+    - id: "TB_TODO_MUX_SCENARIOS"
+      content: "Implement mux_4to1 verification scenarios"
+      detail: "Drive exhaustive sel cases, random data patterns, and unselected-input isolation checks from test_requirements."
+      criteria: ["All test_requirements.scenarios execute", "Function and cycle coverage bins are sampled", "Scoreboard compares y to inputs[sel]"]
+      source_refs: ["test_requirements", "function_model", "cycle_model"]
+      owner_module: "mux_4to1"
+      owner_file: "tb/cocotb/test_mux_4to1.py"
+      priority: "high"
+      required: true
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh mux_4to1", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model mux_4to1", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl mux_4to1", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb mux_4to1", description: "Downstream cocotb/pyuvm verification from validated SSOT" }
+    - { name: "handoff_coverage", command: "/coverage mux_4to1", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn mux_4to1 && /sta mux_4to1 && /pnr mux_4to1 && /sta-post mux_4to1", description: "Produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence" }

@@ -1,0 +1,33 @@
+===== pyslang =====
+command: pyslang rtl/pulse_gen_regs.sv rtl/pulse_gen_core.sv rtl/pulse_gen.sv
+returncode: 0
+errors: 0 warnings: 1
+pyslang files: 3
+errors=0 warnings=1
+warning: pulse_gen/rtl/pulse_gen.sv:82 port 'clk_i' has no connection
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/pulse_gen.f --top-module pulse_gen
+returncode: 1
+errors: 0 warnings: 3
+%Warning-PINMISSING: rtl/pulse_gen.sv:82:7: Instance has missing pin: 'clk_i'
+   82 |     ) u_core (
+      |       ^~~~~~
+                     rtl/pulse_gen_core.sv:6:37: ... Location of port declaration
+    6 |     input  logic                    clk_i,
+      |                                     ^~~~~
+                     ... For warning description see https://verilator.org/warn/PINMISSING?v=5.046
+                     ... Use "/* verilator lint_off PINMISSING */" and lint_on around source to disable this message.
+%Warning-UNUSEDPARAM: rtl/pulse_gen.sv:7:23: Parameter is not used: 'CLOCK_FREQ_MHZ'
+                                           : ... note: In instance 'pulse_gen'
+    7 |     parameter integer CLOCK_FREQ_MHZ = 50       
+      |                       ^~~~~~~~~~~~~~
+                      ... For warning description see https://verilator.org/warn/UNUSEDPARAM?v=5.046
+                      ... Use "/* verilator lint_off UNUSEDPARAM */" and lint_on around source to disable this message.
+%Warning-UNUSEDSIGNAL: rtl/pulse_gen_regs.sv:13:35: Bits of signal are not used: 'PWDATA'[31:16]
+                                                  : ... note: In instance 'pulse_gen.u_regs'
+   13 |     input  logic [31:0]           PWDATA,
+      |                                   ^~~~~~
+                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
+                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
+%Error: Exiting due to 3 warning(s)

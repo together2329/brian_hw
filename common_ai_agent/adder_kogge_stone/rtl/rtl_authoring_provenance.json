@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "type": "rtl_authoring_provenance",
+  "ip": "adder_kogge_stone",
+  "agent": "common_ai_agent",
+  "workflow": "rtl-gen",
+  "surface": "headless_common_engine",
+  "source": "adder_kogge_stone/yaml/adder_kogge_stone.ssot.yaml",
+  "todo_plan": "rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "70eae5aab933e738e3b09413fb2527b7a040ed39ab4a268d63dd7d8da8cde395",
+  "rtl_files": [
+    "rtl/adder_kogge_stone.sv",
+    "rtl/adder_kogge_stone_regs.sv",
+    "rtl/adder_kogge_stone_core.sv"
+  ],
+  "filelist": "list/adder_kogge_stone.f",
+  "generated_at": "2026-05-15T02:09:47Z"
+}

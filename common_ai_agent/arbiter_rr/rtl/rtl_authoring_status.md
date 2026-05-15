@@ -4,9 +4,9 @@
 
 - Top: arbiter_rr
 - Packets: 20
-- LLM-actionable tasks: 153
-- Human-locked tasks: 4
-- Tool-evidence tasks: 7
+- LLM-actionable tasks: 1
+- Human-locked tasks: 3
+- Tool-evidence tasks: 5
 - Deferred human QA allowed: False
 - PASS allowed: False
 - Target scale locked: True
@@ -15,22 +15,15 @@
 
 ## Next LLM Packets
 
-- module__arbiter_rr_regs: rtl/authoring_packets/module__arbiter_rr_regs.json (llm_open=26, human_locked=0)
-- module__arbiter_rr_core__function_model: rtl/authoring_packets/module__arbiter_rr_core__function_model.json (llm_open=38, human_locked=0)
-- module__arbiter_rr_core__cycle_model: rtl/authoring_packets/module__arbiter_rr_core__cycle_model.json (llm_open=14, human_locked=0)
-- module__arbiter_rr_core__fsm: rtl/authoring_packets/module__arbiter_rr_core__fsm.json (llm_open=7, human_locked=0)
-- module__arbiter_rr_core__features: rtl/authoring_packets/module__arbiter_rr_core__features.json (llm_open=3, human_locked=0)
-- module__arbiter_rr_core__equivalence: rtl/authoring_packets/module__arbiter_rr_core__equivalence.json (llm_open=1, human_locked=0)
-- module__arbiter_rr_core__workflow_todo: rtl/authoring_packets/module__arbiter_rr_core__workflow_todo.json (llm_open=1, human_locked=0)
-- module__arbiter_rr__integration: rtl/authoring_packets/module__arbiter_rr__integration.json (llm_open=27, human_locked=0)
+- unowned_tasks: rtl/authoring_packets/unowned_tasks.json (llm_open=1, human_locked=0)
 
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=7, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=5, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 
-- rtl_gate_human_closure: human_locked=4, json=rtl/authoring_packets/rtl_gate_human_closure.json
+- rtl_gate_human_closure: human_locked=3, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

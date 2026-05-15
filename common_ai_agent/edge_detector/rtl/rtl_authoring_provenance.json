@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "agent": "common_ai_agent",
+  "workflow": "rtl-gen",
+  "surface": "headless_common_engine",
+  "ip": "edge_detector",
+  "ssot": "yaml/edge_detector.ssot.yaml",
+  "todo_plan": "rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "pending_refresh_after_audit",
+  "rtl_files": [
+    "rtl/edge_detector.sv",
+    "rtl/edge_detector_regs.sv"
+  ],
+  "notes": "LLM-authored RTL generated directly from canonical SSOT and current rtl_todo_plan. Hash refreshed by audit pipeline if required."
+}

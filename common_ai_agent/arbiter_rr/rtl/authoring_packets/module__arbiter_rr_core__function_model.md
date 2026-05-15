@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 38
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, features, fsm, fsm.arb_fsm, function_model, function_model.transactions, function_model.transactions.FM1, function_model.transactions.FM2
 - Module slice: 1/6 section=function_model task_limit=48
@@ -48,14 +48,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.last_winner
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.last_winner.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.
 SSOT item context: name=last_winner; reset=0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -69,14 +69,14 @@ SSOT item context: name=last_winner; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.arb_enabled
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.arb_enabled.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.
 SSOT item context: name=arb_enabled; reset=1.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -90,14 +90,14 @@ SSOT item context: name=arb_enabled; reset=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.req_mask
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.req_mask.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.
 SSOT item context: name=req_mask; reset=all-ones.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -111,14 +111,14 @@ SSOT item context: name=req_mask; reset=all-ones.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM1
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM1.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: id=FM1; name=arbitrate_grant.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -131,14 +131,14 @@ SSOT item context: id=FM1; name=arbitrate_grant.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM1.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.preconditions.precondition_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: value=arb_enabled == 1.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -151,14 +151,14 @@ SSOT item context: value=arb_enabled == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM1.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.preconditions.precondition_1.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: value=(req_i & req_mask) != 0 (at least one unmasked active request).
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -171,14 +171,14 @@ SSOT item context: value=(req_i & req_mask) != 0 (at least one unmasked active r
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM1.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.inputs.input_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: value=req_i: N-bit request vector.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -191,14 +191,14 @@ SSOT item context: value=req_i: N-bit request vector.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM1.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.inputs.input_1.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: value=req_mask: N-bit mask from CSR.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -211,14 +211,14 @@ SSOT item context: value=req_mask: N-bit mask from CSR.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM1.inputs.input_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.inputs.input_2.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: value=last_winner: priority rotation base index.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -231,14 +231,14 @@ SSOT item context: value=last_winner: priority rotation base index.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM1.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.outputs.output_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: value=gnt_o is one-hot with exactly one bit set at selected_index.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -251,14 +251,14 @@ SSOT item context: value=gnt_o is one-hot with exactly one bit set at selected_i
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM1.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.outputs.output_1.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: value=gnt_valid_o == 1.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -271,14 +271,14 @@ SSOT item context: value=gnt_valid_o == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM1.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.outputs.output_2.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: value=gnt_idx_o == selected_index (binary).
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -291,14 +291,14 @@ SSOT item context: value=gnt_idx_o == selected_index (binary).
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM1.outputs.output_3
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.outputs.output_3.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: value=last_winner updated to selected_index.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -311,14 +311,14 @@ SSOT item context: value=last_winner updated to selected_index.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM1.output_rules.grant
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.output_rules.grant.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: name=grant; port=gnt_o; expr=one_hot(selected_index); width=NUM_REQ.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -335,14 +335,14 @@ SSOT item context: name=grant; port=gnt_o; expr=one_hot(selected_index); width=N
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM1.output_rules.grant_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.output_rules.grant_valid.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: name=grant_valid; port=gnt_valid_o; expr=arb_enabled && ((req_i & req_mask) != 0); width=1.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -359,14 +359,14 @@ SSOT item context: name=grant_valid; port=gnt_valid_o; expr=arb_enabled && ((req
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM1.output_rules.grant_index
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.output_rules.grant_index.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: name=grant_index; port=gnt_idx_o; expr=selected_index where selected_index is first active request in circular scan starting from (last_winner+1)%NUM_REQ; width=IDX_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -383,14 +383,14 @@ SSOT item context: name=grant_index; port=gnt_idx_o; expr=selected_index where s
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM1.state_updates.last_winner
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.state_updates.last_winner.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: name=last_winner; expr=selected_index (binary index of current grant winner); reset=0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -406,14 +406,14 @@ SSOT item context: name=last_winner; expr=selected_index (binary index of curren
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM1.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.side_effects.side_effect_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: value=last_winner rotates to current winner so it gets lowest priority next cycle.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -426,14 +426,14 @@ SSOT item context: value=last_winner rotates to current winner so it gets lowest
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM1.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.side_effects.side_effect_1.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: value=Only one requestor is granted per cycle (one-hot invariant).
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -446,14 +446,14 @@ SSOT item context: value=Only one requestor is granted per cycle (one-hot invari
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM2
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM2.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: id=FM2; name=no_grant_idle.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -466,14 +466,14 @@ SSOT item context: id=FM2; name=no_grant_idle.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM2.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.preconditions.precondition_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: value=arb_enabled == 0 OR (req_i & req_mask) == 0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -486,14 +486,14 @@ SSOT item context: value=arb_enabled == 0 OR (req_i & req_mask) == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM2.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.inputs.input_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: value=req_i: N-bit request vector.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -506,14 +506,14 @@ SSOT item context: value=req_i: N-bit request vector.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM2.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.inputs.input_1.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: value=req_mask: N-bit mask.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -526,14 +526,14 @@ SSOT item context: value=req_mask: N-bit mask.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM2.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.outputs.output_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: value=gnt_o == 0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -546,14 +546,14 @@ SSOT item context: value=gnt_o == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM2.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.outputs.output_1.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: value=gnt_valid_o == 0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -566,14 +566,14 @@ SSOT item context: value=gnt_valid_o == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM2.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.outputs.output_2.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: value=gnt_idx_o == 0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -586,14 +586,14 @@ SSOT item context: value=gnt_idx_o == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM2.outputs.output_3
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.outputs.output_3.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: value=last_winner unchanged.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -606,14 +606,14 @@ SSOT item context: value=last_winner unchanged.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM2.output_rules.grant
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.output_rules.grant.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: name=grant; port=gnt_o; expr=0; width=NUM_REQ.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -630,14 +630,14 @@ SSOT item context: name=grant; port=gnt_o; expr=0; width=NUM_REQ.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM2.output_rules.grant_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.output_rules.grant_valid.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: name=grant_valid; port=gnt_valid_o; expr=0; width=1.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -654,14 +654,14 @@ SSOT item context: name=grant_valid; port=gnt_valid_o; expr=0; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM2.output_rules.grant_index
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.output_rules.grant_index.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: name=grant_index; port=gnt_idx_o; expr=0; width=IDX_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -678,14 +678,14 @@ SSOT item context: name=grant_index; port=gnt_idx_o; expr=0; width=IDX_WIDTH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM2.state_updates.last_winner
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.state_updates.last_winner.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: name=last_winner; expr=last_winner (unchanged); reset=0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -701,14 +701,14 @@ SSOT item context: name=last_winner; expr=last_winner (unchanged); reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM2.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.side_effects.side_effect_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM2.
 SSOT item context: value=last_winner is preserved unchanged when no grant is issued.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -721,14 +721,14 @@ SSOT item context: value=last_winner is preserved unchanged when no grant is iss
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_0
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.
 SSOT item context: value=At most one bit in gnt_o is asserted per cycle (one-hot invariant)..
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -741,14 +741,14 @@ SSOT item context: value=At most one bit in gnt_o is asserted per cycle (one-hot
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_1
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_1.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.
 SSOT item context: value=gnt_valid_o == 0 implies gnt_o == 0..
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -761,14 +761,14 @@ SSOT item context: value=gnt_valid_o == 0 implies gnt_o == 0..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_2
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_2.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.
 SSOT item context: value=gnt_valid_o == 1 implies exactly one bit in gnt_o is set and gnt_idx_o equals the index of that bit..
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -781,14 +781,14 @@ SSOT item context: value=gnt_valid_o == 1 implies exactly one bit in gnt_o is se
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_3
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_3.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.
 SSOT item context: value=Masked requests never receive a grant regardless of req_i state..
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -801,14 +801,14 @@ SSOT item context: value=Masked requests never receive a grant regardless of req
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_4
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_4.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.
 SSOT item context: value=When arb_enabled == 0, all outputs are zero and last_winner is frozen..
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -821,14 +821,14 @@ SSOT item context: value=When arb_enabled == 0, all outputs are zero and last_wi
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_5
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_5.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.
 SSOT item context: value=Round-robin fairness: a requestor that was granted in the previous cycle has the lowest priority in the current cycle..
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner

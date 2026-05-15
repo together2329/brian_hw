@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 9/9 section=workflow_todo task_limit=48
@@ -50,14 +50,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[5]
 - Detail: Instantiate fifo_sync_mem, fifo_sync_ptrs, fifo_sync_flags, fifo_sync_output_reg, and fifo_sync_regs (conditional) with named port connections matching integration.connections. Wire top-level ports to sub-module ports.
 SSOT ref: workflow_todos.rtl-gen[5].
 Owner: fifo_sync in rtl/fifo_sync.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_FIFO_TOP.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - All sub_modules instantiated with correct port maps per integration.connections
   - USE_APB controls whether fifo_sync_regs is instantiated

@@ -1,0 +1,14 @@
+===== pyslang =====
+command: pyslang rtl/adder_kogge_stone.sv rtl/adder_kogge_stone_regs.sv rtl/adder_kogge_stone_core.sv
+returncode: 0
+errors: 0 warnings: 0
+pyslang files: 3
+errors=0 warnings=0
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/adder_kogge_stone.f --top-module adder_kogge_stone
+returncode: 0
+errors: 0 warnings: 0
+- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
+- Verilator: Built from 0.085 MB sources in 4 modules, into 0.040 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.302 s (elab=0.025, cvt=0.040, bld=0.000); cpu 0.052 s on 1 threads; allocated 11.578 MB

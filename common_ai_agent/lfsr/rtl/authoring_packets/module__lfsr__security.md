@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 2
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - Module slice: 11/13 section=security task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.register_map
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.register_map.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=register_map.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -61,14 +61,14 @@ SSOT item context: name=register_map.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.prbs_sequence
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.prbs_sequence.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=prbs_sequence.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 4
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - Module slice: 9/13 section=features task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.PRBS_Generation
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.PRBS_Generation.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=PRBS Generation; output=prbs_out (parallel LFSR_WIDTH word), prbs_bit (serial LSB).
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -61,14 +61,14 @@ SSOT item context: name=PRBS Generation; output=prbs_out (parallel LFSR_WIDTH wo
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Polynomial_Programming
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Polynomial_Programming.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=Polynomial Programming; output=Updated polynomial drives XOR tap mask in LFSR feedback.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -81,14 +81,14 @@ SSOT item context: name=Polynomial Programming; output=Updated polynomial drives
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Seed_Loading
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Seed_Loading.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=Seed Loading; output=LFSR state reinitialized; prbs_valid deasserted until next cycle.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -101,14 +101,14 @@ SSOT item context: name=Seed Loading; output=LFSR state reinitialized; prbs_vali
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Lock_up_Detection
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Lock_up_Detection.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=Lock-up Detection; output=prbs_valid deasserted; STATUS.lockup flagged.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT

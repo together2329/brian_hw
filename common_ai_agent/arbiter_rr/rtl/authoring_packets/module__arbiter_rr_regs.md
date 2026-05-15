@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 26
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: io_list, io_list.interfaces.apb_slave, registers, registers.register_list
 - SSOT target scale: min_behavior_owner_logic_modules=1, min_logic_modules=1, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=3
@@ -48,14 +48,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[1]
 - Detail: Implement APB-lite slave interface with setup/access phase protocol. Decode PADDR for CTRL (0x00 rw), REQ_MASK (0x04 rw), STATUS (0x08 ro). Drive PSLVERR for undefined offsets. Export enable_o and mask_o to arbiter core. Import winner_oh_i and active_req_i from core for STATUS register.
 SSOT ref: workflow_todos.rtl-gen[1].
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_REGS_APB.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - APB-lite protocol timing matches cycle_model.latency.register_read/write
   - PSLVERR asserted for undefined offsets
@@ -72,14 +72,14 @@ SSOT item context: id=RTL_TODO_REGS_APB.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.CTRL
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CTRL.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.
 SSOT item context: name=CTRL; width=32; reset=1; access=rw; offset=0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -96,14 +96,14 @@ SSOT item context: name=CTRL; width=32; reset=1; access=rw; offset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTRL.fields.enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.enable.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.
 SSOT item context: name=enable; reset=1; access=rw.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -122,14 +122,14 @@ SSOT item context: name=enable; reset=1; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTRL.fields.reserved_31_1
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.reserved_31_1.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_1; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -148,14 +148,14 @@ SSOT item context: name=reserved_31_1; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.REQ_MASK
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.REQ_MASK.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.
 SSOT item context: name=REQ_MASK; width=32; reset=15; access=rw; offset=4.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -172,14 +172,14 @@ SSOT item context: name=REQ_MASK; width=32; reset=15; access=rw; offset=4.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.REQ_MASK.fields.mask
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.REQ_MASK.fields.mask.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.
 SSOT item context: name=mask; reset=15; access=rw.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -198,14 +198,14 @@ SSOT item context: name=mask; reset=15; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.REQ_MASK.fields.reserved_31_4
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.REQ_MASK.fields.reserved_31_4.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_4; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -224,14 +224,14 @@ SSOT item context: name=reserved_31_4; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.STATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.STATUS.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.
 SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=8.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -248,14 +248,14 @@ SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=8.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.winner
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.winner.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.
 SSOT item context: name=winner; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -274,14 +274,14 @@ SSOT item context: name=winner; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.active_req
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.active_req.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.
 SSOT item context: name=active_req; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -300,14 +300,14 @@ SSOT item context: name=active_req; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.reserved_31_8
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.reserved_31_8.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_8; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -326,13 +326,13 @@ SSOT item context: name=reserved_31_8; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.arbiter_rr_regs.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.arbiter_rr_regs.module_equivalence.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -347,14 +347,14 @@ Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via module_equivalence.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.clock_domains.pclk.ports.PCLK
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.pclk.ports.PCLK.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.
 SSOT item context: name=PCLK; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -369,14 +369,14 @@ SSOT item context: name=PCLK; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.resets.presetn.ports.PRESETn
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.presetn.ports.PRESETn.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.
 SSOT item context: name=PRESETn; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -391,14 +391,14 @@ SSOT item context: name=PRESETn; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PADDR
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PADDR.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PADDR; width=8; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -413,14 +413,14 @@ SSOT item context: name=PADDR; width=8; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PSEL
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PSEL.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PSEL; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -435,14 +435,14 @@ SSOT item context: name=PSEL; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PENABLE
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PENABLE.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PENABLE; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -457,14 +457,14 @@ SSOT item context: name=PENABLE; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PWRITE
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PWRITE.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PWRITE; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -479,14 +479,14 @@ SSOT item context: name=PWRITE; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PWDATA
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PWDATA.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PWDATA; width=32; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -501,14 +501,14 @@ SSOT item context: name=PWDATA; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PRDATA
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PRDATA.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PRDATA; width=32; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -523,14 +523,14 @@ SSOT item context: name=PRDATA; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PREADY
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PREADY.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PREADY; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -545,14 +545,14 @@ SSOT item context: name=PREADY; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.PSLVERR
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.PSLVERR.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=PSLVERR; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -567,14 +567,14 @@ SSOT item context: name=PSLVERR; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.request_inputs.ports.req_i
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.request_inputs.ports.req_i.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.
 SSOT item context: name=req_i; width=NUM_REQ; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -589,14 +589,14 @@ SSOT item context: name=req_i; width=NUM_REQ; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.grant_outputs.ports.gnt_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.grant_outputs.ports.gnt_o.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.
 SSOT item context: name=gnt_o; width=NUM_REQ; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -611,14 +611,14 @@ SSOT item context: name=gnt_o; width=NUM_REQ; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.grant_outputs.ports.gnt_valid_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.grant_outputs.ports.gnt_valid_o.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.
 SSOT item context: name=gnt_valid_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -633,14 +633,14 @@ SSOT item context: name=gnt_valid_o; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.grant_outputs.ports.gnt_idx_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.grant_outputs.ports.gnt_idx_o.
 Owner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.
 SSOT item context: name=gnt_idx_o; width=IDX_WIDTH; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

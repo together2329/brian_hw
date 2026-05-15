@@ -240,9 +240,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 8,
-    "open_required_count": 8,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -286,7 +286,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 8,
+    "open_required_count": 0,
     "required_count": 8,
     "source_refs": [
       "fsm.lfsr_control.states.state_0",
@@ -299,7 +299,7 @@
       "fsm.lfsr_control.transitions.transition_4"
     ],
     "status_counts": {
-      "open": 8
+      "pass": 8
     },
     "task_count": 8
   },
@@ -332,8 +332,10 @@
         "fsm.lfsr_control.states.state_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -341,7 +343,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -351,9 +353,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -384,8 +386,10 @@
         "fsm.lfsr_control.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "RUNNING"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -393,7 +397,7 @@
           "RUNNING"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -403,9 +407,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -436,8 +440,10 @@
         "fsm.lfsr_control.states.state_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "LOCKUP"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -445,7 +451,7 @@
           "LOCKUP"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -455,9 +461,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -495,8 +501,14 @@
         "fsm.lfsr_control.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "CTRL",
+          "IDLE",
+          "RUNNING",
+          "lfsr",
+          "lfsr_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -508,7 +520,7 @@
           "lfsr_state"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -518,9 +530,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -556,8 +568,12 @@
         "fsm.lfsr_control.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "CTRL",
+          "IDLE",
+          "RUNNING"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -567,7 +583,7 @@
           "RUNNING"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -577,9 +593,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -616,8 +632,13 @@
         "fsm.lfsr_control.transitions.transition_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "LOCKUP",
+          "RUNNING",
+          "lfsr",
+          "lfsr_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -628,7 +649,7 @@
           "lfsr_state"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -638,9 +659,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -676,8 +697,12 @@
         "fsm.lfsr_control.transitions.transition_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "CTRL",
+          "IDLE",
+          "LOCKUP"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -687,7 +712,7 @@
           "LOCKUP"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -697,9 +722,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -738,8 +763,12 @@
         "fsm.lfsr_control.transitions.transition_4"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "CTRL",
+          "LOCKUP",
+          "RUNNING"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -752,7 +781,7 @@
           "reload"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -762,9 +791,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],

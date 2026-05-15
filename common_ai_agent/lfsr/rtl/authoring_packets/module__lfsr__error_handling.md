@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - Module slice: 10/13 section=error_handling task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_0
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_0.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: action=software disable and re-enable or write new SEED.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

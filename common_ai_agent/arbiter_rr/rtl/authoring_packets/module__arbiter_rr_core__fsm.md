@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 7
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, features, fsm, fsm.arb_fsm, function_model, function_model.transactions, function_model.transactions.FM1, function_model.transactions.FM2
 - Module slice: 3/6 section=fsm task_limit=48
@@ -48,14 +48,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.arb_fsm.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.arb_fsm.states.state_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.
 SSOT item context: value=IDLE.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -69,14 +69,14 @@ SSOT item context: value=IDLE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.arb_fsm.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.arb_fsm.states.state_1.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.
 SSOT item context: value=EVAL.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -90,14 +90,14 @@ SSOT item context: value=EVAL.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.arb_fsm.states.state_2
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.arb_fsm.states.state_2.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.
 SSOT item context: value=GRANT.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -111,14 +111,14 @@ SSOT item context: value=GRANT.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.arb_fsm.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.arb_fsm.transitions.transition_0.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.
 SSOT item context: from=IDLE; to=EVAL; condition=arb_enabled==1 && (req_i & mask) != 0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -133,14 +133,14 @@ SSOT item context: from=IDLE; to=EVAL; condition=arb_enabled==1 && (req_i & mask
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.arb_fsm.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.arb_fsm.transitions.transition_1.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.
 SSOT item context: from=EVAL; to=GRANT; condition=always (1-cycle combinational eval).
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -155,14 +155,14 @@ SSOT item context: from=EVAL; to=GRANT; condition=always (1-cycle combinational 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.arb_fsm.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.arb_fsm.transitions.transition_2.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.
 SSOT item context: from=GRANT; to=IDLE; condition=next cycle: re-evaluate with updated last_winner.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -177,14 +177,14 @@ SSOT item context: from=GRANT; to=IDLE; condition=next cycle: re-evaluate with u
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.arb_fsm.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.arb_fsm.transitions.transition_3.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.
 SSOT item context: from=IDLE; to=IDLE; condition=arb_enabled==0 || (req_i & mask) == 0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented

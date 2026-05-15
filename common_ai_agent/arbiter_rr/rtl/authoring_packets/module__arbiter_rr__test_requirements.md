@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 10
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 7/9 section=test_requirements task_limit=48
@@ -51,14 +51,14 @@
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC1
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC1.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.
 SSOT item context: id=SC1; name=Single requestor grant; expected=gnt_o[2] asserted on next cycle, gnt_valid_o=1, gnt_idx_o=2.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -72,14 +72,14 @@ SSOT item context: id=SC1; name=Single requestor grant; expected=gnt_o[2] assert
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC2
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC2.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.
 SSOT item context: id=SC2; name=Round-robin fairness; expected=Each requestor is granted exactly once in 4 cycles in rotation order starting from (last_winner+1).
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -93,14 +93,14 @@ SSOT item context: id=SC2; name=Round-robin fairness; expected=Each requestor is
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC3
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC3.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.
 SSOT item context: id=SC3; name=Request masking; expected=Only requestors 0 and 2 participate; grants alternate between them.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -114,14 +114,14 @@ SSOT item context: id=SC3; name=Request masking; expected=Only requestors 0 and 
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC4
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC4.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.
 SSOT item context: id=SC4; name=Enable/disable; expected=Grants stop when disabled, resume when re-enabled; last_winner is preserved across disable period.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -135,14 +135,14 @@ SSOT item context: id=SC4; name=Enable/disable; expected=Grants stop when disabl
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC5
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC5.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.
 SSOT item context: id=SC5; name=No requests idle; expected=gnt_o=0, gnt_valid_o=0 on all cycles.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -156,14 +156,14 @@ SSOT item context: id=SC5; name=No requests idle; expected=gnt_o=0, gnt_valid_o=
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC6
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC6.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.
 SSOT item context: id=SC6; name=Last winner persistence across disable; expected=Priority rotation resumes from (3+1)%4 = 0 after re-enable.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -177,14 +177,14 @@ SSOT item context: id=SC6; name=Last winner persistence across disable; expected
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC7
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC7.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.
 SSOT item context: id=SC7; name=APB CSR read/write; expected=Written values readable; STATUS reflects internal arbiter state.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -198,14 +198,14 @@ SSOT item context: id=SC7; name=APB CSR read/write; expected=Written values read
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC8
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC8.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.
 SSOT item context: id=SC8; name=APB illegal offset; expected=PSLVERR=1, PRDATA=0.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -219,14 +219,14 @@ SSOT item context: id=SC8; name=APB illegal offset; expected=PSLVERR=1, PRDATA=0
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC9
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC9.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.
 SSOT item context: id=SC9; name=One-hot grant invariant under all input combinations; expected=gnt_o is always one-hot or zero; never multi-bit or invalid.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -240,14 +240,14 @@ SSOT item context: id=SC9; name=One-hot grant invariant under all input combinat
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC10
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC10.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.
 SSOT item context: id=SC10; name=Reset behavior; expected=All outputs zero during reset; arbitration resumes from last_winner=0 after deassertion.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared

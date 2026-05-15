@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "type": "dut_lint",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "pyslang+verilator",
+  "command": "pyslang rtl/priority_enc.sv rtl/priority_enc_regs.sv rtl/priority_enc_core.sv && verilator --lint-only -Wall -Irtl -f list/priority_enc.f --top-module priority_enc",
+  "cwd": "priority_enc",
+  "top": "priority_enc",
+  "filelist": "priority_enc/list/priority_enc.f",
+  "rtl_files": [
+    "rtl/priority_enc.sv",
+    "rtl/priority_enc_regs.sv",
+    "rtl/priority_enc_core.sv",
+    "rtl/priority_enc_param.vh"
+  ],
+  "timestamp": "2026-05-15T02:09:09.971849+00:00",
+  "returncode": 1,
+  "errors": 3,
+  "warnings": 0,
+  "waived_warnings": 0,
+  "tool_results": [
+    {
+      "tool": "pyslang",
+      "available": true,
+      "command": "pyslang rtl/priority_enc.sv rtl/priority_enc_regs.sv rtl/priority_enc_core.sv",
+      "returncode": 1,
+      "errors": 1,
+      "warnings": 0,
+      "diagnostics": [
+        {
+          "severity": "error",
+          "file": "priority_enc/rtl/priority_enc_core.sv",
+          "line": 42,
+          "message": "unexpected 'end' delimiter"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "tool": "verilator",
+      "available": true,
+      "command": "verilator --lint-only -Wall -Irtl -f list/priority_enc.f --top-module priority_enc",
+      "returncode": 1,
+      "errors": 2,
+      "warnings": 0,
+      "diagnostics": [
+        {
+          "severity": "error",
+          "rule": "ERROR",
+          "file": "rtl/priority_enc_core.sv",
+          "line": 42,
+          "column": 5,
+          "message": "syntax error, unexpected end",
+          "source": "    end"
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "suppression_violation_count": 0,
+  "suppression_violations": [],
+  "style_violation_count": 0,
+  "style_violations": [],
+  "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
+  "passed": false
+}

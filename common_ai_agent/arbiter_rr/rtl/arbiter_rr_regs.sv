@@ -24,7 +24,7 @@ module arbiter_rr_regs #(
     localparam integer CTRL_ENABLE_BIT = 0;
 
     logic [APB_DATA_WIDTH-1:0] ctrl_reg;
-    logic [APB_DATA_WIDTH-1:0] req_mask_reg;
+    logic [NUM_REQ-1:0]        req_mask_reg;
     logic                      apb_access;
     logic                      apb_write;
     logic                      apb_read;
@@ -33,6 +33,10 @@ module arbiter_rr_regs #(
     logic                      addr_status;
     logic                      addr_legal;
     logic [APB_DATA_WIDTH-1:0] status_value;
+    logic [APB_DATA_WIDTH-1:0] req_mask_read_value;
+    logic [APB_DATA_WIDTH-1:0] ctrl_reset_value;
+    logic [NUM_REQ-1:0]        req_mask_reset_value;
+    logic [NUM_REQ-1:0]        req_mask_write_value;
     logic [APB_DATA_WIDTH-1:0] prdata_next;
 
     // APB-lite transfers complete in one access cycle per cycle_model register latency.
@@ -48,14 +52,14 @@ module arbiter_rr_regs #(
     assign PREADY  = apb_access;
     assign PSLVERR = apb_access & (~addr_legal);
     assign enable_o = ctrl_reg[CTRL_ENABLE_BIT];
-    assign mask_o = req_mask_reg[NUM_REQ-1:0];
+    assign mask_o = req_mask_reg;
 
-    // STATUS is read-only and reflects live arbiter state: winner one-hot and active masked requests.
-    always @(*) begin
-        status_value = {APB_DATA_WIDTH{1'b0}};
-        status_value[NUM_REQ-1:0] = winner_oh_i;
-        status_value[NUM_REQ+NUM_REQ-1:NUM_REQ] = active_req_i;
-    end
+    // Parameter-derived slices stay outside procedural blocks for portable Icarus lint.
+    assign status_value = {{(APB_DATA_WIDTH-(NUM_REQ+NUM_REQ)){1'b0}}, active_req_i, winner_oh_i};
+    assign req_mask_read_value = {{(APB_DATA_WIDTH-NUM_REQ){1'b0}}, req_mask_reg};
+    assign ctrl_reset_value = ARBITER_RR_CTRL_RESET;
+    assign req_mask_reset_value = ARBITER_RR_REQ_MASK_RESET[NUM_REQ-1:0];
+    assign req_mask_write_value = PWDATA[NUM_REQ-1:0];
 
     // Reserved fields read as zero; undefined offsets return zero with PSLVERR.
     always @(*) begin
@@ -63,7 +67,7 @@ module arbiter_rr_regs #(
         if (addr_ctrl) begin
             prdata_next[CTRL_ENABLE_BIT] = ctrl_reg[CTRL_ENABLE_BIT];
         end else if (addr_req_mask) begin
-            prdata_next[NUM_REQ-1:0] = req_mask_reg[NUM_REQ-1:0];
+            prdata_next = req_mask_read_value;
         end else if (addr_status) begin
             prdata_next = status_value;
         end else begin
@@ -73,15 +77,15 @@ module arbiter_rr_regs #(
 
     always @(posedge PCLK or negedge PRESETn) begin
         if (!PRESETn) begin
-            ctrl_reg <= ARBITER_RR_CTRL_RESET[APB_DATA_WIDTH-1:0];
-            req_mask_reg <= ARBITER_RR_REQ_MASK_RESET[APB_DATA_WIDTH-1:0];
+            ctrl_reg <= ctrl_reset_value;
+            req_mask_reg <= req_mask_reset_value;
             PRDATA <= {APB_DATA_WIDTH{1'b0}};
         end else begin
             if (apb_write & addr_ctrl) begin
                 ctrl_reg[CTRL_ENABLE_BIT] <= PWDATA[CTRL_ENABLE_BIT];
             end
             if (apb_write & addr_req_mask) begin
-                req_mask_reg[NUM_REQ-1:0] <= PWDATA[NUM_REQ-1:0];
+                req_mask_reg <= req_mask_write_value;
             end
             if (apb_read) begin
                 PRDATA <= prdata_next;

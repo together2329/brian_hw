@@ -6,7 +6,208 @@
       "required_for_profile": true,
       "status": "missing"
     },
-    "connection_contract_suggestions": {},
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rows": [
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PADDR",
+          "review_status": "pending",
+          "signal": "PADDR"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PCLK",
+          "review_status": "pending",
+          "signal": "PCLK"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PENABLE",
+          "review_status": "pending",
+          "signal": "PENABLE"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PRDATA",
+          "review_status": "pending",
+          "signal": "PRDATA"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PREADY",
+          "review_status": "pending",
+          "signal": "PREADY"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PRESETn",
+          "review_status": "pending",
+          "signal": "PRESETn"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PSEL",
+          "review_status": "pending",
+          "signal": "PSEL"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PSLVERR",
+          "review_status": "pending",
+          "signal": "PSLVERR"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PWDATA",
+          "review_status": "pending",
+          "signal": "PWDATA"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PWRITE",
+          "review_status": "pending",
+          "signal": "PWRITE"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "ctrl_enable_o",
+          "review_status": "pending",
+          "signal": "ctrl_enable"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "mask_o",
+          "review_status": "pending",
+          "signal": "mask"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "status_index_i",
+          "review_status": "pending",
+          "signal": "core_index"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "status_valid_i",
+          "review_status": "pending",
+          "signal": "core_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "PCLK",
+          "review_status": "pending",
+          "signal": "PCLK"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "PRESETn",
+          "review_status": "pending",
+          "signal": "PRESETn"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "data_in",
+          "review_status": "pending",
+          "signal": "data_in"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "enable_i",
+          "review_status": "pending",
+          "signal": "ctrl_enable"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "index_out",
+          "review_status": "pending",
+          "signal": "core_index"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "mask_i",
+          "review_status": "pending",
+          "signal": "mask"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "valid_out",
+          "review_status": "pending",
+          "signal": "core_valid"
+        }
+      ],
+      "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
+      "summary": {
+        "applied_to_ssot": false,
+        "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+        "pending_review": 21,
+        "status": "pending_review",
+        "suggested_rows": 21
+      }
+    },
     "owner": {
       "file": "rtl/priority_enc.sv",
       "name": "priority_enc",

@@ -1,0 +1,707 @@
+top_module:
+  name: "debouncer"
+  file: "rtl/debouncer.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "Single-bit input debouncer with two-flop synchronization, programmable-width consecutive-sample qualification, stable output, and edge pulses."
+  reference_spec: "user-defined debounce peripheral requirement"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+
+sub_modules:
+  - name: "debouncer_sync"
+    file: "rtl/debouncer_sync.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    implements: ["io_list.interfaces.noisy_input", "cdc_requirements.synchronizers.input_sync", "cycle_model.pipeline.S0_SYNC"]
+    source_sections: ["io_list", "cdc_requirements", "cycle_model"]
+    cycle_model_refs: ["cycle_model.pipeline.S0_SYNC"]
+    ssot_refs: ["io_list.interfaces.noisy_input", "cdc_requirements.synchronizers"]
+    description: "Two-flop synchronizer for the asynchronous or externally timed noisy input."
+  - name: "debouncer_filter"
+    file: "rtl/debouncer_filter.sv"
+    ownership: "manifest"
+    ssot_gen: false
+    implements: ["function_model.transactions.FM_DEBOUNCE", "cycle_model.pipeline.S1_QUALIFY", "fsm.filter"]
+    source_sections: ["function_model", "cycle_model", "fsm", "parameters"]
+    function_model_refs: ["function_model.transactions.FM_DEBOUNCE", "function_model.state_variables"]
+    cycle_model_refs: ["cycle_model.pipeline", "cycle_model.latency"]
+    fsm_refs: ["fsm.filter"]
+    description: "Qualification counter and stable-state update logic."
+  - name: "debouncer_edge"
+    file: "rtl/debouncer_edge.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    implements: ["function_model.transactions.FM_EDGE", "cycle_model.pipeline.S2_EDGE", "debug_observability.trace_events"]
+    source_sections: ["function_model", "cycle_model", "debug_observability"]
+    function_model_refs: ["function_model.transactions.FM_EDGE"]
+    cycle_model_refs: ["cycle_model.pipeline.S2_EDGE"]
+    description: "One-cycle rising and falling edge pulse generator from stable debounced output."
+
+decomposition:
+  units:
+    - id: "sync"
+      kind: "cdc_input_conditioning"
+      source_refs: ["io_list.interfaces.noisy_input", "cdc_requirements.synchronizers.input_sync"]
+      rtl_candidates: ["debouncer_sync"]
+      verification_impact: ["test_requirements.scenarios.SC_ASYNC_TOGGLE"]
+    - id: "qualify"
+      kind: "counter_control"
+      source_refs: ["function_model.transactions.FM_DEBOUNCE", "cycle_model.pipeline.S1_QUALIFY"]
+      rtl_candidates: ["debouncer_filter"]
+      verification_impact: ["test_requirements.scenarios.SC_BOUNCE_REJECT", "test_requirements.coverage_goals.function"]
+    - id: "edge_detect"
+      kind: "status_pulse"
+      source_refs: ["function_model.transactions.FM_EDGE", "cycle_model.pipeline.S2_EDGE"]
+      rtl_candidates: ["debouncer_edge"]
+      verification_impact: ["test_requirements.scenarios.SC_EDGE_PULSES"]
+
+parameters:
+  - name: "COUNTER_WIDTH"
+    default: 16
+    type: int
+    min: 1
+    max: 32
+    description: "Width of the qualification counter."
+    drives: ["rtl/debouncer_filter.sv", "rtl/debouncer.sv"]
+  - name: "DEBOUNCE_CYCLES"
+    default: 1024
+    type: int
+    min: 1
+    max: 65535
+    description: "Number of consecutive synchronized samples different from the current stable output required before accepting a new stable value."
+    drives: ["rtl/debouncer_filter.sv"]
+  - name: "RESET_VALUE"
+    default: 0
+    type: int
+    values: [0, 1]
+    description: "Stable output value after reset."
+    drives: ["ALL .sv files"]
+  - name: "SYNC_STAGES"
+    default: 2
+    type: int
+    values: [2, 3]
+    description: "Input synchronizer depth. Two stages are the baseline; three stages may be selected for higher MTBF."
+    drives: ["rtl/debouncer_sync.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 100
+    type: int
+    description: "Nominal implementation clock frequency used for timing and debounce-duration calculations."
+    drives: ["sdc/debouncer.sdc", "doc/debouncer_mas.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low"]
+    drives: ["ALL .sv files"]
+
+io_list:
+  clock_domains:
+    - name: "clk_i"
+      frequency_mhz: 100
+      description: "Main synchronous clock for all debouncer state."
+      ports:
+        - { name: "clk_i", width: 1, direction: "input", description: "Main clock" }
+  resets:
+    - name: "rst_ni"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Active-low reset for all architectural state."
+      ports:
+        - { name: "rst_ni", width: 1, direction: "input", description: "Active-low reset" }
+  interfaces:
+    - name: "noisy_input"
+      type: "custom"
+      role: "input"
+      clock_domain: "external_or_clk_i"
+      reset_domain: "rst_ni"
+      description: "Single noisy switch/button/GPIO input to be synchronized and debounced."
+      protocol:
+        sampling: "noisy_i may change asynchronously to clk_i; synchronizer samples it on clk_i."
+        stability: "No minimum input stability is required for safety; stability for DEBOUNCE_CYCLES qualified samples is required to update clean_o."
+        metastability: "Metastability risk is reduced by SYNC_STAGES flip-flops before qualification logic."
+      ports:
+        - { name: "noisy_i", width: 1, direction: "input", description: "Raw noisy input" }
+    - name: "debounced_output"
+      type: "custom"
+      role: "output"
+      clock_domain: "clk_i"
+      reset_domain: "rst_ni"
+      description: "Debounced stable output plus edge indication pulses."
+      protocol:
+        update_rule: "clean_o updates only after DEBOUNCE_CYCLES consecutive synchronized samples opposite the current clean_o value."
+        pulse_rule: "rise_o and fall_o are one clk_i-cycle pulses coincident with clean_o changing to 1 or 0 respectively."
+        stable_rule: "stable_o is high when no qualification transition is in progress and the qualification counter is zero."
+        reset_value: "clean_o=RESET_VALUE, rise_o=0, fall_o=0, stable_o=1 after reset release."
+      ports:
+        - { name: "clean_o", width: 1, direction: "output", description: "Debounced stable level" }
+        - { name: "rise_o", width: 1, direction: "output", description: "One-cycle pulse when clean_o changes from 0 to 1" }
+        - { name: "fall_o", width: 1, direction: "output", description: "One-cycle pulse when clean_o changes from 1 to 0" }
+        - { name: "stable_o", width: 1, direction: "output", description: "High when the input matches the stable state and no transition is being qualified" }
+
+features:
+  - name: "Input synchronization"
+    trigger: "Every rising edge of clk_i while rst_ni is high"
+    datapath: "noisy_i -> SYNC_STAGES flip-flop chain -> sync_sample"
+    control: "S0_SYNC pipeline stage"
+    output: "Metastability-filtered single-bit sample for debounce qualification"
+  - name: "Debounce qualification"
+    trigger: "sync_sample differs from current clean_o"
+    datapath: "Increment qualification counter for each consecutive differing sample; reset counter when sample equals clean_o; accept new value at DEBOUNCE_CYCLES"
+    control: "IDLE, COUNTING, UPDATE states"
+    output: "clean_o changes only after the declared consecutive-sample threshold"
+  - name: "Edge pulse generation"
+    trigger: "Accepted stable output transition"
+    datapath: "Compare next clean value against previous clean value"
+    control: "S2_EDGE pipeline stage"
+    output: "One-cycle rise_o or fall_o pulse"
+
+dataflow:
+  input_path:
+    source: "noisy_i"
+    conditioning: "SYNC_STAGES flip-flop synchronizer"
+    sequence: "noisy_i -> sync_chain -> sync_sample"
+  qualify_path:
+    source: "sync_sample"
+    state: "clean_state and debounce_count"
+    sequence: "compare sync_sample to clean_state -> count consecutive mismatch samples -> update clean_state"
+  output_path:
+    source: "clean_state transition"
+    sequence: "clean_state -> clean_o; transition compare -> rise_o/fall_o; counter idle -> stable_o"
+
+function_model:
+  purpose: "Executable behavioral contract for a single-bit debouncer independent of implementation timing except for the DEBOUNCE_CYCLES qualification count."
+  state_variables:
+    - { name: "sync_sample", source: "io_list.interfaces.noisy_input.noisy_i after synchronizer", reset: 0, description: "Synchronized raw input sample used by the filter" }
+    - { name: "clean_state", source: "output clean_o", reset: "RESET_VALUE", description: "Debounced stable value" }
+    - { name: "candidate_value", source: "sync_sample when it differs from clean_state", reset: "RESET_VALUE", description: "Potential next debounced value" }
+    - { name: "debounce_count", source: "qualification counter", reset: 0, description: "Number of consecutive samples supporting candidate_value" }
+    - { name: "prev_clean_state", source: "edge detector", reset: "RESET_VALUE", description: "Prior stable value for edge pulse generation" }
+  transactions:
+    - id: "FM_DEBOUNCE"
+      name: "qualified_level_update"
+      preconditions:
+        - "rst_ni == 1"
+        - "sync_sample remains opposite clean_state for DEBOUNCE_CYCLES consecutive clk_i samples"
+      inputs:
+        - "Sequence of synchronized input samples"
+      outputs:
+        - "clean_o becomes the sustained candidate value exactly once per qualified transition"
+        - "stable_o returns high after the update"
+      output_rules:
+        - { name: "debounced_level", expr: "candidate_value when debounce_count reaches DEBOUNCE_CYCLES else previous clean_state", width: 1, port: "clean_o" }
+        - { name: "stable_indicator", expr: "1 when debounce_count == 0 after update else 0 while qualifying", width: 1, port: "stable_o" }
+      side_effects:
+        - "debounce_count increments while consecutive mismatch samples persist"
+        - "debounce_count resets to zero when sync_sample equals clean_state or after the accepted update"
+        - "candidate_value tracks the first mismatching synchronized sample and restarts if the mismatch direction changes"
+      error_cases:
+        - { condition: "DEBOUNCE_CYCLES < 1", result: "configuration is illegal for elaboration; RTL parameter assertion shall fail" }
+    - id: "FM_REJECT_BOUNCE"
+      name: "short_bounce_rejection"
+      preconditions:
+        - "rst_ni == 1"
+        - "sync_sample differs from clean_state for fewer than DEBOUNCE_CYCLES consecutive samples and then returns"
+      inputs:
+        - "Short pulse or bouncing sample sequence"
+      outputs:
+        - "clean_o remains unchanged"
+        - "rise_o and fall_o remain zero"
+      side_effects:
+        - "debounce_count returns to zero when sample returns to clean_state"
+      error_cases: []
+    - id: "FM_EDGE"
+      name: "stable_transition_edge_pulse"
+      preconditions:
+        - "FM_DEBOUNCE accepts a clean_state transition"
+      inputs:
+        - "previous clean_state and accepted new clean_state"
+      outputs:
+        - "rise_o is 1 for one cycle only when clean_state changes 0->1"
+        - "fall_o is 1 for one cycle only when clean_state changes 1->0"
+        - "rise_o and fall_o are never asserted in the same cycle"
+      output_rules:
+        - { name: "rising_pulse", expr: "1 for one cycle when previous clean_state == 0 and accepted clean_state == 1 else 0", width: 1, port: "rise_o" }
+        - { name: "falling_pulse", expr: "1 for one cycle when previous clean_state == 1 and accepted clean_state == 0 else 0", width: 1, port: "fall_o" }
+      side_effects:
+        - "prev_clean_state updates to the accepted clean_state"
+      error_cases: []
+  invariants:
+    - "clean_o never changes in response to fewer than DEBOUNCE_CYCLES consecutive opposing synchronized samples."
+    - "rise_o and fall_o are mutually exclusive."
+    - "When rst_ni is low, clean_o equals RESET_VALUE and pulses are zero."
+    - "stable_o is low during active qualification and high when debounce_count is zero."
+  reference_model_hint: "tb-gen should implement a Python model that feeds synchronized sample sequences, counts consecutive mismatch samples, and compares clean_o/rise_o/fall_o/stable_o cycle by cycle."
+
+cycle_model:
+  purpose: "Cycle/handshake contract defining synchronizer latency, qualification timing, edge pulse timing, reset behavior, and output stability."
+  executable: "python"
+  backend_policy: "Use a simple clocked Python or PyMTL3 model; no bus functional model is required because the IP has only custom scalar ports."
+  clock: "clk_i"
+  reset:
+    assertion: "rst_ni low asynchronously clears sync chain, debounce counter, candidate state, edge pulse registers, and clean_o to RESET_VALUE."
+    deassertion: "State is usable on the first rising edge after synchronized reset deassertion; edge pulses remain zero for at least the reset-release cycle."
+  latency:
+    input_sync: { min_cycles: 2, max_cycles: 3, description: "noisy_i transition appears at sync_sample after SYNC_STAGES rising edges, ignoring metastability resolution variation." }
+    debounce_accept: { min_cycles: "SYNC_STAGES + DEBOUNCE_CYCLES", max_cycles: null, description: "A sustained input level is reflected on clean_o after synchronization and qualification; additional delay can occur if the input bounces." }
+    edge_pulse: { min_cycles: 0, max_cycles: 0, description: "rise_o/fall_o are asserted in the same clk_i cycle that clean_o updates." }
+  handshake_rules:
+    - { signal: "noisy_i", rule: "May toggle at any time; downstream logic shall consume only synchronized samples." }
+    - { signal: "clean_o", rule: "Hold stable except in cycles where FM_DEBOUNCE accepts a new stable value." }
+    - { signal: "rise_o", rule: "Assert for exactly one clk_i cycle on a qualified 0->1 clean_o transition." }
+    - { signal: "fall_o", rule: "Assert for exactly one clk_i cycle on a qualified 1->0 clean_o transition." }
+    - { signal: "stable_o", rule: "Assert when debounce_count is zero; deassert while a candidate transition is being counted." }
+  pipeline:
+    - { stage: "S0_SYNC", cycle: "0..SYNC_STAGES", action: "Sample noisy_i through the synchronizer chain." }
+    - { stage: "S1_QUALIFY", cycle: "SYNC_STAGES..N", action: "Compare sync_sample against clean_state and update debounce_count/candidate_value." }
+    - { stage: "S2_UPDATE", cycle: "N", action: "When debounce_count reaches DEBOUNCE_CYCLES, update clean_state and reset debounce_count." }
+    - { stage: "S2_EDGE", cycle: "N", action: "Generate one-cycle rise_o or fall_o pulse for the accepted transition." }
+  ordering:
+    - "Synchronizer update precedes debounce qualification observation in architectural cycle modeling."
+    - "Edge pulse generation is derived from the same accepted transition that updates clean_o."
+    - "A bounce returning to the current clean_state before threshold completion cancels the pending candidate."
+  backpressure:
+    - "No ready/valid backpressure exists; the input stream is sampled every clk_i cycle."
+  performance:
+    frequency_mhz: 100
+    throughput: { sustained_samples_per_cycle: 1, condition: "rst_ni deasserted" }
+    outstanding: { transitions_max: 1, description: "Only one candidate transition can be qualified at a time." }
+    depth: { synchronizer_stages: 2, counter_bits: 16, description: "Baseline state depth for cycle coverage and synthesis scale." }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+
+clock_reset_domains:
+  domains:
+    - { name: "clk_i", frequency_mhz: 100, description: "Single synchronous clock domain" }
+  reset_scheme:
+    signal: "rst_ni"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+cdc_requirements:
+  crossings:
+    - { name: "noisy_i_to_clk_i", source_domain: "external_or_async", dest_domain: "clk_i", signal: "noisy_i", type: "single_bit_control", mitigation: "SYNC_STAGES flip-flop synchronizer before debounce filter" }
+  synchronizers:
+    - { id: "input_sync", signal: "noisy_i", stages: 2, reset_value: 0, destination_clock: "clk_i", owner_module: "debouncer_sync" }
+  note: "Only the raw input is treated as asynchronous; all outputs are registered in clk_i domain."
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain rst_ni; no reset domain crossings."
+
+registers:
+  no_registers: true
+  no_csr: true
+  policy: "This leaf IP has no software-visible registers or CSR bus; behavior is controlled solely by parameters and scalar ports."
+  config:
+    register_width: 0
+    addr_width: 0
+    byte_addressable: false
+    has_register_interface: false
+  register_list: []
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "not_applicable_no_registers"
+    rtl_requirement: "No APB/CSR interface is implemented for this leaf IP revision."
+
+memory:
+  instances:
+    - { name: "sync_chain", type: "flip_flop_array", depth: 2, width: 1, read_ports: 1, write_ports: 1, latency: 1, description: "Input synchronizer state" }
+    - { name: "debounce_count", type: "register", depth: 1, width: 16, read_ports: 1, write_ports: 1, latency: 0, description: "Consecutive mismatch sample counter" }
+  note: "No SRAM or FIFO macros are required."
+
+interrupts:
+  sources: []
+  output:
+    signal: null
+    polarity: null
+    type: "none"
+  note: "No interrupt output; edge pulses are direct status outputs."
+
+fsm:
+  filter:
+    states: ["IDLE", "COUNTING", "UPDATE"]
+    reset_state: "IDLE"
+    transitions:
+      - { from: "IDLE", to: "COUNTING", condition: "sync_sample != clean_state" }
+      - { from: "COUNTING", to: "IDLE", condition: "sync_sample == clean_state" }
+      - { from: "COUNTING", to: "UPDATE", condition: "debounce_count == DEBOUNCE_CYCLES-1 and sync_sample == candidate_value" }
+      - { from: "UPDATE", to: "IDLE", condition: "clean_state updated and pulse generated" }
+    outputs:
+      - { state: "IDLE", signals: { stable_o: 1 } }
+      - { state: "COUNTING", signals: { stable_o: 0 } }
+      - { state: "UPDATE", signals: { stable_o: 1, rise_o: "conditional", fall_o: "conditional" } }
+
+rtl_contract:
+  transaction: ["FM_DEBOUNCE", "FM_REJECT_BOUNCE", "FM_EDGE"]
+  sample_condition: "All architectural state updates occur on rising clk_i edges when rst_ni is high."
+  input_map:
+    raw_input: "noisy_i"
+    clock: "clk_i"
+    reset: "rst_ni"
+    parameters: ["COUNTER_WIDTH", "DEBOUNCE_CYCLES", "RESET_VALUE", "SYNC_STAGES"]
+  output_map:
+    debounced_level: "clean_o"
+    rising_pulse: "rise_o"
+    falling_pulse: "fall_o"
+    stable_indicator: "stable_o"
+  state_updates:
+    - { name: "sync_chain", reset: 0, expr: "shift in noisy_i each clk_i cycle" }
+    - { name: "debounce_count", reset: 0, expr: "increment on consecutive mismatch, clear on match or accepted update" }
+    - { name: "clean_state", reset: "RESET_VALUE", expr: "update to candidate_value when count threshold is reached" }
+    - { name: "edge_pulses", reset: 0, expr: "one-cycle pulse generated only on accepted clean_state transition" }
+
+timing:
+  target_clocks:
+    - { name: "clk_i", frequency_mhz: 100, duty_cycle: 0.5, uncertainty_ns: 0.1 }
+  latency_budget:
+    input_to_clean_cycles: { min: "SYNC_STAGES + DEBOUNCE_CYCLES", max: null, measured_from: "sustained noisy_i transition", measured_to: "clean_o transition" }
+    input_to_edge_cycles: { min: "SYNC_STAGES + DEBOUNCE_CYCLES", max: null, measured_from: "sustained noisy_i transition", measured_to: "rise_o/fall_o pulse" }
+    reset_release_cycles: { min: 1, max: 2, measured_from: "rst_ni synchronized deassertion", measured_to: "outputs valid" }
+  throughput:
+    sustained_samples_per_cycle: 1
+    conditions: "rst_ni deasserted; clk_i active"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "noisy_i", clock: "clk_i", delay_ns: 0.2, source: "safe placeholder system timing budget recorded as custom.assumptions.A_TIMING_IO" }
+    outputs:
+      - { ports: "clean_o rise_o fall_o stable_o", clock: "clk_i", delay_ns: 0.2, source: "safe placeholder system timing budget recorded as custom.assumptions.A_TIMING_IO" }
+  false_paths:
+    - { from: "rst_ni", to: "all_registers", reason: "asynchronous reset assertion" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["clk_i"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "Small always-on peripheral with no explicit low-power mode in available requirements."
+  reset_retention:
+    retention_required: false
+    reset_value_source: "function_model state_variables and parameters.RESET_VALUE"
+  power_states:
+    - { name: "ON", entry: "rst_ni deasserted", exit: "rst_ni asserted", guarantees: ["Debounce and edge detection active"] }
+  upf_required: false
+
+security:
+  classification: "non_secure_signal_conditioning_ip"
+  assets:
+    - { name: "debounced_output", protection: "Integrity depends on debounce threshold and synchronizer correctness" }
+  threat_model:
+    - { threat: "Glitch or bounce causes false output transition", mitigation: "DEBOUNCE_CYCLES consecutive-sample qualification" }
+    - { threat: "Metastability propagates to control logic", mitigation: "SYNC_STAGES input synchronizer" }
+  privilege_model: "No software-visible privilege interface."
+  safety_goals:
+    - "Reject input pulses shorter than the programmed debounce threshold."
+    - "Never assert rise_o and fall_o simultaneously."
+    - "Return to deterministic reset state on rst_ni assertion."
+
+error_handling:
+  error_sources:
+    - { id: "ERR_PARAM_DEBOUNCE_ZERO", condition: "DEBOUNCE_CYCLES < 1", architectural_effect: "Illegal elaboration/configuration; parameter assertion failure required" }
+    - { id: "ERR_PARAM_COUNTER_TOO_SMALL", condition: "DEBOUNCE_CYCLES > (2**COUNTER_WIDTH)-1", architectural_effect: "Illegal elaboration/configuration; parameter assertion failure required" }
+  propagation:
+    - "No runtime error output exists; configuration errors are caught at elaboration or lint/formal time."
+  recovery:
+    - { action: "correct parameters and rebuild", clears: ["ERR_PARAM_DEBOUNCE_ZERO", "ERR_PARAM_COUNTER_TOO_SMALL"], preserves: ["functional intent"] }
+
+debug_observability:
+  waveform_must_probe: ["noisy_i", "sync_chain", "sync_sample", "clean_state", "candidate_value", "debounce_count", "clean_o", "rise_o", "fall_o", "stable_o"]
+  status_outputs: ["clean_o", "rise_o", "fall_o", "stable_o"]
+  trace_events:
+    - { name: "candidate_start", trigger: "sync_sample first differs from clean_state" }
+    - { name: "candidate_cancel", trigger: "sync_sample returns to clean_state before threshold" }
+    - { name: "debounce_accept", trigger: "debounce_count reaches DEBOUNCE_CYCLES and clean_state updates" }
+    - { name: "rising_edge", trigger: "clean_state transitions 0->1" }
+    - { name: "falling_edge", trigger: "clean_state transitions 1->0" }
+  debug_registers: []
+
+integration:
+  bus_attachment:
+    control: "none"
+    data: "custom scalar input/output ports"
+  connections:
+    - { module: "debouncer_sync", port: "clk_i", signal: "clk_i" }
+    - { module: "debouncer_sync", port: "rst_ni", signal: "rst_ni" }
+    - { module: "debouncer_sync", port: "noisy_i", signal: "noisy_i" }
+    - { module: "debouncer_sync", port: "sync_o", signal: "sync_sample" }
+    - { module: "debouncer_filter", port: "clk_i", signal: "clk_i" }
+    - { module: "debouncer_filter", port: "rst_ni", signal: "rst_ni" }
+    - { module: "debouncer_filter", port: "sync_i", signal: "sync_sample" }
+    - { module: "debouncer_filter", port: "clean_o", signal: "clean_state" }
+    - { module: "debouncer_filter", port: "update_o", signal: "clean_update" }
+    - { module: "debouncer_edge", port: "clk_i", signal: "clk_i" }
+    - { module: "debouncer_edge", port: "rst_ni", signal: "rst_ni" }
+    - { module: "debouncer_edge", port: "clean_i", signal: "clean_state" }
+    - { module: "debouncer_edge", port: "update_i", signal: "clean_update" }
+    - { module: "debouncer_edge", port: "rise_o", signal: "rise_o" }
+    - { module: "debouncer_edge", port: "fall_o", signal: "fall_o" }
+  address_map_requirements:
+    alignment_bytes: null
+    decode_owner: "not_applicable_no_bus"
+    illegal_access_response: "not_applicable_no_bus"
+  dependencies:
+    external_modules: []
+    external_clocks: ["clk_i"]
+    external_resets: ["rst_ni"]
+  integration_notes:
+    - "The SoC or board-level integration chooses DEBOUNCE_CYCLES according to input bounce duration and clk_i frequency."
+    - "noisy_i may be tied to a pushbutton, switch, GPIO, or other single-bit control source."
+
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "rst_ni must be controllable in test mode"
+    clocks: ["clk_i"]
+    inputs: ["noisy_i"]
+  observability:
+    required_internal_points: ["sync_chain", "debounce_count", "clean_state"]
+  mbist_required: false
+  notes: "No memory macros; scan can be added by downstream DFT flow if project policy requires it."
+
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "debouncer"
+  technology:
+    pdk: "generic"
+    standard_cell_library: "generic_standard_cells"
+    liberty_corner: "project_default"
+    liberty_env: "LIBERTY_FILE"
+    lef_env: "LEF_FILES"
+    tech_lef_env: "TECH_LEF"
+    rcx_rules_env: "RCX_RULES"
+  constraints:
+    - "No inferred latches."
+    - "All flops reset according to clock_reset_domains.reset_scheme."
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL."
+    - "Parameter assertions must reject illegal debounce threshold/counter width combinations."
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 100
+  required_outputs: ["syn/out/debouncer.json or syn/out/debouncer.v", "syn/out/area.rpt", "syn/out/timing_summary.rpt"]
+
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  placement:
+    density_target: 0.65
+    max_displacement_um: null
+  cts:
+    buf_list: ["project_default_clkbuf"]
+    functional_mode_case_analysis: []
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    clock_layers: { min: "met3", max: "met5" }
+    drc_waivers: []
+  required_outputs: ["pnr/out/floorplan.def", "pnr/out/placed.def", "pnr/out/cts.def", "pnr/out/routed.def", "pnr/out/routed.v", "pnr/out/routed.spef", "pnr/out/pnr.report.md"]
+
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/debouncer_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge clk_i or negedge rst_ni) blocks"
+    - "blocking (=) in combinational always @(*) blocks"
+    - "No latches: every combinational branch assigns defaults"
+    - "Active-low async reset: if (!rst_ni) reset all state"
+    - "Use parameters for COUNTER_WIDTH, DEBOUNCE_CYCLES, RESET_VALUE, and SYNC_STAGES"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+  lint_waivers:
+    - "UNUSEDSIGNAL: none expected; any generated tie-off requires explicit waiver evidence"
+
+reuse_modules: []
+
+custom:
+  assumptions:
+    - id: "A_REQ_MINIMAL_DEBOUNCER"
+      statement: "No external requirements file was found; this SSOT defines a conventional single-bit debouncer peripheral."
+      safety: "Safe for RTL semantics because it is explicitly captured as the IP purpose and can be changed by QA before RTL signoff."
+    - id: "A_CLOCK_DEFAULT"
+      statement: "Default clock frequency is 100 MHz."
+      safety: "Affects constraints and debounce-time interpretation but not logical correctness when parameterized."
+    - id: "A_THRESHOLD_DEFAULT"
+      statement: "Default DEBOUNCE_CYCLES is 1024 and COUNTER_WIDTH is 16."
+      safety: "Safe default for implementation; integrator can override parameters for actual switch bounce duration."
+    - id: "A_TIMING_IO"
+      statement: "Default IO delay is 0.2 ns for early STA constraints."
+      safety: "Placeholder integration budget recorded for downstream EDA review."
+  note: "No custom extensions beyond explicit assumptions."
+
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "doc/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+filelist:
+  headers: ["rtl/debouncer_param.vh"]
+  rtl: ["rtl/debouncer.sv", "rtl/debouncer_sync.sv", "rtl/debouncer_filter.sv", "rtl/debouncer_edge.sv"]
+  sim: ["tb/cocotb/test_debouncer.py", "tb/cocotb/debouncer_model.py"]
+  firmware: []
+  docs: ["doc/debouncer_mas.md"]
+
+test_requirements:
+  scenarios:
+    - { id: "SC_RESET", name: "Reset defaults", stimulus: "Assert and deassert rst_ni with noisy_i toggling", expected: "clean_o=RESET_VALUE, rise_o=0, fall_o=0, stable_o=1 after reset", checker: "Reset assertion and scoreboard state check", coverage: ["function_model.invariants.reset", "cycle_model.reset"] }
+    - { id: "SC_BOUNCE_REJECT", name: "Reject short bounce", stimulus: "Drive noisy_i opposite clean_o for fewer than DEBOUNCE_CYCLES synchronized samples", expected: "clean_o unchanged and no edge pulse", checker: "Scoreboard checks FM_REJECT_BOUNCE", coverage: ["FM_REJECT_BOUNCE", "COUNTING_to_IDLE"] }
+    - { id: "SC_ACCEPT_RISE", name: "Accept rising transition", stimulus: "Hold noisy_i high from reset-low output for at least DEBOUNCE_CYCLES synchronized samples", expected: "clean_o rises once, rise_o pulses for one cycle, fall_o remains zero", checker: "Cycle scoreboard and pulse-width assertion", coverage: ["FM_DEBOUNCE", "FM_EDGE", "rising_edge"] }
+    - { id: "SC_ACCEPT_FALL", name: "Accept falling transition", stimulus: "First qualify high, then hold noisy_i low for at least DEBOUNCE_CYCLES synchronized samples", expected: "clean_o falls once, fall_o pulses for one cycle, rise_o remains zero", checker: "Cycle scoreboard and pulse-width assertion", coverage: ["FM_DEBOUNCE", "FM_EDGE", "falling_edge"] }
+    - { id: "SC_ASYNC_TOGGLE", name: "Asynchronous-like toggle stream", stimulus: "Randomize noisy_i changes around clk_i edges in simulation driver", expected: "Only synchronized qualified levels affect clean_o; no X propagation", checker: "No-X assertion and reference model comparison", coverage: ["cdc_requirements.synchronizers.input_sync", "S0_SYNC"] }
+    - { id: "SC_PARAMETER_SWEEP", name: "Threshold parameter sweep", stimulus: "Run DEBOUNCE_CYCLES values 1, 2, 8, and default", expected: "Acceptance occurs exactly at each configured threshold", checker: "Parameterized reference model", coverage: ["COUNTER_WIDTH", "DEBOUNCE_CYCLES"] }
+  scoreboard_checks: 12
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for debounce acceptance, bounce rejection, edge-pulse generation, and reset invariants."
+      bins:
+        - { id: "FCOV_FM_DEBOUNCE", source_ref: "function_model.transactions.FM_DEBOUNCE", class: "transaction", description: "Qualified level update observed" }
+        - { id: "FCOV_FM_REJECT_BOUNCE", source_ref: "function_model.transactions.FM_REJECT_BOUNCE", class: "transaction", description: "Short bounce rejected" }
+        - { id: "FCOV_FM_EDGE_RISE", source_ref: "function_model.transactions.FM_EDGE", class: "edge", description: "Rising pulse generated for one cycle" }
+        - { id: "FCOV_FM_EDGE_FALL", source_ref: "function_model.transactions.FM_EDGE", class: "edge", description: "Falling pulse generated for one cycle" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle coverage for synchronizer stages, qualification counter thresholds, FSM states/transitions, and output pulse widths."
+      bins:
+        - { id: "CCOV_SYNC_STAGE", source_ref: "cycle_model.pipeline.S0_SYNC", class: "pipeline_stage", description: "Synchronizer path exercised" }
+        - { id: "CCOV_QUALIFY_STAGE", source_ref: "cycle_model.pipeline.S1_QUALIFY", class: "pipeline_stage", description: "Qualification counting exercised" }
+        - { id: "CCOV_UPDATE_STAGE", source_ref: "cycle_model.pipeline.S2_UPDATE", class: "pipeline_stage", description: "Clean output update exercised" }
+        - { id: "CCOV_EDGE_STAGE", source_ref: "cycle_model.pipeline.S2_EDGE", class: "pulse_width", description: "One-cycle edge pulses verified" }
+        - { id: "CCOV_FSM_TRANSITIONS", source_ref: "fsm.filter.transitions", class: "state_transition", description: "All filter FSM transitions observed" }
+    functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
+    code: "line >= 90%, branch >= 85%, toggle >= 80% or approved waiver"
+
+quality_gates:
+  ssot:
+    pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
+    evidence: ["workflow/ssot-gen/scripts/check_ssot_disk.sh debouncer PASS", "YAML parse PASS"]
+  rtl_gen:
+    profile: "production"
+    target_scale:
+      basis: "Small scalar peripheral; no minimum scale lock beyond non-placeholder owner logic."
+      source_files_min: 4
+      modules_min: 4
+      procedural_blocks_min: 4
+      state_updates_min: 4
+      depth_score_min: 4
+      logic_modules_min: 3
+      behavior_owner_logic_modules_min: 2
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "RTL implements the SSOT-declared synchronizer, debounce filter, edge pulse logic, reset behavior, parameter guards, hierarchy ownership, and traceability with fresh compile/lint/model evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "rtl/rtl_traceability.json", "rtl/rtl_compile.json", "lint/dut_lint.json", "sim/fl_rtl_goal_audit.json", "cov/coverage.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches the reference model for all declared scenarios."
+    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+  coverage:
+    pass: "Function and cycle coverage goals reach 100%; code coverage meets thresholds or has approved waivers."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved SSOT waivers."
+    evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
+
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "rtl/debouncer_param.vh" }
+    - { yaml: "io_list.interfaces", output: "rtl/debouncer.sv port list and tb driver/monitor" }
+    - { yaml: "cdc_requirements.synchronizers", output: "rtl/debouncer_sync.sv" }
+    - { yaml: "function_model", output: "rtl/debouncer_filter.sv + tb/cocotb/debouncer_model.py" }
+    - { yaml: "cycle_model", output: "RTL pipeline timing + cycle checks" }
+    - { yaml: "fsm.filter", output: "rtl/debouncer_filter.sv state/control" }
+    - { yaml: "timing", output: "sdc/debouncer.sdc and STA pass/fail criteria" }
+    - { yaml: "security", output: "negative glitch/bounce tests" }
+    - { yaml: "error_handling", output: "parameter guard checks" }
+    - { yaml: "debug_observability", output: "waveform dump and debug checklist" }
+    - { yaml: "integration.connections", output: "rtl/debouncer.sv child-module named port maps" }
+    - { yaml: "test_requirements.scenarios", output: "tb/cocotb tests" }
+
+workflow_todos:
+  fl-model-gen:
+    - id: "FL_DEBOUNCER_MODEL"
+      content: "Implement debouncer functional reference model"
+      detail: "Create a cycle-stepped model from function_model transactions and cycle_model latency rules for sync, qualify, update, and edge pulses."
+      criteria: ["Model reproduces FM_DEBOUNCE, FM_REJECT_BOUNCE, and FM_EDGE", "Model supports parameter sweep for DEBOUNCE_CYCLES and RESET_VALUE"]
+      source_refs: ["function_model", "cycle_model"]
+      owner_module: "debouncer_model"
+      owner_file: "tb/cocotb/debouncer_model.py"
+      priority: "high"
+      required: true
+  rtl-gen:
+    - id: "RTL_SYNC"
+      content: "Implement manifest-owned input synchronizer"
+      detail: "Translate cdc_requirements.synchronizers.input_sync and cycle_model S0_SYNC into debouncer_sync.sv and top-level wiring."
+      criteria: ["SYNC_STAGES flops are present", "noisy_i is not consumed by filter before synchronization", "reset value is deterministic"]
+      source_refs: ["cdc_requirements.synchronizers.input_sync", "cycle_model.pipeline.S0_SYNC", "io_list.interfaces.noisy_input"]
+      owner_module: "debouncer_sync"
+      owner_file: "rtl/debouncer_sync.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_FILTER"
+      content: "Implement debounce qualification counter and FSM"
+      detail: "Implement threshold counting, candidate cancellation, clean_state update, and parameter guards from function_model/cycle_model/fsm."
+      criteria: ["clean_o changes only after DEBOUNCE_CYCLES consecutive mismatch samples", "short bounces are rejected", "illegal parameter combinations are guarded"]
+      source_refs: ["function_model.transactions.FM_DEBOUNCE", "function_model.transactions.FM_REJECT_BOUNCE", "fsm.filter", "error_handling"]
+      owner_module: "debouncer_filter"
+      owner_file: "rtl/debouncer_filter.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_EDGE"
+      content: "Implement one-cycle edge pulse generation"
+      detail: "Generate mutually exclusive rise_o/fall_o pulses coincident with accepted clean_state transitions."
+      criteria: ["rise_o pulse width is exactly one clk_i cycle", "fall_o pulse width is exactly one clk_i cycle", "rise_o and fall_o are mutually exclusive"]
+      source_refs: ["function_model.transactions.FM_EDGE", "cycle_model.handshake_rules", "test_requirements.scenarios.SC_ACCEPT_RISE", "test_requirements.scenarios.SC_ACCEPT_FALL"]
+      owner_module: "debouncer_edge"
+      owner_file: "rtl/debouncer_edge.sv"
+      priority: "high"
+      required: true
+  tb-gen:
+    - id: "TB_DEBOUNCER_SCENARIOS"
+      content: "Implement cocotb tests for declared debounce scenarios"
+      detail: "Drive reset, bounce rejection, rise/fall acceptance, async-like random toggles, and parameter sweep against the FL model."
+      criteria: ["All test_requirements.scenarios execute", "Scoreboard checks all output cycles", "Coverage bins map to function and cycle goals"]
+      source_refs: ["test_requirements", "function_model", "cycle_model"]
+      owner_module: "debouncer_tb"
+      owner_file: "tb/cocotb/test_debouncer.py"
+      priority: "high"
+      required: true
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh debouncer", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model debouncer", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl debouncer", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb debouncer", description: "Downstream cocotb verification from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform and coverage inspection after sim exists" }
+    - { name: "handoff_coverage", command: "/coverage debouncer", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn debouncer && /sta debouncer && /pnr debouncer && /sta-post debouncer", description: "Produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence" }

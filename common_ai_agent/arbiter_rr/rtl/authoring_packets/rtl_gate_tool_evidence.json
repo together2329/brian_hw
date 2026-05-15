@@ -508,27 +508,9 @@
         "task_id": "RTL-0006"
       },
       {
-        "gate_kind": "dut_compile",
-        "owner_module": "arbiter_rr",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "gate_kind": "dut_lint",
-        "owner_module": "arbiter_rr",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "arbiter_rr",
-        "reason": "163 required non-closure TODO(s) remain open.",
+        "reason": "8 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -570,14 +552,14 @@
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 7,
+    "open_required_count": 5,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
       "Never use a fixed RTL template as the implementation."
     ],
-    "tool_evidence_open_count": 7,
+    "tool_evidence_open_count": 5,
     "tool_evidence_plan": [
       {
         "artifact": "rtl/rtl_authoring_provenance.json",
@@ -603,53 +585,6 @@
         "task_id": "RTL-0006"
       },
       {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "arbiter_rr/rtl/rtl_compile.json",
-          "arbiter_rr/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py arbiter_rr --top arbiter_rr --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py arbiter_rr --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "arbiter_rr/list/arbiter_rr.f covers the current DUT RTL sources."
-        ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "artifact": "lint/dut_lint.json",
-        "artifacts": [
-          "arbiter_rr/lint/dut_lint.json"
-        ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-        "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py arbiter_rr --top arbiter_rr",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py arbiter_rr --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_lint",
-        "prerequisites": [
-          "arbiter_rr/list/arbiter_rr.f covers the current DUT RTL/header sources."
-        ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "stage_sequence": [
-          "lint",
-          "dut_lint"
-        ],
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
         "artifact": "rtl/rtl_todo_plan.json",
         "artifacts": [
           "arbiter_rr/rtl/rtl_todo_plan.json",
@@ -663,7 +598,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "163 required non-closure TODO(s) remain open.",
+        "reason": "8 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -770,7 +705,7 @@
       "rtl_gate.rtl_gen": 7
     },
     "module_slice": {},
-    "open_required_count": 7,
+    "open_required_count": 5,
     "required_count": 7,
     "source_refs": [
       "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -782,7 +717,8 @@
       "quality_gates.rtl_gen.coverage_closure"
     ],
     "status_counts": {
-      "open": 7
+      "open": 5,
+      "pass": 2
     },
     "task_count": 7
   },
@@ -878,9 +814,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -926,9 +862,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -971,7 +907,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "163 required non-closure TODO(s) remain open.",
+        "reason": "8 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 1/9 section=rtl_flow task_limit=48
@@ -70,14 +70,14 @@ Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
 SSOT item context: value=arbiter_rr.
-- Current reason: Owner RTL file is missing: rtl/arbiter_rr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width

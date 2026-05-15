@@ -6,7 +6,208 @@
       "required_for_profile": true,
       "status": "missing"
     },
-    "connection_contract_suggestions": {},
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rows": [
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PADDR",
+          "review_status": "pending",
+          "signal": "PADDR"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PCLK",
+          "review_status": "pending",
+          "signal": "PCLK"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PENABLE",
+          "review_status": "pending",
+          "signal": "PENABLE"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PRDATA",
+          "review_status": "pending",
+          "signal": "PRDATA"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PREADY",
+          "review_status": "pending",
+          "signal": "PREADY"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PRESETn",
+          "review_status": "pending",
+          "signal": "PRESETn"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PSEL",
+          "review_status": "pending",
+          "signal": "PSEL"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PSLVERR",
+          "review_status": "pending",
+          "signal": "PSLVERR"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PWDATA",
+          "review_status": "pending",
+          "signal": "PWDATA"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "PWRITE",
+          "review_status": "pending",
+          "signal": "PWRITE"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "ctrl_enable_o",
+          "review_status": "pending",
+          "signal": "ctrl_enable"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "mask_o",
+          "review_status": "pending",
+          "signal": "mask"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "status_index_i",
+          "review_status": "pending",
+          "signal": "core_index"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_regs",
+          "module": "priority_enc_regs",
+          "port": "status_valid_i",
+          "review_status": "pending",
+          "signal": "core_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "PCLK",
+          "review_status": "pending",
+          "signal": "PCLK"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "PRESETn",
+          "review_status": "pending",
+          "signal": "PRESETn"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "data_in",
+          "review_status": "pending",
+          "signal": "data_in"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "enable_i",
+          "review_status": "pending",
+          "signal": "ctrl_enable"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "index_out",
+          "review_status": "pending",
+          "signal": "core_index"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "mask_i",
+          "review_status": "pending",
+          "signal": "mask"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
+          "port": "valid_out",
+          "review_status": "pending",
+          "signal": "core_valid"
+        }
+      ],
+      "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
+      "summary": {
+        "applied_to_ssot": false,
+        "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+        "pending_review": 21,
+        "status": "pending_review",
+        "suggested_rows": 21
+      }
+    },
     "owner": {
       "file": "rtl/priority_enc.sv",
       "name": "priority_enc",
@@ -228,8 +429,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": false,
     "llm_actionable": true,
-    "llm_actionable_open_count": 9,
-    "open_required_count": 9,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -261,7 +462,7 @@
       "rtl_gate.rtl_gen": 10
     },
     "module_slice": {},
-    "open_required_count": 9,
+    "open_required_count": 1,
     "required_count": 10,
     "source_refs": [
       "quality_gates.rtl_gen.static_rtl_evidence",
@@ -276,8 +477,8 @@
       "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
     ],
     "status_counts": {
-      "open": 9,
-      "pass": 1
+      "open": 1,
+      "pass": 9
     },
     "task_count": 10
   },
@@ -323,7 +524,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "23 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "7 static-evidence-required task(s) still lack DUT RTL evidence.",
         "required": true,
         "status": "open"
       }
@@ -368,9 +569,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 owner logic structure issue(s) remain. priority_enc_regs: Behavior-owner module is not declared in its owner file; priority_enc_core: Behavior-owner module is not declared in its owner file; priority_enc: Behavior-owner module is not declared in its owner file",
+        "reason": "Behavior-owner RTL modules contain real implementation structure.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -416,9 +617,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -461,9 +662,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top IO contract issue(s) remain. priority_enc: SSOT top module is not declared in listed RTL sources",
+        "reason": "SSOT top IO contracts match the RTL top declaration.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -506,9 +707,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top output drive issue(s) remain. priority_enc: SSOT top module is not declared, so output drive evidence cannot be checked",
+        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -551,9 +752,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top input consumption issue(s) remain. priority_enc: SSOT top module is not declared, so input consumption evidence cannot be checked",
+        "reason": "SSOT top inputs have RTL consumption evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -596,9 +797,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 manifest hierarchy integration issue(s) remain. priority_enc: SSOT top module is not declared in listed RTL sources; priority_enc_regs: SSOT manifest child module is not declared in listed RTL sources; priority_enc_core: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -686,9 +887,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 manifest signal-flow issue(s) remain. priority_enc: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
+        "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -731,9 +932,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "8 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL source-file count is below the SSOT-locked target scale: actual=0 required=3; Production RTL module count is below the SSOT-locked target scale: actual=0 required=3",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=81, required=28).",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],

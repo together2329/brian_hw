@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 6
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - Module slice: 4/13 section=integration task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_modules
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_modules.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=external_modules.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -61,14 +61,14 @@ SSOT item context: name=external_modules.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_clocks
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_clocks.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=external_clocks; value=["PCLK"].
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -81,14 +81,14 @@ SSOT item context: name=external_clocks; value=["PCLK"].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_resets
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_resets.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: name=external_resets; value=["PRESETn"].
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -101,14 +101,14 @@ SSOT item context: name=external_resets; value=["PRESETn"].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PCLK
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PCLK.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: port=PCLK; signal=PCLK.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -122,14 +122,14 @@ SSOT item context: port=PCLK; signal=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PRESETn
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PRESETn.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: port=PRESETn; signal=PRESETn.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -143,14 +143,14 @@ SSOT item context: port=PRESETn; signal=PRESETn.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.APB4
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.APB4.
 Owner: lfsr in rtl/lfsr.sv via single_owner.
 SSOT item context: port=apb_slave; signal=APB4.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

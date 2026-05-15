@@ -35,12 +35,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 118,
+    "open_required_todos": 3,
     "orphan_tasks": 0,
-    "static_missing": 33,
+    "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T01:19:51Z",
+  "generated_at": "2026-05-15T02:09:23Z",
   "ip": "lfsr",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 3,
@@ -53,41 +53,43 @@
       }
     ],
     "connection_contract_status": "fail",
-    "declared_modules": [],
-    "graph": {},
-    "issues": [
-      {
-        "file": "rtl/lfsr.sv",
-        "issue": "SSOT top module is not declared in listed RTL sources",
-        "module": "lfsr"
-      }
+    "declared_modules": [
+      "lfsr"
     ],
+    "graph": {
+      "lfsr": []
+    },
+    "issues": [],
     "port_connection_issues": [],
     "port_connection_status": "pass",
-    "reachable_modules": [],
-    "roots": [],
-    "sources": [],
-    "status": "fail"
+    "reachable_modules": [
+      "lfsr"
+    ],
+    "roots": [
+      "lfsr"
+    ],
+    "sources": [
+      "rtl/lfsr.sv"
+    ],
+    "status": "pass"
   },
   "manifest_signal_flow_evidence": {
     "checked_inputs": 0,
     "checked_outputs": 0,
     "issues": [],
-    "reachable_modules": [],
-    "roots": [],
+    "reachable_modules": [
+      "lfsr"
+    ],
+    "roots": [
+      "lfsr"
+    ],
     "status": "pass"
   },
   "orphans": [],
   "owner_logic_evidence": {
     "checked": 1,
-    "issues": [
-      {
-        "file": "rtl/lfsr.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "lfsr"
-      }
-    ],
-    "status": "fail"
+    "issues": [],
+    "status": "pass"
   },
   "policy": {
     "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
@@ -106,21 +108,36 @@
   "reference_scale_gap": {},
   "rtl_implementation_depth_evidence": {
     "aggregate": {
-      "behavior_owner_logic_modules": 0,
-      "control_flow": 0,
-      "depth_score": 0,
+      "behavior_owner_logic_modules": 1,
+      "control_flow": 15,
+      "depth_score": 150,
       "instances": 0,
-      "lines": 0,
-      "logic_modules": 0,
-      "modules": 0,
-      "nonconstant_assigns": 0,
-      "procedural_blocks": 0,
-      "source_files": 0,
-      "state_updates": 0,
-      "storage_decls": 0
+      "lines": 199,
+      "logic_modules": 1,
+      "modules": 1,
+      "nonconstant_assigns": 23,
+      "procedural_blocks": 2,
+      "source_files": 1,
+      "state_updates": 38,
+      "storage_decls": 30
     },
     "issues": [],
-    "modules": [],
+    "modules": [
+      {
+        "depth_score": 150,
+        "file": "rtl/lfsr.sv",
+        "metrics": {
+          "control_flow": 15,
+          "instances": 0,
+          "nonconstant_assigns": 23,
+          "placeholder_tokens": false,
+          "procedural_blocks": 2,
+          "state_updates": 38,
+          "storage_decls": 30
+        },
+        "module": "lfsr"
+      }
+    ],
     "profile": "standard",
     "reference_comparison": null,
     "status": "pass",
@@ -135,13 +152,9 @@
     }
   },
   "rtl_placeholder_free_evidence": {
-    "checked": 0,
-    "issues": [
-      {
-        "issue": "No listed RTL source files were readable, so placeholder-free evidence cannot be checked"
-      }
-    ],
-    "status": "fail"
+    "checked": 1,
+    "issues": [],
+    "status": "pass"
   },
   "schema_version": 1,
   "source": "lfsr/yaml/lfsr.ssot.yaml",
@@ -354,532 +367,12 @@
   ],
   "static_rtl_evidence": {
     "checked": 33,
-    "missing": 33,
-    "missing_tasks": [
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "ctrl",
-          "ctrl_reg",
-          "reg"
-        ],
-        "source_ref": "function_model.transactions.FM1.preconditions.precondition_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0046"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "lfsr",
-          "lfsr_state"
-        ],
-        "source_ref": "function_model.transactions.FM1.preconditions.precondition_1",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0047"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "lfsr",
-          "lfsr_state"
-        ],
-        "source_ref": "function_model.transactions.FM1.inputs.input_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0048"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "poly",
-          "poly_reg",
-          "reg"
-        ],
-        "source_ref": "function_model.transactions.FM1.inputs.input_1",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0049"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "lfsr",
-          "lfsr_state",
-          "out",
-          "prbs",
-          "prbs_out"
-        ],
-        "source_ref": "function_model.transactions.FM1.outputs.prbs_out",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0050"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bit",
-          "lfsr",
-          "lfsr_state",
-          "prbs",
-          "prbs_bit"
-        ],
-        "source_ref": "function_model.transactions.FM1.outputs.prbs_bit",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0051"
-      },
-      {
-        "category": "function_model.state_update",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "LFSR",
-          "LFSR_WIDTH",
-          "WIDTH",
-          "bit",
-          "feedback",
-          "feedback_bit",
-          "lfsr",
-          "lfsr_state"
-        ],
-        "source_ref": "function_model.transactions.FM1.state_updates.lfsr_state",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0052"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "reg",
-          "status",
-          "status_reg"
-        ],
-        "source_ref": "function_model.transactions.FM1.side_effects.side_effect_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0053"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "APB",
-          "APB_DATA_WIDTH",
-          "DATA",
-          "WIDTH"
-        ],
-        "source_ref": "function_model.transactions.FM2.inputs.input_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0056"
-      },
-      {
-        "category": "function_model.state_update",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "LFSR",
-          "LFSR_WIDTH",
-          "PWDATA",
-          "WIDTH"
-        ],
-        "source_ref": "function_model.transactions.FM2.state_updates.lfsr_state",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0057"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "prbs",
-          "prbs_valid",
-          "valid"
-        ],
-        "source_ref": "function_model.transactions.FM2.side_effects.side_effect_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0058"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "ctrl",
-          "ctrl_reg",
-          "reg"
-        ],
-        "source_ref": "function_model.transactions.FM3.preconditions.precondition_1",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "APB",
-          "APB_DATA_WIDTH",
-          "DATA",
-          "WIDTH"
-        ],
-        "source_ref": "function_model.transactions.FM3.inputs.input_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0062"
-      },
-      {
-        "category": "function_model.state_update",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "LFSR",
-          "LFSR_WIDTH",
-          "PWDATA",
-          "WIDTH"
-        ],
-        "source_ref": "function_model.transactions.FM3.state_updates.poly_reg",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0063"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "lfsr",
-          "lfsr_state"
-        ],
-        "source_ref": "function_model.transactions.FM4.preconditions.precondition_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0065"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "prbs",
-          "prbs_valid",
-          "valid"
-        ],
-        "source_ref": "function_model.transactions.FM4.outputs.prbs_valid",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0066"
-      },
-      {
-        "category": "function_model.state_update",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "DEFAULT",
-          "DEFAULT_SEED",
-          "SEED",
-          "auto",
-          "auto_reload",
-          "ctrl",
-          "ctrl_reg",
-          "reg"
-        ],
-        "source_ref": "function_model.transactions.FM4.state_updates.lfsr_state",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0067"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "reg",
-          "status",
-          "status_reg"
-        ],
-        "source_ref": "function_model.transactions.FM4.side_effects.side_effect_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0068"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "reg",
-          "status",
-          "status_reg"
-        ],
-        "source_ref": "function_model.transactions.FM4.side_effects.side_effect_1",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0069"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "ctrl",
-          "ctrl_reg",
-          "reg"
-        ],
-        "source_ref": "function_model.invariants.invariant_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0070"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bit",
-          "out",
-          "prbs",
-          "prbs_bit",
-          "prbs_out",
-          "prbs_valid",
-          "valid"
-        ],
-        "source_ref": "cycle_model.pipeline.S1_STEP",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0078"
-      },
-      {
-        "category": "cycle_model.backpressure",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bit",
-          "out",
-          "prbs",
-          "prbs_bit",
-          "prbs_out"
-        ],
-        "source_ref": "cycle_model.backpressure.backpressure_rule_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0081"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "IDLE"
-        ],
-        "source_ref": "fsm.lfsr_control.states.state_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0097"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "RUNNING"
-        ],
-        "source_ref": "fsm.lfsr_control.states.state_1",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0098"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "LOCKUP"
-        ],
-        "source_ref": "fsm.lfsr_control.states.state_2",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0099"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "CTRL",
-          "IDLE",
-          "RUNNING",
-          "lfsr",
-          "lfsr_state"
-        ],
-        "source_ref": "fsm.lfsr_control.transitions.transition_0",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0100"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "CTRL",
-          "IDLE",
-          "RUNNING"
-        ],
-        "source_ref": "fsm.lfsr_control.transitions.transition_1",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0101"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "LOCKUP",
-          "RUNNING",
-          "lfsr",
-          "lfsr_state"
-        ],
-        "source_ref": "fsm.lfsr_control.transitions.transition_2",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0102"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "CTRL",
-          "IDLE",
-          "LOCKUP"
-        ],
-        "source_ref": "fsm.lfsr_control.transitions.transition_3",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0103"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "CTRL",
-          "LOCKUP",
-          "RUNNING",
-          "auto",
-          "auto_reload",
-          "reload"
-        ],
-        "source_ref": "fsm.lfsr_control.transitions.transition_4",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0104"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "LFSR",
-          "LFSR_WIDTH",
-          "WIDTH",
-          "bit",
-          "out",
-          "prbs",
-          "prbs_bit",
-          "prbs_out"
-        ],
-        "source_ref": "features.PRBS_Generation",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0105"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "prbs",
-          "prbs_valid",
-          "valid"
-        ],
-        "source_ref": "features.Seed_Loading",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0107"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/lfsr.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "prbs",
-          "prbs_valid",
-          "valid"
-        ],
-        "source_ref": "features.Lock_up_Detection",
-        "source_scope": "rtl/lfsr.sv",
-        "task_id": "RTL-0108"
-      }
-    ],
-    "passed": 0,
-    "sources": []
+    "missing": 0,
+    "missing_tasks": [],
+    "passed": 33,
+    "sources": [
+      "rtl/lfsr.sv"
+    ]
   },
   "summary": {
     "blocking_questions": 0,
@@ -1038,9 +531,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1231,9 +724,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1279,9 +772,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "33 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1326,9 +819,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 owner logic structure issue(s) remain. lfsr: Behavior-owner module is not declared in its owner file",
+        "reason": "Behavior-owner RTL modules contain real implementation structure.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1376,9 +869,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1423,7 +916,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top IO contract issue(s) remain. lfsr: SSOT top module is not declared in listed RTL sources",
+        "reason": "1 top IO contract issue(s) remain. PCLK: RTL top port width/range does not match SSOT",
         "required": true,
         "status": "open"
       }
@@ -1470,9 +963,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top output drive issue(s) remain. lfsr: SSOT top module is not declared, so output drive evidence cannot be checked",
+        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1517,9 +1010,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top input consumption issue(s) remain. lfsr: SSOT top module is not declared, so input consumption evidence cannot be checked",
+        "reason": "SSOT top inputs have RTL consumption evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1564,9 +1057,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 manifest hierarchy integration issue(s) remain. lfsr: SSOT top module is not declared in listed RTL sources",
+        "reason": "Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1754,9 +1247,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1804,9 +1297,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1851,7 +1344,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "117 required non-closure TODO(s) remain open.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1894,9 +1387,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1937,9 +1430,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1980,9 +1473,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2023,9 +1516,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2066,9 +1559,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2109,9 +1602,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2152,9 +1645,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2195,9 +1688,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2242,9 +1735,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2289,9 +1782,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2336,9 +1829,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2383,9 +1876,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2430,9 +1923,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2477,9 +1970,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2524,9 +2017,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2571,9 +2064,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2618,9 +2111,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2665,9 +2158,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2712,9 +2205,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2759,9 +2252,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2806,9 +2299,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2851,9 +2344,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2896,9 +2389,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2941,9 +2434,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2986,9 +2479,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3030,9 +2523,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3066,8 +2559,12 @@
         "function_model.transactions.FM1.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "ctrl",
+          "ctrl_reg",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3077,7 +2574,7 @@
           "reg"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3087,9 +2584,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3122,8 +2619,11 @@
         "function_model.transactions.FM1.preconditions.precondition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "lfsr",
+          "lfsr_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3132,7 +2632,7 @@
           "lfsr_state"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3142,9 +2642,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3177,8 +2677,11 @@
         "function_model.transactions.FM1.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "lfsr",
+          "lfsr_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3187,7 +2690,7 @@
           "lfsr_state"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3197,9 +2700,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3233,8 +2736,12 @@
         "function_model.transactions.FM1.inputs.input_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "poly",
+          "poly_reg",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3244,7 +2751,7 @@
           "reg"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3254,9 +2761,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3298,8 +2805,14 @@
         "function_model.transactions.FM1.outputs.prbs_out"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "lfsr",
+          "lfsr_state",
+          "out",
+          "prbs",
+          "prbs_out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3311,7 +2824,7 @@
           "prbs_out"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -3321,9 +2834,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3365,8 +2878,14 @@
         "function_model.transactions.FM1.outputs.prbs_bit"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bit",
+          "lfsr",
+          "lfsr_state",
+          "prbs",
+          "prbs_bit"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3378,7 +2897,7 @@
           "prbs_bit"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -3388,9 +2907,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3437,8 +2956,20 @@
         "function_model.transactions.FM1.state_updates.lfsr_state"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 11,
+        "matched_terms": [
+          "LFSR",
+          "LFSR_WIDTH",
+          "WIDTH",
+          "bit",
+          "feedback",
+          "feedback_bit",
+          "lfsr",
+          "lfsr_state",
+          "poly",
+          "poly_reg",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3456,7 +2987,7 @@
           "reg"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -3466,9 +2997,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3502,8 +3033,12 @@
         "function_model.transactions.FM1.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "reg",
+          "status",
+          "status_reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3513,7 +3048,7 @@
           "status_reg"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3523,9 +3058,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3567,9 +3102,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3610,9 +3145,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3647,8 +3182,13 @@
         "function_model.transactions.FM2.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "APB",
+          "APB_DATA_WIDTH",
+          "DATA",
+          "WIDTH"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3659,7 +3199,7 @@
           "WIDTH"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3669,9 +3209,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3711,8 +3251,13 @@
         "function_model.transactions.FM2.state_updates.lfsr_state"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "LFSR",
+          "LFSR_WIDTH",
+          "PWDATA",
+          "WIDTH"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3723,7 +3268,7 @@
           "WIDTH"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -3733,9 +3278,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3769,8 +3314,12 @@
         "function_model.transactions.FM2.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "prbs",
+          "prbs_valid",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3780,7 +3329,7 @@
           "valid"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3790,9 +3339,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3834,9 +3383,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3877,9 +3426,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3913,8 +3462,12 @@
         "function_model.transactions.FM3.preconditions.precondition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "ctrl",
+          "ctrl_reg",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3924,7 +3477,7 @@
           "reg"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3934,9 +3487,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3971,8 +3524,13 @@
         "function_model.transactions.FM3.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "APB",
+          "APB_DATA_WIDTH",
+          "DATA",
+          "WIDTH"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3983,7 +3541,7 @@
           "WIDTH"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3993,9 +3551,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4035,8 +3593,13 @@
         "function_model.transactions.FM3.state_updates.poly_reg"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "LFSR",
+          "LFSR_WIDTH",
+          "PWDATA",
+          "WIDTH"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4047,7 +3610,7 @@
           "WIDTH"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -4057,9 +3620,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4101,9 +3664,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4136,8 +3699,11 @@
         "function_model.transactions.FM4.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "lfsr",
+          "lfsr_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4146,7 +3712,7 @@
           "lfsr_state"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4156,9 +3722,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4198,8 +3764,12 @@
         "function_model.transactions.FM4.outputs.prbs_valid"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "prbs",
+          "prbs_valid",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4209,7 +3779,7 @@
           "valid"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -4219,9 +3789,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4266,8 +3836,15 @@
         "function_model.transactions.FM4.state_updates.lfsr_state"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "DEFAULT",
+          "DEFAULT_SEED",
+          "SEED",
+          "ctrl",
+          "ctrl_reg",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4283,7 +3860,7 @@
           "reload"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -4293,9 +3870,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4329,8 +3906,12 @@
         "function_model.transactions.FM4.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "reg",
+          "status",
+          "status_reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4340,7 +3921,7 @@
           "status_reg"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4350,9 +3931,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4386,8 +3967,12 @@
         "function_model.transactions.FM4.side_effects.side_effect_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "reg",
+          "status",
+          "status_reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4397,7 +3982,7 @@
           "status_reg"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4407,9 +3992,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4443,8 +4028,12 @@
         "function_model.invariants.invariant_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "ctrl",
+          "ctrl_reg",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4454,7 +4043,7 @@
           "reg"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4464,9 +4053,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4507,9 +4096,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4550,9 +4139,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4594,9 +4183,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4636,9 +4225,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4678,9 +4267,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4722,9 +4311,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4769,9 +4358,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4813,8 +4402,16 @@
         "cycle_model.pipeline.S1_STEP"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "bit",
+          "out",
+          "prbs",
+          "prbs_bit",
+          "prbs_out",
+          "prbs_valid",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4828,7 +4425,7 @@
           "valid"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -4838,9 +4435,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4882,9 +4479,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4926,9 +4523,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4965,8 +4562,14 @@
         "cycle_model.backpressure.backpressure_rule_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bit",
+          "out",
+          "prbs",
+          "prbs_bit",
+          "prbs_out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4978,7 +4581,7 @@
           "prbs_out"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -4988,9 +4591,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5032,9 +4635,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5083,9 +4686,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5134,9 +4737,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5185,9 +4788,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5236,9 +4839,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5287,9 +4890,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5338,9 +4941,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5389,9 +4992,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5440,9 +5043,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5491,9 +5094,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5542,9 +5145,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5593,9 +5196,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5644,9 +5247,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5695,9 +5298,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5746,9 +5349,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5781,8 +5384,10 @@
         "fsm.lfsr_control.states.state_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -5790,7 +5395,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -5800,9 +5405,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5835,8 +5440,10 @@
         "fsm.lfsr_control.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "RUNNING"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -5844,7 +5451,7 @@
           "RUNNING"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -5854,9 +5461,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5889,8 +5496,10 @@
         "fsm.lfsr_control.states.state_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "LOCKUP"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -5898,7 +5507,7 @@
           "LOCKUP"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -5908,9 +5517,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5950,8 +5559,14 @@
         "fsm.lfsr_control.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "CTRL",
+          "IDLE",
+          "RUNNING",
+          "lfsr",
+          "lfsr_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5963,7 +5578,7 @@
           "lfsr_state"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -5973,9 +5588,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6013,8 +5628,12 @@
         "fsm.lfsr_control.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "CTRL",
+          "IDLE",
+          "RUNNING"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6024,7 +5643,7 @@
           "RUNNING"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -6034,9 +5653,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6075,8 +5694,13 @@
         "fsm.lfsr_control.transitions.transition_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "LOCKUP",
+          "RUNNING",
+          "lfsr",
+          "lfsr_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6087,7 +5711,7 @@
           "lfsr_state"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -6097,9 +5721,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6137,8 +5761,12 @@
         "fsm.lfsr_control.transitions.transition_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "CTRL",
+          "IDLE",
+          "LOCKUP"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6148,7 +5776,7 @@
           "LOCKUP"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -6158,9 +5786,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6201,8 +5829,12 @@
         "fsm.lfsr_control.transitions.transition_4"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "CTRL",
+          "LOCKUP",
+          "RUNNING"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6215,7 +5847,7 @@
           "reload"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -6225,9 +5857,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6267,8 +5899,17 @@
         "features.PRBS_Generation"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "LFSR",
+          "LFSR_WIDTH",
+          "WIDTH",
+          "bit",
+          "out",
+          "prbs",
+          "prbs_bit",
+          "prbs_out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -6283,7 +5924,7 @@
           "prbs_out"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -6293,9 +5934,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6337,9 +5978,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6374,8 +6015,12 @@
         "features.Seed_Loading"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "prbs",
+          "prbs_valid",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -6385,7 +6030,7 @@
           "valid"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -6395,9 +6040,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6432,8 +6077,12 @@
         "features.Lock_up_Detection"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "prbs",
+          "prbs_valid",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -6443,7 +6092,7 @@
           "valid"
         ],
         "source_scope": "rtl/lfsr.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -6453,9 +6102,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6496,9 +6145,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6539,9 +6188,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6582,9 +6231,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6625,9 +6274,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6669,9 +6318,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6713,9 +6362,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6758,9 +6407,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6803,9 +6452,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6852,9 +6501,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6895,9 +6544,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6945,9 +6594,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6988,9 +6637,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7031,9 +6680,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7074,9 +6723,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7118,9 +6767,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7161,70 +6810,22 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 118,
+    "open_required_tasks": 3,
     "open_tasks": [
       {
-        "category": "rtl_flow.top",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list",
-        "task_id": "RTL-0002"
-      },
-      {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "33 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "task_id": "RTL-0007"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 owner logic structure issue(s) remain. lfsr: Behavior-owner module is not declared in its owner file",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "task_id": "RTL-0008"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "task_id": "RTL-0009"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top IO contract issue(s) remain. lfsr: SSOT top module is not declared in listed RTL sources",
+        "reason": "1 top IO contract issue(s) remain. PCLK: RTL top port width/range does not match SSOT",
         "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
         "task_id": "RTL-0010"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top output drive issue(s) remain. lfsr: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "task_id": "RTL-0011"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top input consumption issue(s) remain. lfsr: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "task_id": "RTL-0012"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 manifest hierarchy integration issue(s) remain. lfsr: SSOT top module is not declared in listed RTL sources",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "task_id": "RTL-0013"
       },
       {
         "category": "rtl_gate.rtl_gen",
@@ -7234,693 +6835,69 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "task_id": "RTL-0017"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "task_id": "RTL-0018"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "117 required non-closure TODO(s) remain open.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "parameters.LFSR_WIDTH",
-        "task_id": "RTL-0020"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "parameters.POLY_DEGREE",
-        "task_id": "RTL-0021"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "parameters.APB_ADDR_WIDTH",
-        "task_id": "RTL-0022"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "parameters.APB_DATA_WIDTH",
-        "task_id": "RTL-0023"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "parameters.DEFAULT_POLY",
-        "task_id": "RTL-0024"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "parameters.DEFAULT_SEED",
-        "task_id": "RTL-0025"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "parameters.CLOCK_FREQ_MHZ",
-        "task_id": "RTL-0026"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "parameters.RESET_POLARITY",
-        "task_id": "RTL-0027"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.clock_domains.PCLK.ports.PCLK",
-        "task_id": "RTL-0028"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.resets.PRESETn.ports.PRESETn",
-        "task_id": "RTL-0029"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.interfaces.apb_slave.ports.PADDR",
-        "task_id": "RTL-0030"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.interfaces.apb_slave.ports.PSEL",
-        "task_id": "RTL-0031"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.interfaces.apb_slave.ports.PENABLE",
-        "task_id": "RTL-0032"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.interfaces.apb_slave.ports.PWRITE",
-        "task_id": "RTL-0033"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.interfaces.apb_slave.ports.PWDATA",
-        "task_id": "RTL-0034"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.interfaces.apb_slave.ports.PRDATA",
-        "task_id": "RTL-0035"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.interfaces.apb_slave.ports.PREADY",
-        "task_id": "RTL-0036"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.interfaces.apb_slave.ports.PSLVERR",
-        "task_id": "RTL-0037"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.interfaces.prbs_output.ports.prbs_out",
-        "task_id": "RTL-0038"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.interfaces.prbs_output.ports.prbs_bit",
-        "task_id": "RTL-0039"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "io_list.interfaces.status.ports.prbs_valid",
-        "task_id": "RTL-0040"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.state_variables.lfsr_state",
-        "task_id": "RTL-0041"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.state_variables.poly_reg",
-        "task_id": "RTL-0042"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.state_variables.ctrl_reg",
-        "task_id": "RTL-0043"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.state_variables.status_reg",
-        "task_id": "RTL-0044"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM1",
-        "task_id": "RTL-0045"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM1.preconditions.precondition_0",
-        "task_id": "RTL-0046"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM1.preconditions.precondition_1",
-        "task_id": "RTL-0047"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM1.inputs.input_0",
-        "task_id": "RTL-0048"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM1.inputs.input_1",
-        "task_id": "RTL-0049"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM1.outputs.prbs_out",
-        "task_id": "RTL-0050"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM1.outputs.prbs_bit",
-        "task_id": "RTL-0051"
-      },
-      {
-        "category": "function_model.state_update",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM1.state_updates.lfsr_state",
-        "task_id": "RTL-0052"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM1.side_effects.side_effect_0",
-        "task_id": "RTL-0053"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM2",
-        "task_id": "RTL-0054"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM2.preconditions.precondition_0",
-        "task_id": "RTL-0055"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM2.inputs.input_0",
-        "task_id": "RTL-0056"
-      },
-      {
-        "category": "function_model.state_update",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM2.state_updates.lfsr_state",
-        "task_id": "RTL-0057"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM2.side_effects.side_effect_0",
-        "task_id": "RTL-0058"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM3",
-        "task_id": "RTL-0059"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM3.preconditions.precondition_0",
-        "task_id": "RTL-0060"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM3.preconditions.precondition_1",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM3.inputs.input_0",
-        "task_id": "RTL-0062"
-      },
-      {
-        "category": "function_model.state_update",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM3.state_updates.poly_reg",
-        "task_id": "RTL-0063"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM4",
-        "task_id": "RTL-0064"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM4.preconditions.precondition_0",
-        "task_id": "RTL-0065"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM4.outputs.prbs_valid",
-        "task_id": "RTL-0066"
-      },
-      {
-        "category": "function_model.state_update",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM4.state_updates.lfsr_state",
-        "task_id": "RTL-0067"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM4.side_effects.side_effect_0",
-        "task_id": "RTL-0068"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.transactions.FM4.side_effects.side_effect_1",
-        "task_id": "RTL-0069"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.invariants.invariant_0",
-        "task_id": "RTL-0070"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.invariants.invariant_1",
-        "task_id": "RTL-0071"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "function_model.invariants.invariant_2",
-        "task_id": "RTL-0072"
-      },
-      {
-        "category": "cycle_model.clock",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "cycle_model.clock",
-        "task_id": "RTL-0073"
-      },
-      {
-        "category": "cycle_model.reset",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "cycle_model.reset",
-        "task_id": "RTL-0074"
-      },
-      {
-        "category": "cycle_model.latency",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "cycle_model.latency",
-        "task_id": "RTL-0075"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "cycle_model.handshake_rules.PSEL_PENABLE",
-        "task_id": "RTL-0076"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "cycle_model.pipeline.S0_IDLE",
-        "task_id": "RTL-0077"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "cycle_model.pipeline.S1_STEP",
-        "task_id": "RTL-0078"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_0",
-        "task_id": "RTL-0079"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_1",
-        "task_id": "RTL-0080"
-      },
-      {
-        "category": "cycle_model.backpressure",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "cycle_model.backpressure.backpressure_rule_0",
-        "task_id": "RTL-0081"
-      },
-      {
-        "category": "cycle_model.observability",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "cycle_model.observability.observability_signal_0",
-        "task_id": "RTL-0082"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.CTRL",
-        "task_id": "RTL-0083"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.CTRL.fields.enable",
-        "task_id": "RTL-0084"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.CTRL.fields.auto_reload",
-        "task_id": "RTL-0085"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.CTRL.fields.reserved_31_2",
-        "task_id": "RTL-0086"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.POLY",
-        "task_id": "RTL-0087"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.POLY.fields.poly",
-        "task_id": "RTL-0088"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.SEED",
-        "task_id": "RTL-0089"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.SEED.fields.seed",
-        "task_id": "RTL-0090"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.STATUS",
-        "task_id": "RTL-0091"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.STATUS.fields.running",
-        "task_id": "RTL-0092"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.STATUS.fields.lockup",
-        "task_id": "RTL-0093"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.STATUS.fields.reserved_31_2",
-        "task_id": "RTL-0094"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.PRBS",
-        "task_id": "RTL-0095"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "registers.register_list.PRBS.fields.prbs",
-        "task_id": "RTL-0096"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "fsm.lfsr_control.states.state_0",
-        "task_id": "RTL-0097"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "fsm.lfsr_control.states.state_1",
-        "task_id": "RTL-0098"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "fsm.lfsr_control.states.state_2",
-        "task_id": "RTL-0099"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "fsm.lfsr_control.transitions.transition_0",
-        "task_id": "RTL-0100"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "fsm.lfsr_control.transitions.transition_1",
-        "task_id": "RTL-0101"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "fsm.lfsr_control.transitions.transition_2",
-        "task_id": "RTL-0102"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "fsm.lfsr_control.transitions.transition_3",
-        "task_id": "RTL-0103"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "fsm.lfsr_control.transitions.transition_4",
-        "task_id": "RTL-0104"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "features.PRBS_Generation",
-        "task_id": "RTL-0105"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "features.Polynomial_Programming",
-        "task_id": "RTL-0106"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "features.Seed_Loading",
-        "task_id": "RTL-0107"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "features.Lock_up_Detection",
-        "task_id": "RTL-0108"
-      },
-      {
-        "category": "error_handling.recovery",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "error_handling.recovery.recovery_0",
-        "task_id": "RTL-0109"
-      },
-      {
-        "category": "security.assets",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "security.assets.register_map",
-        "task_id": "RTL-0110"
-      },
-      {
-        "category": "security.assets",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "security.assets.prbs_sequence",
-        "task_id": "RTL-0111"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "integration.dependencies.external_modules",
-        "task_id": "RTL-0112"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "integration.dependencies.external_clocks",
-        "task_id": "RTL-0113"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "integration.dependencies.external_resets",
-        "task_id": "RTL-0114"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "integration.connections.PCLK",
-        "task_id": "RTL-0115"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "integration.connections.PRESETn",
-        "task_id": "RTL-0116"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "integration.connections.APB4",
-        "task_id": "RTL-0117"
-      },
-      {
-        "category": "synthesis.constraints",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "synthesis.constraints.constraint_0",
-        "task_id": "RTL-0118"
-      },
-      {
-        "category": "synthesis.constraints",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "synthesis.constraints.constraint_1",
-        "task_id": "RTL-0119"
-      },
-      {
-        "category": "synthesis.constraints",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "synthesis.constraints.constraint_2",
-        "task_id": "RTL-0120"
-      },
-      {
-        "category": "synthesis.ppa_targets",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "synthesis.ppa_targets.area_um2_max",
-        "task_id": "RTL-0121"
-      },
-      {
-        "category": "synthesis.ppa_targets",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "synthesis.ppa_targets.power_mw_max",
-        "task_id": "RTL-0122"
-      },
-      {
-        "category": "synthesis.ppa_targets",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "synthesis.ppa_targets.frequency_mhz_min",
-        "task_id": "RTL-0123"
-      },
-      {
-        "category": "equivalence.module",
-        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
-        "source_ref": "sub_modules.lfsr.module_equivalence",
-        "task_id": "RTL-0124"
       }
     ],
-    "required_passed": 6,
+    "required_passed": 121,
     "required_total": 124,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
   "top": "lfsr",
   "top_input_consumption_evidence": {
-    "checked": 0,
-    "consumed": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "module": "lfsr"
-      }
+    "checked": 5,
+    "consumed": 5,
+    "issues": [],
+    "roots": [
+      "lfsr"
     ],
-    "roots": [],
-    "status": "fail"
+    "status": "pass"
   },
   "top_io_contract_evidence": {
     "contracts": 13,
+    "declared_top_ports": [
+      "PADDR",
+      "PCLK",
+      "PENABLE",
+      "PRDATA",
+      "PREADY",
+      "PRESETn",
+      "PSEL",
+      "PSLVERR",
+      "PWDATA",
+      "PWRITE",
+      "prbs_bit",
+      "prbs_out",
+      "prbs_valid"
+    ],
     "issues": [
       {
-        "file": "rtl/lfsr.sv",
-        "issue": "SSOT top module is not declared in listed RTL sources",
-        "module": "lfsr"
+        "actual_range": "[LFSR_WIDTH-1:0]",
+        "expected_width": "1",
+        "issue": "RTL top port width/range does not match SSOT",
+        "port": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]"
       }
     ],
-    "roots": [],
-    "status": "fail"
+    "roots": [
+      "lfsr"
+    ],
+    "status": "fail",
+    "top_parameters": {
+      "APB_ADDR_WIDTH": 8,
+      "APB_DATA_WIDTH": 32,
+      "LFSR_WIDTH": 32
+    }
   },
   "top_output_drive_evidence": {
-    "checked": 0,
-    "driven": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so output drive evidence cannot be checked",
-        "module": "lfsr"
-      }
+    "checked": 6,
+    "driven": 6,
+    "issues": [],
+    "roots": [
+      "lfsr"
     ],
-    "roots": [],
-    "status": "fail"
+    "status": "pass"
   },
   "type": "ssot_derived_rtl_todo_plan"
 }

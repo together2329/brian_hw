@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 37
+- LLM-actionable open tasks: 4
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, function_model, function_model.transactions, function_model.transactions.output_rules
 - Module slice: 2/4 section=function_model task_limit=48
@@ -42,14 +42,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM3.state_updates.count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM3.state_updates.count.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=count; expr=count; reset=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -65,14 +65,14 @@ SSOT item context: name=count; expr=count; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM3.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM3.side_effects.side_effect_0.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=count is unchanged because push and pop cancel.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -85,14 +85,14 @@ SSOT item context: value=count is unchanged because push and pop cancel.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM4
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM4.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: id=FM4; name=overflow_reject.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -112,7 +112,7 @@ SSOT item context: id=FM4; name=overflow_reject.
 SSOT ref: function_model.transactions.FM4.preconditions.precondition_0.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=wr_en_i == 1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -125,14 +125,14 @@ SSOT item context: value=wr_en_i == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM4.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4.preconditions.precondition_1.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=full_o == 1 (count == DEPTH).
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -145,14 +145,14 @@ SSOT item context: value=full_o == 1 (count == DEPTH).
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM4.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4.outputs.output_0.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=full_o = 1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -165,14 +165,14 @@ SSOT item context: value=full_o = 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM4.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4.outputs.output_1.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=count_o = DEPTH.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -185,14 +185,14 @@ SSOT item context: value=count_o = DEPTH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM4.output_rules.full_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4.output_rules.full_o.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=full_o; port=full_o; expr=1; width=1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -209,14 +209,14 @@ SSOT item context: name=full_o; port=full_o; expr=1; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM4.output_rules.count_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4.output_rules.count_o.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=count_o; port=count_o; expr=DEPTH; width=$clog2(DEPTH+1).
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -233,14 +233,14 @@ SSOT item context: name=count_o; port=count_o; expr=DEPTH; width=$clog2(DEPTH+1)
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM4.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4.side_effects.side_effect_0.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=Write rejected silently; no data corruption.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -253,14 +253,14 @@ SSOT item context: value=Write rejected silently; no data corruption.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM5
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM5.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: id=FM5; name=underflow_reject.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -280,7 +280,7 @@ SSOT item context: id=FM5; name=underflow_reject.
 SSOT ref: function_model.transactions.FM5.preconditions.precondition_0.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=rd_en_i == 1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -293,14 +293,14 @@ SSOT item context: value=rd_en_i == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM5.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM5.preconditions.precondition_1.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=empty_o == 1 (count == 0).
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -313,14 +313,14 @@ SSOT item context: value=empty_o == 1 (count == 0).
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM5.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM5.outputs.output_0.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=empty_o = 1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -333,14 +333,14 @@ SSOT item context: value=empty_o = 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM5.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM5.outputs.output_1.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=rd_data_o = previous_value_or_zero.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -353,14 +353,14 @@ SSOT item context: value=rd_data_o = previous_value_or_zero.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM5.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM5.outputs.output_2.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=count_o = 0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -373,14 +373,14 @@ SSOT item context: value=count_o = 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM5.output_rules.empty_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM5.output_rules.empty_o.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=empty_o; port=empty_o; expr=1; width=1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -397,14 +397,14 @@ SSOT item context: name=empty_o; port=empty_o; expr=1; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM5.output_rules.rd_data_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM5.output_rules.rd_data_o.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=rd_data_o; port=rd_data_o; expr=previous_value_or_zero; width=DATA_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -421,14 +421,14 @@ SSOT item context: name=rd_data_o; port=rd_data_o; expr=previous_value_or_zero; 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM5.output_rules.count_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM5.output_rules.count_o.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=count_o; port=count_o; expr=0; width=$clog2(DEPTH+1).
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -452,7 +452,7 @@ SSOT item context: name=count_o; port=count_o; expr=0; width=$clog2(DEPTH+1).
 SSOT ref: function_model.transactions.FM5.side_effects.side_effect_0.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=Read rejected silently; rd_data_o holds previous value (not guaranteed).
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -465,14 +465,14 @@ SSOT item context: value=Read rejected silently; rd_data_o holds previous value 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM6
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM6.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: id=FM6; name=flush.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -492,7 +492,7 @@ SSOT item context: id=FM6; name=flush.
 SSOT ref: function_model.transactions.FM6.preconditions.precondition_0.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=flush_i == 1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -505,14 +505,14 @@ SSOT item context: value=flush_i == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM6.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.outputs.output_0.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=empty_o = 1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -525,14 +525,14 @@ SSOT item context: value=empty_o = 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM6.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.outputs.output_1.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=full_o = 0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -545,14 +545,14 @@ SSOT item context: value=full_o = 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM6.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.outputs.output_2.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=almost_full_o = 0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -565,14 +565,14 @@ SSOT item context: value=almost_full_o = 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM6.outputs.output_3
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.outputs.output_3.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=almost_empty_o = 1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -585,14 +585,14 @@ SSOT item context: value=almost_empty_o = 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM6.outputs.output_4
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.outputs.output_4.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=count_o = 0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -605,14 +605,14 @@ SSOT item context: value=count_o = 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM6.output_rules.empty_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.output_rules.empty_o.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=empty_o; port=empty_o; expr=1; width=1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -629,14 +629,14 @@ SSOT item context: name=empty_o; port=empty_o; expr=1; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM6.output_rules.full_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.output_rules.full_o.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=full_o; port=full_o; expr=0; width=1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -653,14 +653,14 @@ SSOT item context: name=full_o; port=full_o; expr=0; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM6.output_rules.almost_full_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.output_rules.almost_full_o.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=almost_full_o; port=almost_full_o; expr=0; width=1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -677,14 +677,14 @@ SSOT item context: name=almost_full_o; port=almost_full_o; expr=0; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM6.output_rules.almost_empty_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.output_rules.almost_empty_o.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=almost_empty_o; port=almost_empty_o; expr=1; width=1.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -701,14 +701,14 @@ SSOT item context: name=almost_empty_o; port=almost_empty_o; expr=1; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM6.output_rules.count_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.output_rules.count_o.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=count_o; port=count_o; expr=0; width=$clog2(DEPTH+1).
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -725,14 +725,14 @@ SSOT item context: name=count_o; port=count_o; expr=0; width=$clog2(DEPTH+1).
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM6.state_updates.wr_ptr
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.state_updates.wr_ptr.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=wr_ptr; expr=0; reset=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -748,14 +748,14 @@ SSOT item context: name=wr_ptr; expr=0; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM6.state_updates.rd_ptr
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.state_updates.rd_ptr.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=rd_ptr; expr=0; reset=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -771,14 +771,14 @@ SSOT item context: name=rd_ptr; expr=0; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM6.state_updates.count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.state_updates.count.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: name=count; expr=0; reset=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -794,14 +794,14 @@ SSOT item context: name=count; expr=0; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM6.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.side_effects.side_effect_0.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=All FIFO entries invalidated; memory contents become undefined.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -814,14 +814,14 @@ SSOT item context: value=All FIFO entries invalidated; memory contents become un
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM6.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM6.side_effects.side_effect_1.
 Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.
 SSOT item context: value=Flush takes precedence over concurrent push/pop.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_flags.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction

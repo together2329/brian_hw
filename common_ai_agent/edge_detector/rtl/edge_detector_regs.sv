@@ -1,7 +1,9 @@
 // edge_detector_regs.sv -- APB CSR block generated from edge_detector SSOT
 module edge_detector_regs #(
     // Width of the detected input vector; STATUS exposes up to 8 sticky lanes.
-    parameter integer WIDTH = 1
+    parameter integer WIDTH = 1,
+    // CONTROL.edge_mode reset/default selected by the SSOT EDGE_MODE parameter.
+    parameter integer EDGE_MODE_RESET = 2
 ) (
     input  logic        PCLK,
     input  logic        PRESETn,
@@ -36,7 +38,17 @@ module edge_detector_regs #(
     logic [31:0] raw_status_value;
     logic        any_edge_pulse;
     logic        w1c_status_write;
+    logic [1:0]  edge_mode_reset_value;
+    logic [3:0]  control_write_data;
+    logic [8:0]  status_w1c_mask;
+    logic [22:0] reserved_write_data;
+    logic        ignored_reserved_write;
 
+    assign edge_mode_reset_value = EDGE_MODE_RESET[1:0];
+    assign control_write_data = PWDATA[3:0];
+    assign status_w1c_mask = {PWDATA[8], PWDATA[7:0]};
+    assign reserved_write_data = PWDATA[31:9];
+    assign ignored_reserved_write = |reserved_write_data;
     assign apb_access = PSEL & PENABLE;
     assign apb_write  = apb_access & PWRITE;
     assign apb_read   = apb_access & ~PWRITE;
@@ -60,10 +72,10 @@ module edge_detector_regs #(
     // CONTROL is byte-strobe writable; reserved bits are not stored architecturally.
     always @(posedge PCLK or negedge PRESETn) begin
         if (!PRESETn) begin
-            control_reg <= 32'h00000002;
+            control_reg <= {28'h0000000, 2'b00, edge_mode_reset_value};
         end else if (apb_write & (PADDR == ADDR_CONTROL)) begin
             if (PSTRB[0]) begin
-                control_reg[7:0] <= {4'h0, PWDATA[3:0]};
+                control_reg[7:0] <= {4'h0, control_write_data};
             end
             if (PSTRB[1]) begin
                 control_reg[15:8] <= 8'h00;
@@ -83,8 +95,8 @@ module edge_detector_regs #(
             status_edge_sticky <= 8'h00;
             status_overflow <= 1'b0;
         end else begin
-            status_edge_sticky <= (status_edge_sticky | edge_pulse_8) & ~( {8{w1c_status_write}} & PWDATA[7:0] );
-            status_overflow <= (status_overflow | (|(edge_pulse_8 & status_edge_sticky))) & ~(w1c_status_write & PWDATA[8]);
+            status_edge_sticky <= (status_edge_sticky | edge_pulse_8) & ~( {8{w1c_status_write}} & status_w1c_mask[7:0] );
+            status_overflow <= ((status_overflow | (|(edge_pulse_8 & status_edge_sticky))) & ~(w1c_status_write & status_w1c_mask[8])) | (ignored_reserved_write & 1'b0);
         end
     end
 

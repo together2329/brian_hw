@@ -1,6 +1,6 @@
 // spi_fifo.sv — TX/RX FIFO storage and level tracking from SSOT memory/dataflow
 module spi_fifo #(
-    `include "spi_param.vh"
+    parameter integer FIFO_DEPTH = 16     // TX/RX queue depth from SSOT memory.instances
 ) (
     input  logic                    PCLK,
     input  logic                    PRESETn,

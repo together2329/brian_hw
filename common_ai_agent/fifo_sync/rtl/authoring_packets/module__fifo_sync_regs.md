@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 36
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: io_list, io_list.interfaces.apb_csr, registers, registers.register_list
 - SSOT connection contracts:
@@ -37,14 +37,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[4]
 - Detail: Decode paddr into FIFO_STATUS (RO), FIFO_CONFIG (RW), and FIFO_CONTROL (WO). pready always 1. pslverr asserted for unmapped offsets. Flush pulse generated on FIFO_CONTROL.flush write. Threshold registers feed into flag comparison.
 SSOT ref: workflow_todos.rtl-gen[4].
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_FIFO_REGS_APB.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - 3 registers decoded per registers.register_list
   - FIFO_STATUS reflects live flags and count
@@ -63,14 +63,14 @@ SSOT item context: id=RTL_TODO_FIFO_REGS_APB.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.FIFO_STATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.FIFO_STATUS.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=FIFO_STATUS; width=32; reset=5; access=ro; offset=0.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -87,14 +87,14 @@ SSOT item context: name=FIFO_STATUS; width=32; reset=5; access=ro; offset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.FIFO_STATUS.fields.empty
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.FIFO_STATUS.fields.empty.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=empty; reset=1; access=ro.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -113,14 +113,14 @@ SSOT item context: name=empty; reset=1; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.FIFO_STATUS.fields.full
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.FIFO_STATUS.fields.full.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=full; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -139,14 +139,14 @@ SSOT item context: name=full; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.FIFO_STATUS.fields.almost_empty
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.FIFO_STATUS.fields.almost_empty.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=almost_empty; reset=1; access=ro.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -165,14 +165,14 @@ SSOT item context: name=almost_empty; reset=1; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.FIFO_STATUS.fields.almost_full
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.FIFO_STATUS.fields.almost_full.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=almost_full; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -191,14 +191,14 @@ SSOT item context: name=almost_full; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.FIFO_STATUS.fields.count
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.FIFO_STATUS.fields.count.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=count; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -217,14 +217,14 @@ SSOT item context: name=count; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.FIFO_STATUS.fields.reserved_31_12
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.FIFO_STATUS.fields.reserved_31_12.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_12; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -243,14 +243,14 @@ SSOT item context: name=reserved_31_12; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.FIFO_CONFIG
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.FIFO_CONFIG.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=FIFO_CONFIG; width=32; reset=0; access=rw; offset=4.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -267,14 +267,14 @@ SSOT item context: name=FIFO_CONFIG; width=32; reset=0; access=rw; offset=4.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.FIFO_CONFIG.fields.almost_full_thresh
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.FIFO_CONFIG.fields.almost_full_thresh.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=almost_full_thresh; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -293,14 +293,14 @@ SSOT item context: name=almost_full_thresh; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.FIFO_CONFIG.fields.almost_empty_thresh
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.FIFO_CONFIG.fields.almost_empty_thresh.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=almost_empty_thresh; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -319,14 +319,14 @@ SSOT item context: name=almost_empty_thresh; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.FIFO_CONFIG.fields.reserved_31_16
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.FIFO_CONFIG.fields.reserved_31_16.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_16; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -345,14 +345,14 @@ SSOT item context: name=reserved_31_16; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.FIFO_CONTROL
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.FIFO_CONTROL.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=FIFO_CONTROL; width=32; reset=0; access=wo; offset=8.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -369,14 +369,14 @@ SSOT item context: name=FIFO_CONTROL; width=32; reset=0; access=wo; offset=8.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.FIFO_CONTROL.fields.flush
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.FIFO_CONTROL.fields.flush.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=flush; reset=0; access=wo.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -395,14 +395,14 @@ SSOT item context: name=flush; reset=0; access=wo.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.FIFO_CONTROL.fields.reserved_31_1
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.FIFO_CONTROL.fields.reserved_31_1.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_1; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -421,13 +421,13 @@ SSOT item context: name=reserved_31_1; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.fifo_sync_regs.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.fifo_sync_regs.module_equivalence.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -442,14 +442,14 @@ Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via module_equivalence.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.clock_domains.pclk.ports.PCLK
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.pclk.ports.PCLK.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=PCLK; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -464,14 +464,14 @@ SSOT item context: name=PCLK; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.resets.PRESETn.ports.PRESETn
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.PRESETn.ports.PRESETn.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=PRESETn; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -486,14 +486,14 @@ SSOT item context: name=PRESETn; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.fifo_write.ports.wr_en_i
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.fifo_write.ports.wr_en_i.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=wr_en_i; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -508,14 +508,14 @@ SSOT item context: name=wr_en_i; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.fifo_write.ports.wr_data_i
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.fifo_write.ports.wr_data_i.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=wr_data_i; width=DATA_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -530,14 +530,14 @@ SSOT item context: name=wr_data_i; width=DATA_WIDTH; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.fifo_write.ports.full_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.fifo_write.ports.full_o.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=full_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -552,14 +552,14 @@ SSOT item context: name=full_o; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.fifo_write.ports.almost_full_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.fifo_write.ports.almost_full_o.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=almost_full_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -574,14 +574,14 @@ SSOT item context: name=almost_full_o; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.fifo_read.ports.rd_en_i
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.fifo_read.ports.rd_en_i.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=rd_en_i; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -596,14 +596,14 @@ SSOT item context: name=rd_en_i; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.fifo_read.ports.rd_data_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.fifo_read.ports.rd_data_o.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=rd_data_o; width=DATA_WIDTH; direction=output.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -618,14 +618,14 @@ SSOT item context: name=rd_data_o; width=DATA_WIDTH; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.fifo_read.ports.empty_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.fifo_read.ports.empty_o.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=empty_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -640,14 +640,14 @@ SSOT item context: name=empty_o; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.fifo_read.ports.almost_empty_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.fifo_read.ports.almost_empty_o.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=almost_empty_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -662,14 +662,14 @@ SSOT item context: name=almost_empty_o; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.fifo_status.ports.count_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.fifo_status.ports.count_o.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=count_o; width=$clog2(DEPTH+1); direction=output.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -684,14 +684,14 @@ SSOT item context: name=count_o; width=$clog2(DEPTH+1); direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.fifo_control.ports.flush_i
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.fifo_control.ports.flush_i.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
 SSOT item context: name=flush_i; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -706,14 +706,14 @@ SSOT item context: name=flush_i; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.paddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.paddr.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.
 SSOT item context: name=paddr; width=4; direction=input.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -728,14 +728,14 @@ SSOT item context: name=paddr; width=4; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.psel
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.psel.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.
 SSOT item context: name=psel; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -750,14 +750,14 @@ SSOT item context: name=psel; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.penable
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.penable.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.
 SSOT item context: name=penable; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -772,14 +772,14 @@ SSOT item context: name=penable; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.pwrite
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.pwrite.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.
 SSOT item context: name=pwrite; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -794,14 +794,14 @@ SSOT item context: name=pwrite; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.pwdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.pwdata.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.
 SSOT item context: name=pwdata; width=32; direction=input.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -816,14 +816,14 @@ SSOT item context: name=pwdata; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.prdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.prdata.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.
 SSOT item context: name=prdata; width=32; direction=output.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -838,14 +838,14 @@ SSOT item context: name=prdata; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.pready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.pready.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.
 SSOT item context: name=pready; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -860,14 +860,14 @@ SSOT item context: name=pready; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.pslverr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.pslverr.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.
 SSOT item context: name=pslverr; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/fifo_sync_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

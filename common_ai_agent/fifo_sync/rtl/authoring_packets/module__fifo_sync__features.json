@@ -528,9 +528,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 7,
-    "open_required_count": 7,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -573,7 +573,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 7,
+    "open_required_count": 0,
     "required_count": 7,
     "source_refs": [
       "features.Synchronous_Push",
@@ -585,7 +585,7 @@
       "features.APB_CSR_Access"
     ],
     "status_counts": {
-      "open": 7
+      "pass": 7
     },
     "task_count": 7
   },
@@ -621,8 +621,13 @@
         "features.Synchronous_Push"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "almost",
+          "almost_full_o",
+          "full",
+          "full_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -633,7 +638,7 @@
           "full_o"
         ],
         "source_scope": "rtl/fifo_sync.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -643,9 +648,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -679,8 +684,13 @@
         "features.Synchronous_Pop"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "almost",
+          "almost_empty_o",
+          "empty",
+          "empty_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -691,7 +701,7 @@
           "empty_o"
         ],
         "source_scope": "rtl/fifo_sync.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -701,9 +711,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -743,9 +753,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -785,9 +795,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -827,9 +837,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -866,8 +876,16 @@
         "features.Synchronous_Flush"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "almost",
+          "almost_empty_o",
+          "almost_full_o",
+          "empty",
+          "empty_o",
+          "full",
+          "full_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -881,7 +899,7 @@
           "full_o"
         ],
         "source_scope": "rtl/fifo_sync.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -891,9 +909,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -933,9 +951,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],

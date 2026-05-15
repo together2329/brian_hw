@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 32
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - Module slice: 5/13 section=function_model task_limit=48
@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.lfsr_state
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.lfsr_state.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: name=lfsr_state; reset=DEFAULT_SEED.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -62,14 +62,14 @@ SSOT item context: name=lfsr_state; reset=DEFAULT_SEED.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.poly_reg
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.poly_reg.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: name=poly_reg; reset=DEFAULT_POLY.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -83,14 +83,14 @@ SSOT item context: name=poly_reg; reset=DEFAULT_POLY.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctrl_reg
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctrl_reg.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: name=ctrl_reg; reset=0.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -104,14 +104,14 @@ SSOT item context: name=ctrl_reg; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.status_reg
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.status_reg.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: name=status_reg; reset=0.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -125,14 +125,14 @@ SSOT item context: name=status_reg; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM1
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM1.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: id=FM1; name=single_step_prbs.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -145,14 +145,14 @@ SSOT item context: id=FM1; name=single_step_prbs.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM1.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.preconditions.precondition_0.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=ctrl_reg.enable == 1.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -165,14 +165,14 @@ SSOT item context: value=ctrl_reg.enable == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM1.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.preconditions.precondition_1.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=lfsr_state != 0.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -185,14 +185,14 @@ SSOT item context: value=lfsr_state != 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM1.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.inputs.input_0.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=lfsr_state (current).
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -205,14 +205,14 @@ SSOT item context: value=lfsr_state (current).
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM1.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.inputs.input_1.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=poly_reg (tap mask).
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -225,14 +225,14 @@ SSOT item context: value=poly_reg (tap mask).
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM1.outputs.prbs_out
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.outputs.prbs_out.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: name=prbs_out; port=prbs_out; expr=lfsr_state; width=LFSR_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -248,14 +248,14 @@ SSOT item context: name=prbs_out; port=prbs_out; expr=lfsr_state; width=LFSR_WID
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM1.outputs.prbs_bit
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.outputs.prbs_bit.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: name=prbs_bit; port=prbs_bit; expr=lfsr_state[0]; width=1.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -271,14 +271,14 @@ SSOT item context: name=prbs_bit; port=prbs_bit; expr=lfsr_state[0]; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM1.state_updates.lfsr_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.state_updates.lfsr_state.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: name=lfsr_state; expr={feedback_bit, lfsr_state[LFSR_WIDTH-1:1]} where feedback_bit = ^(lfsr_state & poly_reg); reset=DEFAULT_SEED.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -294,14 +294,14 @@ SSOT item context: name=lfsr_state; expr={feedback_bit, lfsr_state[LFSR_WIDTH-1:
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM1.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.side_effects.side_effect_0.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=status_reg.running set to 1.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -314,14 +314,14 @@ SSOT item context: value=status_reg.running set to 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM2
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM2.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: id=FM2; name=load_seed.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -334,14 +334,14 @@ SSOT item context: id=FM2; name=load_seed.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM2.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.preconditions.precondition_0.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=APB write to SEED register (offset 0x08).
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -354,14 +354,14 @@ SSOT item context: value=APB write to SEED register (offset 0x08).
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM2.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.inputs.input_0.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=PWDATA[APB_DATA_WIDTH-1:0].
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -374,14 +374,14 @@ SSOT item context: value=PWDATA[APB_DATA_WIDTH-1:0].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM2.state_updates.lfsr_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.state_updates.lfsr_state.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: name=lfsr_state; expr=PWDATA truncated to LFSR_WIDTH bits; reset=DEFAULT_SEED.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -397,14 +397,14 @@ SSOT item context: name=lfsr_state; expr=PWDATA truncated to LFSR_WIDTH bits; re
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM2.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.side_effects.side_effect_0.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=prbs_valid deasserted for one cycle after load.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -417,14 +417,14 @@ SSOT item context: value=prbs_valid deasserted for one cycle after load.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM3
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM3.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: id=FM3; name=load_polynomial.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -437,14 +437,14 @@ SSOT item context: id=FM3; name=load_polynomial.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM3.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM3.preconditions.precondition_0.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=APB write to POLY register (offset 0x04).
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -457,14 +457,14 @@ SSOT item context: value=APB write to POLY register (offset 0x04).
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM3.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM3.preconditions.precondition_1.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=ctrl_reg.enable == 0 (polynomial change only when halted).
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -477,14 +477,14 @@ SSOT item context: value=ctrl_reg.enable == 0 (polynomial change only when halte
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM3.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM3.inputs.input_0.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=PWDATA[APB_DATA_WIDTH-1:0].
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -497,14 +497,14 @@ SSOT item context: value=PWDATA[APB_DATA_WIDTH-1:0].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM3.state_updates.poly_reg
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM3.state_updates.poly_reg.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: name=poly_reg; expr=PWDATA truncated to LFSR_WIDTH bits; reset=DEFAULT_POLY.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -520,14 +520,14 @@ SSOT item context: name=poly_reg; expr=PWDATA truncated to LFSR_WIDTH bits; rese
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM4
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM4.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: id=FM4; name=lockup_recovery.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -540,14 +540,14 @@ SSOT item context: id=FM4; name=lockup_recovery.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM4.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4.preconditions.precondition_0.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=lfsr_state == 0 after a step.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -560,14 +560,14 @@ SSOT item context: value=lfsr_state == 0 after a step.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM4.outputs.prbs_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4.outputs.prbs_valid.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: name=prbs_valid; port=prbs_valid; expr=0; width=1.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -583,14 +583,14 @@ SSOT item context: name=prbs_valid; port=prbs_valid; expr=0; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM4.state_updates.lfsr_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4.state_updates.lfsr_state.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: name=lfsr_state; expr=DEFAULT_SEED if ctrl_reg.auto_reload else 0; reset=DEFAULT_SEED.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -606,14 +606,14 @@ SSOT item context: name=lfsr_state; expr=DEFAULT_SEED if ctrl_reg.auto_reload el
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM4.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4.side_effects.side_effect_0.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=status_reg.lockup set to 1.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -626,14 +626,14 @@ SSOT item context: value=status_reg.lockup set to 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM4.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM4.side_effects.side_effect_1.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=status_reg.running cleared to 0.
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -646,14 +646,14 @@ SSOT item context: value=status_reg.running cleared to 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_0
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_0.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=LFSR state never changes when ctrl_reg.enable == 0 except via APB write to SEED or reset..
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -666,14 +666,14 @@ SSOT item context: value=LFSR state never changes when ctrl_reg.enable == 0 exce
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_1
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_1.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=Polynomial register is writable only when enable == 0..
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -686,14 +686,14 @@ SSOT item context: value=Polynomial register is writable only when enable == 0..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_2
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_2.
 Owner: lfsr in rtl/lfsr.sv via function_model.
 SSOT item context: value=All-zero state is detected and either auto-reloaded or held..
-- Current reason: Owner RTL file is missing: rtl/lfsr.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner

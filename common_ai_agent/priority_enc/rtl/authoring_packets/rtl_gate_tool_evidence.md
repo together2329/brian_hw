@@ -29,11 +29,22 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
 - Connection contract gap: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
+- Pending connection-contract suggestions: 21 rows in rtl/connection_contract_suggestions.json
+- Draft top integration fragment: rtl/connection_contract_draft_top.svfrag
+- Suggestion usage: draft RTL wiring may use these rows to close hierarchy/signal-flow evidence, but they are not SSOT authority and cannot close connection-contract signoff.
+  - priority_enc_regs.PADDR <= PADDR (observed_named_port_map)
+  - priority_enc_regs.PCLK <= PCLK (observed_named_port_map)
+  - priority_enc_regs.PENABLE <= PENABLE (observed_named_port_map)
+  - priority_enc_regs.PRDATA <= PRDATA (observed_named_port_map)
+  - priority_enc_regs.PREADY <= PREADY (observed_named_port_map)
+  - priority_enc_regs.PRESETn <= PRESETn (observed_named_port_map)
+  - priority_enc_regs.PSEL <= PSEL (observed_named_port_map)
+  - priority_enc_regs.PSLVERR <= PSLVERR (observed_named_port_map)
 - Tool-evidence blockers:
   - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
   - dut_compile: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
   - dut_lint: Missing canonical DUT lint artifact: lint/dut_lint.json.
-  - dynamic_todo_closure: 102 required non-closure TODO(s) remain open.
+  - dynamic_todo_closure: 18 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
   - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
@@ -125,7 +136,7 @@ Owner: priority_enc in rtl/priority_enc.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: 102 required non-closure TODO(s) remain open.
+- Current reason: 18 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

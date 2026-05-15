@@ -4,9 +4,9 @@
 
 - Top: fifo_sync
 - Packets: 20
-- LLM-actionable tasks: 253
-- Human-locked tasks: 3
-- Tool-evidence tasks: 7
+- LLM-actionable tasks: 35
+- Human-locked tasks: 2
+- Tool-evidence tasks: 5
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: False
@@ -15,22 +15,18 @@
 
 ## Next LLM Packets
 
-- module__fifo_sync_mem: rtl/authoring_packets/module__fifo_sync_mem.json (llm_open=3, human_locked=0)
-- module__fifo_sync_ptrs: rtl/authoring_packets/module__fifo_sync_ptrs.json (llm_open=46, human_locked=0)
-- module__fifo_sync_flags__function_model_01: rtl/authoring_packets/module__fifo_sync_flags__function_model_01.json (llm_open=48, human_locked=0)
-- module__fifo_sync_flags__function_model_02: rtl/authoring_packets/module__fifo_sync_flags__function_model_02.json (llm_open=37, human_locked=0)
-- module__fifo_sync_flags__equivalence: rtl/authoring_packets/module__fifo_sync_flags__equivalence.json (llm_open=1, human_locked=0)
-- module__fifo_sync_flags__workflow_todo: rtl/authoring_packets/module__fifo_sync_flags__workflow_todo.json (llm_open=1, human_locked=0)
-- module__fifo_sync_regs: rtl/authoring_packets/module__fifo_sync_regs.json (llm_open=36, human_locked=0)
-- module__fifo_sync_output_reg: rtl/authoring_packets/module__fifo_sync_output_reg.json (llm_open=11, human_locked=0)
+- module__fifo_sync_ptrs: rtl/authoring_packets/module__fifo_sync_ptrs.json (llm_open=7, human_locked=0)
+- module__fifo_sync_flags__function_model_01: rtl/authoring_packets/module__fifo_sync_flags__function_model_01.json (llm_open=22, human_locked=0)
+- module__fifo_sync_flags__function_model_02: rtl/authoring_packets/module__fifo_sync_flags__function_model_02.json (llm_open=4, human_locked=0)
+- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
 
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=7, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=5, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 
-- rtl_gate_human_closure: human_locked=3, json=rtl/authoring_packets/rtl_gate_human_closure.json
+- rtl_gate_human_closure: human_locked=2, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 
