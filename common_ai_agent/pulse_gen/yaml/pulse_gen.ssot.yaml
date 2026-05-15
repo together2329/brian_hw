@@ -129,6 +129,7 @@ io_list:
         - { name: "pulse_out", width: "PULSE_OUT_WIDTH", direction: "output", description: "One-shot pulse output(s)" }
     - name: "trigger_input"
       type: "custom"
+      role: "slave"
       clock_domain: "pclk"
       reset_domain: "presetn"
       description: "Hardware trigger input for external pulse initiation"
@@ -140,6 +141,7 @@ io_list:
         - { name: "trigger_i", width: 1, direction: "input", description: "External hardware trigger (active-high level)" }
     - name: "interrupt"
       type: "custom"
+      role: "master"
       clock_domain: "pclk"
       reset_domain: "presetn"
       description: "Pulse-completion interrupt output"

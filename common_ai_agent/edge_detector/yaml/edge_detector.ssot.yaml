@@ -164,7 +164,37 @@ function_model:
     - "No edge_o pulse occurs when enable == 0."
     - "status_sticky persists until software W1C clear."
   reference_model_hint: "tb-gen should implement a Python scoreboard model from this section and compare expected/got for every scenario."
-cycle_model: TBD
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen; describes when state, outputs, and interrupts may change."
+  executable: "python"
+  backend_policy: "Use direct Python cycle model with BehavioralModel as oracle; run smoke checks without pytest-pymtl3 dependency."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears all architectural state"
+    deassertion: "state is usable on the first rising edge after synchronized deassertion"
+  latency:
+    sync_latency: { min_cycles: "SYNC_STAGES", max_cycles: "SYNC_STAGES", description: "Input synchronizer delay" }
+    edge_detect_latency: { min_cycles: 1, max_cycles: 1, description: "One-cycle combinational decode after sync" }
+    register_read: { min_cycles: 0, max_cycles: 1, description: "APB read data and PREADY timing" }
+    register_write: { min_cycles: 0, max_cycles: 1, description: "APB write acceptance timing" }
+    interrupt_latency: { min_cycles: 0, max_cycles: 1, description: "irq_o asserts same cycle as edge_o when irq_enable set" }
+  handshake_rules: []
+  pipeline:
+    - { stage: "S0_SYNC", cycle: "0..SYNC_STAGES-1", action: "Propagate signal_i through sync_chain flops" }
+    - { stage: "S1_EDGE_DECODE", cycle: "SYNC_STAGES", action: "Compare prev_sync vs curr_sync; decode per EDGE_MODE" }
+    - { stage: "S2_OUTPUT", cycle: "SYNC_STAGES+1", action: "Assert edge_o pulse; update sticky/overflow/irq" }
+  ordering:
+    - "edge_o for cycle N reflects signal_i transition captured at cycle N-SYNC_STAGES-1."
+    - "Interrupt updates occur on the same rising edge as edge_o assertion."
+  backpressure:
+    - "No backpressure on edge_o; downstream must accept or drop the one-cycle pulse."
+  performance:
+    frequency_mhz: 50
+    throughput: { sustained_edges_per_cycle: 1, condition: "No missed edges when input changes slower than PCLK period" }
+    outstanding: { read_max: 0, write_max: 0, description: "No outstanding transactions; purely register/pipeline IP" }
+    depth: { pipeline_stages: "SYNC_STAGES + 1", queue_depth: 0, description: "Sync chain plus decode stage" }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
 clock_reset_domains:
   domains:
     - { name: "PCLK", frequency_mhz: 50, description: "Single system clock" }
@@ -268,9 +298,51 @@ rtl_contract:
     - { name: "prev_sync", reset: 0, expr: "sync_chain[SYNC_STAGES-1]" }
     - { name: "status_edge_sticky", reset: 0, expr: "status_edge_sticky | edge_o; cleared by W1C" }
     - { name: "status_overflow", reset: 0, expr: "status_overflow | (edge_o & status_edge_sticky); cleared by W1C" }
-timing: TBD
-power: TBD
-security: TBD
+timing:
+  target_clocks:
+    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.5 }
+  latency_budget:
+    sync_latency_cycles: { min: "SYNC_STAGES", max: "SYNC_STAGES", measured_from: "signal_i transition", measured_to: "edge_o assertion" }
+    interrupt_latency_cycles: { min: 0, max: 1, measured_from: "edge_o assertion", measured_to: "irq_o assertion" }
+    register_access_cycles: { min: 1, max: 2, measured_from: "PSEL && PENABLE", measured_to: "PREADY" }
+  throughput:
+    sustained_edges_per_cycle: 1
+    conditions: "Input signal transitions no faster than PCLK period after sync settling"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "signal_i", clock: "PCLK", delay_ns: null, source: "asynchronous; sync chain handles timing" }
+      - { ports: "APB inputs", clock: "PCLK", delay_ns: 2.0, source: "system-level APB timing budget" }
+    outputs:
+      - { ports: "edge_o, irq_o, APB outputs", clock: "PCLK", delay_ns: 2.0, source: "system-level timing budget" }
+  false_paths:
+    - { from: "PRESETn", to: "all_registers", reason: "async reset assertion" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["PCLK"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "No explicit low-power mode in this IP revision; simple peripheral"
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers and function_model state_variables"
+  power_states:
+    - { name: "ON", entry: "reset deasserted", exit: "reset asserted", guarantees: ["All architectural behavior active"] }
+  upf_required: false
+security:
+  classification: "non_secure_peripheral"
+  assets:
+    - { name: "register_map", protection: "APB access control is external to this IP" }
+  threat_model:
+    - { threat: "illegal register write", mitigation: "RO/W1C access policy in registers.register_list" }
+  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
+  safety_goals:
+    - "No missed edge when enable is set and input meets minimum pulse width"
 error_handling: TBD
 debug_observability: TBD
 integration: TBD

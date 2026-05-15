@@ -1,7 +1,8 @@
 ip: fifo_sync
 version: '1.0'
-purpose: "Parameterized synchronous FIFO with APB-lite CSR interface for status/config, single PCLK clock domain, active-low async assert sync deassert reset, 1-cycle latency push/pop, full/empty flags, overflow/underflow error detection."
-type: "memory"
+purpose: Parameterized synchronous FIFO with APB-lite CSR interface for status/config, single PCLK clock domain, active-low async assert sync deassert reset, 1-cycle latency push/pop, full/empty flags,
+  overflow/underflow error detection.
+type: memory
 top_module:
   name: fifo_sync
   file: rtl/fifo_sync.sv
@@ -234,6 +235,8 @@ io_list:
       width: 1
       direction: output
       description: FIFO almost-full flag
+    clock_domain: pclk
+    reset_domain: PRESETn
   - name: fifo_read
     type: valid-ready
     role: master
@@ -260,6 +263,8 @@ io_list:
       width: 1
       direction: output
       description: FIFO almost-empty flag
+    clock_domain: pclk
+    reset_domain: PRESETn
   - name: fifo_status
     type: custom
     description: Fill-level status outputs
@@ -268,6 +273,8 @@ io_list:
       width: $clog2(DEPTH+1)
       direction: output
       description: Current fill count (0..DEPTH)
+    clock_domain: pclk
+    reset_domain: PRESETn
   - name: fifo_control
     type: custom
     description: Optional flush/reset control
@@ -276,6 +283,8 @@ io_list:
       width: 1
       direction: input
       description: 'Synchronous flush: clears all pointers and count to zero'
+    clock_domain: pclk
+    reset_domain: PRESETn
   - name: apb_csr
     type: APB-lite
     role: slave
@@ -319,6 +328,8 @@ io_list:
       width: 1
       direction: output
       description: APB slave error
+    clock_domain: pclk
+    reset_domain: PRESETn
 features:
 - name: Synchronous Push
   trigger: wr_en_i asserted while full_o==0

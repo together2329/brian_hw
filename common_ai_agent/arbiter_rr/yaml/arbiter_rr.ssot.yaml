@@ -202,7 +202,8 @@ function_model:
         - { name: "grant_index", expr: "0", width: "IDX_WIDTH", port: "gnt_idx_o", description: "Index zero (meaningless when grant_valid=0)" }
       state_updates:
         - { name: "last_winner", reset: 0, expr: "last_winner (unchanged)" }
-      side_effects: []
+      side_effects:
+        - "last_winner is preserved unchanged when no grant is issued"
       error_cases: []
   invariants:
     - "At most one bit in gnt_o is asserted per cycle (one-hot invariant)."
