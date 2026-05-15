@@ -42,7 +42,7 @@ module pulse_gen #(
             PRESETn_sync <= 1'b0;
         end else begin
             rst_sync_1 <= 1'b1;
-            rst_ni <= rst_sync_1;
+            PRESETn_sync <= rst_sync_1;
         end
     end
 

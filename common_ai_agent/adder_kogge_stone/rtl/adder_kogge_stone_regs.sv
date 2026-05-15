@@ -124,12 +124,8 @@ module adder_kogge_stone_regs #(
             a_shadow_o       <= {DATA_WIDTH{1'b0}};
             b_shadow_o       <= {DATA_WIDTH{1'b0}};
             cin_shadow_o     <= 1'b0;
-            start_pulse_o    <= 1'b0;
             hold_mode_o      <= 1'b0;
-            clr_done_pulse_o <= 1'b0;
         end else begin
-            start_pulse_o    <= 1'b0;
-            clr_done_pulse_o <= 1'b0;
             if (apb_write & valid_addr) begin
                 case (paddr_i)
                     ADDR_CONTROL: begin
