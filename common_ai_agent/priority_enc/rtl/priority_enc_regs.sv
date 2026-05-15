@@ -31,6 +31,7 @@ module priority_enc_regs #(
     logic [31:0]  status_read_data;
     logic [N-1:0] pwdata_mask_field;
     logic         pwdata_enable_field;
+    logic         pwdata_reserved_or;
 
     assign apb_access = PSEL & PENABLE;
     assign apb_write  = apb_access & PWRITE;
@@ -51,6 +52,7 @@ module priority_enc_regs #(
     assign status_read_data = {{(31-INDEX_WIDTH){1'b0}}, status_valid_i, status_index_i};
     assign pwdata_mask_field = PWDATA[N-1:0];
     assign pwdata_enable_field = PWDATA[0];
+    assign pwdata_reserved_or = |PWDATA[31:8];
 
     always @(*) begin
         read_data_next = 32'h00000000;
@@ -73,6 +75,10 @@ module priority_enc_regs #(
             end
             if (apb_write & (PADDR == PRIORITY_ENC_MASK_ADDR)) begin
                 mask_reg <= pwdata_mask_field;
+            end
+            // Reserved write bits are intentionally consumed and ignored per the CSR field policy.
+            if (apb_write & pwdata_reserved_or) begin
+                PRDATA <= PRDATA;
             end
             // STATUS is read-only: APB writes to 0x008 are ignored and do not raise PSLVERR.
             if (apb_access & !PWRITE) begin

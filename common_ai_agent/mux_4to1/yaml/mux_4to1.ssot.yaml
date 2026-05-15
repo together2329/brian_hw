@@ -211,6 +211,9 @@ registers:
     byte_addressable: false
   no_registers: true
   no_csr: true
+  policy: "No CSRs or register bus are implemented; all behavior is controlled by primary combinational ports."
+  access_model: "not_applicable_no_bus"
+  description: "Stateless mux leaf with no software-visible register map."
   register_list: []
   reserved_field_policy:
     read_value: 0
@@ -252,7 +255,8 @@ rtl_contract:
     - "Default branch, if present, shall drive y to a deterministic value only for simulation X handling; legal two-state behavior remains defined by truth_table."
 
 timing:
-  target_clocks: []
+  target_clocks:
+    - { name: "comb_eval", frequency_mhz: 500, duty_cycle: 0.5, uncertainty_ns: 0.1, virtual: true, note: "Virtual STA reference; no clock port in RTL." }
   latency_budget:
     combinational_select_cycles: { min: 0, max: 0, measured_from: "stable input/sel", measured_to: "stable y" }
   throughput:

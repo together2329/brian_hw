@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, features, features.pulse_fire, fsm, fsm.pulse_fsm, function_model, function_model.state_variables, function_model.transactions, function_model.transactions.FM_FIRE
 - Module slice: 6/6 section=workflow_todo task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Translate function_model FM_FIRE transaction, cycle_model pipeline, and fsm.pulse_fsm into RTL state machine with pulse counter, latched width/polarity capture, and pulse_out driver. ctrl_fire auto-clears after 1 cycle. irq_o = status_done & int_enable combinational.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_PULSE_CORE.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - FSM has exactly 3 states: IDLE, PULSE, DONE with transitions matching fsm.pulse_fsm
   - pulse_out asserts for exactly latched_width cycles (1-cycle latency from trigger)

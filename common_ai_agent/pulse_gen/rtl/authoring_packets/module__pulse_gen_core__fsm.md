@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 7
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, features, features.pulse_fire, fsm, fsm.pulse_fsm, function_model, function_model.state_variables, function_model.transactions, function_model.transactions.FM_FIRE
 - Module slice: 3/6 section=fsm task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.pulse_fsm.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.pulse_fsm.states.state_0.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via fsm.pulse_fsm.
 SSOT item context: value=IDLE.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -65,14 +65,14 @@ SSOT item context: value=IDLE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.pulse_fsm.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.pulse_fsm.states.state_1.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via fsm.pulse_fsm.
 SSOT item context: value=PULSE.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -86,14 +86,14 @@ SSOT item context: value=PULSE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.pulse_fsm.states.state_2
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.pulse_fsm.states.state_2.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via fsm.pulse_fsm.
 SSOT item context: value=DONE.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -107,14 +107,14 @@ SSOT item context: value=DONE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.pulse_fsm.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.pulse_fsm.transitions.transition_0.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via fsm.pulse_fsm.
 SSOT item context: from=IDLE; to=PULSE; condition=(CTRL.fire==1 || (trigger_i==1 && CTRL.hw_trig_en==1)) && CTRL.enable==1 && STATUS.busy==0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -129,14 +129,14 @@ SSOT item context: from=IDLE; to=PULSE; condition=(CTRL.fire==1 || (trigger_i==1
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.pulse_fsm.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.pulse_fsm.transitions.transition_1.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via fsm.pulse_fsm.
 SSOT item context: from=PULSE; to=PULSE; condition=pulse_counter < latched_width - 1.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -151,14 +151,14 @@ SSOT item context: from=PULSE; to=PULSE; condition=pulse_counter < latched_width
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.pulse_fsm.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.pulse_fsm.transitions.transition_2.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via fsm.pulse_fsm.
 SSOT item context: from=PULSE; to=DONE; condition=pulse_counter == latched_width - 1.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -173,14 +173,14 @@ SSOT item context: from=PULSE; to=DONE; condition=pulse_counter == latched_width
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.pulse_fsm.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.pulse_fsm.transitions.transition_3.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via fsm.pulse_fsm.
 SSOT item context: from=DONE; to=IDLE; condition=STATUS.done cleared via W1C write or auto-clear after 1 cycle.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented

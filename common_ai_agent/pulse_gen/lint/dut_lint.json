@@ -14,10 +14,10 @@
     "rtl/pulse_gen.sv",
     "rtl/pulse_gen_param.vh"
   ],
-  "timestamp": "2026-05-15T02:09:24.264876+00:00",
-  "returncode": 1,
+  "timestamp": "2026-05-15T02:11:23.813781+00:00",
+  "returncode": 0,
   "errors": 0,
-  "warnings": 4,
+  "warnings": 0,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -26,54 +26,19 @@
       "command": "pyslang rtl/pulse_gen_regs.sv rtl/pulse_gen_core.sv rtl/pulse_gen.sv",
       "returncode": 0,
       "errors": 0,
-      "warnings": 1,
-      "diagnostics": [
-        {
-          "severity": "warning",
-          "file": "pulse_gen/rtl/pulse_gen.sv",
-          "line": 82,
-          "message": "port 'clk_i' has no connection"
-        }
-      ],
-      "passed": false
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
     },
     {
       "tool": "verilator",
       "available": true,
       "command": "verilator --lint-only -Wall -Irtl -f list/pulse_gen.f --top-module pulse_gen",
-      "returncode": 1,
+      "returncode": 0,
       "errors": 0,
-      "warnings": 3,
-      "diagnostics": [
-        {
-          "severity": "warning",
-          "rule": "PINMISSING",
-          "file": "rtl/pulse_gen.sv",
-          "line": 82,
-          "column": 7,
-          "message": "Instance has missing pin: 'clk_i'",
-          "source": "    ) u_core ("
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/pulse_gen.sv",
-          "line": 7,
-          "column": 23,
-          "message": "Parameter is not used: 'CLOCK_FREQ_MHZ'",
-          "source": "    parameter integer CLOCK_FREQ_MHZ = 50"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/pulse_gen_regs.sv",
-          "line": 13,
-          "column": 35,
-          "message": "Bits of signal are not used: 'PWDATA'[31:16]",
-          "source": "    input  logic [31:0]           PWDATA,"
-        }
-      ],
-      "passed": false
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
     }
   ],
   "suppression_violation_count": 0,
@@ -81,5 +46,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": false
+  "passed": true
 }

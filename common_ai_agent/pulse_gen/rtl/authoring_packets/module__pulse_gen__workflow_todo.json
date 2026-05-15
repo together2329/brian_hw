@@ -548,8 +548,11 @@
         "workflow_todos.rtl-gen[2]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "pulse",
+          "pulse_gen"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -574,7 +577,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       },

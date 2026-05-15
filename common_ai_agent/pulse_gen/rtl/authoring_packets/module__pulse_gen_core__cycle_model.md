@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 17
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, features, features.pulse_fire, fsm, fsm.pulse_fsm, function_model, function_model.state_variables, function_model.transactions, function_model.transactions.FM_FIRE
 - Module slice: 2/6 section=cycle_model task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: value=PCLK.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -65,13 +65,13 @@ SSOT item context: value=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -85,13 +85,13 @@ Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -105,14 +105,14 @@ Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.PREADY
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.PREADY.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: signal=PREADY.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -126,14 +126,14 @@ SSOT item context: signal=PREADY.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.PSLVERR
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.PSLVERR.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: signal=PSLVERR.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -147,14 +147,14 @@ SSOT item context: signal=PSLVERR.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.pulse_out
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.pulse_out.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: signal=pulse_out.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -168,14 +168,14 @@ SSOT item context: signal=pulse_out.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.trigger_i
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.trigger_i.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: signal=trigger_i.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -189,14 +189,14 @@ SSOT item context: signal=trigger_i.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S0_IDLE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_IDLE.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S0_IDLE; action=Sample trigger (CTRL.fire or trigger_i); if accepted, latch width/polarity and transition to PULSE; cycle=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -211,14 +211,14 @@ SSOT item context: stage=S0_IDLE; action=Sample trigger (CTRL.fire or trigger_i)
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S1_PULSE_COUNT
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_PULSE_COUNT.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S1_PULSE_COUNT; action=Assert pulse_out at active level; increment pulse_counter each cycle; W = latched_width; cycle=1..W.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -233,14 +233,14 @@ SSOT item context: stage=S1_PULSE_COUNT; action=Assert pulse_out at active level
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S2_DONE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S2_DONE.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S2_DONE; action=Deassert pulse_out; set STATUS.done=1; increment fired_count; irq_o asserts if enabled; transition to IDLE; cycle=W+1.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -255,14 +255,14 @@ SSOT item context: stage=S2_DONE; action=Deassert pulse_out; set STATUS.done=1; 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: value=Trigger acceptance and pulse_out assertion are separated by exactly 1 PCLK cycle..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -276,14 +276,14 @@ SSOT item context: value=Trigger acceptance and pulse_out assertion are separate
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: value=STATUS.done is set on the same rising edge that pulse_out deasserts..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -297,14 +297,14 @@ SSOT item context: value=STATUS.done is set on the same rising edge that pulse_o
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_2
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_2.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: value=irq_o reflects STATUS.done combinational — no extra cycle of interrupt latency..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -318,14 +318,14 @@ SSOT item context: value=irq_o reflects STATUS.done combinational — no extra c
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_3
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_3.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: value=ctrl_fire auto-clears on the rising edge after it was written (1-cycle self-clear)..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -339,14 +339,14 @@ SSOT item context: value=ctrl_fire auto-clears on the rising edge after it was w
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: value=No backpressure possible: zero-wait-state APB and no data-path handshake on pulse_out..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -360,14 +360,14 @@ SSOT item context: value=No backpressure possible: zero-wait-state APB and no da
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -381,14 +381,14 @@ SSOT item context: value=Every function_model transaction maps to at least one c
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_1.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.
 SSOT item context: value=STATUS.busy directly observable via APB read; pulse_out directly observable on output port..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior

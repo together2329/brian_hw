@@ -1,0 +1,436 @@
+{
+  "issues": [],
+  "rows": [
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "PADDR",
+      "range": "[ADDR_WIDTH-1:0]",
+      "review_status": "pending",
+      "signal": "PADDR",
+      "signal_terms": [
+        "PADDR"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.PADDR"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "PCLK",
+      "range": "",
+      "review_status": "pending",
+      "signal": "PCLK",
+      "signal_terms": [
+        "PCLK"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.PCLK"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "PENABLE",
+      "range": "",
+      "review_status": "pending",
+      "signal": "PENABLE",
+      "signal_terms": [
+        "PENABLE"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.PENABLE"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "output",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "PRDATA",
+      "range": "[31:0]",
+      "review_status": "pending",
+      "signal": "PRDATA",
+      "signal_terms": [
+        "PRDATA"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.PRDATA"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "output",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "PREADY",
+      "range": "",
+      "review_status": "pending",
+      "signal": "PREADY",
+      "signal_terms": [
+        "PREADY"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.PREADY"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "PRESETn",
+      "range": "",
+      "review_status": "pending",
+      "signal": "PRESETn",
+      "signal_terms": [
+        "PRESETn"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.PRESETn"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "PSEL",
+      "range": "",
+      "review_status": "pending",
+      "signal": "PSEL",
+      "signal_terms": [
+        "PSEL"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.PSEL"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "output",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "PSLVERR",
+      "range": "",
+      "review_status": "pending",
+      "signal": "PSLVERR",
+      "signal_terms": [
+        "PSLVERR"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.PSLVERR"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "PWDATA",
+      "range": "[31:0]",
+      "review_status": "pending",
+      "signal": "PWDATA",
+      "signal_terms": [
+        "PWDATA"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.PWDATA"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "PWRITE",
+      "range": "",
+      "review_status": "pending",
+      "signal": "PWRITE",
+      "signal_terms": [
+        "PWRITE"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.PWRITE"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "output",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "check_enable",
+      "range": "",
+      "review_status": "pending",
+      "signal": "check_enable",
+      "signal_terms": [
+        "check_enable"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.check_enable"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "output",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "enable",
+      "range": "",
+      "review_status": "pending",
+      "signal": "enable",
+      "signal_terms": [
+        "enable"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.enable"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "output",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "expected_parity",
+      "range": "",
+      "review_status": "pending",
+      "signal": "expected_parity",
+      "signal_terms": [
+        "expected_parity"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.expected_parity"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_regs",
+      "machine_readable": false,
+      "module": "parity_gen_regs",
+      "port": "parity_error_set",
+      "range": "",
+      "review_status": "pending",
+      "signal": "check_enable & parity_mismatch_comb",
+      "signal_terms": [
+        "check_enable",
+        "parity_mismatch_comb"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_regs.parity_error_set"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_core",
+      "machine_readable": false,
+      "module": "parity_gen_core",
+      "port": "PCLK",
+      "range": "",
+      "review_status": "pending",
+      "signal": "PCLK",
+      "signal_terms": [
+        "PCLK"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_core.PCLK"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_core",
+      "machine_readable": false,
+      "module": "parity_gen_core",
+      "port": "PRESETn",
+      "range": "",
+      "review_status": "pending",
+      "signal": "PRESETn",
+      "signal_terms": [
+        "PRESETn"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_core.PRESETn"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_core",
+      "machine_readable": false,
+      "module": "parity_gen_core",
+      "port": "check_enable",
+      "range": "",
+      "review_status": "pending",
+      "signal": "check_enable",
+      "signal_terms": [
+        "check_enable"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_core.check_enable"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_core",
+      "machine_readable": false,
+      "module": "parity_gen_core",
+      "port": "data_in",
+      "range": "[DATA_WIDTH-1:0]",
+      "review_status": "pending",
+      "signal": "data_in",
+      "signal_terms": [
+        "data_in"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_core.data_in"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_core",
+      "machine_readable": false,
+      "module": "parity_gen_core",
+      "port": "enable",
+      "range": "",
+      "review_status": "pending",
+      "signal": "enable",
+      "signal_terms": [
+        "enable"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_core.enable"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "input",
+      "instance": "u_core",
+      "machine_readable": false,
+      "module": "parity_gen_core",
+      "port": "expected_parity",
+      "range": "",
+      "review_status": "pending",
+      "signal": "expected_parity",
+      "signal_terms": [
+        "expected_parity"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_core.expected_parity"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "output",
+      "instance": "u_core",
+      "machine_readable": false,
+      "module": "parity_gen_core",
+      "port": "parity_error",
+      "range": "",
+      "review_status": "pending",
+      "signal": "parity_error",
+      "signal_terms": [
+        "parity_error"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_core.parity_error"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "output",
+      "instance": "u_core",
+      "machine_readable": false,
+      "module": "parity_gen_core",
+      "port": "parity_mismatch_comb",
+      "range": "",
+      "review_status": "pending",
+      "signal": "parity_mismatch_comb",
+      "signal_terms": [
+        "parity_mismatch_comb"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_core.parity_mismatch_comb"
+    },
+    {
+      "applied_to_ssot": false,
+      "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+      "approval_target": "integration.connections",
+      "confidence": "observed_named_port_map",
+      "direction": "output",
+      "instance": "u_core",
+      "machine_readable": false,
+      "module": "parity_gen_core",
+      "port": "parity_out",
+      "range": "",
+      "review_status": "pending",
+      "signal": "parity_out",
+      "signal_terms": [
+        "parity_out"
+      ],
+      "source_ref": "rtl.connection_contract_suggestions.parity_gen_core.parity_out"
+    }
+  ],
+  "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
+  "schema_version": 1,
+  "summary": {
+    "applied_to_ssot": false,
+    "child_modules": 2,
+    "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+    "observed_named_port_map_rows": 23,
+    "pending_review": 23,
+    "proposed_rows": 0,
+    "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+    "status": "pending_review",
+    "suggested_rows": 23,
+    "top": "parity_gen",
+    "top_module": "parity_gen"
+  },
+  "type": "rtl_connection_contract_suggestions"
+}

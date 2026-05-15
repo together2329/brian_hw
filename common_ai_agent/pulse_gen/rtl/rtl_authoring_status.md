@@ -4,9 +4,9 @@
 
 - Top: pulse_gen
 - Packets: 19
-- LLM-actionable tasks: 173
+- LLM-actionable tasks: 4
 - Human-locked tasks: 1
-- Tool-evidence tasks: 4
+- Tool-evidence tasks: 2
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: False
@@ -15,18 +15,13 @@
 
 ## Next LLM Packets
 
-- module__pulse_gen_regs: rtl/authoring_packets/module__pulse_gen_regs.json (llm_open=44, human_locked=0)
-- module__pulse_gen_core__function_model: rtl/authoring_packets/module__pulse_gen_core__function_model.json (llm_open=44, human_locked=0)
-- module__pulse_gen_core__cycle_model: rtl/authoring_packets/module__pulse_gen_core__cycle_model.json (llm_open=17, human_locked=0)
-- module__pulse_gen_core__fsm: rtl/authoring_packets/module__pulse_gen_core__fsm.json (llm_open=7, human_locked=0)
-- module__pulse_gen_core__features: rtl/authoring_packets/module__pulse_gen_core__features.json (llm_open=3, human_locked=0)
-- module__pulse_gen_core__equivalence: rtl/authoring_packets/module__pulse_gen_core__equivalence.json (llm_open=1, human_locked=0)
-- module__pulse_gen_core__workflow_todo: rtl/authoring_packets/module__pulse_gen_core__workflow_todo.json (llm_open=1, human_locked=0)
-- module__pulse_gen__test_requirements: rtl/authoring_packets/module__pulse_gen__test_requirements.json (llm_open=15, human_locked=0)
+- module__pulse_gen_core__function_model: rtl/authoring_packets/module__pulse_gen_core__function_model.json (llm_open=1, human_locked=0)
+- module__pulse_gen__workflow_todo: rtl/authoring_packets/module__pulse_gen__workflow_todo.json (llm_open=1, human_locked=0)
+- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
 
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=4, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=2, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 

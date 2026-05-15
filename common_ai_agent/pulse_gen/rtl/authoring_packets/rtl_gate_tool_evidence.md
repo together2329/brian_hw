@@ -29,13 +29,9 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Tool-evidence blockers:
   - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
-  - dut_compile: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
-  - dut_lint: Missing canonical DUT lint artifact: lint/dut_lint.json.
-  - dynamic_todo_closure: 177 required non-closure TODO(s) remain open.
+  - dynamic_todo_closure: 6 required non-closure TODO(s) remain open.
 - Tool-evidence runbook:
   - common_ai_agent_authoring: stages=ssot-rtl; artifact=pulse_gen/rtl/rtl_authoring_provenance.json
-  - dut_compile: stages=ssot-rtl, dut_compile; artifact=pulse_gen/rtl/rtl_compile.json
-  - dut_lint: stages=lint, dut_lint; artifact=pulse_gen/lint/dut_lint.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=pulse_gen/rtl/rtl_todo_plan.json
 - SSOT connection contracts:
   - pulse_gen_core.clk_i <= PCLK (integration.connections[0])
@@ -81,13 +77,13 @@ Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
-- Current reason: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
+- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -102,13 +98,13 @@ Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
-- Current reason: Missing canonical DUT lint artifact: lint/dut_lint.json.
+- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -130,7 +126,7 @@ Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
-- Current reason: 177 required non-closure TODO(s) remain open.
+- Current reason: 6 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

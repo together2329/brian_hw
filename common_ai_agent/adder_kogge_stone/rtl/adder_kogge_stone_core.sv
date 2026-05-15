@@ -103,8 +103,6 @@ module adder_kogge_stone_core #(
                 cout_o     <= cout_next;
                 done_o     <= 1'b1;
                 overflow_o <= cout_next;
-            end else begin
-                busy_o <= (next_state == COMPUTE);
             end
         end
     end

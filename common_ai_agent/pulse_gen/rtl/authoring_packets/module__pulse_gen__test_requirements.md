@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 15
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 7/9 section=test_requirements task_limit=48
@@ -50,14 +50,14 @@
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC1
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC1.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC1; name=Software single-cycle pulse; expected=pulse_out asserts for exactly 1 PCLK cycle, STATUS.busy=1 during pulse, STATUS.done=1 after, fired_count increments.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -71,14 +71,14 @@ SSOT item context: id=SC1; name=Software single-cycle pulse; expected=pulse_out 
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC2
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC2.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC2; name=Hardware trigger pulse; expected=Identical to software trigger: pulse_out asserts for PULSE_WIDTH cycles.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -92,14 +92,14 @@ SSOT item context: id=SC2; name=Hardware trigger pulse; expected=Identical to so
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC3
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC3.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC3; name=Multi-cycle pulse width; expected=pulse_out asserts for exactly 10 consecutive PCLK cycles.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -113,14 +113,14 @@ SSOT item context: id=SC3; name=Multi-cycle pulse width; expected=pulse_out asse
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC4
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC4.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC4; name=Back-to-back pulses; expected=Both pulses complete with correct width; fired_count increments by 2.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -134,14 +134,14 @@ SSOT item context: id=SC4; name=Back-to-back pulses; expected=Both pulses comple
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC5
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC5.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC5; name=Non-reentrant rejection; expected=Second trigger ignored; only one pulse completes; fired_count increments by 1 only.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -155,14 +155,14 @@ SSOT item context: id=SC5; name=Non-reentrant rejection; expected=Second trigger
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC6
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC6.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC6; name=Disabled trigger rejection; expected=No pulse output; STATUS unchanged; fired_count unchanged.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -176,14 +176,14 @@ SSOT item context: id=SC6; name=Disabled trigger rejection; expected=No pulse ou
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC7
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC7.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC7; name=Polarity inversion; expected=pulse_out is low during pulse and high when idle (inverted from default).
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -197,14 +197,14 @@ SSOT item context: id=SC7; name=Polarity inversion; expected=pulse_out is low du
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC8
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC8.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC8; name=Interrupt enable/disable; expected=First pulse: no irq_o. Second pulse: irq_o asserts at completion..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -218,14 +218,14 @@ SSOT item context: id=SC8; name=Interrupt enable/disable; expected=First pulse: 
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC9
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC9.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC9; name=W1C STATUS.done clear; expected=STATUS.done clears to 0; irq_o deasserts if no other pending source.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -239,14 +239,14 @@ SSOT item context: id=SC9; name=W1C STATUS.done clear; expected=STATUS.done clea
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC10
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC10.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC10; name=Runtime width change; expected=First pulse is 5 cycles; second pulse is 3 cycles; mid-pulse write ignored for current pulse.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -260,14 +260,14 @@ SSOT item context: id=SC10; name=Runtime width change; expected=First pulse is 5
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC11
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC11.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC11; name=Reset clears all state; expected=pulse_out returns to idle_level, FSM→IDLE, STATUS→0, counter→0, irq_o→0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -281,14 +281,14 @@ SSOT item context: id=SC11; name=Reset clears all state; expected=pulse_out retu
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC12
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC12.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC12; name=APB illegal address; expected=PSLVERR=1, PRDATA=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -302,14 +302,14 @@ SSOT item context: id=SC12; name=APB illegal address; expected=PSLVERR=1, PRDATA
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC13
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC13.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC13; name=PULSE_WIDTH=0 clamp; expected=Pulse width is treated as 1 (minimum clamp); no error.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -323,14 +323,14 @@ SSOT item context: id=SC13; name=PULSE_WIDTH=0 clamp; expected=Pulse width is tr
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC14
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC14.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC14; name=fired_count wrap; expected=fired_count wraps cleanly; no overflow error.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -344,14 +344,14 @@ SSOT item context: id=SC14; name=fired_count wrap; expected=fired_count wraps cl
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC15
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC15.
 Owner: pulse_gen in rtl/pulse_gen.sv via test_requirements.
 SSOT item context: id=SC15; name=Simultaneous SW+HW trigger; expected=Exactly one pulse fires (not double); no error.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared

@@ -73,6 +73,9 @@ module edge_detector #(
         end
     end
 
+    logic [7:0] status_sticky;
+    assign status_sticky = u_regs.status_edge_sticky;
+
     edge_detector_regs #(
         .WIDTH(WIDTH),
         .EDGE_MODE_RESET(EDGE_MODE)
@@ -97,6 +100,6 @@ module edge_detector #(
 
     // irq_o is level-sensitive and asserted by the CSR block from sticky/raw edge status.
     always @(*) begin
-        irq_o = irq_level & irq_enable_cfg & target_freq_nonzero;
+        irq_o = irq_level & irq_enable_cfg & target_freq_nonzero & ((|status_sticky) | (|edge_o));
     end
 endmodule

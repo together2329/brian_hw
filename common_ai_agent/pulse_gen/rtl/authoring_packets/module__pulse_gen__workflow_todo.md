@@ -57,7 +57,7 @@
 SSOT ref: workflow_todos.rtl-gen[2].
 Owner: pulse_gen in rtl/pulse_gen.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_TOP.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Top module port list matches io_list.interfaces exactly
   - Internal connections match integration.connections

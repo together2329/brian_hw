@@ -12,10 +12,10 @@
     "rtl/edge_detector_regs.sv",
     "rtl/edge_detector.sv"
   ],
-  "timestamp": "2026-05-15T02:10:05.446080+00:00",
-  "returncode": 0,
+  "timestamp": "2026-05-15T02:11:54.591447+00:00",
+  "returncode": 1,
   "errors": 0,
-  "warnings": 0,
+  "warnings": 1,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -32,11 +32,21 @@
       "tool": "verilator",
       "available": true,
       "command": "verilator --lint-only -Wall -Irtl -f list/edge_detector.f --top-module edge_detector",
-      "returncode": 0,
+      "returncode": 1,
       "errors": 0,
-      "warnings": 0,
-      "diagnostics": [],
-      "passed": true
+      "warnings": 1,
+      "diagnostics": [
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/edge_detector.sv",
+          "line": 76,
+          "column": 17,
+          "message": "Signal is not used: 'status_sticky'",
+          "source": "    logic [7:0] status_sticky;"
+        }
+      ],
+      "passed": false
     }
   ],
   "suppression_violation_count": 0,
@@ -44,5 +54,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": true
+  "passed": false
 }

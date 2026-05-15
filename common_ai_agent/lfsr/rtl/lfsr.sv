@@ -3,7 +3,7 @@
 module lfsr (
     input  logic [0:0]                PCLK,
     input  logic [0:0]                PRESETn,
-    input  logic [APB_ADDR_WIDTH-1:0] PADDR,
+    input  logic [7:0]                PADDR,
     input  logic                      PSEL,
     input  logic                      PENABLE,
     input  logic                      PWRITE,
@@ -15,6 +15,12 @@ module lfsr (
     output logic                      prbs_bit,
     output logic                      prbs_valid
 );
+    localparam integer LFSR_WIDTH = 32;
+    localparam integer APB_ADDR_WIDTH = 8;
+    localparam integer APB_DATA_WIDTH = 32;
+    localparam [LFSR_WIDTH-1:0] DEFAULT_POLY = 32'h80000057;
+    localparam [LFSR_WIDTH-1:0] DEFAULT_SEED = 32'h00000001;
+
     localparam [APB_ADDR_WIDTH-1:0] ADDR_CTRL   = 8'h00;
     localparam [APB_ADDR_WIDTH-1:0] ADDR_POLY   = 8'h04;
     localparam [APB_ADDR_WIDTH-1:0] ADDR_SEED   = 8'h08;

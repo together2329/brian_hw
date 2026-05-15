@@ -1,0 +1,1400 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "missing"
+    },
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rows": [
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "PADDR",
+          "review_status": "pending",
+          "signal": "PADDR"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "PCLK",
+          "review_status": "pending",
+          "signal": "PCLK"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "PENABLE",
+          "review_status": "pending",
+          "signal": "PENABLE"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "PRDATA",
+          "review_status": "pending",
+          "signal": "PRDATA"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "PREADY",
+          "review_status": "pending",
+          "signal": "PREADY"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "PRESETn",
+          "review_status": "pending",
+          "signal": "PRESETn"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "PSEL",
+          "review_status": "pending",
+          "signal": "PSEL"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "PSLVERR",
+          "review_status": "pending",
+          "signal": "PSLVERR"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "PWDATA",
+          "review_status": "pending",
+          "signal": "PWDATA"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "PWRITE",
+          "review_status": "pending",
+          "signal": "PWRITE"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "check_enable",
+          "review_status": "pending",
+          "signal": "check_enable"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "enable",
+          "review_status": "pending",
+          "signal": "enable"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "expected_parity",
+          "review_status": "pending",
+          "signal": "expected_parity"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_regs",
+          "module": "parity_gen_regs",
+          "port": "parity_error_set",
+          "review_status": "pending",
+          "signal": "check_enable & parity_mismatch_comb"
+        }
+      ],
+      "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
+      "summary": {
+        "applied_to_ssot": false,
+        "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+        "pending_review": 23,
+        "status": "pending_review",
+        "suggested_rows": 23
+      }
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 23,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/parity_gen_regs.sv",
+      "name": "parity_gen_regs",
+      "refs": [
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/parity_gen_regs.sv",
+        "name": "parity_gen_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/parity_gen_core.sv",
+        "name": "parity_gen_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/parity_gen.sv",
+        "name": "parity_gen",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "minimal peripheral with 2 sub-modules and APB interface",
+      "min_behavior_owner_logic_modules": 2,
+      "min_logic_modules": 2,
+      "min_modules": 3,
+      "min_procedural_blocks": 4,
+      "min_source_files": 3,
+      "min_state_updates": 2,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "parity_gen",
+  "kind": "module",
+  "owner_file": "rtl/parity_gen_regs.sv",
+  "owner_module": "parity_gen_regs",
+  "packet_id": "module__parity_gen_regs",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "io_list.port": 13,
+      "registers.field": 6,
+      "registers.register": 2,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 23,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 23,
+    "source_refs": [
+      "workflow_todos.rtl-gen[1]",
+      "registers.register_list.CONTROL",
+      "registers.register_list.CONTROL.fields.enable",
+      "registers.register_list.CONTROL.fields.check_enable",
+      "registers.register_list.CONTROL.fields.expected_parity",
+      "registers.register_list.CONTROL.fields.reserved",
+      "registers.register_list.STATUS",
+      "registers.register_list.STATUS.fields.parity_err_sticky",
+      "registers.register_list.STATUS.fields.reserved",
+      "sub_modules.parity_gen_regs.module_equivalence",
+      "io_list.clock_domains.PCLK.ports.PCLK",
+      "io_list.resets.PRESETn.ports.PRESETn",
+      "io_list.interfaces.apb_slave.ports.PADDR",
+      "io_list.interfaces.apb_slave.ports.PSEL",
+      "io_list.interfaces.apb_slave.ports.PENABLE",
+      "io_list.interfaces.apb_slave.ports.PWRITE",
+      "io_list.interfaces.apb_slave.ports.PWDATA",
+      "io_list.interfaces.apb_slave.ports.PRDATA",
+      "io_list.interfaces.apb_slave.ports.PREADY",
+      "io_list.interfaces.apb_slave.ports.PSLVERR",
+      "io_list.interfaces.data_input.ports.data_in",
+      "io_list.interfaces.parity_output.ports.parity_out",
+      "io_list.interfaces.parity_output.ports.parity_error"
+    ],
+    "status_counts": {
+      "pass": 23
+    },
+    "task_count": 23
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement APB-lite register decode",
+      "criteria": [
+        "APB read/write to CONTROL and STATUS works with zero wait states",
+        "Reserved addresses return PSLVERR=1",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "Semantic source_refs covered: io_list.interfaces.apb_slave, registers.register_list"
+      ],
+      "detail": "Implement CONTROL and STATUS register decode with APB-lite slave interface in parity_gen_regs.sv.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_REGS.",
+      "evidence_terms": [
+        "REGS",
+        "RTL_TODO_REGS",
+        "TODO",
+        "apb",
+        "apb_slave",
+        "io",
+        "io_list",
+        "list",
+        "parity",
+        "parity_gen_regs",
+        "regs",
+        "slave"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_TODO_REGS"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave",
+        "registers.register_list",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "REGS",
+          "apb",
+          "parity",
+          "parity_gen_regs",
+          "regs"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "REGS",
+          "RTL_TODO_REGS",
+          "TODO",
+          "apb",
+          "apb_slave",
+          "io",
+          "io_list",
+          "list",
+          "parity",
+          "parity_gen_regs",
+          "regs",
+          "slave"
+        ],
+        "source_scope": "rtl/parity_gen_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_REGS",
+        "source_refs": [
+          "io_list.interfaces.apb_slave",
+          "registers.register_list"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CONTROL",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CONTROL",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "CONTROL width matches SSOT value 32",
+        "CONTROL reset behavior matches SSOT value 0",
+        "CONTROL access policy rw is implemented without read/write shortcuts",
+        "CONTROL decode uses SSOT address/offset 0"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CONTROL.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via registers.register_list.\nSSOT item context: name=CONTROL; width=32; reset=0; access=rw; offset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0069",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CONTROL",
+        "offset": "0",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.enable",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.enable",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "enable reset behavior matches SSOT value 0",
+        "enable access policy rw is implemented without read/write shortcuts",
+        "enable readback returns implemented RTL state when readable",
+        "enable write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.enable.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via registers.register_list.\nSSOT item context: name=enable; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0070",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.enable",
+      "ssot_context": {
+        "access": "rw",
+        "name": "enable",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.check_enable",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.check_enable",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "check_enable reset behavior matches SSOT value 0",
+        "check_enable access policy rw is implemented without read/write shortcuts",
+        "check_enable readback returns implemented RTL state when readable",
+        "check_enable write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.check_enable.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via registers.register_list.\nSSOT item context: name=check_enable; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0071",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.check_enable",
+      "ssot_context": {
+        "access": "rw",
+        "name": "check_enable",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.check_enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.expected_parity",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.expected_parity",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "expected_parity reset behavior matches SSOT value 0",
+        "expected_parity access policy rw is implemented without read/write shortcuts",
+        "expected_parity readback returns implemented RTL state when readable",
+        "expected_parity write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.expected_parity.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via registers.register_list.\nSSOT item context: name=expected_parity; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0072",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.expected_parity",
+      "ssot_context": {
+        "access": "rw",
+        "name": "expected_parity",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.expected_parity"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.reserved",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.reserved",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "reserved reset behavior matches SSOT value 0",
+        "reserved access policy ro is implemented without read/write shortcuts",
+        "reserved readback returns implemented RTL state when readable",
+        "reserved write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.reserved.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via registers.register_list.\nSSOT item context: name=reserved; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0073",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.reserved",
+      "ssot_context": {
+        "access": "ro",
+        "name": "reserved",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.reserved"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register STATUS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.STATUS",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "STATUS width matches SSOT value 32",
+        "STATUS reset behavior matches SSOT value 0",
+        "STATUS access policy rw is implemented without read/write shortcuts",
+        "STATUS decode uses SSOT address/offset 4"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via registers.register_list.\nSSOT item context: name=STATUS; width=32; reset=0; access=rw; offset=4.",
+      "evidence_terms": [],
+      "id": "RTL-0074",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS",
+      "ssot_context": {
+        "access": "rw",
+        "name": "STATUS",
+        "offset": "4",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.parity_err_sticky",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.parity_err_sticky",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "parity_err_sticky reset behavior matches SSOT value 0",
+        "parity_err_sticky access policy rw is implemented without read/write shortcuts",
+        "parity_err_sticky readback returns implemented RTL state when readable",
+        "parity_err_sticky write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.parity_err_sticky.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via registers.register_list.\nSSOT item context: name=parity_err_sticky; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0075",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.parity_err_sticky",
+      "ssot_context": {
+        "access": "rw",
+        "name": "parity_err_sticky",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.parity_err_sticky"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.reserved",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.reserved",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "reserved reset behavior matches SSOT value 0",
+        "reserved access policy ro is implemented without read/write shortcuts",
+        "reserved readback returns implemented RTL state when readable",
+        "reserved write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.reserved.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via registers.register_list.\nSSOT item context: name=reserved; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0076",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.reserved",
+      "ssot_context": {
+        "access": "ro",
+        "name": "reserved",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.reserved"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module parity_gen_regs is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.parity_gen_regs.module_equivalence",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.parity_gen_regs.module_equivalence.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0085",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.parity_gen_regs.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.parity_gen_regs.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PCLK",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.PCLK.ports.PCLK",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "PCLK width matches SSOT value 1",
+        "PCLK port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.PCLK.ports.PCLK.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.\nSSOT item context: name=PCLK; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.PCLK.ports.PCLK",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PCLK",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.PCLK.ports.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRESETn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.PRESETn.ports.PRESETn",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "PRESETn width matches SSOT value 1",
+        "PRESETn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.PRESETn.ports.PRESETn.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.\nSSOT item context: name=PRESETn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.PRESETn.ports.PRESETn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PRESETn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.PRESETn.ports.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PADDR",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PADDR",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "PADDR width matches SSOT value 12",
+        "PADDR port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PADDR.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PADDR; width=12; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PADDR",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PADDR",
+        "width": "12"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PADDR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSEL",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PSEL",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "PSEL width matches SSOT value 1",
+        "PSEL port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PSEL.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PSEL; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PSEL",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PSEL",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PSEL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PENABLE",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PENABLE",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "PENABLE width matches SSOT value 1",
+        "PENABLE port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PENABLE.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PENABLE; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PENABLE",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PENABLE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PENABLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PWRITE",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PWRITE",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "PWRITE width matches SSOT value 1",
+        "PWRITE port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PWRITE.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PWRITE; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PWRITE",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PWRITE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PWRITE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PWDATA",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PWDATA",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "PWDATA width matches SSOT value 32",
+        "PWDATA port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PWDATA.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PWDATA; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PWDATA",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PWDATA",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PWDATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRDATA",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PRDATA",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "PRDATA width matches SSOT value 32",
+        "PRDATA port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PRDATA.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PRDATA; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PRDATA",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PRDATA",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PRDATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PREADY",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PREADY",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "PREADY width matches SSOT value 1",
+        "PREADY port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PREADY.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PREADY; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PREADY",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PREADY",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PREADY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSLVERR",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PSLVERR",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "PSLVERR width matches SSOT value 1",
+        "PSLVERR port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PSLVERR.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PSLVERR; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PSLVERR",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PSLVERR",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PSLVERR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port data_in",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.data_input.ports.data_in",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "data_in width matches SSOT value 32",
+        "data_in port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_input.ports.data_in.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.\nSSOT item context: name=data_in; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.data_input.ports.data_in",
+      "ssot_context": {
+        "direction": "input",
+        "name": "data_in",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.data_input.ports.data_in"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port parity_out",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.parity_output.ports.parity_out",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "parity_out width matches SSOT value 1",
+        "parity_out port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.parity_output.ports.parity_out.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.\nSSOT item context: name=parity_out; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.parity_output.ports.parity_out",
+      "ssot_context": {
+        "direction": "output",
+        "name": "parity_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.parity_output.ports.parity_out"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port parity_error",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.parity_output.ports.parity_error",
+        "Primary implementation evidence is in rtl/parity_gen_regs.sv",
+        "parity_error width matches SSOT value 1",
+        "parity_error port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.parity_output.ports.parity_error.\nOwner: parity_gen_regs in rtl/parity_gen_regs.sv via io_list.\nSSOT item context: name=parity_error; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/parity_gen_regs.sv",
+      "owner_module": "parity_gen_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.parity_output.ports.parity_error",
+      "ssot_context": {
+        "direction": "output",
+        "name": "parity_error",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.parity_output.ports.parity_error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "960acaefd7d25351f96298c0be958a8172391b41ad552761958b36a389568b54",
+  "top": "parity_gen",
+  "type": "rtl_authoring_packet"
+}

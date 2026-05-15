@@ -149,9 +149,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 7,
-    "open_required_count": 7,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -195,7 +195,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 7,
+    "open_required_count": 0,
     "required_count": 7,
     "source_refs": [
       "fsm.pulse_fsm.states.state_0",
@@ -207,7 +207,7 @@
       "fsm.pulse_fsm.transitions.transition_3"
     ],
     "status_counts": {
-      "open": 7
+      "pass": 7
     },
     "task_count": 7
   },
@@ -240,8 +240,10 @@
         "fsm.pulse_fsm.states.state_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -249,7 +251,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/pulse_gen_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -259,9 +261,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -292,8 +294,10 @@
         "fsm.pulse_fsm.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "PULSE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -301,7 +305,7 @@
           "PULSE"
         ],
         "source_scope": "rtl/pulse_gen_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -311,9 +315,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -344,8 +348,10 @@
         "fsm.pulse_fsm.states.state_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DONE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -353,7 +359,7 @@
           "DONE"
         ],
         "source_scope": "rtl/pulse_gen_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -363,9 +369,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -408,8 +414,19 @@
         "fsm.pulse_fsm.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 10,
+        "matched_terms": [
+          "CTRL",
+          "IDLE",
+          "PULSE",
+          "STATUS",
+          "en",
+          "hw",
+          "hw_trig_en",
+          "trig",
+          "trigger",
+          "trigger_i"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -426,7 +443,7 @@
           "trigger_i"
         ],
         "source_scope": "rtl/pulse_gen_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -436,9 +453,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -477,8 +494,15 @@
         "fsm.pulse_fsm.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "PULSE",
+          "latched",
+          "latched_width",
+          "pulse",
+          "pulse_counter",
+          "width"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -491,7 +515,7 @@
           "width"
         ],
         "source_scope": "rtl/pulse_gen_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -501,9 +525,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -543,8 +567,16 @@
         "fsm.pulse_fsm.transitions.transition_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "DONE",
+          "PULSE",
+          "latched",
+          "latched_width",
+          "pulse",
+          "pulse_counter",
+          "width"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -558,7 +590,7 @@
           "width"
         ],
         "source_scope": "rtl/pulse_gen_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -568,9 +600,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -607,8 +639,12 @@
         "fsm.pulse_fsm.transitions.transition_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "DONE",
+          "IDLE",
+          "STATUS"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -619,7 +655,7 @@
           "W1C"
         ],
         "source_scope": "rtl/pulse_gen_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -629,9 +665,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],

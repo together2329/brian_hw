@@ -496,9 +496,37 @@ coding_rules:
     - "UNUSEDPARAM: SHIFT_DIRECTION branch parameters only if configured away by elaboration."
     - "UNUSEDSIGNAL: none expected for production RTL."
 reuse_modules: []
-custom: TBD
-dir_structure: TBD
-filelist: TBD
+custom:
+  assumptions:
+    - "No requirements file existed at shift_reg/req/shift_reg_requirements.md, so this SSOT captures a conventional parameterized shift register contract."
+    - "Default WIDTH is 8 and default SHIFT_DIRECTION is LEFT unless changed by downstream parameterization."
+    - "No software-visible bus registers or interrupts are required for this IP."
+  qa_status: "No immediate blocker; assumptions are recorded for downstream review."
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    list: "list/"
+    tb: "tb/"
+    sim: "sim/"
+    lint: "lint/"
+    docs: "doc/"
+    sdc: "sdc/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+filelist:
+  headers:
+    - "rtl/shift_reg_param.vh"
+  rtl:
+    - "rtl/shift_reg.sv"
+    - "rtl/shift_reg_core.sv"
+  sim:
+    - "tb/cocotb/test_shift_reg.py"
+  firmware: []
+  docs:
+    - "doc/shift_reg_mas.md"
 test_requirements: TBD
 quality_gates: TBD
 traceability: TBD

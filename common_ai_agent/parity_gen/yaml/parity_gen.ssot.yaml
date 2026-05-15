@@ -107,7 +107,7 @@ dataflow:
   config_path:
     source: "APB write"
     sequence: "PWDATA → register decoder → CONTROL/STATUS"
-    latency: "0-cycle comb (APB PREADY asserted immediately)")
+    latency: "0-cycle comb (APB PREADY asserted immediately)"
 
 function_model:
   purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the IP computes independent of cycle timing."

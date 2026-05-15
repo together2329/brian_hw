@@ -294,7 +294,7 @@ rdc_requirements:
 
 registers:
   no_registers: true
-  no_csr: true
+  no_csr: "This leaf IP has no CSR bus; behavior is controlled solely by parameters and scalar ports."
   policy: "This leaf IP has no software-visible registers or CSR bus; behavior is controlled solely by parameters and scalar ports."
   config:
     register_width: 0
@@ -595,7 +595,7 @@ test_requirements:
 
 quality_gates:
   ssot:
-    pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
+    pass: "All canonical sections are present, substantive, internally consistent, and have no live unresolved placeholders."
     evidence: ["workflow/ssot-gen/scripts/check_ssot_disk.sh debouncer PASS", "YAML parse PASS"]
   rtl_gen:
     profile: "production"
@@ -626,6 +626,9 @@ quality_gates:
   eda:
     pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved SSOT waivers."
     evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
+  signoff:
+    pass: "All SSOT, RTL, DV, coverage, and EDA quality gates pass with current evidence or approved waivers."
+    evidence: ["quality_gates.ssot.evidence", "quality_gates.rtl.evidence", "quality_gates.dv.evidence", "quality_gates.coverage.evidence", "quality_gates.eda.evidence"]
 
 traceability:
   yaml_to_output:

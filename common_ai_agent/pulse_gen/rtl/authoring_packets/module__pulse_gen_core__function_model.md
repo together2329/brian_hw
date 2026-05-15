@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 44
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, features, features.pulse_fire, fsm, fsm.pulse_fsm, function_model, function_model.state_variables, function_model.transactions, function_model.transactions.FM_FIRE
 - Module slice: 1/6 section=function_model task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.fsm_state
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.fsm_state.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.
 SSOT item context: name=fsm_state; reset=IDLE.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -65,14 +65,14 @@ SSOT item context: name=fsm_state; reset=IDLE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.pulse_counter
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.pulse_counter.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.
 SSOT item context: name=pulse_counter; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -86,14 +86,14 @@ SSOT item context: name=pulse_counter; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.latched_width
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.latched_width.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.
 SSOT item context: name=latched_width; reset=1.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -107,14 +107,14 @@ SSOT item context: name=latched_width; reset=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.latched_polarity
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.latched_polarity.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.
 SSOT item context: name=latched_polarity; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -128,14 +128,14 @@ SSOT item context: name=latched_polarity; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctrl_fire
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctrl_fire.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.
 SSOT item context: name=ctrl_fire; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -149,14 +149,14 @@ SSOT item context: name=ctrl_fire; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctrl_enable
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctrl_enable.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.
 SSOT item context: name=ctrl_enable; reset=1.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -170,14 +170,14 @@ SSOT item context: name=ctrl_enable; reset=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctrl_hw_trig_en
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctrl_hw_trig_en.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.
 SSOT item context: name=ctrl_hw_trig_en; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -191,14 +191,14 @@ SSOT item context: name=ctrl_hw_trig_en; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.status_busy
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.status_busy.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.
 SSOT item context: name=status_busy; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -212,14 +212,14 @@ SSOT item context: name=status_busy; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.status_done
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.status_done.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.
 SSOT item context: name=status_done; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -233,14 +233,14 @@ SSOT item context: name=status_done; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.fired_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.fired_count.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.
 SSOT item context: name=fired_count; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -254,14 +254,14 @@ SSOT item context: name=fired_count; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_FIRE
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_FIRE.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: id=FM_FIRE; name=fire_pulse.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -274,14 +274,14 @@ SSOT item context: id=FM_FIRE; name=fire_pulse.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_FIRE.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.preconditions.precondition_0.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: value=ctrl_enable == 1.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -294,14 +294,14 @@ SSOT item context: value=ctrl_enable == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_FIRE.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.preconditions.precondition_1.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: value=status_busy == 0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -314,14 +314,14 @@ SSOT item context: value=status_busy == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_FIRE.preconditions.precondition_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.preconditions.precondition_2.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: value=(ctrl_fire == 1) or (trigger_i == 1 and ctrl_hw_trig_en == 1).
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -334,14 +334,14 @@ SSOT item context: value=(ctrl_fire == 1) or (trigger_i == 1 and ctrl_hw_trig_en
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_FIRE.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.inputs.input_0.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: value=trigger event: ctrl_fire or trigger_i level.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -354,14 +354,14 @@ SSOT item context: value=trigger event: ctrl_fire or trigger_i level.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_FIRE.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.inputs.input_1.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: value=latched_width = max(registers.PULSE_WIDTH.width, 1).
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -374,14 +374,14 @@ SSOT item context: value=latched_width = max(registers.PULSE_WIDTH.width, 1).
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_FIRE.inputs.input_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.inputs.input_2.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: value=latched_polarity = registers.CTRL.polarity.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -394,14 +394,14 @@ SSOT item context: value=latched_polarity = registers.CTRL.polarity.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_FIRE.outputs.pulse_out_active
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.outputs.pulse_out_active.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=pulse_out_active; port=pulse_out; expr=latched_polarity ? 1'b0 : 1'b1; width=PULSE_OUT_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -417,14 +417,14 @@ SSOT item context: name=pulse_out_active; port=pulse_out; expr=latched_polarity 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_FIRE.outputs.pulse_out_idle
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.outputs.pulse_out_idle.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=pulse_out_idle; port=pulse_out; expr=latched_polarity ? 1'b1 : 1'b0; width=PULSE_OUT_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -440,14 +440,14 @@ SSOT item context: name=pulse_out_idle; port=pulse_out; expr=latched_polarity ? 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_FIRE.outputs.irq_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.outputs.irq_o.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=irq_o; port=irq_o; expr=status_done & INT_ENABLE.done_ie; width=1.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -463,14 +463,14 @@ SSOT item context: name=irq_o; port=irq_o; expr=status_done & INT_ENABLE.done_ie
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_FIRE.output_rules.pulse_out_active
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.output_rules.pulse_out_active.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=pulse_out_active; port=pulse_out; expr=latched_polarity ? 1'b0 : 1'b1; width=PULSE_OUT_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -487,14 +487,14 @@ SSOT item context: name=pulse_out_active; port=pulse_out; expr=latched_polarity 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_FIRE.output_rules.pulse_out_idle
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.output_rules.pulse_out_idle.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=pulse_out_idle; port=pulse_out; expr=latched_polarity ? 1'b1 : 1'b0; width=PULSE_OUT_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -511,14 +511,14 @@ SSOT item context: name=pulse_out_idle; port=pulse_out; expr=latched_polarity ? 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_FIRE.output_rules.irq_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.output_rules.irq_o.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=irq_o; port=irq_o; expr=status_done & INT_ENABLE.done_ie; width=1.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -535,14 +535,14 @@ SSOT item context: name=irq_o; port=irq_o; expr=status_done & INT_ENABLE.done_ie
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_FIRE.state_updates.fsm_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.state_updates.fsm_state.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=fsm_state; expr=IDLE→PULSE on trigger; PULSE→DONE when counter==width-1; DONE→IDLE after 1 cycle or W1C; reset=IDLE.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -558,14 +558,14 @@ SSOT item context: name=fsm_state; expr=IDLE→PULSE on trigger; PULSE→DONE wh
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_FIRE.state_updates.pulse_counter
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.state_updates.pulse_counter.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=pulse_counter; expr=0 in IDLE/DONE; increments each cycle in PULSE; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -581,14 +581,14 @@ SSOT item context: name=pulse_counter; expr=0 in IDLE/DONE; increments each cycl
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_FIRE.state_updates.latched_width
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.state_updates.latched_width.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=latched_width; expr=captured from PULSE_WIDTH register at trigger; held constant during PULSE; reset=1.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -604,14 +604,14 @@ SSOT item context: name=latched_width; expr=captured from PULSE_WIDTH register a
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_FIRE.state_updates.latched_polarity
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.state_updates.latched_polarity.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=latched_polarity; expr=captured from CTRL.polarity at trigger; held constant during PULSE; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -627,14 +627,14 @@ SSOT item context: name=latched_polarity; expr=captured from CTRL.polarity at tr
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_FIRE.state_updates.status_busy
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.state_updates.status_busy.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=status_busy; expr=1 while fsm_state==PULSE; 0 otherwise; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -650,14 +650,14 @@ SSOT item context: name=status_busy; expr=1 while fsm_state==PULSE; 0 otherwise;
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_FIRE.state_updates.status_done
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.state_updates.status_done.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=status_done; expr=set to 1 at PULSE→DONE transition; cleared by W1C write to STATUS.done; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -673,14 +673,14 @@ SSOT item context: name=status_done; expr=set to 1 at PULSE→DONE transition; c
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_FIRE.state_updates.fired_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.state_updates.fired_count.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=fired_count; expr=fired_count + 1 at PULSE→DONE transition; wraps at 2^16; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -703,7 +703,7 @@ SSOT item context: name=fired_count; expr=fired_count + 1 at PULSE→DONE transi
 SSOT ref: function_model.transactions.FM_FIRE.state_updates.ctrl_fire.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=ctrl_fire; expr=set to 1 by APB write; auto-clears to 0 after one PCLK; reset=0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -719,14 +719,14 @@ SSOT item context: name=ctrl_fire; expr=set to 1 by APB write; auto-clears to 0 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_FIRE.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.side_effects.side_effect_0.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: value=fsm_state transitions: IDLE → PULSE → DONE → IDLE.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -739,14 +739,14 @@ SSOT item context: value=fsm_state transitions: IDLE → PULSE → DONE → IDLE
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_FIRE.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.side_effects.side_effect_1.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: value=pulse_counter increments each PCLK cycle while in PULSE state.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -759,14 +759,14 @@ SSOT item context: value=pulse_counter increments each PCLK cycle while in PULSE
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_FIRE.side_effects.side_effect_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.side_effects.side_effect_2.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: value=fired_count increments by 1 at PULSE→DONE transition.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -779,14 +779,14 @@ SSOT item context: value=fired_count increments by 1 at PULSE→DONE transition.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_FIRE.side_effects.side_effect_3
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.side_effects.side_effect_3.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: value=ctrl_fire auto-clears to 0 after one PCLK cycle (self-clearing trigger).
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -799,14 +799,14 @@ SSOT item context: value=ctrl_fire auto-clears to 0 after one PCLK cycle (self-c
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_FIRE.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.error_cases.error_case_0.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: condition=trigger while status_busy==1.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -820,14 +820,14 @@ SSOT item context: condition=trigger while status_busy==1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_FIRE.error_cases.error_case_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.error_cases.error_case_1.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: condition=PULSE_WIDTH.width written as 0.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -841,14 +841,14 @@ SSOT item context: condition=PULSE_WIDTH.width written as 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_FIRE.error_cases.error_case_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.error_cases.error_case_2.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: condition=ctrl_enable==0 when trigger arrives.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -862,14 +862,14 @@ SSOT item context: condition=ctrl_enable==0 when trigger arrives.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_0
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_0.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.
 SSOT item context: value=pulse_out is at idle_level whenever fsm_state != PULSE..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -882,14 +882,14 @@ SSOT item context: value=pulse_out is at idle_level whenever fsm_state != PULSE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_1
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_1.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.
 SSOT item context: value=pulse_out is never asserted for more or fewer cycles than latched_width..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -902,14 +902,14 @@ SSOT item context: value=pulse_out is never asserted for more or fewer cycles th
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_2
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_2.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.
 SSOT item context: value=STATUS.busy and pulse_out active are always coincident..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -922,14 +922,14 @@ SSOT item context: value=STATUS.busy and pulse_out active are always coincident.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_3
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_3.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.
 SSOT item context: value=A new pulse cannot start while STATUS.busy==1 (non-reentrant)..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -942,14 +942,14 @@ SSOT item context: value=A new pulse cannot start while STATUS.busy==1 (non-reen
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_4
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_4.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.
 SSOT item context: value=irq_o is a pure combinational function of STATUS.done and INT_ENABLE.done_ie..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -962,14 +962,14 @@ SSOT item context: value=irq_o is a pure combinational function of STATUS.done a
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_5
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_5.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.
 SSOT item context: value=ctrl_fire is self-clearing: it is 1 for exactly one PCLK cycle after being written..
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner

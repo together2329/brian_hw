@@ -561,8 +561,79 @@ dir_structure:
     docs: "docs/"
   yaml_dir: "yaml/"
   generators_dir: "generators/"
-filelist: TBD
-test_requirements: TBD
+filelist:
+  headers:
+    - "rtl/clkdiv_param.vh"
+  rtl:
+    - "rtl/clkdiv.sv"
+    - "rtl/clkdiv_regs.sv"
+    - "rtl/clkdiv_core.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/clkdiv_model.sv"
+  firmware:
+    - "firmware/clkdiv_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/README.md"
+test_requirements:
+  scenarios:
+    - id: "SC_APB"
+      name: "APB register access"
+      stimulus: "Read reset registers; write CTRL/DIVISOR; attempt unsupported address and RO STATUS write."
+      expected: "Register readback, reserved zero behavior, pslverr, and side effects match registers and error_handling."
+      checker: "APB monitor and scoreboard compare prdata/pslverr and internal model state."
+      coverage: ["registers.register_list", "ERR_APB_ADDR", "ERR_APB_WRITE_RO"]
+    - id: "SC_DIV2"
+      name: "Divide by two baseline"
+      stimulus: "Program DIVISOR=2, set enable, observe clk_o toggles."
+      expected: "clk_o toggles every 2 clk_i rising edges and locked_o asserts after first reload."
+      checker: "Cycle model counts clk_i edges between clk_o transitions."
+      coverage: ["FM_DIVIDE", "S2_COUNT", "S3_TERMINAL"]
+    - id: "SC_DIV_UPDATE"
+      name: "Glitchless divisor update"
+      stimulus: "While enabled, write new DIVISOR value mid-count."
+      expected: "active_divisor changes only at terminal boundary; no runt/asynchronous output pulse."
+      checker: "Waveform/cycle checker verifies clk_o edge spacing and active_divisor load ordering."
+      coverage: ["glitchless_update", "cycle_model.ordering"]
+    - id: "SC_IRQ"
+      name: "Terminal interrupt set and clear"
+      stimulus: "Set irq_enable, enable divider, wait terminal event, then write INTCLR.clear_irq."
+      expected: "irq_pending and irq_o assert on terminal event and deassert after W1C clear."
+      checker: "Scoreboard checks STATUS.irq_pending and irq_o timing."
+      coverage: ["TERMINAL_EVENT", "irq_clear"]
+    - id: "SC_DIV_ZERO"
+      name: "DIVISOR zero write policy"
+      stimulus: "Write DIVISOR=0 and read back/divide."
+      expected: "pending_divisor coerces to 1 without pslverr and output follows divide-by-one half-period contract."
+      checker: "APB readback and cycle checker compare coerced divisor behavior."
+      coverage: ["WARN_DIV_ZERO", "function_model.transactions.FM_DIVIDE.error_cases"]
+  scoreboard_checks: 12
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for clock divide operation, register side effects, and interrupt/error behavior."
+      bins:
+        - { id: "FCOV_FM_DIVIDE", source_ref: "function_model.transactions.FM_DIVIDE", class: "transaction", description: "Primary divide transaction observed" }
+        - { id: "FCOV_DIV_ZERO", source_ref: "function_model.transactions.FM_DIVIDE.error_cases.WARN_DIV_ZERO", class: "error_case", description: "Zero divisor coercion observed" }
+        - { id: "FCOV_IRQ", source_ref: "interrupts.sources.TERMINAL_EVENT", class: "interrupt", description: "Terminal event interrupt set and clear observed" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/timing coverage for APB accesses, counter pipeline, and output timing."
+      bins:
+        - { id: "CCOV_APB_ACCESS", source_ref: "cycle_model.pipeline.S1_APB_ACCESS", class: "pipeline_stage", description: "APB access completion observed" }
+        - { id: "CCOV_COUNT", source_ref: "cycle_model.pipeline.S2_COUNT", class: "pipeline_stage", description: "Counter increment stage observed" }
+        - { id: "CCOV_TERMINAL", source_ref: "cycle_model.pipeline.S3_TERMINAL", class: "pipeline_stage", description: "Terminal toggle/reload observed" }
+        - { id: "CCOV_CLK_TOGGLE_RULE", source_ref: "cycle_model.handshake_rules.clk_o", class: "output_timing", description: "clk_o toggles only at terminal count" }
+        - { id: "CCOV_FSM_TRANSITIONS", source_ref: "fsm.divider_fsm.transitions", class: "state_transition", description: "Declared FSM transitions observed" }
+    functional: "Legacy alias: function + cycle coverage must both close."
+    line: ">= 90% instrumented line coverage or explicit project waiver"
+    branch: ">= 85% instrumented branch coverage or explicit project waiver"
+    fsm: "100% declared FSM states and legal transitions covered"
+    assertions: "All protocol/order/error assertions pass"
 quality_gates: TBD
 traceability: TBD
 workflow_todos: TBD

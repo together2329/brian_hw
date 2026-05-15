@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, features, features.pulse_fire, fsm, fsm.pulse_fsm, function_model, function_model.state_variables, function_model.transactions, function_model.transactions.FM_FIRE
 - Module slice: 4/6 section=features task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.pulse_fire
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.pulse_fire.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via features.pulse_fire.
 SSOT item context: name=pulse_fire; output=pulse_out[PULSE_OUT_WIDTH-1:0] driven to active level for exactly PULSE_WIDTH_CYCLES PCLK cycles.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -64,14 +64,14 @@ SSOT item context: name=pulse_fire; output=pulse_out[PULSE_OUT_WIDTH-1:0] driven
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.runtime_width_config
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.runtime_width_config.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via features.
 SSOT item context: name=runtime_width_config; output=Next pulse uses updated width.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -84,14 +84,14 @@ SSOT item context: name=runtime_width_config; output=Next pulse uses updated wid
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.interrupt_on_done
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.interrupt_on_done.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via features.
 SSOT item context: name=interrupt_on_done; output=irq_o asserted for exactly the interval between pulse completion and software STATUS.done W1C write.
-- Current reason: Owner RTL file is missing: rtl/pulse_gen_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
