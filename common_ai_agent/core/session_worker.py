@@ -485,6 +485,56 @@ class SessionWorker:
                 "source": "llm-ssot-qna",
             })
 
+        try:
+            from core import tools as _tools
+        except Exception:
+            _tools = None
+        auto_mode = bool(
+            _tools
+            and hasattr(_tools, "_ask_user_exec_mode")
+            and _tools._ask_user_exec_mode() == "auto-select"
+            and hasattr(_tools, "auto_select_ask_user_answer")
+        )
+        if auto_mode:
+            answer_payload = _tools.auto_select_ask_user_answer(
+                question=question,
+                options=options or [],
+                kind=kind,
+                subtitle=subtitle or "",
+                questions=questions,
+            )
+            if ssot_ip and ssot_q_pairs and isinstance(answer_payload, dict):
+                qa_answers: dict[str, dict[str, Any]] = {}
+                if questions and isinstance(answer_payload.get("answers"), list):
+                    for (key, _label, q), raw_answer in zip(ssot_q_pairs, answer_payload.get("answers") or []):
+                        answer = raw_answer if isinstance(raw_answer, dict) else {}
+                        qa_answers[key] = {
+                            "answer": self._answer_text(answer, q),
+                            "selected": answer.get("selected") or [],
+                            "custom": str(answer.get("custom") or "").strip(),
+                        }
+                elif ssot_q_pairs:
+                    key, _label, q = ssot_q_pairs[0]
+                    qa_answers[key] = {
+                        "answer": self._answer_text(answer_payload, q),
+                        "selected": answer_payload.get("selected") or [],
+                        "custom": str(answer_payload.get("custom") or "").strip(),
+                    }
+                if qa_answers:
+                    self._upsert_ssot_qa_items(
+                        ssot_ip,
+                        ssot_session,
+                        flow_id=flow_id,
+                        kind="general IP",
+                        q_pairs=ssot_q_pairs,
+                        status="approved",
+                        answers=qa_answers,
+                        source="llm-ssot-qna.auto_select",
+                    )
+                    self._emit_ssot_qa_updated(ssot_ip, ssot_session, flow_id)
+            self.emit("ask_user_auto_selected", payload)
+            return self.format_answer(answer_payload, options or [], questions)
+
         self.emit("ask_user", payload)
         msg = self.wait_matching(("answer", "ask_user_closed"), timeout=ASK_USER_TIMEOUT, flow_id=flow_id)
         if msg is None:

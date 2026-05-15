@@ -7641,6 +7641,33 @@ def create_app():
         filled, conflicts = _record_ssot_decisions(ip, kind, candidates, sources)
         doc, custom = _ssot_custom(ip, kind)
         todo_summary = _apply_import_yaml_todos(ip, doc, custom, artifacts, candidates, sources)
+        manifest_path = PROJECT_ROOT / ip / "req" / "import_manifest.json"
+        try:
+            manifest_path.parent.mkdir(parents=True, exist_ok=True)
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "ssot_import_manifest.v1",
+                        "ip": ip,
+                        "workflow": "ssot-gen",
+                        "updated_at": time.time(),
+                        "kind": kind,
+                        "artifacts": artifacts,
+                        "candidate_facts": candidates,
+                        "sources": sources,
+                        "filled_decisions": filled,
+                        "conflicts": conflicts,
+                        "workflow_todo_summary": todo_summary,
+                        "next": "/grill-me" if conflicts or _missing_ssot_decisions(ip, state) else "/to-ssot",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        except Exception:
+            pass
         imports = custom.get("atlas_imports")
         if not isinstance(imports, list):
             imports = []
@@ -8343,6 +8370,7 @@ def create_app():
         lines += [
             "",
             "evidence:",
+            f"- {ip}/req/import_manifest.json",
         ]
         lines.extend(f"- {a.get('path')}" for a in artifacts[:12])
         if len(artifacts) > 12:
@@ -11919,6 +11947,62 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
             {"session": ssot_session, "ip": ssot_ip, "workflow": "ssot-gen", "source": "llm-ssot-qna"}
             if ssot_ip else {}
         )
+        auto_mode = bool(
+            _tools
+            and hasattr(_tools, "_ask_user_exec_mode")
+            and _tools._ask_user_exec_mode() == "auto-select"
+            and hasattr(_tools, "auto_select_ask_user_answer")
+        )
+        if auto_mode:
+            ans = _tools.auto_select_ask_user_answer(
+                question=question,
+                options=options or [],
+                kind=kind,
+                subtitle=subtitle or "",
+                questions=questions,
+            )
+            if ssot_ip and ssot_q_pairs and isinstance(ans, dict):
+                qa_answers: dict[str, dict[str, Any]] = {}
+                if questions and isinstance(ans.get("answers"), list):
+                    for (key, _label, q), qa in zip(ssot_q_pairs, ans.get("answers") or []):
+                        qa_dict = qa if isinstance(qa, dict) else {}
+                        qa_answers[key] = {
+                            "answer": _answer_text(qa_dict, q),
+                            "selected": qa_dict.get("selected") or [],
+                            "custom": str(qa_dict.get("custom") or "").strip(),
+                        }
+                else:
+                    key, _label, q = ssot_q_pairs[0]
+                    qa_answers[key] = {
+                        "answer": _answer_text(ans, q),
+                        "selected": ans.get("selected") or [],
+                        "custom": str(ans.get("custom") or "").strip(),
+                    }
+                _upsert_ssot_qa_items(
+                    ssot_ip,
+                    flow_id=flow_id,
+                    kind=str((_load_ssot_state(ssot_ip) or {}).get("kind") or "general IP"),
+                    q_pairs=ssot_q_pairs,
+                    status="approved",
+                    answers=qa_answers,
+                    session=ssot_session,
+                    source="llm-ssot-qna.auto_select",
+                )
+                bridge.emit(
+                    "ssot_qa_updated",
+                    ip=ssot_ip,
+                    workflow="ssot-gen",
+                    flow_id=flow_id,
+                    session=ssot_session,
+                )
+            bridge.emit("ask_user_auto_selected", flow_id=flow_id, **ssot_emit)
+            if questions and isinstance(ans, dict) and "answers" in ans:
+                blocks = []
+                for q, qa in zip(questions, ans.get("answers") or []):
+                    label = (q.get("subtitle") or q.get("question", ""))[:40]
+                    blocks.append(f"  • {label}\n    {_format_answer(qa, q.get('options') or [])}")
+                return "Auto-selected answers:\n" + "\n".join(blocks) if blocks else "(no answers)"
+            return "Auto-selected answer: " + _format_answer(ans, options or [])
         bridge.open_question(flow_id)
         if questions:
             # Batched payload — frontend (workspace.jsx) detects the

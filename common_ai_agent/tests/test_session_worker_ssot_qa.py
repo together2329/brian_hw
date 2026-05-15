@@ -107,3 +107,48 @@ def test_session_worker_ask_user_moves_review_card_pending_to_approved(tmp_path,
         assert "selected: Synchronous" in result["text"]
     finally:
         worker.close()
+
+
+def test_session_worker_auto_select_approves_review_card_without_modal(tmp_path, monkeypatch):
+    from core.session_worker import SessionWorker
+
+    session = "brian/timer_auto/ssot-gen"
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ASK_USER_EXEC_MODE", "auto-select")
+    worker = SessionWorker(session, str(tmp_path / "atlas.db"))
+    try:
+        text = worker.ask_user(
+            "Which reset policy should timer_auto use?",
+            [
+                {"id": "async_sync", "label": "Async assert, sync deassert (Recommended)"},
+                {"id": "sync", "label": "Fully synchronous"},
+            ],
+            "single",
+            "§2 reset policy. Suggest: Async assert, sync deassert",
+            questions=[{
+                "id": "reset_policy",
+                "section_id": "02_clock_reset",
+                "decision_key": "reset_policy",
+                "decision_label": "Reset policy",
+                "question": "Which reset policy should timer_auto use?",
+                "kind": "single",
+                "subtitle": "§2 reset policy. Suggest: Async assert, sync deassert",
+                "options": [
+                    {"id": "async_sync", "label": "Async assert, sync deassert (Recommended)"},
+                    {"id": "sync", "label": "Fully synchronous"},
+                ],
+            }],
+        )
+
+        assert "Auto" not in text  # SessionWorker returns the normal answer format.
+        assert "selected: Async assert, sync deassert" in text
+        items = _qa_items(tmp_path, session)
+        assert len(items) == 1
+        assert items[0]["status_group"] == "approved"
+        assert items[0]["source"] == "llm-ssot-qna.auto_select"
+        assert items[0]["answer"] == "Async assert, sync deassert (Recommended)"
+        out_rows = worker.db.poll_messages(session, "out")
+        assert any(row.get("msg_type") == "ask_user_auto_selected" for row in out_rows)
+        assert not any(row.get("msg_type") == "ask_user" for row in out_rows)
+    finally:
+        worker.close()

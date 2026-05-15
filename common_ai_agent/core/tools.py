@@ -5073,11 +5073,137 @@ _record_ssot_qa_callback = None
 
 
 def _ask_user_exec_mode() -> str:
-    """Return ask_user execution mode: interactive|pipeline|ci."""
+    """Return ask_user execution mode: interactive|pipeline|ci|auto-select."""
     mode = str(os.getenv("ASK_USER_EXEC_MODE", "interactive")).strip().lower()
-    if mode not in ("interactive", "pipeline", "ci"):
+    if mode in {"auto", "autoselect", "auto_select"}:
+        mode = "auto-select"
+    if mode not in ("interactive", "pipeline", "ci", "auto-select"):
         return "interactive"
     return mode
+
+
+def _suggestion_from_text(text: str) -> str:
+    match = re.search(r"\bSuggest:\s*([^\n.;]+)", str(text or ""), flags=re.IGNORECASE)
+    return match.group(1).strip(" `\"'") if match else ""
+
+
+def _contains_phrase(haystack: str, needle: str) -> bool:
+    needle = str(needle or "").strip().lower()
+    if not needle:
+        return False
+    return re.search(rf"(?<![a-z0-9_]){re.escape(needle)}(?![a-z0-9_])", str(haystack or "").lower()) is not None
+
+
+def _option_rank(option: dict, suggestion: str) -> tuple[int, int]:
+    label = str(option.get("label") or option.get("id") or "")
+    detail = str(option.get("detail") or "")
+    option_id = str(option.get("id") or "")
+    text = f"{option_id} {label} {detail}".lower()
+    suggested = str(suggestion or "").lower()
+    if suggested and (
+        _contains_phrase(text, suggested)
+        or _contains_phrase(suggested, label)
+        or _contains_phrase(suggested, option_id)
+    ):
+        return (0, 0)
+    if option.get("recommended") is True or option.get("default") is True:
+        return (1, 0)
+    if "recommended" in text or "suggest" in text or "default" in text:
+        return (2, 0)
+    return (9, 0)
+
+
+def _auto_select_one_question(question: dict) -> dict:
+    """Return a synthetic ask_user answer for pipeline smoke tests.
+
+    This is intentionally simple and reviewable: follow an explicit
+    ``Suggest:`` hint when present, then any recommended/default option, then
+    the first option. Free-form inputs use the suggestion/default text.
+    """
+    qkind = str(question.get("kind") or "single").lower()
+    opts = _normalize_options(question.get("options"))
+    suggestion = ""
+    for key in ("subtitle", "detail", "criteria", "question"):
+        suggestion = _suggestion_from_text(str(question.get(key) or ""))
+        if suggestion:
+            break
+    reason = "suggestion" if suggestion else "first safe default"
+    if qkind in {"single", "multi"} and opts:
+        ranked = sorted(enumerate(opts), key=lambda item: (_option_rank(item[1], suggestion), item[0]))
+        top_rank = _option_rank(ranked[0][1], suggestion)[0]
+        if top_rank == 0:
+            reason = "suggestion"
+        elif top_rank <= 2:
+            reason = "recommended/default"
+        else:
+            reason = "first safe default"
+        if qkind == "multi":
+            selected = [
+                opt.get("id")
+                for _idx, opt in ranked
+                if _option_rank(opt, suggestion)[0] <= 2
+            ] or [ranked[0][1].get("id")]
+        else:
+            selected = [ranked[0][1].get("id")]
+        return {
+            "selected": [str(item) for item in selected if item is not None],
+            "custom": "",
+            "auto_selected": True,
+            "auto_select_reason": reason,
+        }
+
+    default_text = ""
+    for key in ("default", "suggested_answer", "suggestion", "recommended", "value", "placeholder"):
+        value = question.get(key)
+        if isinstance(value, str) and value.strip():
+            default_text = value.strip()
+            reason = key
+            break
+    if not default_text:
+        default_text = suggestion or "Auto-selected default; verify in QA Review before signoff."
+    return {
+        "selected": [],
+        "custom": default_text,
+        "auto_selected": True,
+        "auto_select_reason": reason,
+    }
+
+
+def auto_select_ask_user_answer(
+    question=None,
+    options=None,
+    kind="single",
+    subtitle="",
+    questions=None,
+):
+    """Build the synthetic answer payload used by ask_user auto-select mode."""
+    if questions:
+        return {"answers": [_auto_select_one_question(dict(q)) for q in questions]}
+    return _auto_select_one_question({
+        "question": question or "",
+        "kind": kind,
+        "options": options or [],
+        "subtitle": subtitle or "",
+    })
+
+
+def _format_auto_answer(answer: dict, options=None) -> str:
+    selected = answer.get("selected") or []
+    labels = {
+        str(opt.get("id")): str(opt.get("label") or opt.get("id"))
+        for opt in (options or [])
+        if isinstance(opt, dict)
+    }
+    parts = []
+    if selected:
+        parts.append("selected: " + ", ".join(labels.get(str(item), str(item)) for item in selected))
+    custom = str(answer.get("custom") or "").strip()
+    if custom:
+        parts.append("note: " + custom)
+    reason = str(answer.get("auto_select_reason") or "").strip()
+    if reason:
+        parts.append("auto_select_reason: " + reason)
+    return " · ".join(parts) if parts else "(auto-selected with no explicit value)"
 
 
 def set_ask_user_callback(cb):
@@ -5692,11 +5818,16 @@ def _normalize_options(options):
         if isinstance(o, str):
             norm.append({"id": f"opt_{i}", "label": o})
         elif isinstance(o, dict) and o.get("label"):
-            norm.append({
+            item = {
                 "id": str(o.get("id", f"opt_{i}")),
                 "label": str(o["label"]),
                 "detail": str(o.get("detail", "")) or None,
-            })
+            }
+            if "recommended" in o:
+                item["recommended"] = bool(o.get("recommended"))
+            if "default" in o:
+                item["default"] = bool(o.get("default"))
+            norm.append(item)
     return norm
 
 
@@ -5731,6 +5862,16 @@ def ask_user(question=None, options=None, kind="single", subtitle="",
         Plain-text summary of the user's answer(s).
     """
     _exec_mode = _ask_user_exec_mode()
+    if _exec_mode == "auto-select" and _ask_user_callback is None:
+        if questions:
+            answer = auto_select_ask_user_answer(questions=questions)
+            return "Auto-selected answers:\n" + "\n".join(
+                f"  • {str(q.get('subtitle') or q.get('question') or '')[:40]}\n    "
+                f"{_format_auto_answer(ans, _normalize_options(q.get('options')))}"
+                for q, ans in zip(questions, answer.get("answers") or [])
+            )
+        answer = auto_select_ask_user_answer(question, _normalize_options(options), kind, subtitle)
+        return "Auto-selected answer: " + _format_auto_answer(answer, _normalize_options(options))
     if _exec_mode == "pipeline":
         _label = (subtitle or question or "ask_user").strip()
         return (

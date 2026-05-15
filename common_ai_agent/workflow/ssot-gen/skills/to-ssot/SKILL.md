@@ -18,6 +18,14 @@ RTL behavior and is unknown, do not invent it and do not hide it behind a
 template default. Stop with `[SSOT QUESTION] -> user` or record a
 non-blocking conservative assumption in `custom.assumptions`.
 
+Approved QA may come from a human answer or from explicit `auto-select` mode.
+When it came from auto-select, preserve the fact in `custom.assumptions` or the
+handoff summary so reviewers can audit the generated SSOT before signoff.
+
+If `/import` was run first, use `<ip>/req/import_manifest.json` plus the
+imported documents/RTL as evidence. Do not treat imported RTL as the production
+output of this workflow; convert only the confirmed facts into SSOT fields.
+
 `/to-ssot` is an execution step. Do not call `todo_write` here; it is
 Plan Mode only and will be rejected in Normal mode. If progress tracking is
 useful, use a short prose ledger or `todo_add`, then immediately read/write

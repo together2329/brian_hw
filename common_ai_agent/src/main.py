@@ -2085,7 +2085,7 @@ def chat_loop():
 
                     if result.startswith("ASK_USER_MODE:"):
                         ask_mode = result.split(":", 1)[1].strip().lower()
-                        if ask_mode not in ("interactive", "pipeline", "ci"):
+                        if ask_mode not in ("interactive", "pipeline", "ci", "auto-select"):
                             print(Color.error(f"\n❌ Invalid ask_user mode: {ask_mode}\n"))
                             continue
                         os.environ["ASK_USER_EXEC_MODE"] = ask_mode
@@ -2093,6 +2093,7 @@ def chat_loop():
                             "interactive": "Interactive (ask_user enabled)",
                             "pipeline": "Pipeline (ask_user blocked, continue)",
                             "ci": "CI (ask_user blocked, fail-fast)",
+                            "auto-select": "Auto-select (ask_user answers recommended defaults and records approved QA)",
                         }
                         print(Color.success(f"\n✅ AskUser mode: {_labels.get(ask_mode, ask_mode)}\n"))
                         continue

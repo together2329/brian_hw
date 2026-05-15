@@ -506,9 +506,22 @@ python3 src/main.py -s <campaign>/<ip>/ssot-gen -w ssot-gen --model gpt-5.3-code
 Inside common_ai_agent:
 
 ```text
-/mode pipeline
+/mode auto-select
 /new-ip <ip> <kind>
+/import --ip <ip> <doc_or_rtl_paths...>   # optional, for existing docs/RTL
+/grill-me <ip>
+/to-ssot <ip>
 ```
+
+Use `/mode interactive` for human-gated SSOT authoring. Use `/mode auto-select`
+only for benchmark/pipeline smoke tests where `ask_user` should choose the
+explicit `Suggest:` answer or recommended/default option and record the QA card
+as approved for later review. `/mode pipeline` still means “do not answer
+ask_user; continue only non-blocking work,” and `/mode ci` means fail fast.
+
+`/import` is evidence intake, not direct SSOT authorship. It writes
+`<ip>/req/import_manifest.json` and SSOT-side evidence from docs, legacy YAML,
+filelists, and existing RTL; `/to-ssot` remains the canonical YAML write step.
 
 Validate SSOT:
 

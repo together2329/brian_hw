@@ -32,6 +32,13 @@ answer blocks the next SSOT write/import pass.
    approved when the user submits. Do not leave an `ask_user` answer only in
    chat history when it belongs to SSOT.
 
+4. **Auto-select is explicit pipeline behavior.** If the current mode is
+   `auto-select`, `ask_user` may return an automatically chosen answer based on
+   the `Suggest:` hint, recommended/default option, or first safe option. Treat
+   that as approved QA evidence for smoke testing, but keep the generated QA
+   card reviewable with `field_path`, `criteria`, `source_refs`, and a clear
+   recommendation. Do not silently fill a value outside QA.
+
 ## Process
 
 ### 1. Locate the work-in-progress SSOT

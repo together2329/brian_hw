@@ -14,6 +14,38 @@ This workflow owns the SSOT contract only.
 - Finish with a compact `[SSOT HANDOFF]` block for `rtl-gen`, including SSOT path, top module, clocks/resets, interfaces, registers, sub_modules ownership, and unresolved assumptions.
 - Any older template text mentioning Jinja2 rendering, generated RTL, generated TB, firmware, docs, or `make all` is schema context only. It is not permission to generate those artifacts in ssot-gen.
 
+## PIPELINE / AUTO-SELECT MODE
+
+`ssot-gen` may run inside a full pipeline before FL/CL/RTL/TB/SIM/Lint/Coverage.
+Human decisions are still preferred, but repeated smoke tests need a
+deterministic no-modal mode.
+
+- Interactive mode: `ask_user` opens QA and waits for the human.
+- Pipeline mode: `ask_user` is blocked and the agent should continue only with
+  non-blocking work.
+- CI mode: `ask_user` is blocked and should fail fast.
+- Auto-select mode: `ask_user` chooses the explicit `Suggest:` value,
+  recommended/default option, or first safe option, records the QA item as
+  approved with source `llm-ssot-qna.auto_select`, and continues.
+
+When auto-select is enabled, still phrase each QA item as if a human will audit
+it later: include `field_path`, `criteria`, `source_refs`, and a concrete
+`Suggest:` recommendation. Do not hide guesses inside YAML without QA evidence.
+
+## IMPORT-FIRST FLOW
+
+Use `/import <path...>` before `/grill-me` or `/to-ssot` when the user provides
+IP docs, legacy YAML, filelists, or existing RTL.
+
+- Imported documents and RTL are evidence only; SSOT remains the authority.
+- Existing RTL can reveal ports, clocks, resets, parameters, register decode
+  hints, FSM names, memories, and protocol groupings.
+- Existing RTL is not permission to copy behavior blindly or skip SSOT
+  decisions. Stubs, tieoffs, and placeholder modules are not behavioral proof.
+- Write import findings to SSOT-side evidence such as
+  `<ip>/req/import_manifest.json` and QA Review cards. Then `/to-ssot` writes
+  the canonical YAML.
+
 ## DOWNSTREAM FEEDBACK INTAKE — RTL TBD REPORTS
 
 `rtl-gen` may return missing-contract feedback in this exact form:
@@ -688,7 +720,7 @@ sim = executable verification from SSOT-derived RTL and TB
 8. **Traceability**: Every YAML key maps to a downstream implementation or verification responsibility
 9. **Downstream TODO authority**: When an IP needs specific next-step work, write it under `workflow_todos.<stage>[]`. For `rtl-gen`, each item must have `content`, `detail`, `criteria`, and source refs so rtl-gen can create real TODOs from SSOT instead of a fixed template.
 10. **RTL ownership refs**: `sub_modules[].implements` can be the compact ownership ledger only when every entry is a concrete dotted SSOT ref such as `function_model.transactions.FM_ACCEPT`, `cycle_model.handshake_rules.axi_aw`, or `registers.register_list.STATUS`. For production readability, also add typed refs (`function_model_refs`, `cycle_model_refs`, `register_refs`, `dataflow_refs`, `fsm_refs`) whenever possible.
-11. **Production RTL gate profile**: For non-trivial IPs, especially DMA/CPU/bus/accelerator-class blocks, set `quality_gates.rtl_gen.profile: production`. This makes rtl-gen add locked FL/CL/equivalence/coverage gates instead of treating compile/lint as sufficient.
+11. **Production RTL gate profile**: For smoke fixtures, tiny examples, and intentionally narrow timer/counter-style test IPs, set `quality_gates.rtl_gen.profile: standard` unless the user explicitly asks for production/signoff. For non-trivial IPs, especially DMA/CPU/bus/accelerator-class blocks, set `quality_gates.rtl_gen.profile: production`. This makes rtl-gen add locked FL/CL/equivalence/coverage gates instead of treating compile/lint as sufficient.
 12. **Machine-readable integration contracts**: For production multi-module IPs, write `integration.connections[]` or `sub_modules[].connections` as module/port/signal records. If a human decision is still missing, record it as QA/change-request evidence and keep the SSOT honest; downstream rtl-gen may draft child-module RTL, but top integration/signoff must remain blocked until the locked truth exists.
 
 ## SSOT Authoring Flow
