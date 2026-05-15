@@ -17,10 +17,10 @@
     "rtl/spi_int.sv",
     "rtl/spi_param.vh"
   ],
-  "timestamp": "2026-05-15T02:19:39.579551+00:00",
-  "returncode": 1,
+  "timestamp": "2026-05-15T02:20:52.292079+00:00",
+  "returncode": 0,
   "errors": 0,
-  "warnings": 1,
+  "warnings": 0,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -37,21 +37,11 @@
       "tool": "verilator",
       "available": true,
       "command": "verilator --lint-only -Wall -Irtl -f list/spi.f --top-module spi",
-      "returncode": 1,
+      "returncode": 0,
       "errors": 0,
-      "warnings": 1,
-      "diagnostics": [
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi.sv",
-          "line": 5,
-          "column": 23,
-          "message": "Parameter is not used: 'DATA_WIDTH'",
-          "source": "    parameter integer DATA_WIDTH = 8,"
-        }
-      ],
-      "passed": false
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
     }
   ],
   "suppression_violation_count": 0,
@@ -59,5 +49,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": false
+  "passed": true
 }

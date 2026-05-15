@@ -115,7 +115,7 @@ module spi #(
     );
 
     spi_shift #(
-        .NUM_CS(NUM_CS)
+        .DATA_WIDTH(DATA_WIDTH), .NUM_CS(NUM_CS)
     ) u_shift (
         .PCLK(PCLK), .PRESETn(PRESETn), .soft_reset(soft_reset), .start_req(start_req), .enable(enable),
         .cpol(cpol), .cpha(cpha), .lsb_first(lsb_first), .continuous_cs(continuous_cs), .loopback(loopback),

@@ -1,0 +1,410 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "clkdiv",
+  "source": "clkdiv/yaml/clkdiv.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "clkdiv/req/",
+      "clkdiv/yaml/clkdiv.ssot.yaml",
+      "clkdiv/model/functional_model.py",
+      "clkdiv/cov/fcov_plan.json",
+      "clkdiv/yaml/clkdiv.ssot.yaml#io_list",
+      "clkdiv/yaml/clkdiv.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "clkdiv/rtl/",
+      "clkdiv/tb/",
+      "clkdiv/sim/",
+      "clkdiv/vectors/",
+      "clkdiv/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC_APB_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC_APB",
+      "description": "APB register access"
+    },
+    {
+      "id": "SC_DIV2_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC_DIV2",
+      "description": "Divide by two baseline"
+    },
+    {
+      "id": "SC_DIV_UPDATE_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC_DIV_UPDATE",
+      "description": "Glitchless divisor update"
+    },
+    {
+      "id": "SC_IRQ_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC_IRQ",
+      "description": "Terminal interrupt set and clear"
+    },
+    {
+      "id": "SC_DIV_ZERO_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC_DIV_ZERO",
+      "description": "DIVISOR zero write policy"
+    },
+    {
+      "id": "fcov_fm_divide",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_DIVIDE",
+      "source_ref": "function_model.transactions.FM_DIVIDE",
+      "description": "Primary divide transaction observed"
+    },
+    {
+      "id": "fcov_div_zero",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_DIVIDE.error_cases.WARN_DIV_ZERO",
+      "source_ref": "function_model.transactions.FM_DIVIDE.error_cases.WARN_DIV_ZERO",
+      "description": "Zero divisor coercion observed"
+    },
+    {
+      "id": "fcov_irq",
+      "class": "interrupt",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_DIVIDE.side_effects.terminal_irq",
+      "source_ref": "function_model.transactions.FM_DIVIDE.side_effects.terminal_irq",
+      "description": "Terminal event interrupt set and clear observed"
+    },
+    {
+      "id": "ccov_apb_access",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S1_APB_ACCESS",
+      "source_ref": "cycle_model.pipeline.S1_APB_ACCESS",
+      "description": "APB access completion observed"
+    },
+    {
+      "id": "ccov_count",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S2_COUNT",
+      "source_ref": "cycle_model.pipeline.S2_COUNT",
+      "description": "Counter increment stage observed"
+    },
+    {
+      "id": "ccov_terminal",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S3_TERMINAL",
+      "source_ref": "cycle_model.pipeline.S3_TERMINAL",
+      "description": "Terminal toggle/reload observed"
+    },
+    {
+      "id": "ccov_clk_toggle_rule",
+      "class": "output_timing",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.clk_o",
+      "source_ref": "cycle_model.handshake_rules.clk_o",
+      "description": "clk_o toggles only at terminal count"
+    },
+    {
+      "id": "ccov_fsm_transitions",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.divider_fsm.transitions",
+      "source_ref": "fsm.divider_fsm.transitions",
+      "description": "Declared FSM transitions observed"
+    },
+    {
+      "id": "function_integer_clock_divide",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_divide",
+      "description": "integer_clock_divide"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'pready', 'rule': 'pready is asserted for every selected APB access phase; no wait states in baseline.'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'pslverr', 'rule': 'pslverr is asserted only with pready for unsupported address or illegal access.'}"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'signal': 'prdata', 'rule': 'prdata is stable in the APB read completing access phase.'}"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[3]",
+      "source_ref": "cycle_model.handshake_rules[3]",
+      "description": "{'signal': 'clk_o', 'rule': 'clk_o toggles only at terminal count on clk_i rising edge and is held low when disabled.'}"
+    },
+    {
+      "id": "cycle_handshake_4",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[4]",
+      "source_ref": "cycle_model.handshake_rules[4]",
+      "description": "{'signal': 'irq_o', 'rule': 'irq_o is combinational/registered reflection of irq_pending && irq_enable and deasserts after INTCLR clear.'}"
+    },
+    {
+      "id": "cycle_latency_register_read",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_read",
+      "source_ref": "cycle_model.latency.register_read",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'APB access completes with pready in the access phase.'}"
+    },
+    {
+      "id": "cycle_latency_register_write",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_write",
+      "source_ref": "cycle_model.latency.register_write",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'APB writes update register storage on completing access phase.'}"
+    },
+    {
+      "id": "cycle_latency_divisor_update",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.divisor_update",
+      "source_ref": "cycle_model.latency.divisor_update",
+      "description": "{'min_cycles': 1, 'max_cycles': None, 'description': 'A new divisor applies at the next terminal count boundary.'}"
+    },
+    {
+      "id": "cycle_latency_output_toggle",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.output_toggle",
+      "source_ref": "cycle_model.latency.output_toggle",
+      "description": "{'min_cycles': 1, 'max_cycles': None, 'description': 'clk_o toggles after active_divisor input clock rising edges while enabled.'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_apb_setup",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Capture paddr/pwrite context when psel=1 and penable=0."
+    },
+    {
+      "id": "cycle_pipeline_s1_apb_access",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Complete APB read/write; update CTRL/DIVISOR/INTCLR effects."
+    },
+    {
+      "id": "cycle_pipeline_s2_count",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Increment counter while counter < active_divisor-1."
+    },
+    {
+      "id": "cycle_pipeline_s3_terminal",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[3]",
+      "source_ref": "cycle_model.pipeline[3]",
+      "description": "Reset counter, toggle clk_o, load pending_divisor, set locked and optional irq_pending."
+    },
+    {
+      "id": "cycle_pipeline_s4_disable",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[4]",
+      "source_ref": "cycle_model.pipeline[4]",
+      "description": "Force counter and clk_o low and clear locked."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "APB DIVISOR writes update pending_divisor before the next core reload boundary."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "active_divisor changes only in S3_TERMINAL or reset."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "INTCLR.clear_irq write clears irq_pending no later than the completing APB access edge."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "No backpressure exists on divided_clock outputs; APB baseline has no wait states."
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "100"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_register_accesses_per_cycle': 0.5, 'condition': 'APB requires setup and access phases'}"
+    },
+    {
+      "id": "fsm_divider_fsm_disabled_to_running_low_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.divider_fsm.transitions[0]",
+      "source_ref": "fsm.divider_fsm.transitions[0]",
+      "description": "CTRL.enable=1"
+    },
+    {
+      "id": "fsm_divider_fsm_running_low_to_running_high_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.divider_fsm.transitions[1]",
+      "source_ref": "fsm.divider_fsm.transitions[1]",
+      "description": "counter reaches terminal count"
+    },
+    {
+      "id": "fsm_divider_fsm_running_high_to_running_low_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.divider_fsm.transitions[2]",
+      "source_ref": "fsm.divider_fsm.transitions[2]",
+      "description": "counter reaches terminal count"
+    },
+    {
+      "id": "fsm_divider_fsm_running_low_to_disabled_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.divider_fsm.transitions[3]",
+      "source_ref": "fsm.divider_fsm.transitions[3]",
+      "description": "CTRL.enable=0 or reset asserted"
+    },
+    {
+      "id": "fsm_divider_fsm_running_high_to_disabled_4",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.divider_fsm.transitions[4]",
+      "source_ref": "fsm.divider_fsm.transitions[4]",
+      "description": "CTRL.enable=0 or reset asserted"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_APB_ADDR', 'condition': 'APB access to unsupported offset', 'architectural_effect': 'pslverr=1 for access; no register state change on illegal write'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_APB_WRITE_RO', 'condition': 'APB write to read-only STATUS', 'architectural_effect': 'pslverr=1 for access; no status mutation'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[2]",
+      "source_ref": "error_handling.error_sources[2]",
+      "description": "{'id': 'WARN_DIV_ZERO', 'condition': 'DIVISOR write data divisor field is 0', 'architectural_effect': 'pending_divisor coerced to 1 without pslverr'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 42,
+    "scenario_bins": 5,
+    "transaction_bins": 1,
+    "protocol_bins": 5,
+    "state_transition_bins": 6,
+    "error_bins": 3
+  }
+}
