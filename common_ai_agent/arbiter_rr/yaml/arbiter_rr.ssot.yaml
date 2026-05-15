@@ -752,12 +752,18 @@ quality_gates:
   rtl:
     pass: "RTL compiles without errors, lints without new warnings, function_model transactions produce correct outputs."
     evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+  dv:
+    pass: "All test_requirements scenarios pass; scoreboard checks clean; coverage goals met."
+    evidence: ["sim/simulation_report.md", "cov/coverage.json"]
   coverage:
     pass: "SSOT-declared function/cycle/assertion coverage goals pass or have approved SSOT waivers."
     evidence: ["cov/coverage.json", "sim/coverage_report.md"]
   eda:
     pass: "Synthesis and STA meet 50MHz timing target."
     evidence: ["syn report", "sta reports"]
+  signoff:
+    pass: "All quality gates (SSOT, RTL, DV, coverage, EDA) pass with current evidence."
+    evidence: ["quality_gates aggregate PASS"]
 
 # =============================================================================
 # SECTION 31: Traceability

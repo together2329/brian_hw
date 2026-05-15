@@ -211,6 +211,8 @@ io_list:
       description: Active-low async reset
   interfaces:
   - name: fifo_write
+    clock_domain: pclk
+    reset_domain: PRESETn
     type: valid-ready
     role: slave
     description: Push/write data interface
@@ -235,9 +237,9 @@ io_list:
       width: 1
       direction: output
       description: FIFO almost-full flag
+  - name: fifo_read
     clock_domain: pclk
     reset_domain: PRESETn
-  - name: fifo_read
     type: valid-ready
     role: master
     description: Pop/read data interface
@@ -263,9 +265,9 @@ io_list:
       width: 1
       direction: output
       description: FIFO almost-empty flag
+  - name: fifo_status
     clock_domain: pclk
     reset_domain: PRESETn
-  - name: fifo_status
     type: custom
     description: Fill-level status outputs
     ports:
@@ -273,9 +275,13 @@ io_list:
       width: $clog2(DEPTH+1)
       direction: output
       description: Current fill count (0..DEPTH)
+    protocol:
+      sampling: count_o updated every rising PCLK edge to reflect current fill count.
+      stability: count_o holds stable value between clock edges.
+      side_effect: Reading count_o has no side effects.
+  - name: fifo_control
     clock_domain: pclk
     reset_domain: PRESETn
-  - name: fifo_control
     type: custom
     description: Optional flush/reset control
     ports:
@@ -283,9 +289,13 @@ io_list:
       width: 1
       direction: input
       description: 'Synchronous flush: clears all pointers and count to zero'
+    protocol:
+      sampling: flush_i is sampled on rising PCLK edge.
+      pulse_rule: flush_i must be asserted for exactly 1 cycle. Flush takes priority over concurrent push/pop.
+      reset_value: 0
+  - name: apb_csr
     clock_domain: pclk
     reset_domain: PRESETn
-  - name: apb_csr
     type: APB-lite
     role: slave
     description: APB-lite CSR interface for status/config/control (active when USE_APB=1)
@@ -328,8 +338,6 @@ io_list:
       width: 1
       direction: output
       description: APB slave error
-    clock_domain: pclk
-    reset_domain: PRESETn
 features:
 - name: Synchronous Push
   trigger: wr_en_i asserted while full_o==0
