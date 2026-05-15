@@ -29,7 +29,7 @@
 - Owner refs: registers, registers.register_list
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
 - Connection contract gap: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
-- Pending connection-contract suggestions: 21 rows in rtl/connection_contract_suggestions.json
+- Pending connection-contract suggestions: 23 rows in rtl/connection_contract_suggestions.json
 - Draft top integration fragment: rtl/connection_contract_draft_top.svfrag
 - Suggestion usage: draft RTL wiring may use these rows to close hierarchy/signal-flow evidence, but they are not SSOT authority and cannot close connection-contract signoff.
   - priority_enc_regs.PADDR <= PADDR (observed_named_port_map)

@@ -123,7 +123,7 @@ module spi #(
         .tx_empty(tx_empty), .tx_pop(tx_pop), .rx_push(rx_push), .rx_word(rx_word), .rx_full(rx_full),
         .sclk_shift_edge(shift_edge), .sclk_sample_edge(sample_edge), .miso_i(miso_i), .busy(busy),
         .mosi_o(mosi_o), .csn_o(csn_o), .done_event(done_event), .mode_fault_event(mode_fault_event),
-        .rx_overrun_event(rx_overrun_event), .bit_index_dbg(bit_index_dbg), .active_cs_dbg(active_cs_dbg), .cs_active(cs_active)
+        .rx_overrun_event(rx_overrun_shift_event), .bit_index_dbg(bit_index_dbg), .active_cs_dbg(active_cs_dbg), .cs_active(cs_active)
     );
 
     spi_int u_int (

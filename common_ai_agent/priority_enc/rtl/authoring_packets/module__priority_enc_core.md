@@ -24,21 +24,22 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, function_model, function_model.state_updates, function_model.transactions
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
 - Connection contract gap: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
-- Pending connection-contract suggestions: 21 rows in rtl/connection_contract_suggestions.json
+- Pending connection-contract suggestions: 23 rows in rtl/connection_contract_suggestions.json
 - Draft top integration fragment: rtl/connection_contract_draft_top.svfrag
 - Suggestion usage: draft RTL wiring may use these rows to close hierarchy/signal-flow evidence, but they are not SSOT authority and cannot close connection-contract signoff.
+  - priority_enc_core.PADDR <= PADDR (observed_named_port_map)
   - priority_enc_core.PCLK <= PCLK (observed_named_port_map)
   - priority_enc_core.PRESETn <= PRESETn (observed_named_port_map)
+  - priority_enc_core.PWRITE <= PWRITE (observed_named_port_map)
   - priority_enc_core.data_in <= data_in (observed_named_port_map)
-  - priority_enc_core.enable_i <= ctrl_enable (observed_named_port_map)
+  - priority_enc_core.enable_i <= fsm_active (observed_named_port_map)
   - priority_enc_core.index_out <= core_index (observed_named_port_map)
   - priority_enc_core.mask_i <= mask (observed_named_port_map)
-  - priority_enc_core.valid_out <= core_valid (observed_named_port_map)
 
 ## Tasks
 
@@ -346,14 +347,14 @@ SSOT item context: value=STATUS.valid updates to current valid_out.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_ENCODE.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ENCODE.error_cases.error_case_0.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: condition=PADDR accesses undefined register offset.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -367,14 +368,14 @@ SSOT item context: condition=PADDR accesses undefined register offset.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_ENCODE.error_cases.error_case_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ENCODE.error_cases.error_case_1.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.
 SSOT item context: condition=Write to read-only STATUS field.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -489,14 +490,14 @@ Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.apb_csr
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.apb_csr.
 Owner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.
 SSOT item context: signal=apb_csr.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior

@@ -24,12 +24,12 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: False
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
 - Connection contract gap: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
-- Pending connection-contract suggestions: 21 rows in rtl/connection_contract_suggestions.json
+- Pending connection-contract suggestions: 23 rows in rtl/connection_contract_suggestions.json
 - Draft top integration fragment: rtl/connection_contract_draft_top.svfrag
 - Suggestion usage: draft RTL wiring may use these rows to close hierarchy/signal-flow evidence, but they are not SSOT authority and cannot close connection-contract signoff.
   - priority_enc_regs.PADDR <= PADDR (observed_named_port_map)
@@ -48,13 +48,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.static_rtl_evidence
 - Detail: After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.
 SSOT ref: quality_gates.rtl_gen.static_rtl_evidence.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: 7 static-evidence-required task(s) still lack DUT RTL evidence.
+- Current reason: Static DUT RTL evidence audit has no missing required task.
 - Criteria:
   - derive_rtl_todos.py --audit-rtl ran after the final RTL edit
   - rtl_todo_plan.json static_rtl_evidence.missing is zero
@@ -229,7 +229,7 @@ Owner: priority_enc in rtl/priority_enc.sv via top_module.
 - Detail: Production-profile RTL cannot be a shallow shell that merely satisfies names, ports, or compile checks. The RTL must contain aggregate implementation structure scaled from the current SSOT task count, behavior-owner modules, and manifest hierarchy.
 SSOT ref: quality_gates.rtl_gen.rtl_implementation_depth_evidence.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=97, required=28).
+- Current reason: Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=125, required=28).
 - Criteria:
   - Implementation depth thresholds are derived from SSOT owner/task complexity, not a fixed IP template
   - Listed DUT RTL sources contain enough nonconstant logic, procedural/state/control structure, and child instances for the SSOT profile

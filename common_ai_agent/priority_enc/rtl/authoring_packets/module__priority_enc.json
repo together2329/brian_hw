@@ -140,6 +140,15 @@
           "direction": "input",
           "instance": "u_priority_enc_core",
           "module": "priority_enc_core",
+          "port": "PADDR",
+          "review_status": "pending",
+          "signal": "PADDR"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
           "port": "PCLK",
           "review_status": "pending",
           "signal": "PCLK"
@@ -158,6 +167,15 @@
           "direction": "input",
           "instance": "u_priority_enc_core",
           "module": "priority_enc_core",
+          "port": "PWRITE",
+          "review_status": "pending",
+          "signal": "PWRITE"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
           "port": "data_in",
           "review_status": "pending",
           "signal": "data_in"
@@ -169,7 +187,7 @@
           "module": "priority_enc_core",
           "port": "enable_i",
           "review_status": "pending",
-          "signal": "ctrl_enable"
+          "signal": "fsm_active"
         },
         {
           "confidence": "observed_named_port_map",
@@ -203,9 +221,9 @@
       "summary": {
         "applied_to_ssot": false,
         "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
-        "pending_review": 21,
+        "pending_review": 23,
         "status": "pending_review",
-        "suggested_rows": 21
+        "suggested_rows": 23
       }
     },
     "module_slice": {

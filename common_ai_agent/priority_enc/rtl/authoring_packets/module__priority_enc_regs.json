@@ -140,9 +140,9 @@
       "summary": {
         "applied_to_ssot": false,
         "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
-        "pending_review": 21,
+        "pending_review": 23,
         "status": "pending_review",
-        "suggested_rows": 21
+        "suggested_rows": 23
       }
     },
     "module_slice": {

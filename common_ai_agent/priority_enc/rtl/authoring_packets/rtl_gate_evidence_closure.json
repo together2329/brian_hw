@@ -140,6 +140,15 @@
           "direction": "input",
           "instance": "u_priority_enc_core",
           "module": "priority_enc_core",
+          "port": "PADDR",
+          "review_status": "pending",
+          "signal": "PADDR"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
           "port": "PCLK",
           "review_status": "pending",
           "signal": "PCLK"
@@ -158,6 +167,15 @@
           "direction": "input",
           "instance": "u_priority_enc_core",
           "module": "priority_enc_core",
+          "port": "PWRITE",
+          "review_status": "pending",
+          "signal": "PWRITE"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_priority_enc_core",
+          "module": "priority_enc_core",
           "port": "data_in",
           "review_status": "pending",
           "signal": "data_in"
@@ -169,7 +187,7 @@
           "module": "priority_enc_core",
           "port": "enable_i",
           "review_status": "pending",
-          "signal": "ctrl_enable"
+          "signal": "fsm_active"
         },
         {
           "confidence": "observed_named_port_map",
@@ -203,9 +221,9 @@
       "summary": {
         "applied_to_ssot": false,
         "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
-        "pending_review": 21,
+        "pending_review": 23,
         "status": "pending_review",
-        "suggested_rows": 21
+        "suggested_rows": 23
       }
     },
     "owner": {
@@ -428,9 +446,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": false,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 1,
-    "open_required_count": 1,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -462,7 +480,7 @@
       "rtl_gate.rtl_gen": 10
     },
     "module_slice": {},
-    "open_required_count": 1,
+    "open_required_count": 0,
     "required_count": 10,
     "source_refs": [
       "quality_gates.rtl_gen.static_rtl_evidence",
@@ -477,8 +495,7 @@
       "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
     ],
     "status_counts": {
-      "open": 1,
-      "pass": 9
+      "pass": 10
     },
     "task_count": 10
   },
@@ -524,9 +541,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "7 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -932,7 +949,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=97, required=28).",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=125, required=28).",
         "required": true,
         "status": "pass"
       }

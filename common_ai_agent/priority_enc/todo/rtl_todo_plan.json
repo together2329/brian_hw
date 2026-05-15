@@ -264,6 +264,24 @@
         "instance": "u_priority_enc_core",
         "machine_readable": false,
         "module": "priority_enc_core",
+        "port": "PADDR",
+        "range": "[11:0]",
+        "review_status": "pending",
+        "signal": "PADDR",
+        "signal_terms": [
+          "PADDR"
+        ],
+        "source_ref": "rtl.connection_contract_suggestions.priority_enc_core.PADDR"
+      },
+      {
+        "applied_to_ssot": false,
+        "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+        "approval_target": "integration.connections",
+        "confidence": "observed_named_port_map",
+        "direction": "input",
+        "instance": "u_priority_enc_core",
+        "machine_readable": false,
+        "module": "priority_enc_core",
         "port": "PCLK",
         "range": "",
         "review_status": "pending",
@@ -300,6 +318,24 @@
         "instance": "u_priority_enc_core",
         "machine_readable": false,
         "module": "priority_enc_core",
+        "port": "PWRITE",
+        "range": "",
+        "review_status": "pending",
+        "signal": "PWRITE",
+        "signal_terms": [
+          "PWRITE"
+        ],
+        "source_ref": "rtl.connection_contract_suggestions.priority_enc_core.PWRITE"
+      },
+      {
+        "applied_to_ssot": false,
+        "approval_rule": "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before this row becomes SSOT authority.",
+        "approval_target": "integration.connections",
+        "confidence": "observed_named_port_map",
+        "direction": "input",
+        "instance": "u_priority_enc_core",
+        "machine_readable": false,
+        "module": "priority_enc_core",
         "port": "data_in",
         "range": "[N-1:0]",
         "review_status": "pending",
@@ -321,9 +357,9 @@
         "port": "enable_i",
         "range": "",
         "review_status": "pending",
-        "signal": "ctrl_enable",
+        "signal": "fsm_active",
         "signal_terms": [
-          "ctrl_enable"
+          "fsm_active"
         ],
         "source_ref": "rtl.connection_contract_suggestions.priority_enc_core.enable_i"
       },
@@ -388,12 +424,12 @@
       "applied_to_ssot": false,
       "child_modules": 2,
       "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
-      "observed_named_port_map_rows": 21,
-      "pending_review": 21,
+      "observed_named_port_map_rows": 23,
+      "pending_review": 23,
       "proposed_rows": 0,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "status": "pending_review",
-      "suggested_rows": 21,
+      "suggested_rows": 23,
       "top": "priority_enc",
       "top_module": "priority_enc"
     },
@@ -429,12 +465,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 16,
+    "open_required_todos": 13,
     "orphan_tasks": 4,
-    "static_missing": 7,
+    "static_missing": 0,
     "status": "blocked"
   },
-  "generated_at": "2026-05-15T02:13:25Z",
+  "generated_at": "2026-05-15T02:19:02Z",
   "ip": "priority_enc",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -451,14 +487,17 @@
     "declared_modules": [
       "priority_enc",
       "priority_enc_core",
+      "priority_enc_fsm",
       "priority_enc_regs"
     ],
     "graph": {
       "priority_enc": [
         "priority_enc_core",
+        "priority_enc_fsm",
         "priority_enc_regs"
       ],
       "priority_enc_core": [],
+      "priority_enc_fsm": [],
       "priority_enc_regs": []
     },
     "issues": [],
@@ -467,6 +506,7 @@
     "reachable_modules": [
       "priority_enc",
       "priority_enc_core",
+      "priority_enc_fsm",
       "priority_enc_regs"
     ],
     "roots": [
@@ -475,18 +515,20 @@
     "sources": [
       "rtl/priority_enc.sv",
       "rtl/priority_enc_core.sv",
+      "rtl/priority_enc_fsm.sv",
       "rtl/priority_enc_param.vh",
       "rtl/priority_enc_regs.sv"
     ],
     "status": "pass"
   },
   "manifest_signal_flow_evidence": {
-    "checked_inputs": 14,
+    "checked_inputs": 16,
     "checked_outputs": 7,
     "issues": [],
     "reachable_modules": [
       "priority_enc",
       "priority_enc_core",
+      "priority_enc_fsm",
       "priority_enc_regs"
     ],
     "roots": [
@@ -552,17 +594,17 @@
   "rtl_implementation_depth_evidence": {
     "aggregate": {
       "behavior_owner_logic_modules": 3,
-      "control_flow": 17,
-      "depth_score": 97,
-      "instances": 2,
-      "lines": 209,
-      "logic_modules": 3,
-      "modules": 3,
-      "nonconstant_assigns": 15,
-      "procedural_blocks": 4,
-      "source_files": 3,
-      "state_updates": 14,
-      "storage_decls": 21
+      "control_flow": 22,
+      "depth_score": 125,
+      "instances": 3,
+      "lines": 270,
+      "logic_modules": 4,
+      "modules": 4,
+      "nonconstant_assigns": 19,
+      "procedural_blocks": 6,
+      "source_files": 4,
+      "state_updates": 16,
+      "storage_decls": 28
     },
     "issues": [],
     "modules": [
@@ -581,30 +623,44 @@
         "module": "priority_enc_regs"
       },
       {
-        "depth_score": 34,
+        "depth_score": 41,
         "file": "rtl/priority_enc_core.sv",
         "metrics": {
-          "control_flow": 10,
+          "control_flow": 11,
           "instances": 0,
-          "nonconstant_assigns": 2,
+          "nonconstant_assigns": 5,
           "placeholder_tokens": false,
           "procedural_blocks": 2,
           "state_updates": 6,
-          "storage_decls": 4
+          "storage_decls": 7
         },
         "module": "priority_enc_core"
       },
       {
-        "depth_score": 11,
+        "depth_score": 18,
+        "file": "rtl/priority_enc_fsm.sv",
+        "metrics": {
+          "control_flow": 4,
+          "instances": 0,
+          "nonconstant_assigns": 1,
+          "placeholder_tokens": false,
+          "procedural_blocks": 2,
+          "state_updates": 2,
+          "storage_decls": 3
+        },
+        "module": "priority_enc_fsm"
+      },
+      {
+        "depth_score": 14,
         "file": "rtl/priority_enc.sv",
         "metrics": {
           "control_flow": 0,
-          "instances": 2,
+          "instances": 3,
           "nonconstant_assigns": 2,
           "placeholder_tokens": false,
           "procedural_blocks": 0,
           "state_updates": 0,
-          "storage_decls": 5
+          "storage_decls": 6
         },
         "module": "priority_enc"
       }
@@ -637,7 +693,7 @@
     }
   },
   "rtl_placeholder_free_evidence": {
-    "checked": 4,
+    "checked": 5,
     "issues": [],
     "status": "pass"
   },
@@ -815,115 +871,13 @@
   ],
   "static_rtl_evidence": {
     "checked": 23,
-    "missing": 7,
-    "missing_tasks": [
-      {
-        "category": "function_model.error_case",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/priority_enc_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "PADDR"
-        ],
-        "source_ref": "function_model.transactions.FM_ENCODE.error_cases.error_case_0",
-        "source_scope": "rtl/priority_enc_core.sv",
-        "task_id": "RTL-0060"
-      },
-      {
-        "category": "function_model.error_case",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/priority_enc_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "STATUS",
-          "Write"
-        ],
-        "source_ref": "function_model.transactions.FM_ENCODE.error_cases.error_case_1",
-        "source_scope": "rtl/priority_enc_core.sv",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/priority_enc_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "apb",
-          "apb_csr",
-          "csr"
-        ],
-        "source_ref": "cycle_model.handshake_rules.apb_csr",
-        "source_scope": "rtl/priority_enc_core.sv",
-        "task_id": "RTL-0067"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "",
-        "required_match_count": 1,
-        "required_terms": [
-          "IDLE"
-        ],
-        "source_ref": "fsm.encoder_fsm.states.state_0",
-        "source_scope": "all_sources_without_owner",
-        "task_id": "RTL-0084"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "",
-        "required_match_count": 1,
-        "required_terms": [
-          "ACTIVE"
-        ],
-        "source_ref": "fsm.encoder_fsm.states.state_1",
-        "source_scope": "all_sources_without_owner",
-        "task_id": "RTL-0085"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 1,
-        "matched_terms": [
-          "CTRL"
-        ],
-        "owner_file": "",
-        "required_match_count": 2,
-        "required_terms": [
-          "ACTIVE",
-          "CTRL",
-          "IDLE"
-        ],
-        "source_ref": "fsm.encoder_fsm.transitions.transition_0",
-        "source_scope": "all_sources_without_owner",
-        "task_id": "RTL-0086"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 1,
-        "matched_terms": [
-          "CTRL"
-        ],
-        "owner_file": "",
-        "required_match_count": 2,
-        "required_terms": [
-          "ACTIVE",
-          "CTRL",
-          "IDLE"
-        ],
-        "source_ref": "fsm.encoder_fsm.transitions.transition_1",
-        "source_scope": "all_sources_without_owner",
-        "task_id": "RTL-0087"
-      }
-    ],
-    "passed": 16,
+    "missing": 0,
+    "missing_tasks": [],
+    "passed": 23,
     "sources": [
       "rtl/priority_enc.sv",
       "rtl/priority_enc_core.sv",
+      "rtl/priority_enc_fsm.sv",
       "rtl/priority_enc_param.vh",
       "rtl/priority_enc_regs.sv"
     ]
@@ -1328,9 +1282,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256, rtl_files_missing_filelist:rtl/priority_enc_fsm.sv",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1376,9 +1330,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "7 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1948,7 +1902,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "15 required non-closure TODO(s) remain open.",
+        "reason": "12 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -2097,7 +2051,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=97, required=28).",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=125, required=28).",
         "required": true,
         "status": "pass"
       }
@@ -4138,8 +4092,10 @@
         "function_model.transactions.FM_ENCODE.error_cases.error_case_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "PADDR"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -4147,7 +4103,7 @@
           "PADDR"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -4157,9 +4113,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4193,8 +4149,11 @@
         "function_model.transactions.FM_ENCODE.error_cases.error_case_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "STATUS",
+          "Write"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4203,7 +4162,7 @@
           "Write"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -4213,9 +4172,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4506,8 +4465,12 @@
         "cycle_model.handshake_rules.apb_csr"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "apb",
+          "apb_csr",
+          "csr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4517,7 +4480,7 @@
           "csr"
         ],
         "source_scope": "rtl/priority_enc_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -4527,9 +4490,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5389,8 +5352,10 @@
         "fsm.encoder_fsm.states.state_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
@@ -5398,7 +5363,7 @@
           "IDLE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5442,8 +5407,10 @@
         "fsm.encoder_fsm.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ACTIVE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
@@ -5451,7 +5418,7 @@
           "ACTIVE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5500,9 +5467,11 @@
         "fsm.encoder_fsm.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "CTRL"
+          "ACTIVE",
+          "CTRL",
+          "IDLE"
         ],
         "owner_file_scoped": false,
         "required": true,
@@ -5513,7 +5482,7 @@
           "IDLE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -5562,9 +5531,11 @@
         "fsm.encoder_fsm.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "CTRL"
+          "ACTIVE",
+          "CTRL",
+          "IDLE"
         ],
         "owner_file_scoped": false,
         "required": true,
@@ -5575,7 +5546,7 @@
           "IDLE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -6568,7 +6539,7 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 16,
+    "open_required_tasks": 13,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
@@ -6578,9 +6549,9 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "7 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "task_id": "RTL-0007"
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256, rtl_files_missing_filelist:rtl/priority_enc_fsm.sv",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "task_id": "RTL-0006"
       },
       {
         "category": "rtl_gate.rtl_gen",
@@ -6590,7 +6561,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "15 required non-closure TODO(s) remain open.",
+        "reason": "12 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -6625,24 +6596,6 @@
         "task_id": "RTL-0026"
       },
       {
-        "category": "function_model.error_case",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.FM_ENCODE.error_cases.error_case_0",
-        "task_id": "RTL-0060"
-      },
-      {
-        "category": "function_model.error_case",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.FM_ENCODE.error_cases.error_case_1",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "cycle_model.handshake_rules.apb_csr",
-        "task_id": "RTL-0067"
-      },
-      {
         "category": "fsm.state",
         "reason": "Task has no RTL owner file.",
         "source_ref": "fsm.encoder_fsm.states.state_0",
@@ -6667,7 +6620,7 @@
         "task_id": "RTL-0087"
       }
     ],
-    "required_passed": 92,
+    "required_passed": 95,
     "required_total": 108,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

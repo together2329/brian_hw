@@ -130,8 +130,10 @@
         "fsm.encoder_fsm.states.state_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
@@ -139,7 +141,7 @@
           "IDLE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -181,8 +183,10 @@
         "fsm.encoder_fsm.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ACTIVE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
@@ -190,7 +194,7 @@
           "ACTIVE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -237,9 +241,11 @@
         "fsm.encoder_fsm.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "CTRL"
+          "ACTIVE",
+          "CTRL",
+          "IDLE"
         ],
         "owner_file_scoped": false,
         "required": true,
@@ -250,7 +256,7 @@
           "IDLE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -297,9 +303,11 @@
         "fsm.encoder_fsm.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "CTRL"
+          "ACTIVE",
+          "CTRL",
+          "IDLE"
         ],
         "owner_file_scoped": false,
         "required": true,
@@ -310,7 +318,7 @@
           "IDLE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
