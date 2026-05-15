@@ -13,7 +13,9 @@ top_module:
     clock_freq_mhz: 50
     area_um2: null
     power_mw: null
-sub_modules: TBD
+sub_modules:
+  - { name: "arbiter_rr_regs", file: "rtl/arbiter_rr_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list"], source_sections: ["registers"], register_refs: ["registers.register_list"], description: "APB-lite register decode" }
+  - { name: "arbiter_rr_core", file: "rtl/arbiter_rr_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model.transactions", "cycle_model.pipeline", "fsm"], source_sections: ["function_model", "cycle_model", "fsm"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline"], fsm_refs: ["fsm"], description: "Round-robin arbitration core logic" }
 decomposition: TBD
 parameters:
   - name: "NUM_REQ"
@@ -95,7 +97,14 @@ features:
     datapath: "PADDR decode -> register read/write -> PRDATA/PREADY response"
     control: "Zero-wait-state APB-lite decode"
     output: "Register value or status on PRDATA; PSLVERR on illegal access"
-dataflow: TBD
+dataflow:
+  arbitration_path:
+    source: "REQ[NUM_REQ-1:0] inputs"
+    sequence: "REQ -> round-robin priority logic -> GNT (one-hot)"
+    control: "Next grant is based on prior_grant_mask, updated each cycle a grant is given"
+  csr_path:
+    source: "APB PADDR/PWDATA"
+    sequence: "APB setup/access -> addr decode -> register read/write -> PRDATA/PREADY"
 function_model: TBD
 cycle_model: TBD
 clock_reset_domains: TBD
