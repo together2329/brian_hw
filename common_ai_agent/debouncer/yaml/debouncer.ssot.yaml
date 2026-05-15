@@ -1,5 +1,6 @@
 # =============================================================================
-# SSOT — debouncer  (incremental skeleton)
+# SSOT — debouncer (validated)
+# Validated: check_ssot_disk.sh PASS 51657B 36 sections 0 TBDs
 # =============================================================================
 ip: debouncer
 version: draft
