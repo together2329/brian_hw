@@ -34,7 +34,7 @@ module adder_kogge_stone_core #(
     logic                  cin_sel;
     logic                  capture_en;
     logic                  shadow_valid;
-    logic                  apb_error_preserve_core;
+    logic                  APB_error_preserve_core;
 
     logic [DATA_WIDTH-1:0] bit_propagate;
     logic [DATA_WIDTH:0]   carry_chain;

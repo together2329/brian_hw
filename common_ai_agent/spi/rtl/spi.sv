@@ -58,7 +58,6 @@ module spi #(
     logic rx_full;
     logic [4:0] rx_level;
     logic busy;
-    logic prescale_tick;
     logic sample_edge;
     logic shift_edge;
     logic done_event;

@@ -632,5 +632,46 @@ traceability:
     - { yaml: "test_requirements.scenarios", output: "tb/cocotb/test_shift_reg.py tests" }
     - { yaml: "timing", output: "sdc/shift_reg.sdc and STA constraints" }
     - { yaml: "quality_gates", output: "workflow signoff evidence requirements" }
-workflow_todos: TBD
+workflow_todos:
+  fl-model-gen:
+    - id: "FL_SHIFT_REG_MODEL"
+      content: "Implement FunctionalModel for shift_reg load/shift/hold behavior"
+      detail: "Create a reference model from function_model.transactions FM_LOAD, FM_SHIFT, and FM_HOLD with WIDTH, SHIFT_DIRECTION, and RESET_VALUE parameters."
+      criteria:
+        - "Model reset, load priority, shift direction, serial_out, and hold behavior match SSOT."
+        - "Model exposes expected parallel_out and serial_out every cycle for scoreboard comparison."
+      source_refs: ["function_model", "parameters", "rtl_contract"]
+      priority: "high"
+      required: true
+  rtl-gen:
+    - id: "RTL_SHIFT_REG_TOP_AND_CORE"
+      content: "Implement shift_reg top and shift_reg_core from SSOT"
+      detail: "Author rtl/shift_reg.sv as the canonical top module and rtl/shift_reg_core.sv as the manifest behavior owner implementing reset/load/shift/hold and named integration.connections wiring."
+      criteria:
+        - "rtl/shift_reg.sv module name is shift_reg and its ports match io_list."
+        - "shift_reg_core owns shift_q and implements FM_LOAD, FM_SHIFT, and FM_HOLD."
+        - "load has priority over enable in the same cycle."
+        - "parallel_out and serial_out are driven on all legal paths with no placeholders."
+        - "Named port connections match integration.connections."
+      source_refs: ["top_module", "io_list", "function_model.transactions", "cycle_model", "integration.connections", "rtl_contract"]
+      owner_module: "shift_reg_core"
+      owner_file: "rtl/shift_reg_core.sv"
+      priority: "high"
+      required: true
+  tb-gen:
+    - id: "TB_SHIFT_REG_SCENARIOS"
+      content: "Implement cocotb/pyuvm tests for declared shift_reg scenarios"
+      detail: "Drive SC_RESET, SC_LOAD, SC_SHIFT, SC_HOLD, and SC_PRIORITY and compare every cycle against the functional model."
+      criteria:
+        - "All test_requirements.scenarios pass."
+        - "Function and cycle coverage bins are sampled."
+      source_refs: ["test_requirements.scenarios", "test_requirements.coverage_goals", "function_model"]
+      priority: "high"
+      required: true
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
 generation_flow: TBD
