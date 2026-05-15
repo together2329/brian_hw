@@ -8,15 +8,6 @@
     "blocked_by_llm_work": [],
     "blocked_by_locked_truth": [
       {
-        "gate_kind": "owner_traceability",
-        "owner_module": "arbiter_rr",
-        "reason": "1 required SSOT-derived RTL task(s) still have no owner module.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_traceability",
-        "status": "open",
-        "task_id": "RTL-0005"
-      },
-      {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "arbiter_rr",
         "reason": "Missing production golden authority artifact(s): model/fl_model_check.json",
@@ -39,7 +30,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "arbiter_rr",
-        "reason": "7 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -90,28 +81,11 @@
         "suggested_rows": 0
       }
     },
-    "deferred_human_qa_allowed": false,
-    "draft_allowed": false,
-    "gate_status": "blocked",
-    "hard_blockers": [
-      {
-        "category": "dataflow.sequence",
-        "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-        "source": "orphan_task",
-        "source_ref": "dataflow.sequence.sequence_0",
-        "task_id": "RTL-0120"
-      },
-      {
-        "gate_kind": "owner_traceability",
-        "owner_module": "arbiter_rr",
-        "reason": "1 required SSOT-derived RTL task(s) still have no owner module.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_traceability",
-        "status": "open",
-        "task_id": "RTL-0005"
-      }
-    ],
-    "open_required_todos": 8,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "gate_status": "fail",
+    "hard_blockers": [],
+    "open_required_todos": 6,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -157,7 +131,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "7 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -247,61 +221,7 @@
   "packets": [
     {
       "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/unowned_tasks.json",
-      "kind": "unowned",
-      "markdown": "rtl/authoring_packets/unowned_tasks.md",
-      "owner_file": "",
-      "owner_module": "",
-      "packet_id": "unowned_tasks",
-      "summary": {
-        "categories": {
-          "dataflow.sequence": 1
-        },
-        "module_slice": {},
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "dataflow.sequence.sequence_0"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
         "blocked_by_locked_truth": [
-          {
-            "gate_kind": "owner_traceability",
-            "owner_module": "arbiter_rr",
-            "reason": "1 required SSOT-derived RTL task(s) still have no owner module.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.owner_traceability",
-            "status": "open",
-            "task_id": "RTL-0005"
-          },
           {
             "gate_kind": "golden_authority_artifacts",
             "owner_module": "arbiter_rr",
@@ -314,14 +234,14 @@
         ],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
+        "deferred_human_qa_allowed": true,
         "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 2,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 1,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 2,
+        "open_required_count": 1,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -330,7 +250,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
       "kind": "gate",
@@ -343,7 +263,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 2,
+        "open_required_count": 1,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.ssot_required_sections",
@@ -355,8 +275,8 @@
           "quality_gates.rtl_gen.cycle_model_artifacts"
         ],
         "status_counts": {
-          "open": 2,
-          "pass": 5
+          "open": 1,
+          "pass": 6
         },
         "task_count": 7
       }
@@ -377,7 +297,7 @@
           {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "arbiter_rr",
-            "reason": "7 required non-closure TODO(s) remain open.",
+            "reason": "5 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -412,9 +332,9 @@
           }
         ],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
+        "deferred_human_qa_allowed": true,
         "draft_allowed": false,
-        "evidence_closure_allowed": false,
+        "evidence_closure_allowed": true,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
@@ -465,7 +385,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "7 required non-closure TODO(s) remain open.",
+            "reason": "5 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -549,7 +469,7 @@
             "task_id": "RTL-0026"
           }
         ],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
       "kind": "gate",
@@ -585,8 +505,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -601,7 +521,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr_regs.json",
       "kind": "module",
@@ -664,8 +584,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -680,7 +600,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr_core__cycle_model.json",
       "kind": "module",
@@ -700,12 +620,12 @@
           "cycle_model.reset": 1
         },
         "module_slice": {
-          "count": 6,
+          "count": 7,
           "enabled": true,
           "index": 2,
           "key": "cycle_model",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 65,
+          "rule": "Owner module arbiter_rr_core is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "cycle_model",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -740,8 +660,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -756,7 +676,63 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__arbiter_rr_core__dataflow.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__arbiter_rr_core__dataflow.md",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "packet_id": "module__arbiter_rr_core__dataflow",
+      "summary": {
+        "categories": {
+          "dataflow.sequence": 1
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 7,
+          "key": "dataflow",
+          "module_task_count": 65,
+          "rule": "Owner module arbiter_rr_core is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "dataflow",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "dataflow.sequence.sequence_0"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr_core__equivalence.json",
       "kind": "module",
@@ -769,12 +745,12 @@
           "equivalence.module": 1
         },
         "module_slice": {
-          "count": 6,
+          "count": 7,
           "enabled": true,
           "index": 5,
           "key": "equivalence",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 65,
+          "rule": "Owner module arbiter_rr_core is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "equivalence",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -796,8 +772,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -812,7 +788,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr_core__features.json",
       "kind": "module",
@@ -825,12 +801,12 @@
           "features.item": 3
         },
         "module_slice": {
-          "count": 6,
+          "count": 7,
           "enabled": true,
           "index": 4,
           "key": "features",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 65,
+          "rule": "Owner module arbiter_rr_core is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "features",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -854,8 +830,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -870,7 +846,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr_core__fsm.json",
       "kind": "module",
@@ -884,12 +860,12 @@
           "fsm.transition": 4
         },
         "module_slice": {
-          "count": 6,
+          "count": 7,
           "enabled": true,
           "index": 3,
           "key": "fsm",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 65,
+          "rule": "Owner module arbiter_rr_core is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "fsm",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -917,8 +893,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -933,7 +909,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr_core__function_model.json",
       "kind": "module",
@@ -954,12 +930,12 @@
           "function_model.transaction": 2
         },
         "module_slice": {
-          "count": 6,
+          "count": 7,
           "enabled": true,
           "index": 1,
           "key": "function_model",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 65,
+          "rule": "Owner module arbiter_rr_core is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "function_model",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1004,8 +980,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -1020,7 +996,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr_core__workflow_todo.json",
       "kind": "module",
@@ -1033,12 +1009,12 @@
           "workflow_todo.rtl_gen": 1
         },
         "module_slice": {
-          "count": 6,
+          "count": 7,
           "enabled": true,
           "index": 6,
           "key": "workflow_todo",
-          "module_task_count": 64,
-          "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 65,
+          "rule": "Owner module arbiter_rr_core is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "workflow_todo",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1060,8 +1036,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -1076,7 +1052,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr__equivalence.json",
       "kind": "module",
@@ -1116,8 +1092,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -1132,7 +1108,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr__error_handling.json",
       "kind": "module",
@@ -1172,8 +1148,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -1188,7 +1164,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr__integration.json",
       "kind": "module",
@@ -1252,8 +1228,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -1268,7 +1244,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr__parameters.json",
       "kind": "module",
@@ -1311,8 +1287,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -1327,7 +1303,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr__rtl_flow.json",
       "kind": "module",
@@ -1369,8 +1345,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -1385,7 +1361,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr__security.json",
       "kind": "module",
@@ -1426,8 +1402,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -1442,7 +1418,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr__synthesis.json",
       "kind": "module",
@@ -1488,8 +1464,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -1504,7 +1480,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr__test_requirements.json",
       "kind": "module",
@@ -1553,8 +1529,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -1569,7 +1545,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__arbiter_rr__workflow_todo.json",
       "kind": "module",
@@ -1609,9 +1585,9 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
+        "deferred_human_qa_allowed": true,
         "draft_allowed": false,
-        "evidence_closure_allowed": false,
+        "evidence_closure_allowed": true,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
@@ -1625,7 +1601,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
       "kind": "gate",
@@ -1699,17 +1675,15 @@
   "status_markdown": "rtl/rtl_authoring_status.md",
   "summary": {
     "connection_contract_suggestions_present": false,
-    "deferred_human_qa_allowed": false,
+    "deferred_human_qa_allowed": true,
     "gate_packets": 3,
     "human_locked_packets": 1,
-    "human_locked_tasks": 2,
-    "llm_actionable_packets": 1,
-    "llm_actionable_tasks": 1,
+    "human_locked_tasks": 1,
+    "llm_actionable_packets": 0,
+    "llm_actionable_tasks": 0,
     "max_packet_required_tasks": 38,
-    "module_packets": 16,
-    "next_llm_packets": [
-      "unowned_tasks"
-    ],
+    "module_packets": 17,
+    "next_llm_packets": [],
     "packet_task_limit": 48,
     "packets": 20,
     "pass_allowed": false,
@@ -1718,12 +1692,12 @@
     "reference_profile_present": false,
     "reference_scale_gap_present": false,
     "required_tasks": 169,
-    "sliced_module_packets": 15,
+    "sliced_module_packets": 16,
     "target_scale_present": true,
     "tool_evidence_packets": 1,
     "tool_evidence_tasks": 5,
     "total_tasks": 169,
-    "unowned_packets": 1
+    "unowned_packets": 0
   },
   "target_scale": {
     "basis": "small bus/arbitration IP — minimal structural depth",
@@ -1735,7 +1709,7 @@
     "min_state_updates": 3,
     "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
   },
-  "todo_plan_sha256": "ed4fb0aab2b37641faadb8a908ce4f3766aa5320c73da71fb75da59dd59109b2",
+  "todo_plan_sha256": "f3ca8477dc93eab50809c2905f728b484ed1868e0ff21d1080afa14afd06d919",
   "top": "arbiter_rr",
   "type": "rtl_authoring_plan"
 }

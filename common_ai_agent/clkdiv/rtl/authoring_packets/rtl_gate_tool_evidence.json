@@ -1,0 +1,1210 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 32,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "rtl/clkdiv.sv",
+      "name": "clkdiv",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/clkdiv_regs.sv",
+        "name": "clkdiv_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/clkdiv_core.sv",
+        "name": "clkdiv_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/clkdiv.sv",
+        "name": "clkdiv",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "sub_modules[0].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "sub_modules[0].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "enable_o",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "sub_modules[0].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "divisor_o",
+        "signal": "active_divisor",
+        "signal_terms": [
+          "active_divisor"
+        ],
+        "source_ref": "sub_modules[0].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "irq_pending_i",
+        "signal": "irq_pending",
+        "signal_terms": [
+          "irq_pending"
+        ],
+        "source_ref": "sub_modules[0].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "sub_modules[1].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "sub_modules[1].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "enable_i",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "sub_modules[1].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "divisor_i",
+        "signal": "active_divisor",
+        "signal_terms": [
+          "active_divisor"
+        ],
+        "source_ref": "sub_modules[1].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_o",
+        "signal": "clk_o",
+        "signal_terms": [
+          "clk_o"
+        ],
+        "source_ref": "sub_modules[1].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "locked_o",
+        "signal": "locked_o",
+        "signal_terms": [
+          "locked_o"
+        ],
+        "source_ref": "sub_modules[1].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "terminal_event_o",
+        "signal": "terminal_event",
+        "signal_terms": [
+          "terminal_event"
+        ],
+        "source_ref": "sub_modules[1].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "paddr",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "psel",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "penable",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pwrite",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pwdata",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pstrb",
+        "signal": "pstrb",
+        "signal_terms": [
+          "pstrb"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "prdata",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pready",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pslverr",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "enable_i",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "divisor_i",
+        "signal": "active_divisor",
+        "signal_terms": [
+          "active_divisor"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_o",
+        "signal": "clk_o",
+        "signal_terms": [
+          "clk_o"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "locked_o",
+        "signal": "locked_o",
+        "signal_terms": [
+          "locked_o"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "terminal_event_o",
+        "signal": "terminal_event",
+        "signal_terms": [
+          "terminal_event"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "terminal_event_i",
+        "signal": "terminal_event",
+        "signal_terms": [
+          "terminal_event"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "irq_o",
+        "signal": "irq_o",
+        "signal_terms": [
+          "irq_o"
+        ],
+        "source_ref": "integration.connections[19]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk_i",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_ni"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_ni",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pstrb",
+          "pstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pstrb",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "clk_o",
+          "divided_clock_clk_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "clk_o",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "divided_clock_locked_o",
+          "locked_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "locked_o",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "divided_clock_irq_o",
+          "irq_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq_o",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "clkdiv",
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dut_compile",
+        "owner_module": "clkdiv",
+        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "gate_kind": "dut_lint",
+        "owner_module": "clkdiv",
+        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "clkdiv",
+        "reason": "155 required non-closure TODO(s) remain open.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "open",
+        "task_id": "RTL-0019"
+      },
+      {
+        "gate_kind": "protocol_assertion_evidence",
+        "owner_module": "clkdiv",
+        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+        "status": "open",
+        "task_id": "RTL-0024"
+      },
+      {
+        "gate_kind": "fl_rtl_goal_audit",
+        "owner_module": "clkdiv",
+        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+        "status": "open",
+        "task_id": "RTL-0025"
+      },
+      {
+        "gate_kind": "coverage_closure",
+        "owner_module": "clkdiv",
+        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.coverage_closure",
+        "status": "open",
+        "task_id": "RTL-0026"
+      }
+    ],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": false,
+    "evidence_closure_allowed": true,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 7,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 7,
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "clkdiv/rtl/rtl_authoring_provenance.json",
+          "clkdiv/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip clkdiv --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py clkdiv --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "rtl/rtl_compile.json",
+        "artifacts": [
+          "clkdiv/rtl/rtl_compile.json",
+          "clkdiv/rtl/rtl_compile.log"
+        ],
+        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py clkdiv --top clkdiv --project-root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py clkdiv --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_compile",
+        "prerequisites": [
+          "clkdiv/list/clkdiv.f covers the current DUT RTL sources."
+        ],
+        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "stage_sequence": [
+          "ssot-rtl",
+          "dut_compile"
+        ],
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "artifact": "lint/dut_lint.json",
+        "artifacts": [
+          "clkdiv/lint/dut_lint.json"
+        ],
+        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "commands": [
+          "python3 workflow/lint/scripts/dut_lint_report.py clkdiv --top clkdiv",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py clkdiv --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_lint",
+        "prerequisites": [
+          "clkdiv/list/clkdiv.f covers the current DUT RTL/header sources."
+        ],
+        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "stage_sequence": [
+          "lint",
+          "dut_lint"
+        ],
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "clkdiv/rtl/rtl_todo_plan.json",
+          "clkdiv/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py clkdiv --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "155 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0019"
+      },
+      {
+        "artifact": "verify/protocol_assertions.sva",
+        "artifacts": [
+          "clkdiv/verify/protocol_assertions.sva",
+          "clkdiv/verify/protocol_assertions.summary.json",
+          "clkdiv/sim/assertion_failures.jsonl"
+        ],
+        "closure_rule": "Generated assertions exist and latest simulation has zero assertion failure records.",
+        "commands": [
+          "python3 workflow/fl-model-gen/scripts/emit_protocol_assertions.py clkdiv --root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py clkdiv --root . --audit-rtl"
+        ],
+        "gate_kind": "protocol_assertion_evidence",
+        "prerequisites": [
+          "SSOT cycle_model/protocol rules are machine-checkable.",
+          "Simulation has run after RTL edits."
+        ],
+        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+        "stage_sequence": [
+          "ssot-protocol-assertions",
+          "sim"
+        ],
+        "status": "open",
+        "task_id": "RTL-0024"
+      },
+      {
+        "artifact": "sim/fl_rtl_goal_audit.json",
+        "artifacts": [
+          "clkdiv/sim/fl_rtl_goal_audit.json"
+        ],
+        "closure_rule": "fl_rtl_goal_audit.json must be fresh and status=pass.",
+        "commands": [
+          "python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py clkdiv --root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py clkdiv --root . --audit-rtl"
+        ],
+        "gate_kind": "fl_rtl_goal_audit",
+        "prerequisites": [
+          "FL model, equivalence goals, TB, and simulation evidence are current."
+        ],
+        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+        "stage_sequence": [
+          "ssot-fl-model",
+          "ssot-equiv-goals",
+          "ssot-tb-cocotb",
+          "sim",
+          "goal-audit"
+        ],
+        "status": "open",
+        "task_id": "RTL-0025"
+      },
+      {
+        "artifact": "cov/coverage.json",
+        "artifacts": [
+          "clkdiv/cov/coverage.json"
+        ],
+        "closure_rule": "coverage.json must be fresh, come from ssot_coverage_summary, and close every planned required bin.",
+        "commands": [
+          "python3 workflow/coverage/scripts/ssot_coverage_summary.py clkdiv",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py clkdiv --root . --audit-rtl"
+        ],
+        "gate_kind": "coverage_closure",
+        "prerequisites": [
+          "Simulation evidence exists and planned coverage bins are observable."
+        ],
+        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "source_ref": "quality_gates.rtl_gen.coverage_closure",
+        "stage_sequence": [
+          "sim",
+          "coverage"
+        ],
+        "status": "open",
+        "task_id": "RTL-0026"
+      }
+    ],
+    "work_allowed": true
+  },
+  "ip": "clkdiv",
+  "kind": "gate",
+  "owner_file": "rtl/clkdiv.sv",
+  "owner_module": "clkdiv",
+  "packet_id": "rtl_gate_tool_evidence",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_gate.rtl_gen": 7
+    },
+    "module_slice": {},
+    "open_required_count": 7,
+    "required_count": 7,
+    "source_refs": [
+      "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "quality_gates.rtl_gen.dut_compile",
+      "quality_gates.rtl_gen.dut_lint",
+      "quality_gates.rtl_gen.dynamic_todo_closure",
+      "quality_gates.rtl_gen.protocol_assertion_evidence",
+      "quality_gates.rtl_gen.fl_rtl_goal_audit",
+      "quality_gates.rtl_gen.coverage_closure"
+    ],
+    "status_counts": {
+      "open": 7
+    },
+    "task_count": 7
+  },
+  "tasks": [
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "criteria": [
+        "rtl/rtl_authoring_provenance.json exists",
+        "provenance agent is common_ai_agent",
+        "provenance workflow is rtl-gen",
+        "provenance surface is atlas_ui, textual_ui, or headless_common_engine",
+        "provenance todo_plan_sha256 matches the current rtl_todo_plan.json",
+        "provenance rtl_files lists every SSOT manifest RTL file",
+        "provenance rtl_files covers the current DUT filelist sources",
+        "Traceability keeps source_ref quality_gates.rtl_gen.common_ai_agent_authoring",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.\nSSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.\nOwner: clkdiv in rtl/clkdiv.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "kind": "common_ai_agent_authoring",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0006",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.common_ai_agent_authoring"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_authoring_provenance.json"
+        ],
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "criteria": [
+        "rtl/rtl_compile.json exists",
+        "rtl_compile.json reports dut_only=true",
+        "rtl_compile.json passed=true with zero errors, diagnostics, and style violations",
+        "rtl_compile.json is newer than or equal to every listed DUT RTL source",
+        "rtl_compile.json rtl_files covers the current DUT filelist Verilog/SystemVerilog sources",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dut_compile",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.\nSSOT ref: quality_gates.rtl_gen.dut_compile.\nOwner: clkdiv in rtl/clkdiv.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_compile.json",
+        "kind": "dut_compile",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0017",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dut_compile",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dut_compile"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_compile.json"
+        ],
+        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: DUT-only lint report passes after the final RTL edit",
+      "criteria": [
+        "lint/dut_lint.json exists",
+        "dut_lint.json reports dut_only=true",
+        "dut_lint.json passed=true with zero errors and zero warnings",
+        "dut_lint.json is newer than or equal to every listed DUT RTL source",
+        "dut_lint.json rtl_files covers the current DUT filelist RTL/header sources",
+        "No ad-hoc lint suppression violation remains unless represented by an exact SSOT waiver",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dut_lint",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.\nSSOT ref: quality_gates.rtl_gen.dut_lint.\nOwner: clkdiv in rtl/clkdiv.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "lint/dut_lint.json",
+        "kind": "dut_lint",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0018",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dut_lint",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dut_lint"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "lint/dut_lint.json"
+        ],
+        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS",
+      "criteria": [
+        "Every required non-closure task has todo_completion.status=pass",
+        "open_required_todos is zero",
+        "all_required_todos_pass is true",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dynamic_todo_closure",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.\nSSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.\nOwner: clkdiv in rtl/clkdiv.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "dynamic_todo_closure",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0019",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dynamic_todo_closure"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "155 required non-closure TODO(s) remain open.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL has protocol assertion generation and clean simulation evidence",
+      "criteria": [
+        "verify/protocol_assertions.sva exists",
+        "verify/protocol_assertions.summary.json has assertions_total > 0",
+        "sim/assertion_failures.jsonl exists after simulation",
+        "assertion_failures.jsonl is newer than or equal to every listed DUT RTL source",
+        "assertion_failures.jsonl has zero non-empty failure records",
+        "Assertion rules trace to SSOT cycle_model/interface contracts",
+        "Traceability keeps source_ref quality_gates.rtl_gen.protocol_assertion_evidence",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "PL330-level RTL needs protocol-checker style evidence for interface, ordering, valid/ready, reset, and backpressure rules. The assertion source comes from SSOT cycle_model; the pass condition comes from real simulation evidence.\nSSOT ref: quality_gates.rtl_gen.protocol_assertion_evidence.\nOwner: clkdiv in rtl/clkdiv.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "verify/protocol_assertions.sva",
+        "kind": "protocol_assertion_evidence",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0024",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.protocol_assertion_evidence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "verify/protocol_assertions.sva"
+        ],
+        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL passes FL-vs-RTL goal audit",
+      "criteria": [
+        "sim/fl_rtl_goal_audit.json exists",
+        "fl_rtl_goal_audit.json is newer than or equal to every listed DUT RTL source",
+        "fl_rtl_goal_audit status is pass",
+        "failed_checks is zero",
+        "blockers list is empty",
+        "sim/fl_rtl_compare.json exists and is newer than or equal to every listed DUT RTL source",
+        "Every required unblocked verify/equivalence_goals.json goal is checked and passed by fl_rtl_compare",
+        "Traceability keeps source_ref quality_gates.rtl_gen.fl_rtl_goal_audit",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "Passing compile/lint is not enough. The final RTL must be proven against FunctionalModel-derived equivalence goals using real RTL-observed evidence.\nSSOT ref: quality_gates.rtl_gen.fl_rtl_goal_audit.\nOwner: clkdiv in rtl/clkdiv.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "sim/fl_rtl_goal_audit.json",
+        "kind": "fl_rtl_goal_audit",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0025",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.fl_rtl_goal_audit"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "sim/fl_rtl_goal_audit.json"
+        ],
+        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL closes SSOT functional coverage goals",
+      "criteria": [
+        "cov/coverage.json exists",
+        "coverage.json is newer than or equal to every listed DUT RTL source",
+        "coverage status is pass",
+        "functional coverage pct meets target",
+        "coverage.json source is ssot_coverage_summary",
+        "functional hit equals total with pct >= 100 for planned bins",
+        "rtl_observed.status is pass with passing scoreboard events and coverage refs",
+        "rtl_observed missing_bins and invalid_rows are empty",
+        "coverage limitations are empty or explicitly waived in SSOT",
+        "Traceability keeps source_ref quality_gates.rtl_gen.coverage_closure",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "Coverage must be measured from passing RTL-observed scoreboard evidence. Raw FL-only coverage or weakened coverage goals cannot close this gate.\nSSOT ref: quality_gates.rtl_gen.coverage_closure.\nOwner: clkdiv in rtl/clkdiv.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "cov/coverage.json",
+        "kind": "coverage_closure",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0026",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.coverage_closure",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.coverage_closure"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "cov/coverage.json"
+        ],
+        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3e8e19ce43da418bd8054b5f78147a151541d8ad18282c75587963810b660352",
+  "top": "clkdiv",
+  "type": "rtl_authoring_packet"
+}

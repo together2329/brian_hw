@@ -1,0 +1,2806 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 32,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 47,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/clkdiv.sv",
+      "name": "clkdiv",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/clkdiv_regs.sv",
+        "name": "clkdiv_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/clkdiv_core.sv",
+        "name": "clkdiv_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/clkdiv.sv",
+        "name": "clkdiv",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "sub_modules[0].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "sub_modules[0].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "enable_o",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "sub_modules[0].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "divisor_o",
+        "signal": "active_divisor",
+        "signal_terms": [
+          "active_divisor"
+        ],
+        "source_ref": "sub_modules[0].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "irq_pending_i",
+        "signal": "irq_pending",
+        "signal_terms": [
+          "irq_pending"
+        ],
+        "source_ref": "sub_modules[0].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "sub_modules[1].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "sub_modules[1].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "enable_i",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "sub_modules[1].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "divisor_i",
+        "signal": "active_divisor",
+        "signal_terms": [
+          "active_divisor"
+        ],
+        "source_ref": "sub_modules[1].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_o",
+        "signal": "clk_o",
+        "signal_terms": [
+          "clk_o"
+        ],
+        "source_ref": "sub_modules[1].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "locked_o",
+        "signal": "locked_o",
+        "signal_terms": [
+          "locked_o"
+        ],
+        "source_ref": "sub_modules[1].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "terminal_event_o",
+        "signal": "terminal_event",
+        "signal_terms": [
+          "terminal_event"
+        ],
+        "source_ref": "sub_modules[1].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "paddr",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "psel",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "penable",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pwrite",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pwdata",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pstrb",
+        "signal": "pstrb",
+        "signal_terms": [
+          "pstrb"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "prdata",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pready",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pslverr",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "enable_i",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "divisor_i",
+        "signal": "active_divisor",
+        "signal_terms": [
+          "active_divisor"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_o",
+        "signal": "clk_o",
+        "signal_terms": [
+          "clk_o"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "locked_o",
+        "signal": "locked_o",
+        "signal_terms": [
+          "locked_o"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "terminal_event_o",
+        "signal": "terminal_event",
+        "signal_terms": [
+          "terminal_event"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "terminal_event_i",
+        "signal": "terminal_event",
+        "signal_terms": [
+          "terminal_event"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "irq_o",
+        "signal": "irq_o",
+        "signal_terms": [
+          "irq_o"
+        ],
+        "source_ref": "integration.connections[19]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk_i",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_ni"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_ni",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pstrb",
+          "pstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pstrb",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "clk_o",
+          "divided_clock_clk_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "clk_o",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "divided_clock_locked_o",
+          "locked_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "locked_o",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "divided_clock_irq_o",
+          "irq_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq_o",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 46,
+    "open_required_count": 46,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "clkdiv",
+  "kind": "module",
+  "owner_file": "rtl/clkdiv.sv",
+  "owner_module": "clkdiv",
+  "packet_id": "module__clkdiv",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "features.item": 3,
+      "integration.connections": 20,
+      "integration.dependencies": 3,
+      "parameters.item": 3,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1,
+      "security.assets": 2,
+      "synthesis.constraints": 4,
+      "synthesis.ppa_targets": 3,
+      "test_requirements.scenario": 5,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 47,
+      "task_limit": 48
+    },
+    "open_required_count": 46,
+    "required_count": 47,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "workflow_todos.rtl-gen[0]",
+      "features.Programmable_divide",
+      "features.Glitchless_divisor_update",
+      "features.Terminal_event_interrupt",
+      "security.assets.divider_configuration",
+      "security.assets.generated_clock_output",
+      "integration.dependencies.external_modules",
+      "integration.dependencies.external_clocks",
+      "integration.dependencies.external_resets",
+      "integration.connections.clk_i",
+      "integration.connections.rst_ni",
+      "integration.connections.paddr",
+      "integration.connections.psel",
+      "integration.connections.penable",
+      "integration.connections.pwrite",
+      "integration.connections.pwdata",
+      "integration.connections.pstrb",
+      "integration.connections.prdata",
+      "integration.connections.pready",
+      "integration.connections.pslverr",
+      "integration.connections.clk_i",
+      "integration.connections.rst_ni"
+    ],
+    "status_counts": {
+      "open": 46,
+      "pass": 1
+    },
+    "task_count": 47
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: clkdiv in rtl/clkdiv.sv via top_module.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: clkdiv in rtl/clkdiv.sv via top_module.\nSSOT item context: value=clkdiv.",
+      "evidence_terms": [],
+      "id": "RTL-0002",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "clkdiv"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement clkdiv top integration",
+      "criteria": [
+        "Top module ports match io_list exactly",
+        "Named port connections satisfy integration.connections",
+        "No wrapper-only top pattern; top file is rtl/clkdiv.sv",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[0]",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "Semantic source_refs covered: integration.connections, io_list, sub_modules, top_module"
+      ],
+      "detail": "Create rtl/clkdiv.sv with declared IO ports and instantiate/wire clkdiv_regs and clkdiv_core according to integration.connections.\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: clkdiv in rtl/clkdiv.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_CLKDIV_TOP.",
+      "evidence_terms": [
+        "CLKDIV",
+        "RTL_TODO_CLKDIV_TOP",
+        "TODO",
+        "TOP",
+        "io",
+        "io_list",
+        "list",
+        "modules",
+        "sub",
+        "sub_modules",
+        "top",
+        "top_module"
+      ],
+      "id": "RTL-0027",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[0]",
+      "ssot_context": {
+        "id": "RTL_TODO_CLKDIV_TOP"
+      },
+      "ssot_refs": [
+        "integration.connections",
+        "io_list",
+        "sub_modules",
+        "top_module",
+        "workflow_todos.rtl-gen[0]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "CLKDIV",
+          "RTL_TODO_CLKDIV_TOP",
+          "TODO",
+          "TOP",
+          "io",
+          "io_list",
+          "list",
+          "modules",
+          "sub",
+          "sub_modules",
+          "top",
+          "top_module"
+        ],
+        "source_scope": "rtl/clkdiv.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_CLKDIV_TOP",
+        "source_refs": [
+          "integration.connections",
+          "io_list",
+          "sub_modules",
+          "top_module"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Programmable divide",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Programmable_divide",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Programmable_divide.\nOwner: clkdiv in rtl/clkdiv.sv via features.\nSSOT item context: name=Programmable divide; output=clk_o toggles at a rate determined by DIVISOR..",
+      "evidence_terms": [
+        "clk",
+        "clk_o"
+      ],
+      "id": "RTL-0119",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Programmable_divide",
+      "ssot_context": {
+        "name": "Programmable divide",
+        "output": "clk_o toggles at a rate determined by DIVISOR."
+      },
+      "ssot_refs": [
+        "features.Programmable_divide"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "clk",
+          "clk_o"
+        ],
+        "source_scope": "rtl/clkdiv.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Glitchless divisor update",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Glitchless_divisor_update",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Glitchless_divisor_update.\nOwner: clkdiv in rtl/clkdiv.sv via features.\nSSOT item context: name=Glitchless divisor update; output=No runt pulse or asynchronous clk_o edge occurs due to divisor write..",
+      "evidence_terms": [
+        "clk",
+        "clk_o"
+      ],
+      "id": "RTL-0120",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Glitchless_divisor_update",
+      "ssot_context": {
+        "name": "Glitchless divisor update",
+        "output": "No runt pulse or asynchronous clk_o edge occurs due to divisor write."
+      },
+      "ssot_refs": [
+        "features.Glitchless_divisor_update"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "clk",
+          "clk_o"
+        ],
+        "source_scope": "rtl/clkdiv.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Terminal event interrupt",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Terminal_event_interrupt",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Terminal_event_interrupt.\nOwner: clkdiv in rtl/clkdiv.sv via features.\nSSOT item context: name=Terminal event interrupt; output=irq_o asserted while interrupt is enabled and pending..",
+      "evidence_terms": [
+        "irq",
+        "irq_o"
+      ],
+      "id": "RTL-0121",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Terminal_event_interrupt",
+      "ssot_context": {
+        "name": "Terminal event interrupt",
+        "output": "irq_o asserted while interrupt is enabled and pending."
+      },
+      "ssot_refs": [
+        "features.Terminal_event_interrupt"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "irq",
+          "irq_o"
+        ],
+        "source_scope": "rtl/clkdiv.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item divider_configuration",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.divider_configuration",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.divider_configuration.\nOwner: clkdiv in rtl/clkdiv.sv via security.\nSSOT item context: name=divider_configuration.",
+      "evidence_terms": [],
+      "id": "RTL-0124",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.divider_configuration",
+      "ssot_context": {
+        "name": "divider_configuration"
+      },
+      "ssot_refs": [
+        "security.assets.divider_configuration"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item generated_clock_output",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.generated_clock_output",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.generated_clock_output.\nOwner: clkdiv in rtl/clkdiv.sv via security.\nSSOT item context: name=generated_clock_output.",
+      "evidence_terms": [],
+      "id": "RTL-0125",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.generated_clock_output",
+      "ssot_context": {
+        "name": "generated_clock_output"
+      },
+      "ssot_refs": [
+        "security.assets.generated_clock_output"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_modules",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_modules",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_modules.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: name=external_modules.",
+      "evidence_terms": [],
+      "id": "RTL-0126",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_modules",
+      "ssot_context": {
+        "name": "external_modules"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_modules"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_clocks",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_clocks",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_clocks.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: name=external_clocks; value=[\"clk_i\"].",
+      "evidence_terms": [],
+      "id": "RTL-0127",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_clocks",
+      "ssot_context": {
+        "name": "external_clocks",
+        "value": "[\"clk_i\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_clocks"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_resets",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_resets",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_resets.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: name=external_resets; value=[\"rst_ni\"].",
+      "evidence_terms": [],
+      "id": "RTL-0128",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_resets",
+      "ssot_context": {
+        "name": "external_resets",
+        "value": "[\"rst_ni\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_resets"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item clk_i",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.clk_i",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port clk_i is the implementation/observation point for clk_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.clk_i.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=clk_i; signal=clk_i.",
+      "evidence_terms": [
+        "clk",
+        "clk_i"
+      ],
+      "id": "RTL-0129",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.clk_i",
+      "ssot_context": {
+        "port": "clk_i",
+        "signal": "clk_i"
+      },
+      "ssot_refs": [
+        "integration.connections.clk_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item rst_ni",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.rst_ni",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port rst_ni is the implementation/observation point for rst_ni"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.rst_ni.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=rst_ni; signal=rst_ni.",
+      "evidence_terms": [
+        "ni",
+        "rst",
+        "rst_ni"
+      ],
+      "id": "RTL-0130",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.rst_ni",
+      "ssot_context": {
+        "port": "rst_ni",
+        "signal": "rst_ni"
+      },
+      "ssot_refs": [
+        "integration.connections.rst_ni"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item paddr",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.paddr",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port paddr is the implementation/observation point for paddr"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.paddr.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=paddr; signal=paddr.",
+      "evidence_terms": [],
+      "id": "RTL-0131",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.paddr",
+      "ssot_context": {
+        "port": "paddr",
+        "signal": "paddr"
+      },
+      "ssot_refs": [
+        "integration.connections.paddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item psel",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.psel",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port psel is the implementation/observation point for psel"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.psel.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=psel; signal=psel.",
+      "evidence_terms": [],
+      "id": "RTL-0132",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.psel",
+      "ssot_context": {
+        "port": "psel",
+        "signal": "psel"
+      },
+      "ssot_refs": [
+        "integration.connections.psel"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item penable",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.penable",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port penable is the implementation/observation point for penable"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.penable.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=penable; signal=penable.",
+      "evidence_terms": [],
+      "id": "RTL-0133",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.penable",
+      "ssot_context": {
+        "port": "penable",
+        "signal": "penable"
+      },
+      "ssot_refs": [
+        "integration.connections.penable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pwrite",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pwrite",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port pwrite is the implementation/observation point for pwrite"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pwrite.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=pwrite; signal=pwrite.",
+      "evidence_terms": [],
+      "id": "RTL-0134",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pwrite",
+      "ssot_context": {
+        "port": "pwrite",
+        "signal": "pwrite"
+      },
+      "ssot_refs": [
+        "integration.connections.pwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pwdata",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pwdata",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port pwdata is the implementation/observation point for pwdata"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pwdata.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=pwdata; signal=pwdata.",
+      "evidence_terms": [],
+      "id": "RTL-0135",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pwdata",
+      "ssot_context": {
+        "port": "pwdata",
+        "signal": "pwdata"
+      },
+      "ssot_refs": [
+        "integration.connections.pwdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pstrb",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pstrb",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port pstrb is the implementation/observation point for pstrb"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pstrb.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=pstrb; signal=pstrb.",
+      "evidence_terms": [],
+      "id": "RTL-0136",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pstrb",
+      "ssot_context": {
+        "port": "pstrb",
+        "signal": "pstrb"
+      },
+      "ssot_refs": [
+        "integration.connections.pstrb"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item prdata",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.prdata",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port prdata is the implementation/observation point for prdata"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.prdata.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=prdata; signal=prdata.",
+      "evidence_terms": [],
+      "id": "RTL-0137",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.prdata",
+      "ssot_context": {
+        "port": "prdata",
+        "signal": "prdata"
+      },
+      "ssot_refs": [
+        "integration.connections.prdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pready",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pready",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port pready is the implementation/observation point for pready"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pready.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=pready; signal=pready.",
+      "evidence_terms": [],
+      "id": "RTL-0138",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pready",
+      "ssot_context": {
+        "port": "pready",
+        "signal": "pready"
+      },
+      "ssot_refs": [
+        "integration.connections.pready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pslverr",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pslverr",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port pslverr is the implementation/observation point for pslverr"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pslverr.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=pslverr; signal=pslverr.",
+      "evidence_terms": [],
+      "id": "RTL-0139",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pslverr",
+      "ssot_context": {
+        "port": "pslverr",
+        "signal": "pslverr"
+      },
+      "ssot_refs": [
+        "integration.connections.pslverr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item clk_i",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.clk_i",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port clk_i is the implementation/observation point for clk_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.clk_i.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=clk_i; signal=clk_i.",
+      "evidence_terms": [
+        "clk",
+        "clk_i"
+      ],
+      "id": "RTL-0140",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.clk_i",
+      "ssot_context": {
+        "port": "clk_i",
+        "signal": "clk_i"
+      },
+      "ssot_refs": [
+        "integration.connections.clk_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item rst_ni",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.rst_ni",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port rst_ni is the implementation/observation point for rst_ni"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.rst_ni.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=rst_ni; signal=rst_ni.",
+      "evidence_terms": [
+        "ni",
+        "rst",
+        "rst_ni"
+      ],
+      "id": "RTL-0141",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.rst_ni",
+      "ssot_context": {
+        "port": "rst_ni",
+        "signal": "rst_ni"
+      },
+      "ssot_refs": [
+        "integration.connections.rst_ni"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item enable",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.enable",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port enable_i is the implementation/observation point for enable_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.enable.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=enable_i; signal=enable.",
+      "evidence_terms": [
+        "enable",
+        "enable_i"
+      ],
+      "id": "RTL-0142",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.enable",
+      "ssot_context": {
+        "port": "enable_i",
+        "signal": "enable"
+      },
+      "ssot_refs": [
+        "integration.connections.enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item active_divisor",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.active_divisor",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port divisor_i is the implementation/observation point for divisor_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.active_divisor.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=divisor_i; signal=active_divisor.",
+      "evidence_terms": [
+        "active",
+        "active_divisor",
+        "divisor",
+        "divisor_i"
+      ],
+      "id": "RTL-0143",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.active_divisor",
+      "ssot_context": {
+        "port": "divisor_i",
+        "signal": "active_divisor"
+      },
+      "ssot_refs": [
+        "integration.connections.active_divisor"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item clk_o",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.clk_o",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port clk_o is the implementation/observation point for clk_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.clk_o.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=clk_o; signal=clk_o.",
+      "evidence_terms": [
+        "clk",
+        "clk_o"
+      ],
+      "id": "RTL-0144",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.clk_o",
+      "ssot_context": {
+        "port": "clk_o",
+        "signal": "clk_o"
+      },
+      "ssot_refs": [
+        "integration.connections.clk_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item locked_o",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.locked_o",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port locked_o is the implementation/observation point for locked_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.locked_o.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=locked_o; signal=locked_o.",
+      "evidence_terms": [
+        "locked",
+        "locked_o"
+      ],
+      "id": "RTL-0145",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.locked_o",
+      "ssot_context": {
+        "port": "locked_o",
+        "signal": "locked_o"
+      },
+      "ssot_refs": [
+        "integration.connections.locked_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item terminal_event",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.terminal_event",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port terminal_event_o is the implementation/observation point for terminal_event_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.terminal_event.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=terminal_event_o; signal=terminal_event.",
+      "evidence_terms": [
+        "terminal",
+        "terminal_event",
+        "terminal_event_o"
+      ],
+      "id": "RTL-0146",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.terminal_event",
+      "ssot_context": {
+        "port": "terminal_event_o",
+        "signal": "terminal_event"
+      },
+      "ssot_refs": [
+        "integration.connections.terminal_event"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item terminal_event",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.terminal_event",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port terminal_event_i is the implementation/observation point for terminal_event_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.terminal_event.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=terminal_event_i; signal=terminal_event.",
+      "evidence_terms": [
+        "terminal",
+        "terminal_event",
+        "terminal_event_i"
+      ],
+      "id": "RTL-0147",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.terminal_event",
+      "ssot_context": {
+        "port": "terminal_event_i",
+        "signal": "terminal_event"
+      },
+      "ssot_refs": [
+        "integration.connections.terminal_event"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item irq_o",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.irq_o",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "DUT port irq_o is the implementation/observation point for irq_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.irq_o.\nOwner: clkdiv in rtl/clkdiv.sv via integration.\nSSOT item context: port=irq_o; signal=irq_o.",
+      "evidence_terms": [
+        "irq",
+        "irq_o"
+      ],
+      "id": "RTL-0148",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.irq_o",
+      "ssot_context": {
+        "port": "irq_o",
+        "signal": "irq_o"
+      },
+      "ssot_refs": [
+        "integration.connections.irq_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_0",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: clkdiv in rtl/clkdiv.sv via synthesis.\nSSOT item context: value=No inferred latches.",
+      "evidence_terms": [],
+      "id": "RTL-0149",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_0",
+      "ssot_context": {
+        "value": "No inferred latches"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_1",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: clkdiv in rtl/clkdiv.sv via synthesis.\nSSOT item context: value=All architectural flops reset according to clock_reset_domains.reset_scheme.",
+      "evidence_terms": [
+        "clock",
+        "clock_reset_domains",
+        "domains",
+        "reset",
+        "reset_scheme",
+        "scheme"
+      ],
+      "id": "RTL-0150",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_1",
+      "ssot_context": {
+        "value": "All architectural flops reset according to clock_reset_domains.reset_scheme"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_2",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_2.\nOwner: clkdiv in rtl/clkdiv.sv via synthesis.\nSSOT item context: value=No package/interface/modport/function/task/for/while constructs in generated RTL.",
+      "evidence_terms": [],
+      "id": "RTL-0151",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_2",
+      "ssot_context": {
+        "value": "No package/interface/modport/function/task/for/while constructs in generated RTL"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_3",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_3",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_3.\nOwner: clkdiv in rtl/clkdiv.sv via synthesis.\nSSOT item context: value=clk_o must be driven by sequential logic only; no combinational clock gating for clk_o.",
+      "evidence_terms": [
+        "clk",
+        "clk_o"
+      ],
+      "id": "RTL-0152",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_3",
+      "ssot_context": {
+        "value": "clk_o must be driven by sequential logic only; no combinational clock gating for clk_o"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item area_um2_max",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.area_um2_max",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.area_um2_max.\nOwner: clkdiv in rtl/clkdiv.sv via synthesis.\nSSOT item context: name=area_um2_max.",
+      "evidence_terms": [],
+      "id": "RTL-0153",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.area_um2_max",
+      "ssot_context": {
+        "name": "area_um2_max"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.area_um2_max"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item power_mw_max",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.power_mw_max",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.power_mw_max.\nOwner: clkdiv in rtl/clkdiv.sv via synthesis.\nSSOT item context: name=power_mw_max.",
+      "evidence_terms": [],
+      "id": "RTL-0154",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.power_mw_max",
+      "ssot_context": {
+        "name": "power_mw_max"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.power_mw_max"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item frequency_mhz_min",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.frequency_mhz_min",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.frequency_mhz_min.\nOwner: clkdiv in rtl/clkdiv.sv via synthesis.\nSSOT item context: name=frequency_mhz_min; value=100.",
+      "evidence_terms": [],
+      "id": "RTL-0155",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.frequency_mhz_min",
+      "ssot_context": {
+        "name": "frequency_mhz_min",
+        "value": "100"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.frequency_mhz_min"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module clkdiv is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.clkdiv.module_equivalence",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.clkdiv.module_equivalence.\nOwner: clkdiv in rtl/clkdiv.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0158",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.clkdiv.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.clkdiv.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter DIV_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.DIV_WIDTH",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DIV_WIDTH.\nOwner: clkdiv in rtl/clkdiv.sv via parameters.\nSSOT item context: name=DIV_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.DIV_WIDTH",
+      "ssot_context": {
+        "name": "DIV_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.DIV_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter RESET_POLARITY",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.RESET_POLARITY",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.RESET_POLARITY.\nOwner: clkdiv in rtl/clkdiv.sv via parameters.\nSSOT item context: name=RESET_POLARITY.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.RESET_POLARITY",
+      "ssot_context": {
+        "name": "RESET_POLARITY"
+      },
+      "ssot_refs": [
+        "parameters.RESET_POLARITY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter CLOCK_FREQ_MHZ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.CLOCK_FREQ_MHZ",
+        "Primary implementation evidence is in rtl/clkdiv.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.CLOCK_FREQ_MHZ.\nOwner: clkdiv in rtl/clkdiv.sv via parameters.\nSSOT item context: name=CLOCK_FREQ_MHZ.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.CLOCK_FREQ_MHZ",
+      "ssot_context": {
+        "name": "CLOCK_FREQ_MHZ"
+      },
+      "ssot_refs": [
+        "parameters.CLOCK_FREQ_MHZ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_APB",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_APB",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Register readback, reserved zero behavior, pslverr, and side effects match registers and error_handling."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_APB.\nOwner: clkdiv in rtl/clkdiv.sv via test_requirements.\nSSOT item context: id=SC_APB; name=APB register access; expected=Register readback, reserved zero behavior, pslverr, and side effects match registers and error_handling..",
+      "evidence_terms": [],
+      "id": "RTL-0159",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_APB",
+      "ssot_context": {
+        "expected": "Register readback, reserved zero behavior, pslverr, and side effects match registers and error_handling.",
+        "id": "SC_APB",
+        "name": "APB register access"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_APB"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_DIV2",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_DIV2",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: clk_o toggles every 2 clk_i rising edges and locked_o asserts after first reload."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_DIV2.\nOwner: clkdiv in rtl/clkdiv.sv via test_requirements.\nSSOT item context: id=SC_DIV2; name=Divide by two baseline; expected=clk_o toggles every 2 clk_i rising edges and locked_o asserts after first reload..",
+      "evidence_terms": [],
+      "id": "RTL-0160",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_DIV2",
+      "ssot_context": {
+        "expected": "clk_o toggles every 2 clk_i rising edges and locked_o asserts after first reload.",
+        "id": "SC_DIV2",
+        "name": "Divide by two baseline"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_DIV2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_DIV_UPDATE",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_DIV_UPDATE",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: active_divisor changes only at terminal boundary; no runt/asynchronous output pulse."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_DIV_UPDATE.\nOwner: clkdiv in rtl/clkdiv.sv via test_requirements.\nSSOT item context: id=SC_DIV_UPDATE; name=Glitchless divisor update; expected=active_divisor changes only at terminal boundary; no runt/asynchronous output pulse..",
+      "evidence_terms": [],
+      "id": "RTL-0161",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_DIV_UPDATE",
+      "ssot_context": {
+        "expected": "active_divisor changes only at terminal boundary; no runt/asynchronous output pulse.",
+        "id": "SC_DIV_UPDATE",
+        "name": "Glitchless divisor update"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_DIV_UPDATE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_IRQ",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_IRQ",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: irq_pending and irq_o assert on terminal event and deassert after W1C clear."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_IRQ.\nOwner: clkdiv in rtl/clkdiv.sv via test_requirements.\nSSOT item context: id=SC_IRQ; name=Terminal interrupt set and clear; expected=irq_pending and irq_o assert on terminal event and deassert after W1C clear..",
+      "evidence_terms": [],
+      "id": "RTL-0162",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_IRQ",
+      "ssot_context": {
+        "expected": "irq_pending and irq_o assert on terminal event and deassert after W1C clear.",
+        "id": "SC_IRQ",
+        "name": "Terminal interrupt set and clear"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_IRQ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_DIV_ZERO",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_DIV_ZERO",
+        "Primary implementation evidence is in rtl/clkdiv.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: pending_divisor coerces to 1 without pslverr and output follows divide-by-one half-period contract."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_DIV_ZERO.\nOwner: clkdiv in rtl/clkdiv.sv via test_requirements.\nSSOT item context: id=SC_DIV_ZERO; name=DIVISOR zero write policy; expected=pending_divisor coerces to 1 without pslverr and output follows divide-by-one half-period contract..",
+      "evidence_terms": [],
+      "id": "RTL-0163",
+      "owner_file": "rtl/clkdiv.sv",
+      "owner_module": "clkdiv",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_DIV_ZERO",
+      "ssot_context": {
+        "expected": "pending_divisor coerces to 1 without pslverr and output follows divide-by-one half-period contract.",
+        "id": "SC_DIV_ZERO",
+        "name": "DIVISOR zero write policy"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_DIV_ZERO"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3e8e19ce43da418bd8054b5f78147a151541d8ad18282c75587963810b660352",
+  "top": "clkdiv",
+  "type": "rtl_authoring_packet"
+}

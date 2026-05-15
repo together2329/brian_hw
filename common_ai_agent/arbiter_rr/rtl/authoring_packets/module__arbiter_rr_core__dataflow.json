@@ -7,10 +7,36 @@
       "status": "ok"
     },
     "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 7,
+      "key": "dataflow",
+      "module_task_count": 65,
+      "rule": "Owner module arbiter_rr_core is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "dataflow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
     "owner": {
-      "file": "",
-      "name": "",
-      "refs": [],
+      "file": "rtl/arbiter_rr_core.sv",
+      "name": "arbiter_rr_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.sequence",
+        "dataflow.sequence.sequence_0",
+        "features",
+        "fsm",
+        "fsm.arb_fsm",
+        "function_model",
+        "function_model.transactions",
+        "function_model.transactions.FM1",
+        "function_model.transactions.FM2"
+      ],
       "wiring_only": false
     },
     "peer_modules": [
@@ -33,138 +59,6 @@
     "quality_profile": "production",
     "reference_profile": null,
     "ssot_connection_contracts": [
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "PCLK",
-        "signal": "PCLK",
-        "signal_terms": [
-          "PCLK"
-        ],
-        "source_ref": "integration.connections[0]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "PRESETn",
-        "signal": "PRESETn",
-        "signal_terms": [
-          "PRESETn"
-        ],
-        "source_ref": "integration.connections[1]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "PADDR",
-        "signal": "PADDR",
-        "signal_terms": [
-          "PADDR"
-        ],
-        "source_ref": "integration.connections[2]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "PSEL",
-        "signal": "PSEL",
-        "signal_terms": [
-          "PSEL"
-        ],
-        "source_ref": "integration.connections[3]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "PENABLE",
-        "signal": "PENABLE",
-        "signal_terms": [
-          "PENABLE"
-        ],
-        "source_ref": "integration.connections[4]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "PWRITE",
-        "signal": "PWRITE",
-        "signal_terms": [
-          "PWRITE"
-        ],
-        "source_ref": "integration.connections[5]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "PWDATA",
-        "signal": "PWDATA",
-        "signal_terms": [
-          "PWDATA"
-        ],
-        "source_ref": "integration.connections[6]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "PRDATA",
-        "signal": "PRDATA",
-        "signal_terms": [
-          "PRDATA"
-        ],
-        "source_ref": "integration.connections[7]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "PREADY",
-        "signal": "PREADY",
-        "signal_terms": [
-          "PREADY"
-        ],
-        "source_ref": "integration.connections[8]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "PSLVERR",
-        "signal": "PSLVERR",
-        "signal_terms": [
-          "PSLVERR"
-        ],
-        "source_ref": "integration.connections[9]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "enable_o",
-        "signal": "arb_enable",
-        "signal_terms": [
-          "arb_enable"
-        ],
-        "source_ref": "integration.connections[10]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "mask_o",
-        "signal": "req_mask",
-        "signal_terms": [
-          "req_mask"
-        ],
-        "source_ref": "integration.connections[11]"
-      },
       {
         "instance": "",
         "machine_readable": true,
@@ -274,28 +168,6 @@
           "status_active_req"
         ],
         "source_ref": "integration.connections[21]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "winner_oh_i",
-        "signal": "status_winner",
-        "signal_terms": [
-          "status_winner"
-        ],
-        "source_ref": "integration.connections[22]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "arbiter_rr_regs",
-        "port": "active_req_i",
-        "signal": "status_active_req",
-        "signal_terms": [
-          "status_active_req"
-        ],
-        "source_ref": "integration.connections[23]"
       }
     ],
     "ssot_top_io_contracts": [],
@@ -314,14 +186,14 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": false,
-    "draft_allowed": false,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 1,
-    "open_required_count": 1,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -330,13 +202,13 @@
     ],
     "tool_evidence_open_count": 0,
     "tool_evidence_plan": [],
-    "work_allowed": false
+    "work_allowed": true
   },
   "ip": "arbiter_rr",
-  "kind": "unowned",
-  "owner_file": "",
-  "owner_module": "",
-  "packet_id": "unowned_tasks",
+  "kind": "module",
+  "owner_file": "rtl/arbiter_rr_core.sv",
+  "owner_module": "arbiter_rr_core",
+  "packet_id": "module__arbiter_rr_core__dataflow",
   "rules": [
     "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
@@ -352,14 +224,25 @@
     "categories": {
       "dataflow.sequence": 1
     },
-    "module_slice": {},
-    "open_required_count": 1,
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 7,
+      "key": "dataflow",
+      "module_task_count": 65,
+      "rule": "Owner module arbiter_rr_core is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "dataflow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
     "required_count": 1,
     "source_refs": [
       "dataflow.sequence.sequence_0"
     ],
     "status_counts": {
-      "open": 1
+      "pass": 1
     },
     "task_count": 1
   },
@@ -371,9 +254,10 @@
         "RTL data/control path implements the described step",
         "Ordering/backpressure is consistent with cycle_model",
         "Downstream checks can observe the result or side effect",
-        "Traceability keeps source_ref dataflow.sequence.sequence_0"
+        "Traceability keeps source_ref dataflow.sequence.sequence_0",
+        "Primary implementation evidence is in rtl/arbiter_rr_core.sv"
       ],
-      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_0.\nSSOT item context: value=req_i → mask → priority_rotate → encode → register → gnt_o / gnt_idx_o / gnt_valid_o.",
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_0.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via dataflow.sequence.sequence_0.\nSSOT item context: value=req_i → mask → priority_rotate → encode → register → gnt_o / gnt_idx_o / gnt_valid_o.",
       "evidence_terms": [
         "gnt",
         "gnt_idx_o",
@@ -388,8 +272,8 @@
         "valid"
       ],
       "id": "RTL-0120",
-      "owner_file": "",
-      "owner_module": "",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
       "priority": "high",
       "required": true,
       "source_ref": "dataflow.sequence.sequence_0",
@@ -411,7 +295,7 @@
           "req_i",
           "valid"
         ],
-        "owner_file_scoped": false,
+        "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -427,24 +311,24 @@
           "rotate",
           "valid"
         ],
-        "source_scope": "all_sources_without_owner",
+        "source_scope": "rtl/arbiter_rr_core.sv",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 4,
+        "criteria_total": 5,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task has no RTL owner file.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "ed4fb0aab2b37641faadb8a908ce4f3766aa5320c73da71fb75da59dd59109b2",
+  "todo_plan_sha256": "f3ca8477dc93eab50809c2905f728b484ed1868e0ff21d1080afa14afd06d919",
   "top": "arbiter_rr",
   "type": "rtl_authoring_packet"
 }

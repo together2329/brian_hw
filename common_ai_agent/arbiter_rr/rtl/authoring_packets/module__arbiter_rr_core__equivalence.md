@@ -19,16 +19,16 @@
 ## Context
 
 - Quality profile: production
-- Work allowed: False
-- Draft allowed: False
+- Work allowed: True
+- Draft allowed: True
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, features, fsm, fsm.arb_fsm, function_model, function_model.transactions, function_model.transactions.FM1, function_model.transactions.FM2
-- Module slice: 5/6 section=equivalence task_limit=48
-- Slice rule: Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, dataflow, dataflow.sequence, dataflow.sequence.sequence_0, features, fsm, fsm.arb_fsm, function_model, function_model.transactions, function_model.transactions.FM1, function_model.transactions.FM2
+- Module slice: 5/7 section=equivalence task_limit=48
+- Slice rule: Owner module arbiter_rr_core is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT target scale: min_behavior_owner_logic_modules=1, min_logic_modules=1, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=3
 - SSOT connection contracts:
   - arbiter_rr_core.clk_i <= PCLK (integration.connections[12])

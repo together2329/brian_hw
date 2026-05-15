@@ -25,7 +25,7 @@ decomposition:
 
 sub_modules:
   - { name: "arbiter_rr_regs", file: "rtl/arbiter_rr_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list", "io_list.interfaces.apb_slave"], source_sections: ["registers", "io_list"], register_refs: ["registers.register_list"], description: "APB-lite register decode and read/write logic" }
-  - { name: "arbiter_rr_core", file: "rtl/arbiter_rr_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model.transactions", "cycle_model.pipeline", "fsm.arb_fsm", "features"], source_sections: ["function_model", "cycle_model", "fsm", "features"], function_model_refs: ["function_model.transactions.FM1", "function_model.transactions.FM2"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"], fsm_refs: ["fsm.arb_fsm"], description: "Round-robin arbitration core with priority rotation" }
+  - { name: "arbiter_rr_core", file: "rtl/arbiter_rr_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model.transactions", "cycle_model.pipeline", "fsm.arb_fsm", "features", "dataflow.sequence"], source_sections: ["function_model", "cycle_model", "fsm", "features", "dataflow"], function_model_refs: ["function_model.transactions.FM1", "function_model.transactions.FM2"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"], dataflow_refs: ["dataflow.sequence.sequence_0"], fsm_refs: ["fsm.arb_fsm"], description: "Round-robin arbitration core with priority rotation" }
   # No separate wrapper — arbiter_rr.sv is the synthesizable top with direct port wiring
 
 # =============================================================================

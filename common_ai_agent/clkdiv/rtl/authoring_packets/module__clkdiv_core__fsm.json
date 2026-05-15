@@ -1,0 +1,743 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 32,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 3,
+      "key": "fsm",
+      "module_task_count": 58,
+      "rule": "Owner module clkdiv_core is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/clkdiv_core.sv",
+      "name": "clkdiv_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.performance",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.clock_path",
+        "dataflow.control_path",
+        "fsm",
+        "fsm.divider_fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM_DIVIDE"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/clkdiv_regs.sv",
+        "name": "clkdiv_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/clkdiv_core.sv",
+        "name": "clkdiv_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/clkdiv.sv",
+        "name": "clkdiv",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "sub_modules[1].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "sub_modules[1].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "enable_i",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "sub_modules[1].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "divisor_i",
+        "signal": "active_divisor",
+        "signal_terms": [
+          "active_divisor"
+        ],
+        "source_ref": "sub_modules[1].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_o",
+        "signal": "clk_o",
+        "signal_terms": [
+          "clk_o"
+        ],
+        "source_ref": "sub_modules[1].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "locked_o",
+        "signal": "locked_o",
+        "signal_terms": [
+          "locked_o"
+        ],
+        "source_ref": "sub_modules[1].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "terminal_event_o",
+        "signal": "terminal_event",
+        "signal_terms": [
+          "terminal_event"
+        ],
+        "source_ref": "sub_modules[1].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "enable_i",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "divisor_i",
+        "signal": "active_divisor",
+        "signal_terms": [
+          "active_divisor"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_o",
+        "signal": "clk_o",
+        "signal_terms": [
+          "clk_o"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "locked_o",
+        "signal": "locked_o",
+        "signal_terms": [
+          "locked_o"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "terminal_event_o",
+        "signal": "terminal_event",
+        "signal_terms": [
+          "terminal_event"
+        ],
+        "source_ref": "integration.connections[17]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 8,
+    "open_required_count": 8,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "clkdiv",
+  "kind": "module",
+  "owner_file": "rtl/clkdiv_core.sv",
+  "owner_module": "clkdiv_core",
+  "packet_id": "module__clkdiv_core__fsm",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "fsm.state": 3,
+      "fsm.transition": 5
+    },
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 3,
+      "key": "fsm",
+      "module_task_count": 58,
+      "rule": "Owner module clkdiv_core is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 8,
+    "required_count": 8,
+    "source_refs": [
+      "fsm.divider_fsm.states.state_0",
+      "fsm.divider_fsm.states.state_1",
+      "fsm.divider_fsm.states.state_2",
+      "fsm.divider_fsm.transitions.transition_0",
+      "fsm.divider_fsm.transitions.transition_1",
+      "fsm.divider_fsm.transitions.transition_2",
+      "fsm.divider_fsm.transitions.transition_3",
+      "fsm.divider_fsm.transitions.transition_4"
+    ],
+    "status_counts": {
+      "open": 8
+    },
+    "task_count": 8
+  },
+  "tasks": [
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state divider_fsm.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.divider_fsm.states.state_0",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.divider_fsm.states.state_0.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.\nSSOT item context: value=DISABLED.",
+      "evidence_terms": [
+        "DISABLED"
+      ],
+      "id": "RTL-0111",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.divider_fsm.states.state_0",
+      "ssot_context": {
+        "value": "DISABLED"
+      },
+      "ssot_refs": [
+        "fsm.divider_fsm.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DISABLED"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state divider_fsm.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.divider_fsm.states.state_1",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.divider_fsm.states.state_1.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.\nSSOT item context: value=RUNNING_LOW.",
+      "evidence_terms": [
+        "RUNNING_LOW"
+      ],
+      "id": "RTL-0112",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.divider_fsm.states.state_1",
+      "ssot_context": {
+        "value": "RUNNING_LOW"
+      },
+      "ssot_refs": [
+        "fsm.divider_fsm.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RUNNING_LOW"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state divider_fsm.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.divider_fsm.states.state_2",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.divider_fsm.states.state_2.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.\nSSOT item context: value=RUNNING_HIGH.",
+      "evidence_terms": [
+        "RUNNING_HIGH"
+      ],
+      "id": "RTL-0113",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.divider_fsm.states.state_2",
+      "ssot_context": {
+        "value": "RUNNING_HIGH"
+      },
+      "ssot_refs": [
+        "fsm.divider_fsm.states.state_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RUNNING_HIGH"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition divider_fsm.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.divider_fsm.transitions.transition_0",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "fsm.divider_fsm.transitions.transition_0 condition is implemented as RTL control logic: CTRL.enable=1",
+        "fsm.divider_fsm.transitions.transition_0 transition path DISABLED -> RUNNING_LOW is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.divider_fsm.transitions.transition_0.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.\nSSOT item context: from=DISABLED; to=RUNNING_LOW; condition=CTRL.enable=1.",
+      "evidence_terms": [
+        "CTRL",
+        "DISABLED",
+        "RUNNING_LOW"
+      ],
+      "id": "RTL-0114",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.divider_fsm.transitions.transition_0",
+      "ssot_context": {
+        "condition": "CTRL.enable=1",
+        "from": "DISABLED",
+        "to": "RUNNING_LOW"
+      },
+      "ssot_refs": [
+        "fsm.divider_fsm.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "DISABLED",
+          "RUNNING_LOW"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition divider_fsm.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.divider_fsm.transitions.transition_1",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "fsm.divider_fsm.transitions.transition_1 condition is implemented as RTL control logic: counter reaches terminal count",
+        "fsm.divider_fsm.transitions.transition_1 transition path RUNNING_LOW -> RUNNING_HIGH is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.divider_fsm.transitions.transition_1.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.\nSSOT item context: from=RUNNING_LOW; to=RUNNING_HIGH; condition=counter reaches terminal count.",
+      "evidence_terms": [
+        "RUNNING_HIGH",
+        "RUNNING_LOW"
+      ],
+      "id": "RTL-0115",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.divider_fsm.transitions.transition_1",
+      "ssot_context": {
+        "condition": "counter reaches terminal count",
+        "from": "RUNNING_LOW",
+        "to": "RUNNING_HIGH"
+      },
+      "ssot_refs": [
+        "fsm.divider_fsm.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUNNING_HIGH",
+          "RUNNING_LOW"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition divider_fsm.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.divider_fsm.transitions.transition_2",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "fsm.divider_fsm.transitions.transition_2 condition is implemented as RTL control logic: counter reaches terminal count",
+        "fsm.divider_fsm.transitions.transition_2 transition path RUNNING_HIGH -> RUNNING_LOW is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.divider_fsm.transitions.transition_2.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.\nSSOT item context: from=RUNNING_HIGH; to=RUNNING_LOW; condition=counter reaches terminal count.",
+      "evidence_terms": [
+        "RUNNING_HIGH",
+        "RUNNING_LOW"
+      ],
+      "id": "RTL-0116",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.divider_fsm.transitions.transition_2",
+      "ssot_context": {
+        "condition": "counter reaches terminal count",
+        "from": "RUNNING_HIGH",
+        "to": "RUNNING_LOW"
+      },
+      "ssot_refs": [
+        "fsm.divider_fsm.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUNNING_HIGH",
+          "RUNNING_LOW"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition divider_fsm.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.divider_fsm.transitions.transition_3",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "fsm.divider_fsm.transitions.transition_3 condition is implemented as RTL control logic: CTRL.enable=0 or reset asserted",
+        "fsm.divider_fsm.transitions.transition_3 transition path RUNNING_LOW -> DISABLED is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.divider_fsm.transitions.transition_3.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.\nSSOT item context: from=RUNNING_LOW; to=DISABLED; condition=CTRL.enable=0 or reset asserted.",
+      "evidence_terms": [
+        "CTRL",
+        "DISABLED",
+        "RUNNING_LOW"
+      ],
+      "id": "RTL-0117",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.divider_fsm.transitions.transition_3",
+      "ssot_context": {
+        "condition": "CTRL.enable=0 or reset asserted",
+        "from": "RUNNING_LOW",
+        "to": "DISABLED"
+      },
+      "ssot_refs": [
+        "fsm.divider_fsm.transitions.transition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "DISABLED",
+          "RUNNING_LOW"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition divider_fsm.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.divider_fsm.transitions.transition_4",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "fsm.divider_fsm.transitions.transition_4 condition is implemented as RTL control logic: CTRL.enable=0 or reset asserted",
+        "fsm.divider_fsm.transitions.transition_4 transition path RUNNING_HIGH -> DISABLED is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.divider_fsm.transitions.transition_4.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.\nSSOT item context: from=RUNNING_HIGH; to=DISABLED; condition=CTRL.enable=0 or reset asserted.",
+      "evidence_terms": [
+        "CTRL",
+        "DISABLED",
+        "RUNNING_HIGH"
+      ],
+      "id": "RTL-0118",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.divider_fsm.transitions.transition_4",
+      "ssot_context": {
+        "condition": "CTRL.enable=0 or reset asserted",
+        "from": "RUNNING_HIGH",
+        "to": "DISABLED"
+      },
+      "ssot_refs": [
+        "fsm.divider_fsm.transitions.transition_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "DISABLED",
+          "RUNNING_HIGH"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3e8e19ce43da418bd8054b5f78147a151541d8ad18282c75587963810b660352",
+  "top": "clkdiv",
+  "type": "rtl_authoring_packet"
+}

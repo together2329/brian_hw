@@ -1,0 +1,1911 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 32,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model",
+      "module_task_count": 58,
+      "rule": "Owner module clkdiv_core is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/clkdiv_core.sv",
+      "name": "clkdiv_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.performance",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.clock_path",
+        "dataflow.control_path",
+        "fsm",
+        "fsm.divider_fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM_DIVIDE"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/clkdiv_regs.sv",
+        "name": "clkdiv_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/clkdiv_core.sv",
+        "name": "clkdiv_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/clkdiv.sv",
+        "name": "clkdiv",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "sub_modules[1].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "sub_modules[1].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "enable_i",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "sub_modules[1].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "divisor_i",
+        "signal": "active_divisor",
+        "signal_terms": [
+          "active_divisor"
+        ],
+        "source_ref": "sub_modules[1].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_o",
+        "signal": "clk_o",
+        "signal_terms": [
+          "clk_o"
+        ],
+        "source_ref": "sub_modules[1].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "locked_o",
+        "signal": "locked_o",
+        "signal_terms": [
+          "locked_o"
+        ],
+        "source_ref": "sub_modules[1].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "terminal_event_o",
+        "signal": "terminal_event",
+        "signal_terms": [
+          "terminal_event"
+        ],
+        "source_ref": "sub_modules[1].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "enable_i",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "divisor_i",
+        "signal": "active_divisor",
+        "signal_terms": [
+          "active_divisor"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "clk_o",
+        "signal": "clk_o",
+        "signal_terms": [
+          "clk_o"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "locked_o",
+        "signal": "locked_o",
+        "signal_terms": [
+          "locked_o"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_core",
+        "port": "terminal_event_o",
+        "signal": "terminal_event",
+        "signal_terms": [
+          "terminal_event"
+        ],
+        "source_ref": "integration.connections[17]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 30,
+    "open_required_count": 30,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "clkdiv",
+  "kind": "module",
+  "owner_file": "rtl/clkdiv_core.sv",
+  "owner_module": "clkdiv_core",
+  "packet_id": "module__clkdiv_core__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 2,
+      "function_model.input": 3,
+      "function_model.invariant": 4,
+      "function_model.output": 3,
+      "function_model.output_rule": 3,
+      "function_model.precondition": 3,
+      "function_model.side_effect": 5,
+      "function_model.state_variable": 6,
+      "function_model.transaction": 1
+    },
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model",
+      "module_task_count": 58,
+      "rule": "Owner module clkdiv_core is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 30,
+    "required_count": 30,
+    "source_refs": [
+      "function_model.state_variables.enable",
+      "function_model.state_variables.pending_divisor",
+      "function_model.state_variables.active_divisor",
+      "function_model.state_variables.counter",
+      "function_model.state_variables.clk_state",
+      "function_model.state_variables.irq_pending",
+      "function_model.transactions.FM_DIVIDE",
+      "function_model.transactions.FM_DIVIDE.preconditions.precondition_0",
+      "function_model.transactions.FM_DIVIDE.preconditions.precondition_1",
+      "function_model.transactions.FM_DIVIDE.preconditions.precondition_2",
+      "function_model.transactions.FM_DIVIDE.inputs.input_0",
+      "function_model.transactions.FM_DIVIDE.inputs.input_1",
+      "function_model.transactions.FM_DIVIDE.inputs.input_2",
+      "function_model.transactions.FM_DIVIDE.outputs.output_0",
+      "function_model.transactions.FM_DIVIDE.outputs.output_1",
+      "function_model.transactions.FM_DIVIDE.outputs.output_2",
+      "function_model.transactions.FM_DIVIDE.output_rules.divided_clock",
+      "function_model.transactions.FM_DIVIDE.output_rules.lock_indicator",
+      "function_model.transactions.FM_DIVIDE.output_rules.interrupt",
+      "function_model.transactions.FM_DIVIDE.side_effects.side_effect_0",
+      "function_model.transactions.FM_DIVIDE.side_effects.side_effect_1",
+      "function_model.transactions.FM_DIVIDE.side_effects.side_effect_2",
+      "function_model.transactions.FM_DIVIDE.side_effects.side_effect_3",
+      "function_model.transactions.FM_DIVIDE.side_effects.side_effect_4"
+    ],
+    "status_counts": {
+      "open": 30
+    },
+    "task_count": 30
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state enable",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.enable",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "enable reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.enable.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.state_variables.\nSSOT item context: name=enable; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.enable",
+      "ssot_context": {
+        "name": "enable",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state pending_divisor",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.pending_divisor",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "pending_divisor reset behavior matches SSOT value 2"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.pending_divisor.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.state_variables.\nSSOT item context: name=pending_divisor; reset=2.",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.pending_divisor",
+      "ssot_context": {
+        "name": "pending_divisor",
+        "reset": "2"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.pending_divisor"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state active_divisor",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.active_divisor",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "active_divisor reset behavior matches SSOT value 2"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.active_divisor.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.state_variables.\nSSOT item context: name=active_divisor; reset=2.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.active_divisor",
+      "ssot_context": {
+        "name": "active_divisor",
+        "reset": "2"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.active_divisor"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state counter",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.counter",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "counter reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.counter.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.state_variables.\nSSOT item context: name=counter; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.counter",
+      "ssot_context": {
+        "name": "counter",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.counter"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state clk_state",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.clk_state",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "clk_state reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.clk_state.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.state_variables.\nSSOT item context: name=clk_state; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0051",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.clk_state",
+      "ssot_context": {
+        "name": "clk_state",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.clk_state"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state irq_pending",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.irq_pending",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "irq_pending reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.irq_pending.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.state_variables.\nSSOT item context: name=irq_pending; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0052",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.irq_pending",
+      "ssot_context": {
+        "name": "irq_pending",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.irq_pending"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_DIVIDE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DIVIDE.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: id=FM_DIVIDE; name=integer_clock_divide.",
+      "evidence_terms": [],
+      "id": "RTL-0053",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE",
+      "ssot_context": {
+        "id": "FM_DIVIDE",
+        "name": "integer_clock_divide"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DIVIDE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.preconditions.precondition_0.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=rst_ni is deasserted.",
+      "evidence_terms": [
+        "ni",
+        "rst",
+        "rst_ni"
+      ],
+      "id": "RTL-0054",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "rst_ni is deasserted"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ni",
+          "rst",
+          "rst_ni"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DIVIDE: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.preconditions.precondition_1.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=CTRL.enable == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0055",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "CTRL.enable == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DIVIDE: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.preconditions.precondition_2.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=active_divisor >= 1.",
+      "evidence_terms": [
+        "active",
+        "active_divisor",
+        "divisor"
+      ],
+      "id": "RTL-0056",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "active_divisor >= 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.preconditions.precondition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "active_divisor",
+          "divisor"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_DIVIDE: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.inputs.input_0",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.inputs.input_0.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=clk_i rising edge.",
+      "evidence_terms": [
+        "clk",
+        "clk_i"
+      ],
+      "id": "RTL-0057",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.inputs.input_0",
+      "ssot_context": {
+        "value": "clk_i rising edge"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clk",
+          "clk_i"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_DIVIDE: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.inputs.input_1",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.inputs.input_1.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=active_divisor.",
+      "evidence_terms": [
+        "active",
+        "active_divisor",
+        "divisor"
+      ],
+      "id": "RTL-0058",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.inputs.input_1",
+      "ssot_context": {
+        "value": "active_divisor"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.inputs.input_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "active_divisor",
+          "divisor"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_DIVIDE: input_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.inputs.input_2",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.inputs.input_2.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=CTRL.irq_enable.",
+      "evidence_terms": [
+        "enable",
+        "irq",
+        "irq_enable"
+      ],
+      "id": "RTL-0059",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.inputs.input_2",
+      "ssot_context": {
+        "value": "CTRL.irq_enable"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.inputs.input_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "enable",
+          "irq",
+          "irq_enable"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DIVIDE: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.outputs.output_0",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.outputs.output_0.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=clk_o toggles exactly when counter reaches active_divisor-1.",
+      "evidence_terms": [
+        "active",
+        "active_divisor",
+        "clk",
+        "clk_o",
+        "divisor"
+      ],
+      "id": "RTL-0060",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.outputs.output_0",
+      "ssot_context": {
+        "value": "clk_o toggles exactly when counter reaches active_divisor-1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "active_divisor",
+          "clk",
+          "clk_o",
+          "divisor"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DIVIDE: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.outputs.output_1",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.outputs.output_1.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=locked_o is 1 after the first terminal reload while enabled.",
+      "evidence_terms": [
+        "locked",
+        "locked_o"
+      ],
+      "id": "RTL-0061",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.outputs.output_1",
+      "ssot_context": {
+        "value": "locked_o is 1 after the first terminal reload while enabled"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "locked",
+          "locked_o"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DIVIDE: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.outputs.output_2",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.outputs.output_2.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=irq_o is 1 when irq_pending and CTRL.irq_enable are both 1.",
+      "evidence_terms": [
+        "enable",
+        "irq",
+        "irq_enable",
+        "irq_o",
+        "irq_pending"
+      ],
+      "id": "RTL-0062",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.outputs.output_2",
+      "ssot_context": {
+        "value": "irq_o is 1 when irq_pending and CTRL.irq_enable are both 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.outputs.output_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "enable",
+          "irq",
+          "irq_enable",
+          "irq_o",
+          "irq_pending"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_DIVIDE: divided_clock",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.output_rules.divided_clock",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "divided_clock width matches SSOT value 1",
+        "divided_clock RTL expression implements SSOT expression ((~clk_state) & 1) if terminal_count else clk_state",
+        "DUT port clk_o is the implementation/observation point for divided_clock",
+        "divided_clock is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.output_rules.divided_clock.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: name=divided_clock; port=clk_o; expr=((~clk_state) & 1) if terminal_count else clk_state; width=1.",
+      "evidence_terms": [
+        "clk",
+        "clk_o",
+        "clk_state",
+        "count",
+        "terminal",
+        "terminal_count"
+      ],
+      "id": "RTL-0063",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.output_rules.divided_clock",
+      "ssot_context": {
+        "expr": "((~clk_state) & 1) if terminal_count else clk_state",
+        "name": "divided_clock",
+        "port": "clk_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.output_rules.divided_clock"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clk",
+          "clk_o",
+          "clk_state",
+          "count",
+          "terminal",
+          "terminal_count"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_DIVIDE: lock_indicator",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.output_rules.lock_indicator",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "lock_indicator width matches SSOT value 1",
+        "lock_indicator RTL expression implements SSOT expression 1 if enable and first_reload_seen else 0",
+        "DUT port locked_o is the implementation/observation point for lock_indicator",
+        "lock_indicator is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.output_rules.lock_indicator.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: name=lock_indicator; port=locked_o; expr=1 if enable and first_reload_seen else 0; width=1.",
+      "evidence_terms": [
+        "first",
+        "first_reload_seen",
+        "locked",
+        "locked_o",
+        "reload",
+        "seen"
+      ],
+      "id": "RTL-0064",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.output_rules.lock_indicator",
+      "ssot_context": {
+        "expr": "1 if enable and first_reload_seen else 0",
+        "name": "lock_indicator",
+        "port": "locked_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.output_rules.lock_indicator"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "first",
+          "first_reload_seen",
+          "locked",
+          "locked_o",
+          "reload",
+          "seen"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_DIVIDE: interrupt",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.output_rules.interrupt",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "interrupt width matches SSOT value 1",
+        "interrupt RTL expression implements SSOT expression 1 if irq_pending and irq_enable else 0",
+        "DUT port irq_o is the implementation/observation point for interrupt",
+        "interrupt is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.output_rules.interrupt.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: name=interrupt; port=irq_o; expr=1 if irq_pending and irq_enable else 0; width=1.",
+      "evidence_terms": [
+        "enable",
+        "irq",
+        "irq_enable",
+        "irq_o",
+        "irq_pending"
+      ],
+      "id": "RTL-0065",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.output_rules.interrupt",
+      "ssot_context": {
+        "expr": "1 if irq_pending and irq_enable else 0",
+        "name": "interrupt",
+        "port": "irq_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.output_rules.interrupt"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "enable",
+          "irq",
+          "irq_enable",
+          "irq_o",
+          "irq_pending"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DIVIDE: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.side_effects.side_effect_0.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=If counter == active_divisor-1, counter resets to 0 and clk_state toggles..",
+      "evidence_terms": [
+        "active",
+        "active_divisor",
+        "clk",
+        "clk_state",
+        "divisor"
+      ],
+      "id": "RTL-0066",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "If counter == active_divisor-1, counter resets to 0 and clk_state toggles."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "active_divisor",
+          "clk",
+          "clk_state",
+          "divisor"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DIVIDE: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.side_effects.side_effect_1.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=If counter != active_divisor-1, counter increments by one and clk_state is stable..",
+      "evidence_terms": [
+        "active",
+        "active_divisor",
+        "clk",
+        "clk_state",
+        "divisor"
+      ],
+      "id": "RTL-0067",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "If counter != active_divisor-1, counter increments by one and clk_state is stable."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "active_divisor",
+          "clk",
+          "clk_state",
+          "divisor"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DIVIDE: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.side_effects.side_effect_2.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=At terminal count, active_divisor loads pending_divisor for the next half-period..",
+      "evidence_terms": [
+        "active",
+        "active_divisor",
+        "divisor",
+        "pending_divisor"
+      ],
+      "id": "RTL-0068",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.side_effects.side_effect_2",
+      "ssot_context": {
+        "value": "At terminal count, active_divisor loads pending_divisor for the next half-period."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.side_effects.side_effect_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "active_divisor",
+          "divisor",
+          "pending_divisor"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DIVIDE: side_effect_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.side_effects.side_effect_3",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.side_effects.side_effect_3.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=At terminal count, irq_pending is set when CTRL.irq_enable=1..",
+      "evidence_terms": [
+        "enable",
+        "irq",
+        "irq_enable",
+        "irq_pending"
+      ],
+      "id": "RTL-0069",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.side_effects.side_effect_3",
+      "ssot_context": {
+        "value": "At terminal count, irq_pending is set when CTRL.irq_enable=1."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.side_effects.side_effect_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "enable",
+          "irq",
+          "irq_enable",
+          "irq_pending"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DIVIDE: side_effect_4",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.side_effects.side_effect_4",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.side_effects.side_effect_4.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: value=When enable=0, counter=0, clk_state=0, locked_o=0..",
+      "evidence_terms": [
+        "clk",
+        "clk_state",
+        "locked",
+        "locked_o"
+      ],
+      "id": "RTL-0070",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.side_effects.side_effect_4",
+      "ssot_context": {
+        "value": "When enable=0, counter=0, clk_state=0, locked_o=0."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.side_effects.side_effect_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clk",
+          "clk_state",
+          "locked",
+          "locked_o"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DIVIDE: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "function_model.transactions.FM_DIVIDE.error_cases.error_case_0 condition is implemented as RTL control logic: APB write to DIVISOR with value 0"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.error_cases.error_case_0.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: condition=APB write to DIVISOR with value 0.",
+      "evidence_terms": [
+        "APB",
+        "DIVISOR"
+      ],
+      "id": "RTL-0071",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "APB write to DIVISOR with value 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "APB",
+          "DIVISOR"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DIVIDE: error_case_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DIVIDE.error_cases.error_case_1",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv",
+        "function_model.transactions.FM_DIVIDE.error_cases.error_case_1 condition is implemented as RTL control logic: APB access to unsupported address"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DIVIDE.error_cases.error_case_1.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.transactions.FM_DIVIDE.\nSSOT item context: condition=APB access to unsupported address.",
+      "evidence_terms": [
+        "APB"
+      ],
+      "id": "RTL-0072",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DIVIDE.error_cases.error_case_1",
+      "ssot_context": {
+        "condition": "APB access to unsupported address"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DIVIDE.error_cases.error_case_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "APB"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.\nSSOT item context: value=clk_o changes only on clk_i rising edges while rst_ni is deasserted..",
+      "evidence_terms": [
+        "clk",
+        "clk_i",
+        "clk_o",
+        "ni",
+        "rst",
+        "rst_ni"
+      ],
+      "id": "RTL-0073",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "value": "clk_o changes only on clk_i rising edges while rst_ni is deasserted."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clk",
+          "clk_i",
+          "clk_o",
+          "ni",
+          "rst",
+          "rst_ni"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.\nSSOT item context: value=DIVISOR writes do not directly toggle clk_o..",
+      "evidence_terms": [
+        "clk",
+        "clk_o"
+      ],
+      "id": "RTL-0074",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "value": "DIVISOR writes do not directly toggle clk_o."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clk",
+          "clk_o"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.\nSSOT item context: value=Reserved register fields read as zero and ignore writes..",
+      "evidence_terms": [],
+      "id": "RTL-0075",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "value": "Reserved register fields read as zero and ignore writes."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_3",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_3",
+        "Primary implementation evidence is in rtl/clkdiv_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: clkdiv_core in rtl/clkdiv_core.sv via function_model.\nSSOT item context: value=irq_pending remains set until INTCLR.clear_irq is written as 1..",
+      "evidence_terms": [
+        "clear_irq",
+        "irq",
+        "irq_pending"
+      ],
+      "id": "RTL-0076",
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_3",
+      "ssot_context": {
+        "value": "irq_pending remains set until INTCLR.clear_irq is written as 1."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clear_irq",
+          "irq",
+          "irq_pending"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3e8e19ce43da418bd8054b5f78147a151541d8ad18282c75587963810b660352",
+  "top": "clkdiv",
+  "type": "rtl_authoring_packet"
+}

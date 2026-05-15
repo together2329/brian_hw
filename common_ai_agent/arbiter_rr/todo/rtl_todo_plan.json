@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 8,
-    "orphan_tasks": 1,
+    "open_required_todos": 6,
+    "orphan_tasks": 0,
     "static_missing": 0,
-    "status": "blocked"
+    "status": "fail"
   },
-  "generated_at": "2026-05-15T02:19:57Z",
+  "generated_at": "2026-05-15T02:22:41Z",
   "ip": "arbiter_rr",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 24,
@@ -99,14 +99,7 @@
     ],
     "status": "pass"
   },
-  "orphans": [
-    {
-      "category": "dataflow.sequence",
-      "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-      "source_ref": "dataflow.sequence.sequence_0",
-      "task_id": "RTL-0120"
-    }
-  ],
+  "orphans": [],
   "owner_logic_evidence": {
     "checked": 3,
     "issues": [],
@@ -774,7 +767,7 @@
       "test_requirements": 10,
       "workflow_todo": 3
     },
-    "orphan_tasks": 1,
+    "orphan_tasks": 0,
     "owner_modules": [
       {
         "file": "rtl/arbiter_rr_regs.sv",
@@ -794,6 +787,9 @@
           "cycle_model",
           "cycle_model.handshake_rules",
           "cycle_model.pipeline",
+          "dataflow",
+          "dataflow.sequence",
+          "dataflow.sequence.sequence_0",
           "features",
           "fsm",
           "fsm.arb_fsm",
@@ -1075,9 +1071,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 required SSOT-derived RTL task(s) still have no owner module.",
+        "reason": "Every required SSOT-derived RTL behavior has an owner module.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1746,7 +1742,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "7 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -7457,9 +7453,10 @@
         "RTL data/control path implements the described step",
         "Ordering/backpressure is consistent with cycle_model",
         "Downstream checks can observe the result or side effect",
-        "Traceability keeps source_ref dataflow.sequence.sequence_0"
+        "Traceability keeps source_ref dataflow.sequence.sequence_0",
+        "Primary implementation evidence is in rtl/arbiter_rr_core.sv"
       ],
-      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_0.\nSSOT item context: value=req_i → mask → priority_rotate → encode → register → gnt_o / gnt_idx_o / gnt_valid_o.",
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_0.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via dataflow.sequence.sequence_0.\nSSOT item context: value=req_i → mask → priority_rotate → encode → register → gnt_o / gnt_idx_o / gnt_valid_o.",
       "evidence_terms": [
         "gnt",
         "gnt_idx_o",
@@ -7474,9 +7471,9 @@
         "valid"
       ],
       "id": "RTL-0120",
-      "owner_file": "",
-      "owner_match": "",
-      "owner_module": "",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_match": "dataflow.sequence.sequence_0",
+      "owner_module": "arbiter_rr_core",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -7499,7 +7496,7 @@
           "req_i",
           "valid"
         ],
-        "owner_file_scoped": false,
+        "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
@@ -7515,20 +7512,20 @@
           "rotate",
           "valid"
         ],
-        "source_scope": "all_sources_without_owner",
+        "source_scope": "rtl/arbiter_rr_core.sv",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 4,
+        "criteria_total": 5,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task has no RTL owner file.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9795,14 +9792,8 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 8,
+    "open_required_tasks": 6,
     "open_tasks": [
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 required SSOT-derived RTL task(s) still have no owner module.",
-        "source_ref": "quality_gates.rtl_gen.owner_traceability",
-        "task_id": "RTL-0005"
-      },
       {
         "category": "rtl_gate.rtl_gen",
         "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
@@ -9811,7 +9802,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "7 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -9838,15 +9829,9 @@
         "reason": "Missing coverage closure artifact: cov/coverage.json.",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "task_id": "RTL-0026"
-      },
-      {
-        "category": "dataflow.sequence",
-        "reason": "Task has no RTL owner file.",
-        "source_ref": "dataflow.sequence.sequence_0",
-        "task_id": "RTL-0120"
       }
     ],
-    "required_passed": 161,
+    "required_passed": 163,
     "required_total": 169,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

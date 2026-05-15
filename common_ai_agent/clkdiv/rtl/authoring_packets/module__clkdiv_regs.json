@@ -1,0 +1,1979 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 32,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 34,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/clkdiv_regs.sv",
+      "name": "clkdiv_regs",
+      "refs": [
+        "error_handling",
+        "interrupts",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list",
+        "registers.register_list.CTRL",
+        "registers.register_list.DIVISOR",
+        "registers.register_list.INTCLR",
+        "registers.register_list.STATUS"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/clkdiv_regs.sv",
+        "name": "clkdiv_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/clkdiv_core.sv",
+        "name": "clkdiv_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/clkdiv.sv",
+        "name": "clkdiv",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "sub_modules[0].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "sub_modules[0].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "enable_o",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "sub_modules[0].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "divisor_o",
+        "signal": "active_divisor",
+        "signal_terms": [
+          "active_divisor"
+        ],
+        "source_ref": "sub_modules[0].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "irq_pending_i",
+        "signal": "irq_pending",
+        "signal_terms": [
+          "irq_pending"
+        ],
+        "source_ref": "sub_modules[0].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "clk_i",
+        "signal": "clk_i",
+        "signal_terms": [
+          "clk_i"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "rst_ni",
+        "signal": "rst_ni",
+        "signal_terms": [
+          "rst_ni"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "paddr",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "psel",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "penable",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pwrite",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pwdata",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pstrb",
+        "signal": "pstrb",
+        "signal_terms": [
+          "pstrb"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "prdata",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pready",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "pslverr",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "terminal_event_i",
+        "signal": "terminal_event",
+        "signal_terms": [
+          "terminal_event"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "clkdiv_regs",
+        "port": "irq_o",
+        "signal": "irq_o",
+        "signal_terms": [
+          "irq_o"
+        ],
+        "source_ref": "integration.connections[19]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 34,
+    "open_required_count": 34,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "clkdiv",
+  "kind": "module",
+  "owner_file": "rtl/clkdiv_regs.sv",
+  "owner_module": "clkdiv_regs",
+  "packet_id": "module__clkdiv_regs",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "error_handling.recovery": 2,
+      "interrupts.sources": 1,
+      "io_list.port": 14,
+      "registers.field": 11,
+      "registers.register": 4,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 34,
+      "task_limit": 48
+    },
+    "open_required_count": 34,
+    "required_count": 34,
+    "source_refs": [
+      "workflow_todos.rtl-gen[1]",
+      "registers.register_list.CTRL",
+      "registers.register_list.CTRL.fields.enable",
+      "registers.register_list.CTRL.fields.irq_enable",
+      "registers.register_list.CTRL.fields.reserved_31_2",
+      "registers.register_list.DIVISOR",
+      "registers.register_list.DIVISOR.fields.divisor",
+      "registers.register_list.DIVISOR.fields.reserved_31_16",
+      "registers.register_list.STATUS",
+      "registers.register_list.STATUS.fields.running",
+      "registers.register_list.STATUS.fields.locked",
+      "registers.register_list.STATUS.fields.irq_pending",
+      "registers.register_list.STATUS.fields.reserved_31_3",
+      "registers.register_list.INTCLR",
+      "registers.register_list.INTCLR.fields.clear_irq",
+      "registers.register_list.INTCLR.fields.reserved_31_1",
+      "interrupts.sources.TERMINAL_EVENT",
+      "error_handling.recovery.recovery_0",
+      "error_handling.recovery.recovery_1",
+      "sub_modules.clkdiv_regs.module_equivalence",
+      "io_list.clock_domains.clk_i.ports.clk_i",
+      "io_list.resets.rst_ni.ports.rst_ni",
+      "io_list.interfaces.apb_slave.ports.paddr",
+      "io_list.interfaces.apb_slave.ports.psel"
+    ],
+    "status_counts": {
+      "open": 34
+    },
+    "task_count": 34
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement APB register/status block",
+      "criteria": [
+        "Register reset, access, bit ranges, write effects, and reserved fields match registers.register_list",
+        "Unsupported address and RO write pslverr behavior matches error_handling",
+        "irq_o reflects irq_pending && irq_enable",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "Semantic source_refs covered: error_handling, interrupts, io_list.interfaces.apb_slave, registers.register_list"
+      ],
+      "detail": "Implement CTRL, DIVISOR, STATUS, INTCLR, APB one-cycle pready/prdata/pslverr behavior, reserved-field policy, divisor zero coercion, and irq pending clear/set policy.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_CLKDIV_REGS.",
+      "evidence_terms": [
+        "CLKDIV",
+        "REGS",
+        "RTL_TODO_CLKDIV_REGS",
+        "TODO",
+        "apb",
+        "apb_slave",
+        "clkdiv",
+        "clkdiv_regs",
+        "error_handling",
+        "handling",
+        "io",
+        "io_list",
+        "list",
+        "regs",
+        "slave"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_TODO_CLKDIV_REGS"
+      },
+      "ssot_refs": [
+        "error_handling",
+        "interrupts",
+        "io_list.interfaces.apb_slave",
+        "registers.register_list",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "CLKDIV",
+          "REGS",
+          "RTL_TODO_CLKDIV_REGS",
+          "TODO",
+          "apb",
+          "apb_slave",
+          "clkdiv",
+          "clkdiv_regs",
+          "error_handling",
+          "handling",
+          "io",
+          "io_list",
+          "list",
+          "regs",
+          "slave"
+        ],
+        "source_scope": "rtl/clkdiv_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_CLKDIV_REGS",
+        "source_refs": [
+          "error_handling",
+          "interrupts",
+          "io_list.interfaces.apb_slave",
+          "registers.register_list"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CTRL",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CTRL",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "CTRL width matches SSOT value 32",
+        "CTRL reset behavior matches SSOT value 0",
+        "CTRL access policy rw is implemented without read/write shortcuts",
+        "CTRL decode uses SSOT address/offset 0"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0095",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CTRL",
+        "offset": "0",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.enable",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.enable",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "enable reset behavior matches SSOT value 0",
+        "enable access policy rw is implemented without read/write shortcuts",
+        "enable readback returns implemented RTL state when readable",
+        "enable write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.enable.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=enable; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0096",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.enable",
+      "ssot_context": {
+        "access": "rw",
+        "name": "enable",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.irq_enable",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.irq_enable",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "irq_enable reset behavior matches SSOT value 0",
+        "irq_enable access policy rw is implemented without read/write shortcuts",
+        "irq_enable readback returns implemented RTL state when readable",
+        "irq_enable write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.irq_enable.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=irq_enable; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0097",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.irq_enable",
+      "ssot_context": {
+        "access": "rw",
+        "name": "irq_enable",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.irq_enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.reserved_31_2",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.reserved_31_2",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "reserved_31_2 reset behavior matches SSOT value 0",
+        "reserved_31_2 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_2 readback returns implemented RTL state when readable",
+        "reserved_31_2 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.reserved_31_2.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=reserved_31_2; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0098",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.reserved_31_2",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_2",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.reserved_31_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register DIVISOR",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.DIVISOR",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "DIVISOR width matches SSOT value 32",
+        "DIVISOR reset behavior matches SSOT value 2",
+        "DIVISOR access policy rw is implemented without read/write shortcuts",
+        "DIVISOR decode uses SSOT address/offset 4"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DIVISOR.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.DIVISOR.\nSSOT item context: name=DIVISOR; width=32; reset=2; access=rw; offset=4.",
+      "evidence_terms": [],
+      "id": "RTL-0099",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DIVISOR",
+      "ssot_context": {
+        "access": "rw",
+        "name": "DIVISOR",
+        "offset": "4",
+        "reset": "2",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.DIVISOR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DIVISOR.divisor",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DIVISOR.fields.divisor",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "divisor reset behavior matches SSOT value 2",
+        "divisor access policy rw is implemented without read/write shortcuts",
+        "divisor readback returns implemented RTL state when readable",
+        "divisor write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DIVISOR.fields.divisor.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.DIVISOR.\nSSOT item context: name=divisor; reset=2; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0100",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DIVISOR.fields.divisor",
+      "ssot_context": {
+        "access": "rw",
+        "name": "divisor",
+        "reset": "2"
+      },
+      "ssot_refs": [
+        "registers.register_list.DIVISOR.fields.divisor"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DIVISOR.reserved_31_16",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DIVISOR.fields.reserved_31_16",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "reserved_31_16 reset behavior matches SSOT value 0",
+        "reserved_31_16 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_16 readback returns implemented RTL state when readable",
+        "reserved_31_16 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DIVISOR.fields.reserved_31_16.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.DIVISOR.\nSSOT item context: name=reserved_31_16; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DIVISOR.fields.reserved_31_16",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_16",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DIVISOR.fields.reserved_31_16"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register STATUS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.STATUS",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "STATUS width matches SSOT value 32",
+        "STATUS reset behavior matches SSOT value 0",
+        "STATUS access policy ro is implemented without read/write shortcuts",
+        "STATUS decode uses SSOT address/offset 8"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=8.",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS",
+      "ssot_context": {
+        "access": "ro",
+        "name": "STATUS",
+        "offset": "8",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.running",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.running",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "running reset behavior matches SSOT value 0",
+        "running access policy ro is implemented without read/write shortcuts",
+        "running readback returns implemented RTL state when readable",
+        "running write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.running.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=running; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0103",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.running",
+      "ssot_context": {
+        "access": "ro",
+        "name": "running",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.running"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.locked",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.locked",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "locked reset behavior matches SSOT value 0",
+        "locked access policy ro is implemented without read/write shortcuts",
+        "locked readback returns implemented RTL state when readable",
+        "locked write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.locked.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=locked; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0104",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.locked",
+      "ssot_context": {
+        "access": "ro",
+        "name": "locked",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.locked"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.irq_pending",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.irq_pending",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "irq_pending reset behavior matches SSOT value 0",
+        "irq_pending access policy ro is implemented without read/write shortcuts",
+        "irq_pending readback returns implemented RTL state when readable",
+        "irq_pending write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.irq_pending.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=irq_pending; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0105",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.irq_pending",
+      "ssot_context": {
+        "access": "ro",
+        "name": "irq_pending",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.irq_pending"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.reserved_31_3",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.reserved_31_3",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "reserved_31_3 reset behavior matches SSOT value 0",
+        "reserved_31_3 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_3 readback returns implemented RTL state when readable",
+        "reserved_31_3 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.reserved_31_3.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0106",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.reserved_31_3",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_3",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.reserved_31_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register INTCLR",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.INTCLR",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "INTCLR width matches SSOT value 32",
+        "INTCLR reset behavior matches SSOT value 0",
+        "INTCLR access policy wo is implemented without read/write shortcuts",
+        "INTCLR decode uses SSOT address/offset 12"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTCLR.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.INTCLR.\nSSOT item context: name=INTCLR; width=32; reset=0; access=wo; offset=12.",
+      "evidence_terms": [],
+      "id": "RTL-0107",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTCLR",
+      "ssot_context": {
+        "access": "wo",
+        "name": "INTCLR",
+        "offset": "12",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTCLR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTCLR.clear_irq",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTCLR.fields.clear_irq",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "clear_irq reset behavior matches SSOT value 0",
+        "clear_irq access policy wo is implemented without read/write shortcuts",
+        "clear_irq readback returns implemented RTL state when readable",
+        "clear_irq write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.clear_irq.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.INTCLR.\nSSOT item context: name=clear_irq; reset=0; access=wo.",
+      "evidence_terms": [],
+      "id": "RTL-0108",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTCLR.fields.clear_irq",
+      "ssot_context": {
+        "access": "wo",
+        "name": "clear_irq",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTCLR.fields.clear_irq"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTCLR.reserved_31_1",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTCLR.fields.reserved_31_1",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "reserved_31_1 reset behavior matches SSOT value 0",
+        "reserved_31_1 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_1 readback returns implemented RTL state when readable",
+        "reserved_31_1 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.reserved_31_1.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.INTCLR.\nSSOT item context: name=reserved_31_1; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0109",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTCLR.fields.reserved_31_1",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_1",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTCLR.fields.reserved_31_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "interrupts.sources",
+      "content": "Implement interrupt item TERMINAL_EVENT",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref interrupts.sources.TERMINAL_EVENT",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "TERMINAL_EVENT clear behavior matches SSOT clear policy INTCLR.clear_irq W1C"
+      ],
+      "detail": "This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: interrupts.sources.TERMINAL_EVENT.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via interrupts.\nSSOT item context: name=TERMINAL_EVENT; clear=INTCLR.clear_irq W1C.",
+      "evidence_terms": [],
+      "id": "RTL-0110",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "interrupts.sources.TERMINAL_EVENT",
+      "ssot_context": {
+        "clear": "INTCLR.clear_irq W1C",
+        "name": "TERMINAL_EVENT"
+      },
+      "ssot_refs": [
+        "interrupts.sources.TERMINAL_EVENT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_0",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via error_handling.\nSSOT item context: action=legal APB access.",
+      "evidence_terms": [],
+      "id": "RTL-0122",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_0",
+      "ssot_context": {
+        "action": "legal APB access"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_1",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_1.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via error_handling.\nSSOT item context: action=INTCLR.clear_irq W1C.",
+      "evidence_terms": [],
+      "id": "RTL-0123",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_1",
+      "ssot_context": {
+        "action": "INTCLR.clear_irq W1C"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module clkdiv_regs is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.clkdiv_regs.module_equivalence",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.clkdiv_regs.module_equivalence.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0156",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.clkdiv_regs.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.clkdiv_regs.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port clk_i",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.clk_i.ports.clk_i",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "clk_i width matches SSOT value 1",
+        "clk_i port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.clk_i.ports.clk_i.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.\nSSOT item context: name=clk_i; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.clk_i.ports.clk_i",
+      "ssot_context": {
+        "direction": "input",
+        "name": "clk_i",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.clk_i.ports.clk_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rst_ni",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.rst_ni.ports.rst_ni",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "rst_ni width matches SSOT value 1",
+        "rst_ni port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.rst_ni.ports.rst_ni.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.\nSSOT item context: name=rst_ni; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.rst_ni.ports.rst_ni",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rst_ni",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.rst_ni.ports.rst_ni"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port paddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.paddr",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "paddr width matches SSOT value 8",
+        "paddr port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.paddr.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=paddr; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.paddr",
+      "ssot_context": {
+        "direction": "input",
+        "name": "paddr",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.paddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port psel",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.psel",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "psel width matches SSOT value 1",
+        "psel port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.psel.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=psel; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.psel",
+      "ssot_context": {
+        "direction": "input",
+        "name": "psel",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.psel"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port penable",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.penable",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "penable width matches SSOT value 1",
+        "penable port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.penable.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=penable; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.penable",
+      "ssot_context": {
+        "direction": "input",
+        "name": "penable",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.penable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwrite",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pwrite",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "pwrite width matches SSOT value 1",
+        "pwrite port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwrite.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pwrite; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pwrite",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwrite",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pwdata",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "pwdata width matches SSOT value 32",
+        "pwdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwdata.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pwdata; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pwdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pwdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pstrb",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pstrb",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "pstrb width matches SSOT value 4",
+        "pstrb port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pstrb.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pstrb; width=4; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pstrb",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pstrb",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pstrb"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port prdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.prdata",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "prdata width matches SSOT value 32",
+        "prdata port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.prdata.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=prdata; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.prdata",
+      "ssot_context": {
+        "direction": "output",
+        "name": "prdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.prdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pready",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "pready width matches SSOT value 1",
+        "pready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pready.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pslverr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pslverr",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "pslverr width matches SSOT value 1",
+        "pslverr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pslverr.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pslverr; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pslverr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pslverr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port clk_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.divided_clock.ports.clk_o",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "clk_o width matches SSOT value 1",
+        "clk_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.divided_clock.ports.clk_o.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.\nSSOT item context: name=clk_o; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.divided_clock.ports.clk_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "clk_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.divided_clock.ports.clk_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port locked_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.divided_clock.ports.locked_o",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "locked_o width matches SSOT value 1",
+        "locked_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.divided_clock.ports.locked_o.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.\nSSOT item context: name=locked_o; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0045",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.divided_clock.ports.locked_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "locked_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.divided_clock.ports.locked_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port irq_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.divided_clock.ports.irq_o",
+        "Primary implementation evidence is in rtl/clkdiv_regs.sv",
+        "irq_o width matches SSOT value 1",
+        "irq_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.divided_clock.ports.irq_o.\nOwner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.\nSSOT item context: name=irq_o; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0046",
+      "owner_file": "rtl/clkdiv_regs.sv",
+      "owner_module": "clkdiv_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.divided_clock.ports.irq_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "irq_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.divided_clock.ports.irq_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3e8e19ce43da418bd8054b5f78147a151541d8ad18282c75587963810b660352",
+  "top": "clkdiv",
+  "type": "rtl_authoring_packet"
+}

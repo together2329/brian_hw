@@ -48,7 +48,6 @@ module pulse_gen #(
     end
 
     // Zero-wait-state APB-Lite response; PSLVERR comes from the register decode for illegal offsets.
-    assign PRESETn = PRESETn_sync;
     assign PREADY_zero_wait_state = 1'b1;
     assign TOP_io_list_live = PSEL | PENABLE | PWRITE | trigger_i;
     assign PREADY = PREADY_zero_wait_state | (1'b0 & TOP_io_list_live);

@@ -217,8 +217,8 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": false,
-    "draft_allowed": false,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
@@ -233,7 +233,7 @@
     ],
     "tool_evidence_open_count": 0,
     "tool_evidence_plan": [],
-    "work_allowed": false
+    "work_allowed": true
   },
   "ip": "arbiter_rr",
   "kind": "module",
@@ -1569,7 +1569,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "ed4fb0aab2b37641faadb8a908ce4f3766aa5320c73da71fb75da59dd59109b2",
+  "todo_plan_sha256": "f3ca8477dc93eab50809c2905f728b484ed1868e0ff21d1080afa14afd06d919",
   "top": "arbiter_rr",
   "type": "rtl_authoring_packet"
 }
