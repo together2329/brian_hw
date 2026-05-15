@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, features, function_model, function_model.output_rules, function_model.state_variables, function_model.transactions
 - Module slice: 9/16 section=features task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Input_Synchronization
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Input_Synchronization.
 Owner: edge_detector in rtl/edge_detector.sv via features.
 SSOT item context: name=Input Synchronization; output=synced signal stable on PCLK domain after SYNC_STAGES cycles.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -64,14 +64,14 @@ SSOT item context: name=Input Synchronization; output=synced signal stable on PC
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Edge_Detection
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Edge_Detection.
 Owner: edge_detector in rtl/edge_detector.sv via features.
 SSOT item context: name=Edge Detection; output=One-cycle pulse on edge_o[WIDTH-1:0] per detected edge.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -84,14 +84,14 @@ SSOT item context: name=Edge Detection; output=One-cycle pulse on edge_o[WIDTH-1
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.APB_lite_CSR
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.APB_lite_CSR.
 Owner: edge_detector in rtl/edge_detector.sv via features.
 SSOT item context: name=APB-lite CSR; output=PRDATA, PREADY, PSLVERR; side effects on CONTROL/STATUS registers.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT

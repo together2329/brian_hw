@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 12
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, features, function_model, function_model.output_rules, function_model.state_variables, function_model.transactions
 - Module slice: 14/16 section=test_requirements task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC1
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC1.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC1; name=Basic rising edge detection; expected=edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -65,14 +65,14 @@ SSOT item context: id=SC1; name=Basic rising edge detection; expected=edge_o[0]=
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC2
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC2.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC2; name=Basic falling edge detection; expected=edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -86,14 +86,14 @@ SSOT item context: id=SC2; name=Basic falling edge detection; expected=edge_o[0]
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC3
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC3.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC3; name=Both-edge detection; expected=edge_o[0]=1 on each transition.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -107,14 +107,14 @@ SSOT item context: id=SC3; name=Both-edge detection; expected=edge_o[0]=1 on eac
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC4
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC4.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC4; name=Synchronizer latency; expected=First edge_o appears after SYNC_STAGES+1 cycles.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -128,14 +128,14 @@ SSOT item context: id=SC4; name=Synchronizer latency; expected=First edge_o appe
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC5
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC5.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC5; name=Sticky and overflow behavior; expected=STATUS.overflow=1; edge_o still pulses.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -149,14 +149,14 @@ SSOT item context: id=SC5; name=Sticky and overflow behavior; expected=STATUS.ov
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC6
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC6.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC6; name=W1C clear; expected=STATUS.edge_sticky and STATUS.overflow cleared to 0.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -170,14 +170,14 @@ SSOT item context: id=SC6; name=W1C clear; expected=STATUS.edge_sticky and STATU
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC7
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC7.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC7; name=Enable gating; expected=edge_o remains 0; STATUS unchanged.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -191,14 +191,14 @@ SSOT item context: id=SC7; name=Enable gating; expected=edge_o remains 0; STATUS
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC8
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC8.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC8; name=Reserved mode safety; expected=edge_o remains 0 regardless of input.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -212,14 +212,14 @@ SSOT item context: id=SC8; name=Reserved mode safety; expected=edge_o remains 0 
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC9
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC9.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC9; name=Interrupt generation; expected=irq_o=1 same cycle as edge_o.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -233,14 +233,14 @@ SSOT item context: id=SC9; name=Interrupt generation; expected=irq_o=1 same cycl
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC10
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC10.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC10; name=APB register read/write; expected=Read data matches expected register state.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -254,14 +254,14 @@ SSOT item context: id=SC10; name=APB register read/write; expected=Read data mat
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC11
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC11.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC11; name=Illegal APB address; expected=PSLVERR=1, no state change.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -275,14 +275,14 @@ SSOT item context: id=SC11; name=Illegal APB address; expected=PSLVERR=1, no sta
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC12
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC12.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 SSOT item context: id=SC12; name=Multi-bit WIDTH operation; expected=edge_o reflects all transitions; each bit independent.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared

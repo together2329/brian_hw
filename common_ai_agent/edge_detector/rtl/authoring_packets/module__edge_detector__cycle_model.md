@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 13
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, features, function_model, function_model.output_rules, function_model.state_variables, function_model.transactions
 - Module slice: 6/16 section=cycle_model task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.
 SSOT item context: value=PCLK.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -65,13 +65,13 @@ SSOT item context: value=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -85,13 +85,13 @@ Owner: edge_detector in rtl/edge_detector.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.latency.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -105,14 +105,14 @@ Owner: edge_detector in rtl/edge_detector.sv via cycle_model.latency.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.PSEL
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.PSEL.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.
 SSOT item context: signal=PSEL.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -126,14 +126,14 @@ SSOT item context: signal=PSEL.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.PENABLE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.PENABLE.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.
 SSOT item context: signal=PENABLE.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -147,14 +147,14 @@ SSOT item context: signal=PENABLE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.PREADY
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.PREADY.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.
 SSOT item context: signal=PREADY.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -168,14 +168,14 @@ SSOT item context: signal=PREADY.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S0_SYNC
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_SYNC.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.pipeline.
 SSOT item context: stage=S0_SYNC; action=Propagate signal_i through sync_chain flops; cycle=0..SYNC_STAGES-1.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -190,14 +190,14 @@ SSOT item context: stage=S0_SYNC; action=Propagate signal_i through sync_chain f
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S1_EDGE_DECODE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_EDGE_DECODE.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.pipeline.
 SSOT item context: stage=S1_EDGE_DECODE; action=Compare prev_sync vs curr_sync; decode per EDGE_MODE; cycle=SYNC_STAGES.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -212,14 +212,14 @@ SSOT item context: stage=S1_EDGE_DECODE; action=Compare prev_sync vs curr_sync; 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S2_OUTPUT
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S2_OUTPUT.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.pipeline.
 SSOT item context: stage=S2_OUTPUT; action=Assert edge_o pulse; update sticky/overflow/irq; cycle=SYNC_STAGES+1.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -234,14 +234,14 @@ SSOT item context: stage=S2_OUTPUT; action=Assert edge_o pulse; update sticky/ov
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.
 SSOT item context: value=edge_o for cycle N reflects signal_i transition captured at cycle N-SYNC_STAGES-1..
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -255,14 +255,14 @@ SSOT item context: value=edge_o for cycle N reflects signal_i transition capture
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.
 SSOT item context: value=Interrupt updates occur on the same rising edge as edge_o assertion..
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -276,14 +276,14 @@ SSOT item context: value=Interrupt updates occur on the same rising edge as edge
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.
 SSOT item context: value=No backpressure on edge_o; downstream must accept or drop the one-cycle pulse..
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -297,14 +297,14 @@ SSOT item context: value=No backpressure on edge_o; downstream must accept or dr
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: edge_detector in rtl/edge_detector.sv via cycle_model.
 SSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior

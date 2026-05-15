@@ -177,8 +177,10 @@
         "fsm.adder_fsm.states.state_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
@@ -186,7 +188,7 @@
           "IDLE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -228,8 +230,10 @@
         "fsm.adder_fsm.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "COMPUTE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
@@ -237,7 +241,7 @@
           "COMPUTE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -279,8 +283,10 @@
         "fsm.adder_fsm.states.state_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DONE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
@@ -288,7 +294,7 @@
           "DONE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -340,8 +346,17 @@
         "fsm.adder_fsm.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "COMPUTE",
+          "IDLE",
+          "hold",
+          "hold_mode",
+          "mode",
+          "shadow",
+          "shadow_valid",
+          "valid"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
@@ -356,7 +371,7 @@
           "valid"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -403,8 +418,12 @@
         "fsm.adder_fsm.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "COMPUTE",
+          "DONE",
+          "PCLK"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
@@ -414,7 +433,7 @@
           "PCLK"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -460,8 +479,11 @@
         "fsm.adder_fsm.transitions.transition_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "DONE",
+          "IDLE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
@@ -470,7 +492,7 @@
           "IDLE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,

@@ -42,80 +42,62 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 141,
+    "open_required_todos": 16,
     "orphan_tasks": 6,
-    "static_missing": 26,
+    "static_missing": 1,
     "status": "blocked"
   },
-  "generated_at": "2026-05-15T02:00:53Z",
+  "generated_at": "2026-05-15T02:10:00Z",
   "ip": "adder_kogge_stone",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 4,
-    "connection_contract_issues": [
-      {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
-        "module": "adder_kogge_stone_core",
-        "port": "clk_i",
-        "source_ref": "integration.connections[0]"
-      },
-      {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
-        "module": "adder_kogge_stone_core",
-        "port": "rst_ni",
-        "source_ref": "integration.connections[1]"
-      },
-      {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
-        "module": "adder_kogge_stone_regs",
-        "port": "clk_i",
-        "source_ref": "integration.connections[2]"
-      },
-      {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
-        "module": "adder_kogge_stone_regs",
-        "port": "rst_ni",
-        "source_ref": "integration.connections[3]"
-      }
+    "connection_contract_issues": [],
+    "connection_contract_status": "pass",
+    "declared_modules": [
+      "adder_kogge_stone",
+      "adder_kogge_stone_core",
+      "adder_kogge_stone_regs"
     ],
-    "connection_contract_status": "fail",
-    "declared_modules": [],
-    "graph": {},
-    "issues": [
-      {
-        "file": "rtl/adder_kogge_stone.sv",
-        "issue": "SSOT top module is not declared in listed RTL sources",
-        "module": "adder_kogge_stone"
-      },
-      {
-        "file": "rtl/adder_kogge_stone_regs.sv",
-        "issue": "SSOT manifest child module is not declared in listed RTL sources",
-        "module": "adder_kogge_stone_regs"
-      },
-      {
-        "file": "rtl/adder_kogge_stone_core.sv",
-        "issue": "SSOT manifest child module is not declared in listed RTL sources",
-        "module": "adder_kogge_stone_core"
-      }
-    ],
+    "graph": {
+      "adder_kogge_stone": [
+        "adder_kogge_stone_core",
+        "adder_kogge_stone_regs"
+      ],
+      "adder_kogge_stone_core": [],
+      "adder_kogge_stone_regs": []
+    },
+    "issues": [],
     "port_connection_issues": [],
     "port_connection_status": "pass",
-    "reachable_modules": [],
-    "roots": [],
-    "sources": [],
-    "status": "fail"
+    "reachable_modules": [
+      "adder_kogge_stone",
+      "adder_kogge_stone_core",
+      "adder_kogge_stone_regs"
+    ],
+    "roots": [
+      "adder_kogge_stone"
+    ],
+    "sources": [
+      "rtl/adder_kogge_stone.sv",
+      "rtl/adder_kogge_stone_core.sv",
+      "rtl/adder_kogge_stone_param.vh",
+      "rtl/adder_kogge_stone_regs.sv"
+    ],
+    "status": "pass"
   },
   "manifest_signal_flow_evidence": {
-    "checked_inputs": 0,
-    "checked_outputs": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
-        "module": "adder_kogge_stone"
-      }
+    "checked_inputs": 20,
+    "checked_outputs": 14,
+    "issues": [],
+    "reachable_modules": [
+      "adder_kogge_stone",
+      "adder_kogge_stone_core",
+      "adder_kogge_stone_regs"
     ],
-    "reachable_modules": [],
-    "roots": [],
-    "status": "fail"
+    "roots": [
+      "adder_kogge_stone"
+    ],
+    "status": "pass"
   },
   "orphans": [
     {
@@ -157,24 +139,8 @@
   ],
   "owner_logic_evidence": {
     "checked": 3,
-    "issues": [
-      {
-        "file": "rtl/adder_kogge_stone_regs.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "adder_kogge_stone_regs"
-      },
-      {
-        "file": "rtl/adder_kogge_stone_core.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "adder_kogge_stone_core"
-      },
-      {
-        "file": "rtl/adder_kogge_stone.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "adder_kogge_stone"
-      }
-    ],
-    "status": "fail"
+    "issues": [],
+    "status": "pass"
   },
   "policy": {
     "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
@@ -202,67 +168,71 @@
   "reference_scale_gap": {},
   "rtl_implementation_depth_evidence": {
     "aggregate": {
-      "behavior_owner_logic_modules": 0,
-      "control_flow": 0,
-      "depth_score": 0,
-      "instances": 0,
-      "lines": 0,
-      "logic_modules": 0,
-      "modules": 0,
-      "nonconstant_assigns": 0,
-      "procedural_blocks": 0,
-      "source_files": 0,
-      "state_updates": 0,
-      "storage_decls": 0
+      "behavior_owner_logic_modules": 3,
+      "control_flow": 10,
+      "depth_score": 169,
+      "instances": 2,
+      "lines": 352,
+      "logic_modules": 3,
+      "modules": 3,
+      "nonconstant_assigns": 27,
+      "procedural_blocks": 4,
+      "source_files": 3,
+      "state_updates": 36,
+      "storage_decls": 44
     },
     "issues": [
       {
-        "issue": "No listed DUT RTL sources are available for production implementation-depth audit"
-      },
-      {
-        "actual": 0,
-        "issue": "Production RTL source-file count is below the SSOT-locked target scale",
-        "required": 3,
-        "source": "quality_gates.rtl_gen.target_scale"
-      },
-      {
-        "actual": 0,
-        "issue": "Production RTL module count is below the SSOT-locked target scale",
-        "required": 3,
-        "source": "quality_gates.rtl_gen.target_scale"
-      },
-      {
-        "actual": 0,
+        "actual": 4,
         "issue": "Production RTL procedural block count is below the SSOT-locked target scale",
         "required": 6,
         "source": "quality_gates.rtl_gen.target_scale"
-      },
-      {
-        "actual": 0,
-        "issue": "Production RTL state-update count is below the SSOT-locked target scale",
-        "required": 8,
-        "source": "quality_gates.rtl_gen.target_scale"
-      },
-      {
-        "actual": 0,
-        "issue": "Production RTL implementation depth score is below the SSOT-derived or target-scale threshold",
-        "required": 45,
-        "source": "ssot_derived_threshold"
-      },
-      {
-        "actual": 0,
-        "issue": "Too few RTL modules contain implementation structure for the SSOT behavior complexity",
-        "required": 3,
-        "source": "quality_gates.rtl_gen.target_scale"
-      },
-      {
-        "actual": 0,
-        "issue": "Too few SSOT behavior-owner modules contain implementation-depth evidence",
-        "required": 1,
-        "source": "quality_gates.rtl_gen.target_scale"
       }
     ],
-    "modules": [],
+    "modules": [
+      {
+        "depth_score": 76,
+        "file": "rtl/adder_kogge_stone_core.sv",
+        "metrics": {
+          "control_flow": 6,
+          "instances": 0,
+          "nonconstant_assigns": 9,
+          "placeholder_tokens": false,
+          "procedural_blocks": 2,
+          "state_updates": 20,
+          "storage_decls": 15
+        },
+        "module": "adder_kogge_stone_core"
+      },
+      {
+        "depth_score": 65,
+        "file": "rtl/adder_kogge_stone_regs.sv",
+        "metrics": {
+          "control_flow": 4,
+          "instances": 0,
+          "nonconstant_assigns": 11,
+          "placeholder_tokens": false,
+          "procedural_blocks": 2,
+          "state_updates": 16,
+          "storage_decls": 12
+        },
+        "module": "adder_kogge_stone_regs"
+      },
+      {
+        "depth_score": 28,
+        "file": "rtl/adder_kogge_stone.sv",
+        "metrics": {
+          "control_flow": 0,
+          "instances": 2,
+          "nonconstant_assigns": 7,
+          "placeholder_tokens": false,
+          "procedural_blocks": 0,
+          "state_updates": 0,
+          "storage_decls": 17
+        },
+        "module": "adder_kogge_stone"
+      }
+    ],
     "profile": "production",
     "reference_comparison": null,
     "status": "fail",
@@ -291,13 +261,9 @@
     }
   },
   "rtl_placeholder_free_evidence": {
-    "checked": 0,
-    "issues": [
-      {
-        "issue": "No listed RTL source files were readable, so placeholder-free evidence cannot be checked"
-      }
-    ],
-    "status": "fail"
+    "checked": 4,
+    "issues": [],
+    "status": "pass"
   },
   "schema_version": 1,
   "source": "adder_kogge_stone/yaml/adder_kogge_stone.ssot.yaml",
@@ -548,271 +514,8 @@
   ],
   "static_rtl_evidence": {
     "checked": 26,
-    "missing": 26,
+    "missing": 1,
     "missing_tasks": [
-      {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "ADD",
-          "FM",
-          "FM_ADD",
-          "KS",
-          "RTL_TODO_KS_TREE",
-          "TODO",
-          "TREE",
-          "adder"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[0]",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0027"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_regs.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "REGS",
-          "RTL_TODO_REGS",
-          "TODO",
-          "adder",
-          "adder_kogge_stone_regs",
-          "apb",
-          "apb_csr",
-          "csr"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[1]",
-        "source_scope": "rtl/adder_kogge_stone_regs.sv",
-        "task_id": "RTL-0028"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "RTL_TODO_TOP",
-          "TODO",
-          "TOP",
-          "adder",
-          "adder_kogge_stone",
-          "io",
-          "io_list",
-          "kogge"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[2]",
-        "source_scope": "rtl/adder_kogge_stone.sv",
-        "task_id": "RTL-0029"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "hold",
-          "hold_mode",
-          "mode"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.preconditions.precondition_0",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0059"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "DATA",
-          "DATA_WIDTH",
-          "WIDTH"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.preconditions.precondition_1",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0060"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "DATA",
-          "DATA_WIDTH",
-          "WIDTH",
-          "a_i",
-          "a_reg",
-          "reg"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.inputs.input_0",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "DATA",
-          "DATA_WIDTH",
-          "WIDTH",
-          "b_i",
-          "b_reg",
-          "reg"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.inputs.input_1",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0062"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "cin",
-          "cin_i",
-          "cin_reg",
-          "reg"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.inputs.input_2",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0063"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "a_reg",
-          "b_reg",
-          "carry",
-          "carry_chain",
-          "chain",
-          "reg",
-          "sum",
-          "sum_o"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.outputs.sum_o",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0064"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "cin",
-          "cin_reg",
-          "cout",
-          "cout_o",
-          "final",
-          "final_group_generate",
-          "final_group_propagate",
-          "generate"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.outputs.cout_o",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0065"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "RESULT",
-          "SUM",
-          "SUM_RESULT",
-          "reg",
-          "sum",
-          "sum_reg"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.outputs.sum_apb",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0066"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "COUT",
-          "COUT_RESULT",
-          "RESULT",
-          "cout",
-          "cout_reg",
-          "reg"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.outputs.cout_apb",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0067"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "clr",
-          "clr_done",
-          "done"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.side_effects.side_effect_1",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0069"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "cout",
-          "cout_reg",
-          "reg"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.side_effects.side_effect_2",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0070"
-      },
-      {
-        "category": "function_model.error_case",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "DATA",
-          "DATA_WIDTH",
-          "WIDTH"
-        ],
-        "source_ref": "function_model.transactions.FM_ADD.error_cases.error_case_0",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0071"
-      },
       {
         "category": "function_model.error_case",
         "matched_count": 0,
@@ -825,167 +528,15 @@
         "source_ref": "function_model.transactions.FM_ADD.error_cases.error_case_1",
         "source_scope": "rtl/adder_kogge_stone_core.sv",
         "task_id": "RTL-0072"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "DATA",
-          "DATA_WIDTH",
-          "WIDTH",
-          "a_reg",
-          "b_reg",
-          "cin",
-          "cin_reg",
-          "cout"
-        ],
-        "source_ref": "function_model.invariants.invariant_0",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0073"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "hold",
-          "hold_mode",
-          "mode"
-        ],
-        "source_ref": "function_model.invariants.invariant_1",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0074"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "hold",
-          "hold_mode",
-          "mode"
-        ],
-        "source_ref": "cycle_model.pipeline.S_IDLE",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0081"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "",
-        "required_match_count": 1,
-        "required_terms": [
-          "IDLE"
-        ],
-        "source_ref": "fsm.adder_fsm.states.state_0",
-        "source_scope": "all_sources_without_owner",
-        "task_id": "RTL-0114"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "",
-        "required_match_count": 1,
-        "required_terms": [
-          "COMPUTE"
-        ],
-        "source_ref": "fsm.adder_fsm.states.state_1",
-        "source_scope": "all_sources_without_owner",
-        "task_id": "RTL-0115"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "",
-        "required_match_count": 1,
-        "required_terms": [
-          "DONE"
-        ],
-        "source_ref": "fsm.adder_fsm.states.state_2",
-        "source_scope": "all_sources_without_owner",
-        "task_id": "RTL-0116"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "",
-        "required_match_count": 2,
-        "required_terms": [
-          "COMPUTE",
-          "IDLE",
-          "hold",
-          "hold_mode",
-          "mode",
-          "shadow",
-          "shadow_valid",
-          "valid"
-        ],
-        "source_ref": "fsm.adder_fsm.transitions.transition_0",
-        "source_scope": "all_sources_without_owner",
-        "task_id": "RTL-0117"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "",
-        "required_match_count": 2,
-        "required_terms": [
-          "COMPUTE",
-          "DONE",
-          "PCLK"
-        ],
-        "source_ref": "fsm.adder_fsm.transitions.transition_1",
-        "source_scope": "all_sources_without_owner",
-        "task_id": "RTL-0118"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "",
-        "required_match_count": 2,
-        "required_terms": [
-          "DONE",
-          "IDLE"
-        ],
-        "source_ref": "fsm.adder_fsm.transitions.transition_2",
-        "source_scope": "all_sources_without_owner",
-        "task_id": "RTL-0119"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/adder_kogge_stone_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "DATA",
-          "DATA_WIDTH",
-          "WIDTH",
-          "cout",
-          "cout_o",
-          "sum",
-          "sum_o"
-        ],
-        "source_ref": "features.ks_addition",
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "task_id": "RTL-0120"
       }
     ],
-    "passed": 0,
-    "sources": []
+    "passed": 25,
+    "sources": [
+      "rtl/adder_kogge_stone.sv",
+      "rtl/adder_kogge_stone_core.sv",
+      "rtl/adder_kogge_stone_param.vh",
+      "rtl/adder_kogge_stone_regs.sv"
+    ]
   },
   "summary": {
     "blocking_questions": 0,
@@ -1200,9 +751,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1393,9 +944,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1441,7 +992,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "26 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
         "required": true,
         "status": "open"
       }
@@ -1488,9 +1039,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 owner logic structure issue(s) remain. adder_kogge_stone_regs: Behavior-owner module is not declared in its owner file; adder_kogge_stone_core: Behavior-owner module is not declared in its owner file; adder_kogge_stone: Behavior-owner module is not declared in its owner file",
+        "reason": "Behavior-owner RTL modules contain real implementation structure.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1538,9 +1089,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1585,9 +1136,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top IO contract issue(s) remain. adder_kogge_stone: SSOT top module is not declared in listed RTL sources",
+        "reason": "SSOT top IO contracts match the RTL top declaration.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1632,9 +1183,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top output drive issue(s) remain. adder_kogge_stone: SSOT top module is not declared, so output drive evidence cannot be checked",
+        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1679,9 +1230,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top input consumption issue(s) remain. adder_kogge_stone: SSOT top module is not declared, so input consumption evidence cannot be checked",
+        "reason": "SSOT top inputs have RTL consumption evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1726,9 +1277,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 manifest hierarchy integration issue(s) remain. adder_kogge_stone: SSOT top module is not declared in listed RTL sources; adder_kogge_stone_regs: SSOT manifest child module is not declared in listed RTL sources; adder_kogge_stone_core: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1820,9 +1371,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 manifest signal-flow issue(s) remain. adder_kogge_stone: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
+        "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1867,9 +1418,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 SSOT connection contract issue(s) remain. adder_kogge_stone_core: SSOT connection contract targets a module not declared in RTL; adder_kogge_stone_core: SSOT connection contract targets a module not declared in RTL; adder_kogge_stone_regs: SSOT connection contract targets a module not declared in RTL",
+        "reason": "SSOT connection contracts are satisfied by reachable RTL named port maps.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1916,9 +1467,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1966,9 +1517,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2013,7 +1564,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "140 required non-closure TODO(s) remain open.",
+        "reason": "15 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -2162,7 +1713,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "8 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL source-file count is below the SSOT-locked target scale: actual=0 required=3; Production RTL module count is below the SSOT-locked target scale: actual=0 required=3",
+        "reason": "1 production RTL implementation-depth issue(s) remain. Production RTL procedural block count is below the SSOT-locked target scale: actual=4 required=6",
         "required": true,
         "status": "open"
       }
@@ -2414,8 +1965,14 @@
         "workflow_todos.rtl-gen[0]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "adder",
+          "adder_kogge_stone_core",
+          "core",
+          "kogge",
+          "stone"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2434,7 +1991,7 @@
           "stone"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2444,9 +2001,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_KS_TREE",
@@ -2506,8 +2063,16 @@
         "workflow_todos.rtl-gen[1]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "REGS",
+          "adder",
+          "adder_kogge_stone_regs",
+          "apb",
+          "kogge",
+          "regs",
+          "stone"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2528,7 +2093,7 @@
           "stone"
         ],
         "source_scope": "rtl/adder_kogge_stone_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2538,9 +2103,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_REGS",
@@ -2599,8 +2164,13 @@
         "workflow_todos.rtl-gen[2]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "adder",
+          "adder_kogge_stone",
+          "kogge",
+          "stone"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2620,7 +2190,7 @@
           "sub_modules"
         ],
         "source_scope": "rtl/adder_kogge_stone.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2630,9 +2200,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_TOP",
@@ -2683,9 +2253,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2726,9 +2296,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2769,9 +2339,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2812,9 +2382,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2855,9 +2425,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2902,9 +2472,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2949,9 +2519,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2996,9 +2566,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3043,9 +2613,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3090,9 +2660,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3137,9 +2707,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3184,9 +2754,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3231,9 +2801,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3278,9 +2848,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3325,9 +2895,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3372,9 +2942,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3419,9 +2989,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3466,9 +3036,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3513,9 +3083,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3560,9 +3130,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3605,9 +3175,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3650,9 +3220,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3695,9 +3265,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3740,9 +3310,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3785,9 +3355,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3830,9 +3400,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3875,9 +3445,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3920,9 +3490,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3964,9 +3534,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4000,8 +3570,12 @@
         "function_model.transactions.FM_ADD.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "hold",
+          "hold_mode",
+          "mode"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4011,7 +3585,7 @@
           "mode"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4021,9 +3595,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4057,8 +3631,12 @@
         "function_model.transactions.FM_ADD.preconditions.precondition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4068,7 +3646,7 @@
           "WIDTH"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4078,9 +3656,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4117,8 +3695,15 @@
         "function_model.transactions.FM_ADD.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH",
+          "a_i",
+          "a_reg",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4131,7 +3716,7 @@
           "reg"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4141,9 +3726,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4180,8 +3765,15 @@
         "function_model.transactions.FM_ADD.inputs.input_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH",
+          "b_i",
+          "b_reg",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4194,7 +3786,7 @@
           "reg"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4204,9 +3796,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4241,8 +3833,13 @@
         "function_model.transactions.FM_ADD.inputs.input_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "cin",
+          "cin_i",
+          "cin_reg",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4253,7 +3850,7 @@
           "reg"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4263,9 +3860,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4310,8 +3907,17 @@
         "function_model.transactions.FM_ADD.outputs.sum_o"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "a_reg",
+          "b_reg",
+          "carry",
+          "carry_chain",
+          "chain",
+          "reg",
+          "sum",
+          "sum_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4326,7 +3932,7 @@
           "sum_o"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -4336,9 +3942,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4386,8 +3992,15 @@
         "function_model.transactions.FM_ADD.outputs.cout_o"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "cin",
+          "cin_reg",
+          "cout",
+          "cout_o",
+          "propagate",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4405,7 +4018,7 @@
           "reg"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -4415,9 +4028,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4460,8 +4073,12 @@
         "function_model.transactions.FM_ADD.outputs.sum_apb"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "SUM",
+          "reg",
+          "sum"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4474,7 +4091,7 @@
           "sum_reg"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -4484,9 +4101,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4529,8 +4146,12 @@
         "function_model.transactions.FM_ADD.outputs.cout_apb"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "COUT",
+          "cout",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4543,7 +4164,7 @@
           "reg"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -4553,9 +4174,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4596,9 +4217,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4632,8 +4253,12 @@
         "function_model.transactions.FM_ADD.side_effects.side_effect_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "clr",
+          "clr_done",
+          "done"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4643,7 +4268,7 @@
           "done"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4653,9 +4278,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4689,8 +4314,11 @@
         "function_model.transactions.FM_ADD.side_effects.side_effect_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "cout",
+          "reg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4700,7 +4328,7 @@
           "reg"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4710,9 +4338,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4747,8 +4375,12 @@
         "function_model.transactions.FM_ADD.error_cases.error_case_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4758,7 +4390,7 @@
           "WIDTH"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -4768,9 +4400,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4822,7 +4454,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4867,8 +4499,21 @@
         "function_model.invariants.invariant_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 12,
+        "matched_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH",
+          "a_reg",
+          "b_reg",
+          "cin",
+          "cin_reg",
+          "cout",
+          "cout_o",
+          "reg",
+          "sum",
+          "sum_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4887,7 +4532,7 @@
           "sum_o"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4897,9 +4542,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4933,8 +4578,12 @@
         "function_model.invariants.invariant_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "hold",
+          "hold_mode",
+          "mode"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4944,7 +4593,7 @@
           "mode"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4954,9 +4603,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4998,9 +4647,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5040,9 +4689,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5082,9 +4731,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5126,9 +4775,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5170,9 +4819,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5214,9 +4863,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5254,8 +4903,12 @@
         "cycle_model.pipeline.S_IDLE"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "hold",
+          "hold_mode",
+          "mode"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5265,7 +4918,7 @@
           "mode"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -5275,9 +4928,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5322,9 +4975,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5369,9 +5022,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5413,9 +5066,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5457,9 +5110,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5501,9 +5154,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5545,9 +5198,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5589,9 +5242,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5640,9 +5293,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5691,9 +5344,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5742,9 +5395,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5793,9 +5446,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5844,9 +5497,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5895,9 +5548,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5946,9 +5599,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5997,9 +5650,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6048,9 +5701,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6099,9 +5752,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6150,9 +5803,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6201,9 +5854,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6252,9 +5905,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6303,9 +5956,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6354,9 +6007,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6405,9 +6058,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6456,9 +6109,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6507,9 +6160,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6558,9 +6211,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6609,9 +6262,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6660,9 +6313,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6711,9 +6364,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6762,9 +6415,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6813,9 +6466,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6864,9 +6517,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6898,8 +6551,10 @@
         "fsm.adder_fsm.states.state_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
@@ -6907,7 +6562,7 @@
           "IDLE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -6951,8 +6606,10 @@
         "fsm.adder_fsm.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "COMPUTE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
@@ -6960,7 +6617,7 @@
           "COMPUTE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7004,8 +6661,10 @@
         "fsm.adder_fsm.states.state_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DONE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 1,
@@ -7013,7 +6672,7 @@
           "DONE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7067,8 +6726,17 @@
         "fsm.adder_fsm.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "COMPUTE",
+          "IDLE",
+          "hold",
+          "hold_mode",
+          "mode",
+          "shadow",
+          "shadow_valid",
+          "valid"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
@@ -7083,7 +6751,7 @@
           "valid"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -7132,8 +6800,12 @@
         "fsm.adder_fsm.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "COMPUTE",
+          "DONE",
+          "PCLK"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
@@ -7143,7 +6815,7 @@
           "PCLK"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -7191,8 +6863,11 @@
         "fsm.adder_fsm.transitions.transition_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "DONE",
+          "IDLE"
+        ],
         "owner_file_scoped": false,
         "required": true,
         "required_match_count": 2,
@@ -7201,7 +6876,7 @@
           "IDLE"
         ],
         "source_scope": "all_sources_without_owner",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -7252,8 +6927,16 @@
         "features.ks_addition"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH",
+          "cout",
+          "cout_o",
+          "sum",
+          "sum_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -7267,7 +6950,7 @@
           "sum_o"
         ],
         "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7277,9 +6960,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7321,9 +7004,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7364,9 +7047,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7407,9 +7090,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7450,9 +7133,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7493,9 +7176,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7537,9 +7220,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7581,9 +7264,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7629,9 +7312,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7678,9 +7361,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7726,9 +7409,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7775,9 +7458,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7818,9 +7501,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7868,9 +7551,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7911,9 +7594,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7954,9 +7637,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7997,9 +7680,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8041,9 +7724,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8084,9 +7767,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8127,9 +7810,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8170,9 +7853,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8216,9 +7899,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8262,9 +7945,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8308,9 +7991,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8354,9 +8037,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8400,9 +8083,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8446,23 +8129,17 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 141,
+    "open_required_tasks": 16,
     "open_tasks": [
-      {
-        "category": "rtl_flow.top",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list",
-        "task_id": "RTL-0002"
-      },
       {
         "category": "rtl_gate.rtl_gen",
         "reason": "6 required SSOT-derived RTL task(s) still have no owner module.",
@@ -8471,79 +8148,13 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "26 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "task_id": "RTL-0007"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "3 owner logic structure issue(s) remain. adder_kogge_stone_regs: Behavior-owner module is not declared in its owner file; adder_kogge_stone_core: Behavior-owner module is not declared in its owner file; adder_kogge_stone: Behavior-owner module is not declared in its owner file",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "task_id": "RTL-0008"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "task_id": "RTL-0009"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top IO contract issue(s) remain. adder_kogge_stone: SSOT top module is not declared in listed RTL sources",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "task_id": "RTL-0010"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top output drive issue(s) remain. adder_kogge_stone: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "task_id": "RTL-0011"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top input consumption issue(s) remain. adder_kogge_stone: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "task_id": "RTL-0012"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "3 manifest hierarchy integration issue(s) remain. adder_kogge_stone: SSOT top module is not declared in listed RTL sources; adder_kogge_stone_regs: SSOT manifest child module is not declared in listed RTL sources; adder_kogge_stone_core: SSOT manifest child module is not declared in listed RTL sources",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "task_id": "RTL-0013"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 manifest signal-flow issue(s) remain. adder_kogge_stone: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "task_id": "RTL-0015"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "4 SSOT connection contract issue(s) remain. adder_kogge_stone_core: SSOT connection contract targets a module not declared in RTL; adder_kogge_stone_core: SSOT connection contract targets a module not declared in RTL; adder_kogge_stone_regs: SSOT connection contract targets a module not declared in RTL",
-        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "task_id": "RTL-0016"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "task_id": "RTL-0017"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "task_id": "RTL-0018"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "140 required non-closure TODO(s) remain open.",
+        "reason": "15 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -8555,7 +8166,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "8 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL source-file count is below the SSOT-locked target scale: actual=0 required=3; Production RTL module count is below the SSOT-locked target scale: actual=0 required=3",
+        "reason": "1 production RTL implementation-depth issue(s) remain. Production RTL procedural block count is below the SSOT-locked target scale: actual=4 required=6",
         "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
         "task_id": "RTL-0022"
       },
@@ -8584,526 +8195,10 @@
         "task_id": "RTL-0026"
       },
       {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "workflow_todos.rtl-gen[0]",
-        "task_id": "RTL-0027"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "workflow_todos.rtl-gen[1]",
-        "task_id": "RTL-0028"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "workflow_todos.rtl-gen[2]",
-        "task_id": "RTL-0029"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "parameters.DATA_WIDTH",
-        "task_id": "RTL-0030"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "parameters.ADDR_WIDTH",
-        "task_id": "RTL-0031"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "parameters.APB_DATA_WIDTH",
-        "task_id": "RTL-0032"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "parameters.CLOCK_FREQ_MHZ",
-        "task_id": "RTL-0033"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "parameters.RESET_POLARITY",
-        "task_id": "RTL-0034"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.clock_domains.PCLK.ports.PCLK",
-        "task_id": "RTL-0035"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.resets.PRESETn.ports.PRESETn",
-        "task_id": "RTL-0036"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.paddr",
-        "task_id": "RTL-0037"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.psel",
-        "task_id": "RTL-0038"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.penable",
-        "task_id": "RTL-0039"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.pwrite",
-        "task_id": "RTL-0040"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.pwdata",
-        "task_id": "RTL-0041"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.prdata",
-        "task_id": "RTL-0042"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.pready",
-        "task_id": "RTL-0043"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.pslverr",
-        "task_id": "RTL-0044"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.adder_datapath.ports.a_i",
-        "task_id": "RTL-0045"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.adder_datapath.ports.b_i",
-        "task_id": "RTL-0046"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.adder_datapath.ports.cin_i",
-        "task_id": "RTL-0047"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.adder_datapath.ports.sum_o",
-        "task_id": "RTL-0048"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "io_list.interfaces.adder_datapath.ports.cout_o",
-        "task_id": "RTL-0049"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.state_variables.a_reg",
-        "task_id": "RTL-0050"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.state_variables.b_reg",
-        "task_id": "RTL-0051"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.state_variables.cin_reg",
-        "task_id": "RTL-0052"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.state_variables.sum_reg",
-        "task_id": "RTL-0053"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.state_variables.cout_reg",
-        "task_id": "RTL-0054"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.state_variables.busy",
-        "task_id": "RTL-0055"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.state_variables.done",
-        "task_id": "RTL-0056"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.state_variables.overflow",
-        "task_id": "RTL-0057"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD",
-        "task_id": "RTL-0058"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.preconditions.precondition_0",
-        "task_id": "RTL-0059"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.preconditions.precondition_1",
-        "task_id": "RTL-0060"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.inputs.input_0",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.inputs.input_1",
-        "task_id": "RTL-0062"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.inputs.input_2",
-        "task_id": "RTL-0063"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.outputs.sum_o",
-        "task_id": "RTL-0064"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.outputs.cout_o",
-        "task_id": "RTL-0065"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.outputs.sum_apb",
-        "task_id": "RTL-0066"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.outputs.cout_apb",
-        "task_id": "RTL-0067"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.side_effects.side_effect_0",
-        "task_id": "RTL-0068"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.side_effects.side_effect_1",
-        "task_id": "RTL-0069"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.side_effects.side_effect_2",
-        "task_id": "RTL-0070"
-      },
-      {
         "category": "function_model.error_case",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.transactions.FM_ADD.error_cases.error_case_0",
-        "task_id": "RTL-0071"
-      },
-      {
-        "category": "function_model.error_case",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_ADD.error_cases.error_case_1",
         "task_id": "RTL-0072"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.invariants.invariant_0",
-        "task_id": "RTL-0073"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "function_model.invariants.invariant_1",
-        "task_id": "RTL-0074"
-      },
-      {
-        "category": "cycle_model.clock",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.clock",
-        "task_id": "RTL-0075"
-      },
-      {
-        "category": "cycle_model.reset",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.reset",
-        "task_id": "RTL-0076"
-      },
-      {
-        "category": "cycle_model.latency",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.latency",
-        "task_id": "RTL-0077"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.handshake_rules.psel_penable",
-        "task_id": "RTL-0078"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.handshake_rules.pready",
-        "task_id": "RTL-0079"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.handshake_rules.pslverr",
-        "task_id": "RTL-0080"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.pipeline.S_IDLE",
-        "task_id": "RTL-0081"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.pipeline.S_COMPUTE",
-        "task_id": "RTL-0082"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.pipeline.S_CAPTURE",
-        "task_id": "RTL-0083"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_0",
-        "task_id": "RTL-0084"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_1",
-        "task_id": "RTL-0085"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_2",
-        "task_id": "RTL-0086"
-      },
-      {
-        "category": "cycle_model.backpressure",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.backpressure.backpressure_rule_0",
-        "task_id": "RTL-0087"
-      },
-      {
-        "category": "cycle_model.observability",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "cycle_model.observability.observability_signal_0",
-        "task_id": "RTL-0088"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.CONTROL",
-        "task_id": "RTL-0089"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.CONTROL.fields.start",
-        "task_id": "RTL-0090"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.CONTROL.fields.hold_mode",
-        "task_id": "RTL-0091"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.CONTROL.fields.clr_done",
-        "task_id": "RTL-0092"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.CONTROL.fields.reserved_31_3",
-        "task_id": "RTL-0093"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.STATUS",
-        "task_id": "RTL-0094"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.STATUS.fields.busy",
-        "task_id": "RTL-0095"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.STATUS.fields.done",
-        "task_id": "RTL-0096"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.STATUS.fields.overflow",
-        "task_id": "RTL-0097"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.STATUS.fields.reserved_31_3",
-        "task_id": "RTL-0098"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.A_DATA",
-        "task_id": "RTL-0099"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.A_DATA.fields.a_data",
-        "task_id": "RTL-0100"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.B_DATA",
-        "task_id": "RTL-0101"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.B_DATA.fields.b_data",
-        "task_id": "RTL-0102"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.CIN",
-        "task_id": "RTL-0103"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.CIN.fields.cin",
-        "task_id": "RTL-0104"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.CIN.fields.reserved_31_1",
-        "task_id": "RTL-0105"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.SUM_RESULT",
-        "task_id": "RTL-0106"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.SUM_RESULT.fields.sum_result",
-        "task_id": "RTL-0107"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.COUT_RESULT",
-        "task_id": "RTL-0108"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.COUT_RESULT.fields.cout_result",
-        "task_id": "RTL-0109"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.COUT_RESULT.fields.reserved_31_1",
-        "task_id": "RTL-0110"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.CONFIG",
-        "task_id": "RTL-0111"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.CONFIG.fields.data_width",
-        "task_id": "RTL-0112"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
-        "source_ref": "registers.register_list.CONFIG.fields.reserved_31_8",
-        "task_id": "RTL-0113"
       },
       {
         "category": "fsm.state",
@@ -9140,132 +8235,60 @@
         "reason": "Task has no RTL owner file.",
         "source_ref": "fsm.adder_fsm.transitions.transition_2",
         "task_id": "RTL-0119"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "features.ks_addition",
-        "task_id": "RTL-0120"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.",
-        "source_ref": "features.apb_lite_csr",
-        "task_id": "RTL-0121"
-      },
-      {
-        "category": "error_handling.recovery",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "error_handling.recovery.recovery_0",
-        "task_id": "RTL-0122"
-      },
-      {
-        "category": "security.assets",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "security.assets.register_map",
-        "task_id": "RTL-0123"
-      },
-      {
-        "category": "security.assets",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "security.assets.adder_result",
-        "task_id": "RTL-0124"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "integration.dependencies.external_modules",
-        "task_id": "RTL-0125"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "integration.dependencies.external_clocks",
-        "task_id": "RTL-0126"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "integration.dependencies.external_resets",
-        "task_id": "RTL-0127"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "integration.connections.PCLK",
-        "task_id": "RTL-0128"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "integration.connections.PRESETn",
-        "task_id": "RTL-0129"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "integration.connections.PCLK",
-        "task_id": "RTL-0130"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "integration.connections.PRESETn",
-        "task_id": "RTL-0131"
-      },
-      {
-        "category": "synthesis.constraints",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "synthesis.constraints.constraint_0",
-        "task_id": "RTL-0132"
-      },
-      {
-        "category": "synthesis.constraints",
-        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
-        "source_ref": "synthesis.constraints.constraint_1",
-        "task_id": "RTL-0133"
       }
     ],
-    "required_passed": 5,
+    "required_passed": 130,
     "required_total": 146,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
   "top": "adder_kogge_stone",
   "top_input_consumption_evidence": {
-    "checked": 0,
-    "consumed": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "module": "adder_kogge_stone"
-      }
+    "checked": 8,
+    "consumed": 8,
+    "issues": [],
+    "roots": [
+      "adder_kogge_stone"
     ],
-    "roots": [],
-    "status": "fail"
+    "status": "pass"
   },
   "top_io_contract_evidence": {
     "contracts": 15,
-    "issues": [
-      {
-        "file": "rtl/adder_kogge_stone.sv",
-        "issue": "SSOT top module is not declared in listed RTL sources",
-        "module": "adder_kogge_stone"
-      }
+    "declared_top_ports": [
+      "PCLK",
+      "PRESETn",
+      "a_i",
+      "b_i",
+      "cin_i",
+      "cout_o",
+      "paddr",
+      "penable",
+      "prdata",
+      "pready",
+      "psel",
+      "pslverr",
+      "pwdata",
+      "pwrite",
+      "sum_o"
     ],
-    "roots": [],
-    "status": "fail"
+    "issues": [],
+    "roots": [
+      "adder_kogge_stone"
+    ],
+    "status": "pass",
+    "top_parameters": {
+      "ADDR_WIDTH": 8,
+      "APB_DATA_WIDTH": 32,
+      "DATA_WIDTH": 32
+    }
   },
   "top_output_drive_evidence": {
-    "checked": 0,
-    "driven": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so output drive evidence cannot be checked",
-        "module": "adder_kogge_stone"
-      }
+    "checked": 5,
+    "driven": 5,
+    "issues": [],
+    "roots": [
+      "adder_kogge_stone"
     ],
-    "roots": [],
-    "status": "fail"
+    "status": "pass"
   },
   "type": "ssot_derived_rtl_todo_plan"
 }

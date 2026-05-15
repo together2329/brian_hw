@@ -42,52 +42,61 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 120,
+    "open_required_todos": 10,
     "orphan_tasks": 0,
-    "static_missing": 23,
+    "static_missing": 1,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T01:19:47Z",
+  "generated_at": "2026-05-15T02:10:23Z",
   "ip": "edge_detector",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 5,
     "connection_contract_issues": [],
     "connection_contract_status": "pass",
-    "declared_modules": [],
-    "graph": {},
-    "issues": [
-      {
-        "file": "rtl/edge_detector.sv",
-        "issue": "SSOT top module is not declared in listed RTL sources",
-        "module": "edge_detector"
-      }
+    "declared_modules": [
+      "edge_detector",
+      "edge_detector_regs"
     ],
+    "graph": {
+      "edge_detector": [
+        "edge_detector_regs"
+      ],
+      "edge_detector_regs": []
+    },
+    "issues": [],
     "port_connection_issues": [],
     "port_connection_status": "pass",
-    "reachable_modules": [],
-    "roots": [],
-    "sources": [],
-    "status": "fail"
+    "reachable_modules": [
+      "edge_detector",
+      "edge_detector_regs"
+    ],
+    "roots": [
+      "edge_detector"
+    ],
+    "sources": [
+      "rtl/edge_detector.sv",
+      "rtl/edge_detector_regs.sv"
+    ],
+    "status": "pass"
   },
   "manifest_signal_flow_evidence": {
     "checked_inputs": 0,
     "checked_outputs": 0,
     "issues": [],
-    "reachable_modules": [],
-    "roots": [],
+    "reachable_modules": [
+      "edge_detector",
+      "edge_detector_regs"
+    ],
+    "roots": [
+      "edge_detector"
+    ],
     "status": "pass"
   },
   "orphans": [],
   "owner_logic_evidence": {
     "checked": 1,
-    "issues": [
-      {
-        "file": "rtl/edge_detector.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "edge_detector"
-      }
-    ],
-    "status": "fail"
+    "issues": [],
+    "status": "pass"
   },
   "policy": {
     "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
@@ -115,67 +124,57 @@
   "reference_scale_gap": {},
   "rtl_implementation_depth_evidence": {
     "aggregate": {
-      "behavior_owner_logic_modules": 0,
-      "control_flow": 0,
-      "depth_score": 0,
-      "instances": 0,
-      "lines": 0,
-      "logic_modules": 0,
-      "modules": 0,
-      "nonconstant_assigns": 0,
-      "procedural_blocks": 0,
-      "source_files": 0,
-      "state_updates": 0,
-      "storage_decls": 0
+      "behavior_owner_logic_modules": 1,
+      "control_flow": 11,
+      "depth_score": 112,
+      "instances": 1,
+      "lines": 220,
+      "logic_modules": 2,
+      "modules": 2,
+      "nonconstant_assigns": 24,
+      "procedural_blocks": 7,
+      "source_files": 2,
+      "state_updates": 11,
+      "storage_decls": 32
     },
     "issues": [
       {
-        "issue": "No listed DUT RTL sources are available for production implementation-depth audit"
-      },
-      {
-        "actual": 0,
-        "issue": "Production RTL source-file count is below the SSOT-locked target scale",
-        "required": 2,
-        "source": "quality_gates.rtl_gen.target_scale"
-      },
-      {
-        "actual": 0,
-        "issue": "Production RTL module count is below the SSOT-locked target scale",
-        "required": 2,
-        "source": "quality_gates.rtl_gen.target_scale"
-      },
-      {
-        "actual": 0,
-        "issue": "Production RTL procedural block count is below the SSOT-locked target scale",
-        "required": 4,
-        "source": "quality_gates.rtl_gen.target_scale"
-      },
-      {
-        "actual": 0,
-        "issue": "Production RTL state-update count is below the SSOT-locked target scale",
-        "required": 4,
-        "source": "quality_gates.rtl_gen.target_scale"
-      },
-      {
-        "actual": 0,
-        "issue": "Production RTL implementation depth score is below the SSOT-derived or target-scale threshold",
-        "required": 32,
-        "source": "ssot_derived_threshold"
-      },
-      {
-        "actual": 0,
-        "issue": "Too few RTL modules contain implementation structure for the SSOT behavior complexity",
-        "required": 2,
-        "source": "quality_gates.rtl_gen.target_scale"
-      },
-      {
-        "actual": 0,
+        "actual": 1,
         "issue": "Too few SSOT behavior-owner modules contain implementation-depth evidence",
         "required": 2,
         "source": "quality_gates.rtl_gen.target_scale"
       }
     ],
-    "modules": [],
+    "modules": [
+      {
+        "depth_score": 67,
+        "file": "rtl/edge_detector_regs.sv",
+        "metrics": {
+          "control_flow": 9,
+          "instances": 0,
+          "nonconstant_assigns": 18,
+          "placeholder_tokens": false,
+          "procedural_blocks": 4,
+          "state_updates": 5,
+          "storage_decls": 18
+        },
+        "module": "edge_detector_regs"
+      },
+      {
+        "depth_score": 45,
+        "file": "rtl/edge_detector.sv",
+        "metrics": {
+          "control_flow": 2,
+          "instances": 1,
+          "nonconstant_assigns": 6,
+          "placeholder_tokens": false,
+          "procedural_blocks": 3,
+          "state_updates": 6,
+          "storage_decls": 14
+        },
+        "module": "edge_detector"
+      }
+    ],
     "profile": "production",
     "reference_comparison": null,
     "status": "fail",
@@ -204,13 +203,9 @@
     }
   },
   "rtl_placeholder_free_evidence": {
-    "checked": 0,
-    "issues": [
-      {
-        "issue": "No listed RTL source files were readable, so placeholder-free evidence cannot be checked"
-      }
-    ],
-    "status": "fail"
+    "checked": 2,
+    "issues": [],
+    "status": "pass"
   },
   "schema_version": 1,
   "source": "edge_detector/yaml/edge_detector.ssot.yaml",
@@ -460,249 +455,8 @@
   ],
   "static_rtl_evidence": {
     "checked": 23,
-    "missing": 23,
+    "missing": 1,
     "missing_tasks": [
-      {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "CORE",
-          "RTL_TODO_CORE",
-          "TODO",
-          "contract",
-          "detector",
-          "edge",
-          "edge_detector",
-          "rtl_contract"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[0]",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0027"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector_regs.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "REGS",
-          "RTL_TODO_REGS",
-          "TODO",
-          "apb",
-          "apb_csr",
-          "csr",
-          "detector",
-          "edge"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[1]",
-        "source_scope": "rtl/edge_detector_regs.sv",
-        "task_id": "RTL-0028"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "STAGES",
-          "SYNC",
-          "SYNC_STAGES",
-          "chain",
-          "sync",
-          "sync_chain"
-        ],
-        "source_ref": "function_model.transactions.DETECT.preconditions.precondition_1",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0055"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "signal",
-          "signal_i"
-        ],
-        "source_ref": "function_model.transactions.DETECT.inputs.input_0",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0056"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "EDGE",
-          "EDGE_MODE",
-          "MODE",
-          "edge",
-          "edge_o"
-        ],
-        "source_ref": "function_model.transactions.DETECT.outputs.output_0",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0057"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "edge",
-          "edge_o",
-          "status",
-          "status_sticky",
-          "sticky"
-        ],
-        "source_ref": "function_model.transactions.DETECT.outputs.output_1",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0058"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "edge",
-          "edge_o",
-          "overflow",
-          "status",
-          "status_overflow",
-          "status_sticky",
-          "sticky"
-        ],
-        "source_ref": "function_model.transactions.DETECT.outputs.output_2",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0059"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "edge",
-          "edge_o",
-          "enable",
-          "irq",
-          "irq_enable",
-          "irq_o"
-        ],
-        "source_ref": "function_model.transactions.DETECT.outputs.output_3",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0060"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "WIDTH",
-          "curr",
-          "curr_sync",
-          "edge",
-          "edge_o",
-          "mask",
-          "mode",
-          "mode_mask"
-        ],
-        "source_ref": "function_model.transactions.DETECT.output_rules.edge_o",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "edge",
-          "edge_o",
-          "enable",
-          "irq",
-          "irq_enable",
-          "irq_o"
-        ],
-        "source_ref": "function_model.transactions.DETECT.output_rules.irq_o",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0062"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "chain",
-          "sync",
-          "sync_chain"
-        ],
-        "source_ref": "function_model.transactions.DETECT.side_effects.side_effect_0",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0063"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "chain",
-          "prev",
-          "prev_sync",
-          "sync",
-          "sync_chain"
-        ],
-        "source_ref": "function_model.transactions.DETECT.side_effects.side_effect_1",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0064"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "edge",
-          "edge_o"
-        ],
-        "source_ref": "function_model.invariants.invariant_0",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0065"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "edge",
-          "edge_o"
-        ],
-        "source_ref": "function_model.invariants.invariant_1",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0066"
-      },
       {
         "category": "function_model.invariant",
         "matched_count": 0,
@@ -717,139 +471,13 @@
         "source_ref": "function_model.invariants.invariant_2",
         "source_scope": "rtl/edge_detector.sv",
         "task_id": "RTL-0067"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "chain",
-          "signal",
-          "signal_i",
-          "sync",
-          "sync_chain"
-        ],
-        "source_ref": "cycle_model.pipeline.S0_SYNC",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0074"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "EDGE",
-          "EDGE_MODE",
-          "MODE",
-          "curr",
-          "curr_sync",
-          "prev",
-          "prev_sync",
-          "sync"
-        ],
-        "source_ref": "cycle_model.pipeline.S1_EDGE_DECODE",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0075"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "edge",
-          "edge_o"
-        ],
-        "source_ref": "cycle_model.pipeline.S2_OUTPUT",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0076"
-      },
-      {
-        "category": "cycle_model.backpressure",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "edge",
-          "edge_o"
-        ],
-        "source_ref": "cycle_model.backpressure.backpressure_rule_0",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0079"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "EDGE_DECODE",
-          "PCLK",
-          "SYNC_SAMPLE"
-        ],
-        "source_ref": "fsm.fsm.transitions.transition_0",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0094"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "EDGE",
-          "EDGE_DECODE",
-          "EDGE_MODE",
-          "MODE",
-          "OUTPUT_PULSE",
-          "decode",
-          "edge",
-          "edge_decode"
-        ],
-        "source_ref": "fsm.fsm.transitions.transition_1",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0095"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "STAGES",
-          "SYNC",
-          "SYNC_STAGES"
-        ],
-        "source_ref": "features.Input_Synchronization",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0096"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "edge",
-          "edge_o"
-        ],
-        "source_ref": "features.Edge_Detection",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0097"
       }
     ],
-    "passed": 0,
-    "sources": []
+    "passed": 22,
+    "sources": [
+      "rtl/edge_detector.sv",
+      "rtl/edge_detector_regs.sv"
+    ]
   },
   "summary": {
     "blocking_questions": 0,
@@ -1032,9 +660,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1225,7 +853,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: type, todo_plan_sha256",
         "required": true,
         "status": "open"
       }
@@ -1273,7 +901,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "23 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
         "required": true,
         "status": "open"
       }
@@ -1320,9 +948,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 owner logic structure issue(s) remain. edge_detector: Behavior-owner module is not declared in its owner file",
+        "reason": "Behavior-owner RTL modules contain real implementation structure.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1370,9 +998,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1417,9 +1045,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top IO contract issue(s) remain. edge_detector: SSOT top module is not declared in listed RTL sources",
+        "reason": "SSOT top IO contracts match the RTL top declaration.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1464,9 +1092,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top output drive issue(s) remain. edge_detector: SSOT top module is not declared, so output drive evidence cannot be checked",
+        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1511,9 +1139,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top input consumption issue(s) remain. edge_detector: SSOT top module is not declared, so input consumption evidence cannot be checked",
+        "reason": "SSOT top inputs have RTL consumption evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1558,9 +1186,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 manifest hierarchy integration issue(s) remain. edge_detector: SSOT top module is not declared in listed RTL sources",
+        "reason": "Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1748,9 +1376,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1798,9 +1426,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1845,7 +1473,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "119 required non-closure TODO(s) remain open.",
+        "reason": "9 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1994,7 +1622,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "8 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL source-file count is below the SSOT-locked target scale: actual=0 required=2; Production RTL module count is below the SSOT-locked target scale: actual=0 required=2",
+        "reason": "1 production RTL implementation-depth issue(s) remain. Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=2",
         "required": true,
         "status": "open"
       }
@@ -2241,8 +1869,12 @@
         "workflow_todos.rtl-gen[0]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "detector",
+          "edge",
+          "edge_detector"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2257,7 +1889,7 @@
           "rtl_contract"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -2267,9 +1899,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_CORE",
@@ -2327,8 +1959,15 @@
         "workflow_todos.rtl-gen[1]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "REGS",
+          "apb",
+          "detector",
+          "edge",
+          "edge_detector_regs",
+          "regs"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2348,7 +1987,7 @@
           "regs"
         ],
         "source_scope": "rtl/edge_detector_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -2358,9 +1997,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector_regs.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_REGS",
@@ -2410,9 +2049,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2453,9 +2092,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2496,9 +2135,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2539,9 +2178,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2582,9 +2221,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2629,9 +2268,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2676,9 +2315,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2723,9 +2362,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2770,9 +2409,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2817,9 +2456,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2864,9 +2503,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2911,9 +2550,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2958,9 +2597,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3005,9 +2644,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3052,9 +2691,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3099,9 +2738,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3146,9 +2785,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3193,9 +2832,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3240,9 +2879,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3285,9 +2924,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3330,9 +2969,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3375,9 +3014,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3420,9 +3059,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3465,9 +3104,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3509,9 +3148,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3552,9 +3191,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3591,8 +3230,15 @@
         "function_model.transactions.DETECT.preconditions.precondition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "STAGES",
+          "SYNC",
+          "SYNC_STAGES",
+          "chain",
+          "sync",
+          "sync_chain"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3605,7 +3251,7 @@
           "sync_chain"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3615,9 +3261,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3650,8 +3296,11 @@
         "function_model.transactions.DETECT.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "signal",
+          "signal_i"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3660,7 +3309,7 @@
           "signal_i"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3670,9 +3319,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3708,8 +3357,14 @@
         "function_model.transactions.DETECT.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "EDGE",
+          "EDGE_MODE",
+          "MODE",
+          "edge",
+          "edge_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3721,7 +3376,7 @@
           "edge_o"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3731,9 +3386,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3769,8 +3424,11 @@
         "function_model.transactions.DETECT.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "edge",
+          "edge_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3782,7 +3440,7 @@
           "sticky"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3792,9 +3450,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3832,8 +3490,11 @@
         "function_model.transactions.DETECT.outputs.output_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "edge",
+          "edge_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3847,7 +3508,7 @@
           "sticky"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3857,9 +3518,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3896,8 +3557,15 @@
         "function_model.transactions.DETECT.outputs.output_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "edge",
+          "edge_o",
+          "enable",
+          "irq",
+          "irq_enable",
+          "irq_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3910,7 +3578,7 @@
           "irq_o"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3920,9 +3588,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3971,8 +3639,20 @@
         "function_model.transactions.DETECT.output_rules.edge_o"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 11,
+        "matched_terms": [
+          "WIDTH",
+          "curr",
+          "curr_sync",
+          "edge",
+          "edge_o",
+          "mask",
+          "mode",
+          "mode_mask",
+          "prev",
+          "prev_sync",
+          "sync"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3990,7 +3670,7 @@
           "sync"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -4000,9 +3680,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4046,8 +3726,15 @@
         "function_model.transactions.DETECT.output_rules.irq_o"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "edge",
+          "edge_o",
+          "enable",
+          "irq",
+          "irq_enable",
+          "irq_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4060,7 +3747,7 @@
           "irq_o"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -4070,9 +3757,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4106,8 +3793,12 @@
         "function_model.transactions.DETECT.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "chain",
+          "sync",
+          "sync_chain"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4117,7 +3808,7 @@
           "sync_chain"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4127,9 +3818,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4165,8 +3856,14 @@
         "function_model.transactions.DETECT.side_effects.side_effect_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "chain",
+          "prev",
+          "prev_sync",
+          "sync",
+          "sync_chain"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4178,7 +3875,7 @@
           "sync_chain"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4188,9 +3885,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4223,8 +3920,11 @@
         "function_model.invariants.invariant_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "edge",
+          "edge_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4233,7 +3933,7 @@
           "edge_o"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4243,9 +3943,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4278,8 +3978,11 @@
         "function_model.invariants.invariant_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "edge",
+          "edge_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4288,7 +3991,7 @@
           "edge_o"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4298,9 +4001,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4355,7 +4058,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4399,9 +4102,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4441,9 +4144,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4483,9 +4186,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4527,9 +4230,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4571,9 +4274,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4615,9 +4318,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4657,8 +4360,14 @@
         "cycle_model.pipeline.S0_SYNC"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "chain",
+          "signal",
+          "signal_i",
+          "sync",
+          "sync_chain"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4670,7 +4379,7 @@
           "sync_chain"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -4680,9 +4389,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4725,8 +4434,17 @@
         "cycle_model.pipeline.S1_EDGE_DECODE"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "EDGE",
+          "EDGE_MODE",
+          "MODE",
+          "curr",
+          "curr_sync",
+          "prev",
+          "prev_sync",
+          "sync"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4741,7 +4459,7 @@
           "sync"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -4751,9 +4469,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4790,8 +4508,11 @@
         "cycle_model.pipeline.S2_OUTPUT"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "edge",
+          "edge_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4800,7 +4521,7 @@
           "edge_o"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -4810,9 +4531,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4854,9 +4575,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4898,9 +4619,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4934,8 +4655,11 @@
         "cycle_model.backpressure.backpressure_rule_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "edge",
+          "edge_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4944,7 +4668,7 @@
           "edge_o"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -4954,9 +4678,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4998,9 +4722,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5049,9 +4773,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5100,9 +4824,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5151,9 +4875,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5202,9 +4926,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5253,9 +4977,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5304,9 +5028,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5355,9 +5079,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5406,9 +5130,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5457,9 +5181,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5508,9 +5232,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5559,9 +5283,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5610,9 +5334,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5655,9 +5379,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5696,8 +5420,11 @@
         "fsm.fsm.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "EDGE_DECODE",
+          "PCLK"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5707,7 +5434,7 @@
           "SYNC_SAMPLE"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -5717,9 +5444,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5763,8 +5490,16 @@
         "fsm.fsm.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "EDGE",
+          "EDGE_DECODE",
+          "EDGE_MODE",
+          "MODE",
+          "decode",
+          "edge",
+          "edge_decode"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5779,7 +5514,7 @@
           "edge_decode"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -5789,9 +5524,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5826,8 +5561,12 @@
         "features.Input_Synchronization"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "STAGES",
+          "SYNC",
+          "SYNC_STAGES"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -5837,7 +5576,7 @@
           "SYNC_STAGES"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5847,9 +5586,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5883,8 +5622,11 @@
         "features.Edge_Detection"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "edge",
+          "edge_o"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -5893,7 +5635,7 @@
           "edge_o"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5903,9 +5645,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5947,9 +5689,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5990,9 +5732,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6033,9 +5775,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6076,9 +5818,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6120,9 +5862,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6164,9 +5906,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6209,9 +5951,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6254,9 +5996,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6302,9 +6044,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6350,9 +6092,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6398,9 +6140,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6442,9 +6184,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6486,9 +6228,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6530,9 +6272,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6574,9 +6316,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6617,9 +6359,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6660,9 +6402,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6704,9 +6446,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6747,9 +6489,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6793,9 +6535,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6839,9 +6581,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6885,9 +6627,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6931,9 +6673,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6977,9 +6719,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7023,9 +6765,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7069,9 +6811,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7115,9 +6857,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7161,9 +6903,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7207,9 +6949,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7253,9 +6995,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7299,86 +7041,32 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 120,
+    "open_required_tasks": 10,
     "open_tasks": [
       {
-        "category": "rtl_flow.top",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list",
-        "task_id": "RTL-0002"
-      },
-      {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: type, todo_plan_sha256",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "task_id": "RTL-0006"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "23 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "task_id": "RTL-0007"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "1 owner logic structure issue(s) remain. edge_detector: Behavior-owner module is not declared in its owner file",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "task_id": "RTL-0008"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "task_id": "RTL-0009"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top IO contract issue(s) remain. edge_detector: SSOT top module is not declared in listed RTL sources",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "task_id": "RTL-0010"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top output drive issue(s) remain. edge_detector: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "task_id": "RTL-0011"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top input consumption issue(s) remain. edge_detector: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "task_id": "RTL-0012"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 manifest hierarchy integration issue(s) remain. edge_detector: SSOT top module is not declared in listed RTL sources",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "task_id": "RTL-0013"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "task_id": "RTL-0017"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "task_id": "RTL-0018"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "119 required non-closure TODO(s) remain open.",
+        "reason": "9 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -7390,7 +7078,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "8 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL source-file count is below the SSOT-locked target scale: actual=0 required=2; Production RTL module count is below the SSOT-locked target scale: actual=0 required=2",
+        "reason": "1 production RTL implementation-depth issue(s) remain. Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=2",
         "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
         "task_id": "RTL-0022"
       },
@@ -7419,658 +7107,64 @@
         "task_id": "RTL-0026"
       },
       {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "workflow_todos.rtl-gen[0]",
-        "task_id": "RTL-0027"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/edge_detector_regs.sv.",
-        "source_ref": "workflow_todos.rtl-gen[1]",
-        "task_id": "RTL-0028"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "parameters.SYNC_STAGES",
-        "task_id": "RTL-0029"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "parameters.EDGE_MODE",
-        "task_id": "RTL-0030"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "parameters.WIDTH",
-        "task_id": "RTL-0031"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "parameters.CLOCK_FREQ_MHZ",
-        "task_id": "RTL-0032"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "parameters.RESET_POLARITY",
-        "task_id": "RTL-0033"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.clock_domains.PCLK.ports.PCLK",
-        "task_id": "RTL-0034"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.resets.PRESETn.ports.PRESETn",
-        "task_id": "RTL-0035"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.signal_in.ports.signal_i",
-        "task_id": "RTL-0036"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.edge_out.ports.edge_o",
-        "task_id": "RTL-0037"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.interrupt.ports.irq_o",
-        "task_id": "RTL-0038"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.PADDR",
-        "task_id": "RTL-0039"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.PSEL",
-        "task_id": "RTL-0040"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.PENABLE",
-        "task_id": "RTL-0041"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.PWRITE",
-        "task_id": "RTL-0042"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.PWDATA",
-        "task_id": "RTL-0043"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.PSTRB",
-        "task_id": "RTL-0044"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.PRDATA",
-        "task_id": "RTL-0045"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.PREADY",
-        "task_id": "RTL-0046"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "io_list.interfaces.apb_csr.ports.PSLVERR",
-        "task_id": "RTL-0047"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.state_variables.sync_chain",
-        "task_id": "RTL-0048"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.state_variables.prev_sync",
-        "task_id": "RTL-0049"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.state_variables.control_reg",
-        "task_id": "RTL-0050"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.state_variables.status_sticky",
-        "task_id": "RTL-0051"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.state_variables.status_overflow",
-        "task_id": "RTL-0052"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT",
-        "task_id": "RTL-0053"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT.preconditions.precondition_0",
-        "task_id": "RTL-0054"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT.preconditions.precondition_1",
-        "task_id": "RTL-0055"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT.inputs.input_0",
-        "task_id": "RTL-0056"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT.outputs.output_0",
-        "task_id": "RTL-0057"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT.outputs.output_1",
-        "task_id": "RTL-0058"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT.outputs.output_2",
-        "task_id": "RTL-0059"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT.outputs.output_3",
-        "task_id": "RTL-0060"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT.output_rules.edge_o",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT.output_rules.irq_o",
-        "task_id": "RTL-0062"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT.side_effects.side_effect_0",
-        "task_id": "RTL-0063"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.transactions.DETECT.side_effects.side_effect_1",
-        "task_id": "RTL-0064"
-      },
-      {
         "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.invariants.invariant_0",
-        "task_id": "RTL-0065"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "function_model.invariants.invariant_1",
-        "task_id": "RTL-0066"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.invariants.invariant_2",
         "task_id": "RTL-0067"
-      },
-      {
-        "category": "cycle_model.clock",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.clock",
-        "task_id": "RTL-0068"
-      },
-      {
-        "category": "cycle_model.reset",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.reset",
-        "task_id": "RTL-0069"
-      },
-      {
-        "category": "cycle_model.latency",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.latency",
-        "task_id": "RTL-0070"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.handshake_rules.PSEL",
-        "task_id": "RTL-0071"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.handshake_rules.PENABLE",
-        "task_id": "RTL-0072"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.handshake_rules.PREADY",
-        "task_id": "RTL-0073"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.pipeline.S0_SYNC",
-        "task_id": "RTL-0074"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.pipeline.S1_EDGE_DECODE",
-        "task_id": "RTL-0075"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.pipeline.S2_OUTPUT",
-        "task_id": "RTL-0076"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_0",
-        "task_id": "RTL-0077"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_1",
-        "task_id": "RTL-0078"
-      },
-      {
-        "category": "cycle_model.backpressure",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.backpressure.backpressure_rule_0",
-        "task_id": "RTL-0079"
-      },
-      {
-        "category": "cycle_model.observability",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "cycle_model.observability.observability_signal_0",
-        "task_id": "RTL-0080"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.CONTROL",
-        "task_id": "RTL-0081"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.CONTROL.fields.edge_mode",
-        "task_id": "RTL-0082"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.CONTROL.fields.enable",
-        "task_id": "RTL-0083"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.CONTROL.fields.irq_enable",
-        "task_id": "RTL-0084"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.CONTROL.fields.reserved_31_4",
-        "task_id": "RTL-0085"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.STATUS",
-        "task_id": "RTL-0086"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.STATUS.fields.edge_sticky",
-        "task_id": "RTL-0087"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.STATUS.fields.overflow",
-        "task_id": "RTL-0088"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.STATUS.fields.reserved_31_9",
-        "task_id": "RTL-0089"
-      },
-      {
-        "category": "registers.register",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.RAW_STATUS",
-        "task_id": "RTL-0090"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.RAW_STATUS.fields.edge_raw",
-        "task_id": "RTL-0091"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "registers.register_list.RAW_STATUS.fields.reserved_31_8",
-        "task_id": "RTL-0092"
-      },
-      {
-        "category": "interrupts.sources",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "interrupts.sources.EDGE_DETECTED",
-        "task_id": "RTL-0093"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "fsm.fsm.transitions.transition_0",
-        "task_id": "RTL-0094"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "fsm.fsm.transitions.transition_1",
-        "task_id": "RTL-0095"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "features.Input_Synchronization",
-        "task_id": "RTL-0096"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "features.Edge_Detection",
-        "task_id": "RTL-0097"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "features.APB_lite_CSR",
-        "task_id": "RTL-0098"
-      },
-      {
-        "category": "error_handling.recovery",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "error_handling.recovery.recovery_0",
-        "task_id": "RTL-0099"
-      },
-      {
-        "category": "security.assets",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "security.assets.register_map",
-        "task_id": "RTL-0100"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "integration.dependencies.external_modules",
-        "task_id": "RTL-0101"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "integration.dependencies.external_clocks",
-        "task_id": "RTL-0102"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "integration.dependencies.external_resets",
-        "task_id": "RTL-0103"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "integration.connections.PCLK",
-        "task_id": "RTL-0104"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "integration.connections.PRESETn",
-        "task_id": "RTL-0105"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "integration.connections.signal_i",
-        "task_id": "RTL-0106"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "integration.connections.edge_o",
-        "task_id": "RTL-0107"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "integration.connections.irq_o",
-        "task_id": "RTL-0108"
-      },
-      {
-        "category": "synthesis.constraints",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "synthesis.constraints.sdc_source",
-        "task_id": "RTL-0109"
-      },
-      {
-        "category": "synthesis.constraints",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "synthesis.constraints.clock_groups",
-        "task_id": "RTL-0110"
-      },
-      {
-        "category": "synthesis.constraints",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "synthesis.constraints.io_constraints",
-        "task_id": "RTL-0111"
-      },
-      {
-        "category": "synthesis.constraints",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "synthesis.constraints.timing_targets",
-        "task_id": "RTL-0112"
-      },
-      {
-        "category": "synthesis.ppa_targets",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "synthesis.ppa_targets.area_um2",
-        "task_id": "RTL-0113"
-      },
-      {
-        "category": "synthesis.ppa_targets",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "synthesis.ppa_targets.power_mw",
-        "task_id": "RTL-0114"
-      },
-      {
-        "category": "synthesis.ppa_targets",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "synthesis.ppa_targets.timing_wns_ns",
-        "task_id": "RTL-0115"
-      },
-      {
-        "category": "equivalence.module",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "sub_modules.edge_detector.module_equivalence",
-        "task_id": "RTL-0116"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC1",
-        "task_id": "RTL-0117"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC2",
-        "task_id": "RTL-0118"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC3",
-        "task_id": "RTL-0119"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC4",
-        "task_id": "RTL-0120"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC5",
-        "task_id": "RTL-0121"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC6",
-        "task_id": "RTL-0122"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC7",
-        "task_id": "RTL-0123"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC8",
-        "task_id": "RTL-0124"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC9",
-        "task_id": "RTL-0125"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC10",
-        "task_id": "RTL-0126"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC11",
-        "task_id": "RTL-0127"
-      },
-      {
-        "category": "test_requirements.scenario",
-        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
-        "source_ref": "test_requirements.scenarios.SC12",
-        "task_id": "RTL-0128"
       }
     ],
-    "required_passed": 8,
+    "required_passed": 118,
     "required_total": 128,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
   "top": "edge_detector",
   "top_input_consumption_evidence": {
-    "checked": 0,
-    "consumed": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "module": "edge_detector"
-      }
+    "checked": 7,
+    "consumed": 7,
+    "issues": [],
+    "roots": [
+      "edge_detector"
     ],
-    "roots": [],
-    "status": "fail"
+    "status": "pass"
   },
   "top_io_contract_evidence": {
     "contracts": 14,
-    "issues": [
-      {
-        "file": "rtl/edge_detector.sv",
-        "issue": "SSOT top module is not declared in listed RTL sources",
-        "module": "edge_detector"
-      }
+    "declared_top_ports": [
+      "PADDR",
+      "PCLK",
+      "PENABLE",
+      "PRDATA",
+      "PREADY",
+      "PRESETn",
+      "PSEL",
+      "PSLVERR",
+      "PSTRB",
+      "PWDATA",
+      "PWRITE",
+      "edge_o",
+      "irq_o",
+      "signal_i"
     ],
-    "roots": [],
-    "status": "fail"
+    "issues": [],
+    "roots": [
+      "edge_detector"
+    ],
+    "status": "pass",
+    "top_parameters": {
+      "CLOCK_FREQ_MHZ": 50,
+      "EDGE_MODE": 2,
+      "SYNC_STAGES": 2,
+      "WIDTH": 1
+    }
   },
   "top_output_drive_evidence": {
-    "checked": 0,
-    "driven": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so output drive evidence cannot be checked",
-        "module": "edge_detector"
-      }
+    "checked": 5,
+    "driven": 5,
+    "issues": [],
+    "roots": [
+      "edge_detector"
     ],
-    "roots": [],
-    "status": "fail"
+    "status": "pass"
   },
   "type": "ssot_derived_rtl_todo_plan"
 }

@@ -30,7 +30,7 @@ module priority_enc_regs #(
     logic [31:0]  mask_read_data;
     logic [31:0]  status_read_data;
     logic [N-1:0] pwdata_mask_field;
-    logic [31:0]  pwdata_consumed;
+    logic         pwdata_enable_field;
 
     assign apb_access = PSEL & PENABLE;
     assign apb_write  = apb_access & PWRITE;
@@ -50,7 +50,7 @@ module priority_enc_regs #(
     assign mask_read_data   = {{(32-N){1'b0}}, mask_reg};
     assign status_read_data = {{(31-INDEX_WIDTH){1'b0}}, status_valid_i, status_index_i};
     assign pwdata_mask_field = PWDATA[N-1:0];
-    assign pwdata_consumed = PWDATA;
+    assign pwdata_enable_field = PWDATA[0];
 
     always @(*) begin
         read_data_next = 32'h00000000;

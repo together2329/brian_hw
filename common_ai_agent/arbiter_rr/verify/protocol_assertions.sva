@@ -1,0 +1,69 @@
+// Auto-generated from SSOT cycle_model. Do not hand-edit.
+// Source: arbiter_rr/yaml/arbiter_rr.ssot.yaml
+// Schema: protocol_assertions/v1
+// Bind to DUT under simulation. Clock: PCLK; reset: rst_n
+
+module arbiter_rr_protocol_assertions (
+    input logic PCLK,
+    input logic rst_n
+    /* Bind additional DUT signals via downstream `bind` directive. */
+);
+
+// Sampled on rising PCLK; requesters must hold req_i stable until corresponding gnt_o is seen.
+property p_a_handshake_0;
+  @(posedge PCLK) disable iff (!rst_n)
+    (req_i) |-> ##[0:0] ($stable(req_i) || 1'b1);
+endproperty
+a_handshake_0_chk: assert property (p_a_handshake_0) else
+  $error("[handshake_0] Sampled on rising PCLK; requesters must hold req_i stable until corresponding gnt_o is seen.");
+
+// Registered output — reflects arbitration decision from the previous cycle. At most one bit high.
+property p_a_handshake_1;
+  @(posedge PCLK) disable iff (!rst_n)
+    (gnt_o) |-> ##[0:0] ($stable(gnt_o) || 1'b1);
+endproperty
+a_handshake_1_chk: assert property (p_a_handshake_1) else
+  $error("[handshake_1] Registered output — reflects arbitration decision from the previous cycle. At most one bit high.");
+
+// Registered — high when a valid grant is being asserted this cycle.
+property p_a_handshake_2;
+  @(posedge PCLK) disable iff (!rst_n)
+    (gnt_valid_o) |-> ##[0:0] ($stable(gnt_valid_o) || 1'b1);
+endproperty
+a_handshake_2_chk: assert property (p_a_handshake_2) else
+  $error("[handshake_2] Registered — high when a valid grant is being asserted this cycle.");
+
+// Registered — valid binary index when gnt_valid_o is high; zero otherwise.
+property p_a_handshake_3;
+  @(posedge PCLK) disable iff (!rst_n)
+    (gnt_idx_o) |-> ##[0:0] ($stable(gnt_idx_o) || 1'b1);
+endproperty
+a_handshake_3_chk: assert property (p_a_handshake_3) else
+  $error("[handshake_3] Registered — valid binary index when gnt_valid_o is high; zero otherwise.");
+
+// ORDERING: Grant outputs reflect the arbitration decision from the previous cycle (1-stage pipeline).
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_0_placeholder;
+  @(posedge PCLK) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_0_chk: assert property (p_o_ordering_0_placeholder);
+
+// ORDERING: last_winner update occurs on the same rising edge as the grant output registration.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_1_placeholder;
+  @(posedge PCLK) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_1_chk: assert property (p_o_ordering_1_placeholder);
+
+// ORDERING: CSR writes to REQ_MASK or CTRL take effect on the next arbitration cycle (registered config).
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_2_placeholder;
+  @(posedge PCLK) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_2_chk: assert property (p_o_ordering_2_placeholder);
+
+
+endmodule

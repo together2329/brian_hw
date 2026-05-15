@@ -3,8 +3,7 @@ module pulse_gen #(
     parameter integer PULSE_WIDTH_CYCLES = 1,  // Reset/default pulse duration in PCLK cycles.
     parameter integer PULSE_POLARITY = 0,      // 0=active_high, 1=active_low reset polarity default.
     parameter integer PULSE_OUT_WIDTH = 1,     // Number of simultaneous pulse output bits.
-    parameter integer APB_ADDR_WIDTH = 8,      // APB address width in bits.
-    parameter integer CLOCK_FREQ_MHZ = 50      // Target PCLK frequency for integration metadata.
+    parameter integer APB_ADDR_WIDTH = 8       // APB address width in bits.
 ) (
     input  logic                    PCLK,
     input  logic                    PRESETn,
@@ -80,6 +79,7 @@ module pulse_gen #(
         .PULSE_POLARITY(PULSE_POLARITY),
         .PULSE_OUT_WIDTH(PULSE_OUT_WIDTH)
     ) u_core (
+        .clk_i(PCLK),
         .rst_ni(rst_ni),
         .trigger_i(trigger_i),
         .ctrl_fire_i(ctrl_fire),

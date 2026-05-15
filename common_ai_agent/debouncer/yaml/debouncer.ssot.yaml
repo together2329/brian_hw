@@ -620,6 +620,9 @@ quality_gates:
   coverage:
     pass: "Function and cycle coverage goals reach 100%; code coverage meets thresholds or has approved waivers."
     evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  dv:
+    pass: "All SSOT-declared test scenarios, scoreboard checks, assertions, and function/cycle coverage bins execute and pass."
+    evidence: ["sim/test_results.xml", "sim/fl_rtl_compare.json", "cov/coverage.json", "sim/assertion_failures.jsonl"]
   eda:
     pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved SSOT waivers."
     evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]

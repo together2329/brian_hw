@@ -119,7 +119,9 @@ module spi #(
         .sample_edge(sample_edge), .shift_edge(shift_edge)
     );
 
-    spi_shift u_shift (
+    spi_shift #(
+        .DATA_WIDTH(DATA_WIDTH), .NUM_CS(NUM_CS), .CPOL_RESET(CPOL_RESET), .CPHA_RESET(CPHA_RESET), .LSB_FIRST_RESET(LSB_FIRST_RESET)
+    ) u_shift (
         .PCLK(PCLK), .PRESETn(PRESETn), .soft_reset(soft_reset), .start_req(start_req), .enable(enable),
         .cpol(cpol), .cpha(cpha), .lsb_first(lsb_first), .continuous_cs(continuous_cs), .loopback(loopback),
         .cs_sel(cs_sel), .data_width_m1(data_width_m1), .cs_idle_val(cs_idle_val), .tx_word(tx_word),

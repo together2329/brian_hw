@@ -435,7 +435,25 @@ dft:
     observable_outputs: ["parallel_out", "serial_out"]
   mbist_required: false
   notes: "No memory macro; scan insertion is optional SoC-level policy, not required by this leaf SSOT."
-synthesis: TBD
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "shift_reg"
+  technology:
+    pdk: "generic"
+    standard_cell_library: "generic_cmos"
+  constraints:
+    - "No inferred latches."
+    - "All architectural flops reset according to clock_reset_domains.reset_scheme."
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL."
+    - "Parameter WIDTH must be positive."
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 100
+  required_outputs:
+    - "syn/out/shift_reg.json or syn/out/shift_reg.v"
+    - "syn/out/area.rpt"
+    - "syn/out/timing_summary.rpt"
 pnr: TBD
 coding_rules: TBD
 reuse_modules: TBD

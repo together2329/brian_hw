@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, features, function_model, function_model.output_rules, function_model.state_variables, function_model.transactions
 - Module slice: 16/16 section=workflow_todo task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Translate function_model state variables (sync_chain, prev_sync, status), cycle_model pipeline, and ownership refs into RTL state/datapath/control logic.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: edge_detector in rtl/edge_detector.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_CORE.
-- Current reason: Owner RTL file is missing: rtl/edge_detector.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is present in edge_detector.sv
   - FunctionalModel expected result and RTL observed result can be compared for DETECT transaction

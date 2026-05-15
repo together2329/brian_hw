@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 45
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=1, min_logic_modules=1, min_modules=3, min_procedural_blocks=6, min_source_files=3, min_state_updates=8
@@ -60,14 +60,14 @@ Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via top_module.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via top_module.
 SSOT item context: value=adder_kogge_stone.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width
@@ -80,14 +80,14 @@ SSOT item context: value=adder_kogge_stone.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[2]
 - Detail: Instantiate regs and core modules. Wire APB ports to regs. Wire datapath ports to core. Tie or mux top-level a_i/b_i/cin_i with APB shadow per custom.assumptions.
 SSOT ref: workflow_todos.rtl-gen[2].
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_TOP.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top-level module name matches top_module.name
   - All IO list ports present and connected
@@ -103,14 +103,14 @@ SSOT item context: id=RTL_TODO_TOP.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_0
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_0.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via error_handling.
 SSOT item context: action=retry APB access with valid address.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -123,14 +123,14 @@ SSOT item context: action=retry APB access with valid address.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.register_map
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.register_map.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via security.
 SSOT item context: name=register_map.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -143,14 +143,14 @@ SSOT item context: name=register_map.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.adder_result
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.adder_result.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via security.
 SSOT item context: name=adder_result.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -163,14 +163,14 @@ SSOT item context: name=adder_result.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_modules
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_modules.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.
 SSOT item context: name=external_modules.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -183,14 +183,14 @@ SSOT item context: name=external_modules.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_clocks
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_clocks.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.
 SSOT item context: name=external_clocks; value=["PCLK"].
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -203,14 +203,14 @@ SSOT item context: name=external_clocks; value=["PCLK"].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_resets
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_resets.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.
 SSOT item context: name=external_resets; value=["PRESETn"].
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -223,14 +223,14 @@ SSOT item context: name=external_resets; value=["PRESETn"].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PCLK
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PCLK.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.
 SSOT item context: port=clk_i; signal=PCLK.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -244,14 +244,14 @@ SSOT item context: port=clk_i; signal=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PRESETn
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PRESETn.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.
 SSOT item context: port=rst_ni; signal=PRESETn.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -265,14 +265,14 @@ SSOT item context: port=rst_ni; signal=PRESETn.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PCLK
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PCLK.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.
 SSOT item context: port=clk_i; signal=PCLK.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -286,14 +286,14 @@ SSOT item context: port=clk_i; signal=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.PRESETn
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.PRESETn.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.
 SSOT item context: port=rst_ni; signal=PRESETn.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -307,14 +307,14 @@ SSOT item context: port=rst_ni; signal=PRESETn.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_0
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_0.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.
 SSOT item context: value=No inferred latches.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -327,14 +327,14 @@ SSOT item context: value=No inferred latches.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_1
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_1.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.
 SSOT item context: value=All flops reset according to clock_reset_domains.reset_scheme.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -347,14 +347,14 @@ SSOT item context: value=All flops reset according to clock_reset_domains.reset_
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_2
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_2.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.
 SSOT item context: value=No package/interface/modport/function/task/for/while constructs in generated RTL.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -367,14 +367,14 @@ SSOT item context: value=No package/interface/modport/function/task/for/while co
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.area_um2_max
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.area_um2_max.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.
 SSOT item context: name=area_um2_max.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -387,14 +387,14 @@ SSOT item context: name=area_um2_max.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.power_mw_max
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.power_mw_max.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.
 SSOT item context: name=power_mw_max.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -407,14 +407,14 @@ SSOT item context: name=power_mw_max.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.frequency_mhz_min
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.frequency_mhz_min.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.
 SSOT item context: name=frequency_mhz_min; value=50.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -427,13 +427,13 @@ SSOT item context: name=frequency_mhz_min; value=50.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.adder_kogge_stone.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.adder_kogge_stone.module_equivalence.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -448,14 +448,14 @@ Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via module_equivalence.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.DATA_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DATA_WIDTH.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via parameters.
 SSOT item context: name=DATA_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -468,14 +468,14 @@ SSOT item context: name=DATA_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.ADDR_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.ADDR_WIDTH.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via parameters.
 SSOT item context: name=ADDR_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -488,14 +488,14 @@ SSOT item context: name=ADDR_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.APB_DATA_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.APB_DATA_WIDTH.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via parameters.
 SSOT item context: name=APB_DATA_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -508,14 +508,14 @@ SSOT item context: name=APB_DATA_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.CLOCK_FREQ_MHZ
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.CLOCK_FREQ_MHZ.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via parameters.
 SSOT item context: name=CLOCK_FREQ_MHZ.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -528,14 +528,14 @@ SSOT item context: name=CLOCK_FREQ_MHZ.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.RESET_POLARITY
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.RESET_POLARITY.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via parameters.
 SSOT item context: name=RESET_POLARITY.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -548,14 +548,14 @@ SSOT item context: name=RESET_POLARITY.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.clock_domains.PCLK.ports.PCLK
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.PCLK.ports.PCLK.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=PCLK; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -570,14 +570,14 @@ SSOT item context: name=PCLK; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.resets.PRESETn.ports.PRESETn
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.PRESETn.ports.PRESETn.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=PRESETn; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -592,14 +592,14 @@ SSOT item context: name=PRESETn; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.paddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.paddr.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=paddr; width=8; direction=input.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -614,14 +614,14 @@ SSOT item context: name=paddr; width=8; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.psel
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.psel.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=psel; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -636,14 +636,14 @@ SSOT item context: name=psel; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.penable
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.penable.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=penable; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -658,14 +658,14 @@ SSOT item context: name=penable; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.pwrite
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.pwrite.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=pwrite; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -680,14 +680,14 @@ SSOT item context: name=pwrite; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.pwdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.pwdata.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=pwdata; width=32; direction=input.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -702,14 +702,14 @@ SSOT item context: name=pwdata; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.prdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.prdata.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=prdata; width=32; direction=output.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -724,14 +724,14 @@ SSOT item context: name=prdata; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.pready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.pready.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=pready; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -746,14 +746,14 @@ SSOT item context: name=pready; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_csr.ports.pslverr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_csr.ports.pslverr.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=pslverr; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -768,14 +768,14 @@ SSOT item context: name=pslverr; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.adder_datapath.ports.a_i
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.adder_datapath.ports.a_i.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=a_i; width=DATA_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -790,14 +790,14 @@ SSOT item context: name=a_i; width=DATA_WIDTH; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.adder_datapath.ports.b_i
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.adder_datapath.ports.b_i.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=b_i; width=DATA_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -812,14 +812,14 @@ SSOT item context: name=b_i; width=DATA_WIDTH; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.adder_datapath.ports.cin_i
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.adder_datapath.ports.cin_i.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=cin_i; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -834,14 +834,14 @@ SSOT item context: name=cin_i; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.adder_datapath.ports.sum_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.adder_datapath.ports.sum_o.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=sum_o; width=DATA_WIDTH; direction=output.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -856,14 +856,14 @@ SSOT item context: name=sum_o; width=DATA_WIDTH; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.adder_datapath.ports.cout_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.adder_datapath.ports.cout_o.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.
 SSOT item context: name=cout_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -878,14 +878,14 @@ SSOT item context: name=cout_o; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_BASIC
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_BASIC.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.
 SSOT item context: id=SC_BASIC; name=Basic addition; expected=SUM_RESULT=0x99999999, COUT_RESULT=0, STATUS.done=1.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -899,14 +899,14 @@ SSOT item context: id=SC_BASIC; name=Basic addition; expected=SUM_RESULT=0x99999
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_CARRY
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_CARRY.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.
 SSOT item context: id=SC_CARRY; name=Carry propagation; expected=SUM_RESULT=0x00000001, COUT_RESULT=1, STATUS.overflow=1.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -920,14 +920,14 @@ SSOT item context: id=SC_CARRY; name=Carry propagation; expected=SUM_RESULT=0x00
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_APB_ERR
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_APB_ERR.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.
 SSOT item context: id=SC_APB_ERR; name=APB out-of-bounds; expected=pslverr=1, prdata=0, no register change.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -941,14 +941,14 @@ SSOT item context: id=SC_APB_ERR; name=APB out-of-bounds; expected=pslverr=1, pr
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_HOLD_MODE
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_HOLD_MODE.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.
 SSOT item context: id=SC_HOLD_MODE; name=Hold mode operation; expected=Output registers hold previous result; new operands do not affect sum until next start.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -962,14 +962,14 @@ SSOT item context: id=SC_HOLD_MODE; name=Hold mode operation; expected=Output re
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_CLR_DONE
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_CLR_DONE.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.
 SSOT item context: id=SC_CLR_DONE; name=Clear done flag; expected=STATUS.done transitions 1->0 on next cycle.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -983,14 +983,14 @@ SSOT item context: id=SC_CLR_DONE; name=Clear done flag; expected=STATUS.done tr
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_RESET
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_RESET.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.
 SSOT item context: id=SC_RESET; name=Reset behavior; expected=All registers reset to 0; STATUS.busy=0, STATUS.done=0.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared

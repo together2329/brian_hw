@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 43
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, features, features.ks_addition, function_model, function_model.state_updates, function_model.transactions, function_model.transactions.FM_ADD
 - SSOT target scale: min_behavior_owner_logic_modules=1, min_logic_modules=1, min_modules=3, min_procedural_blocks=6, min_source_files=3, min_state_updates=8
@@ -38,14 +38,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Generate propagate and generate signals, build log2(DATA_WIDTH) prefix tree levels using black/grey cell pattern, produce group carries, and form sum = a ^ b ^ carry. Register outputs on posedge PCLK.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_KS_TREE.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is present in rtl/adder_kogge_stone_core.sv
   - FunctionalModel expected result and RTL observed result match for all DATA_WIDTH values
@@ -61,14 +61,14 @@ SSOT item context: id=RTL_TODO_KS_TREE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.a_reg
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.a_reg.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.
 SSOT item context: name=a_reg; reset=0.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -82,14 +82,14 @@ SSOT item context: name=a_reg; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.b_reg
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.b_reg.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.
 SSOT item context: name=b_reg; reset=0.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -103,14 +103,14 @@ SSOT item context: name=b_reg; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.cin_reg
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.cin_reg.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.
 SSOT item context: name=cin_reg; reset=0.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -124,14 +124,14 @@ SSOT item context: name=cin_reg; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.sum_reg
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.sum_reg.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.
 SSOT item context: name=sum_reg; reset=0.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -145,14 +145,14 @@ SSOT item context: name=sum_reg; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.cout_reg
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.cout_reg.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.
 SSOT item context: name=cout_reg; reset=0.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -166,14 +166,14 @@ SSOT item context: name=cout_reg; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.busy
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.busy.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.
 SSOT item context: name=busy; reset=0.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -187,14 +187,14 @@ SSOT item context: name=busy; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.done
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.done.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.
 SSOT item context: name=done; reset=0.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -208,14 +208,14 @@ SSOT item context: name=done; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.overflow
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.overflow.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.
 SSOT item context: name=overflow; reset=0.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -229,14 +229,14 @@ SSOT item context: name=overflow; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_ADD
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_ADD.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: id=FM_ADD; name=kogge_stone_addition.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -249,14 +249,14 @@ SSOT item context: id=FM_ADD; name=kogge_stone_addition.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_ADD.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.preconditions.precondition_0.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: value=CONTROL.start == 1 or (hold_mode == 0 and inputs have changed).
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -269,14 +269,14 @@ SSOT item context: value=CONTROL.start == 1 or (hold_mode == 0 and inputs have c
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_ADD.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.preconditions.precondition_1.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: value=DATA_WIDTH >= 2.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -289,14 +289,14 @@ SSOT item context: value=DATA_WIDTH >= 2.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_ADD.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.inputs.input_0.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: value=a_i[DATA_WIDTH-1:0] or a_reg from APB shadow.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -309,14 +309,14 @@ SSOT item context: value=a_i[DATA_WIDTH-1:0] or a_reg from APB shadow.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_ADD.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.inputs.input_1.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: value=b_i[DATA_WIDTH-1:0] or b_reg from APB shadow.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -329,14 +329,14 @@ SSOT item context: value=b_i[DATA_WIDTH-1:0] or b_reg from APB shadow.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_ADD.inputs.input_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.inputs.input_2.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: value=cin_i or cin_reg from APB shadow.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -349,14 +349,14 @@ SSOT item context: value=cin_i or cin_reg from APB shadow.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ADD.outputs.sum_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.outputs.sum_o.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: name=sum_o; port=sum_o; expr=a_reg ^ b_reg ^ carry_chain; width=DATA_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -372,14 +372,14 @@ SSOT item context: name=sum_o; port=sum_o; expr=a_reg ^ b_reg ^ carry_chain; wid
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ADD.outputs.cout_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.outputs.cout_o.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: name=cout_o; port=cout_o; expr=final_group_generate | (final_group_propagate & cin_reg); width=1.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -395,14 +395,14 @@ SSOT item context: name=cout_o; port=cout_o; expr=final_group_generate | (final_
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ADD.outputs.sum_apb
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.outputs.sum_apb.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: name=sum_apb; port=SUM_RESULT; expr=sum_reg; width=32.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -418,14 +418,14 @@ SSOT item context: name=sum_apb; port=SUM_RESULT; expr=sum_reg; width=32.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ADD.outputs.cout_apb
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.outputs.cout_apb.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: name=cout_apb; port=COUT_RESULT; expr=cout_reg; width=1.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -441,14 +441,14 @@ SSOT item context: name=cout_apb; port=COUT_RESULT; expr=cout_reg; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_ADD.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.side_effects.side_effect_0.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: value=STATUS.busy set on start, cleared after output registered.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -461,14 +461,14 @@ SSOT item context: value=STATUS.busy set on start, cleared after output register
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_ADD.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.side_effects.side_effect_1.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: value=STATUS.done set on completion, persists until clr_done.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -481,14 +481,14 @@ SSOT item context: value=STATUS.done set on completion, persists until clr_done.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_ADD.side_effects.side_effect_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.side_effects.side_effect_2.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: value=STATUS.overflow reflects cout_reg of last operation.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -501,14 +501,14 @@ SSOT item context: value=STATUS.overflow reflects cout_reg of last operation.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_ADD.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ADD.error_cases.error_case_0.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: condition=DATA_WIDTH < 2.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -529,7 +529,7 @@ SSOT item context: condition=DATA_WIDTH < 2.
 SSOT ref: function_model.transactions.FM_ADD.error_cases.error_case_1.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.transactions.FM_ADD.
 SSOT item context: condition=APB access to unmapped address.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -543,14 +543,14 @@ SSOT item context: condition=APB access to unmapped address.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_0
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_0.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.
 SSOT item context: value=sum_o[DATA_WIDTH-1:0] + (cout_o << DATA_WIDTH) == a_reg + b_reg + cin_reg for all legal inputs..
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -563,14 +563,14 @@ SSOT item context: value=sum_o[DATA_WIDTH-1:0] + (cout_o << DATA_WIDTH) == a_reg
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_1
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_1.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via function_model.
 SSOT item context: value=Output registers only update on posedge PCLK when start=1 or hold_mode=0..
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -583,14 +583,14 @@ SSOT item context: value=Output registers only update on posedge PCLK when start
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
 SSOT item context: value=PCLK.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -604,13 +604,13 @@ SSOT item context: value=PCLK.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -624,13 +624,13 @@ Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -644,14 +644,14 @@ Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.psel_penable
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.psel_penable.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
 SSOT item context: signal=psel/penable.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -665,14 +665,14 @@ SSOT item context: signal=psel/penable.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.pready
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.pready.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
 SSOT item context: signal=pready.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -686,14 +686,14 @@ SSOT item context: signal=pready.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.pslverr
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.pslverr.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
 SSOT item context: signal=pslverr.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -707,14 +707,14 @@ SSOT item context: signal=pslverr.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S_IDLE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S_IDLE.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S_IDLE; action=Wait for CONTROL.start or hold_mode=0 with valid shadow registers.; cycle=0.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -729,14 +729,14 @@ SSOT item context: stage=S_IDLE; action=Wait for CONTROL.start or hold_mode=0 wi
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S_COMPUTE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S_COMPUTE.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S_COMPUTE; action=Combinational Kogge-Stone prefix tree evaluates propagate/generate and produces sum/carry.; cycle=1.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -751,14 +751,14 @@ SSOT item context: stage=S_COMPUTE; action=Combinational Kogge-Stone prefix tree
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S_CAPTURE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S_CAPTURE.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S_CAPTURE; action=On posedge PCLK, output registers capture sum and carry; STATUS updates to done=1, busy=0.; cycle=1.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -773,14 +773,14 @@ SSOT item context: stage=S_CAPTURE; action=On posedge PCLK, output registers cap
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
 SSOT item context: value=APB write to A_DATA/B_DATA/CIN updates shadow before start is sampled..
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -794,14 +794,14 @@ SSOT item context: value=APB write to A_DATA/B_DATA/CIN updates shadow before st
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
 SSOT item context: value=APB write to CONTROL.start must be visible in the same cycle as the APB completes..
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -815,14 +815,14 @@ SSOT item context: value=APB write to CONTROL.start must be visible in the same 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_2
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_2.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
 SSOT item context: value=Output register update occurs only on posedge PCLK..
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -836,14 +836,14 @@ SSOT item context: value=Output register update occurs only on posedge PCLK..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
 SSOT item context: value=No backpressure on adder datapath; APB interface is zero-wait-state..
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -857,14 +857,14 @@ SSOT item context: value=No backpressure on adder datapath; APB interface is zer
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.
 SSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -878,14 +878,14 @@ SSOT item context: value=Every function_model transaction maps to at least one c
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.ks_addition
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.ks_addition.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via features.ks_addition.
 SSOT item context: name=ks_addition; output=Registered sum_o[DATA_WIDTH-1:0] and cout_o on the cycle following start.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -898,14 +898,14 @@ SSOT item context: name=ks_addition; output=Registered sum_o[DATA_WIDTH-1:0] and
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.apb_lite_csr
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.apb_lite_csr.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via features.
 SSOT item context: name=apb_lite_csr; output=prdata[31:0], pready, pslverr.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -918,13 +918,13 @@ SSOT item context: name=apb_lite_csr; output=prdata[31:0], pready, pslverr.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.adder_kogge_stone_core.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.adder_kogge_stone_core.module_equivalence.
 Owner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

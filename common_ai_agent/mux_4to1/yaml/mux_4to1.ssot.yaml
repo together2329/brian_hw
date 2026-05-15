@@ -87,6 +87,8 @@ io_list:
     - name: "select"
       type: "custom_comb"
       role: "control"
+      clock_domain: "comb_eval"
+      reset_domain: "none"
       description: "Two-bit selector."
       protocol:
         legal_values: "All four 2-bit values are legal and select the matching input index."
@@ -96,6 +98,8 @@ io_list:
     - name: "data_output"
       type: "custom_comb"
       role: "source"
+      clock_domain: "comb_eval"
+      reset_domain: "none"
       description: "Selected combinational output bus."
       protocol:
         timing: "Output reflects selected input after one combinational propagation delay; no registered latency."

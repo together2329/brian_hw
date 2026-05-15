@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "type": "rtl_authoring_provenance",
+  "agent": "common_ai_agent",
+  "workflow": "rtl-gen",
+  "surface": "atlas_ui",
+  "ip": "arbiter_rr",
+  "todo_plan": "rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "aafe032ed4d83927ff5bf20d3f63a02714a39ee8997b5448ba01006a91379ad6",
+  "rtl_files": [
+    "rtl/arbiter_rr_regs.sv",
+    "rtl/arbiter_rr_core.sv",
+    "rtl/arbiter_rr.sv"
+  ],
+  "headers": [
+    "rtl/arbiter_rr_param.vh"
+  ],
+  "filelist": "list/arbiter_rr.f",
+  "source": "arbiter_rr/yaml/arbiter_rr.ssot.yaml",
+  "generated_at": "2026-05-15T02:10:12.762139+00:00"
+}

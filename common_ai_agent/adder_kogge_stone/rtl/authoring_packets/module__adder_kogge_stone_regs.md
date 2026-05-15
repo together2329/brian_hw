@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 27
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: registers, registers.register_list
 - SSOT target scale: min_behavior_owner_logic_modules=1, min_logic_modules=1, min_modules=3, min_procedural_blocks=6, min_source_files=3, min_state_updates=8
@@ -38,14 +38,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[1]
 - Detail: Decode paddr to select CONTROL, STATUS, A_DATA, B_DATA, CIN, SUM_RESULT, COUT_RESULT, CONFIG. Implement RW, RO, W1C access policies. Drive pslverr for out-of-bounds. Connect shadow registers to core.
 SSOT ref: workflow_todos.rtl-gen[1].
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_REGS.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is present in rtl/adder_kogge_stone_regs.sv
   - APB protocol assertions pass
@@ -61,14 +61,14 @@ SSOT item context: id=RTL_TODO_REGS.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.CONTROL
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CONTROL.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=CONTROL; width=32; reset=0; access=rw; offset=0.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -85,14 +85,14 @@ SSOT item context: name=CONTROL; width=32; reset=0; access=rw; offset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.start
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.start.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=start; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -111,14 +111,14 @@ SSOT item context: name=start; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.hold_mode
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.hold_mode.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=hold_mode; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -137,14 +137,14 @@ SSOT item context: name=hold_mode; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.clr_done
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.clr_done.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=clr_done; reset=0; access=w1c.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -163,14 +163,14 @@ SSOT item context: name=clr_done; reset=0; access=w1c.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.reserved_31_3
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.reserved_31_3.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_3; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -189,14 +189,14 @@ SSOT item context: name=reserved_31_3; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.STATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.STATUS.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=4.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -213,14 +213,14 @@ SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=4.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.busy
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.busy.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=busy; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -239,14 +239,14 @@ SSOT item context: name=busy; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.done
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.done.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=done; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -265,14 +265,14 @@ SSOT item context: name=done; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.overflow
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.overflow.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=overflow; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -291,14 +291,14 @@ SSOT item context: name=overflow; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.reserved_31_3
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.reserved_31_3.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_3; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -317,14 +317,14 @@ SSOT item context: name=reserved_31_3; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.A_DATA
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.A_DATA.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=A_DATA; width=32; reset=0; access=rw; offset=8.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -341,14 +341,14 @@ SSOT item context: name=A_DATA; width=32; reset=0; access=rw; offset=8.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.A_DATA.fields.a_data
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.A_DATA.fields.a_data.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=a_data; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -367,14 +367,14 @@ SSOT item context: name=a_data; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.B_DATA
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.B_DATA.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=B_DATA; width=32; reset=0; access=rw; offset=12.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -391,14 +391,14 @@ SSOT item context: name=B_DATA; width=32; reset=0; access=rw; offset=12.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.B_DATA.fields.b_data
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.B_DATA.fields.b_data.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=b_data; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -417,14 +417,14 @@ SSOT item context: name=b_data; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.CIN
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CIN.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=CIN; width=32; reset=0; access=rw; offset=16.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -441,14 +441,14 @@ SSOT item context: name=CIN; width=32; reset=0; access=rw; offset=16.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CIN.fields.cin
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CIN.fields.cin.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=cin; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -467,14 +467,14 @@ SSOT item context: name=cin; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CIN.fields.reserved_31_1
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CIN.fields.reserved_31_1.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_1; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -493,14 +493,14 @@ SSOT item context: name=reserved_31_1; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.SUM_RESULT
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.SUM_RESULT.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=SUM_RESULT; width=32; reset=0; access=ro; offset=20.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -517,14 +517,14 @@ SSOT item context: name=SUM_RESULT; width=32; reset=0; access=ro; offset=20.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.SUM_RESULT.fields.sum_result
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.SUM_RESULT.fields.sum_result.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=sum_result; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -543,14 +543,14 @@ SSOT item context: name=sum_result; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.COUT_RESULT
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.COUT_RESULT.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=COUT_RESULT; width=32; reset=0; access=ro; offset=24.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -567,14 +567,14 @@ SSOT item context: name=COUT_RESULT; width=32; reset=0; access=ro; offset=24.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.COUT_RESULT.fields.cout_result
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.COUT_RESULT.fields.cout_result.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=cout_result; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -593,14 +593,14 @@ SSOT item context: name=cout_result; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.COUT_RESULT.fields.reserved_31_1
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.COUT_RESULT.fields.reserved_31_1.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_1; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -619,14 +619,14 @@ SSOT item context: name=reserved_31_1; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.CONFIG
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CONFIG.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=CONFIG; width=32; reset=depends on parameter DATA_WIDTH; access=ro; offset=28.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -643,14 +643,14 @@ SSOT item context: name=CONFIG; width=32; reset=depends on parameter DATA_WIDTH;
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONFIG.fields.data_width
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONFIG.fields.data_width.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=data_width; reset=DATA_WIDTH; access=ro.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -669,14 +669,14 @@ SSOT item context: name=data_width; reset=DATA_WIDTH; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONFIG.fields.reserved_31_8
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONFIG.fields.reserved_31_8.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_8; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -695,13 +695,13 @@ SSOT item context: name=reserved_31_8; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.adder_kogge_stone_regs.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.adder_kogge_stone_regs.module_equivalence.
 Owner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

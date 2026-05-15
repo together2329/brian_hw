@@ -501,8 +501,48 @@ synthesis:
     - "syn/out/clkdiv.json or syn/out/clkdiv.v"
     - "syn/out/area.rpt"
     - "syn/out/timing_summary.rpt"
-pnr: TBD
-coding_rules: TBD
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: "met3"
+    vertical: "met2"
+  placement:
+    density_target: 0.65
+    max_displacement_um: null
+  cts:
+    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
+    functional_mode_case_analysis: []
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    clock_layers: { min: "met3", max: "met5" }
+    drc_waivers: []
+  required_outputs:
+    - "pnr/out/floorplan.def"
+    - "pnr/out/placed.def"
+    - "pnr/out/cts.def"
+    - "pnr/out/routed.def"
+    - "pnr/out/routed.v"
+    - "pnr/out/routed.spef"
+    - "pnr/out/pnr.report.md"
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/clkdiv_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge clk_i or negedge rst_ni)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset"
+    - "Parameterize widths using DIV_WIDTH"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "Use localparam state encoding with logic state/next_state signals"
+  lint_waivers:
+    - "UNUSEDSIGNAL: explicit approved tie-offs only"
+    - "UNUSEDPARAM: none expected"
 reuse_modules: TBD
 custom: TBD
 dir_structure: TBD

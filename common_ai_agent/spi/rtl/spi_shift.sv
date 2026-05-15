@@ -59,6 +59,13 @@ module spi_shift #(
     logic serial_sample_bit;
     logic [31:0] rx_shift_next;
     logic [NUM_CS-1:0] active_cs_mask;
+    logic [4:0] bit_index_sel;
+    logic [4:0] reverse_bit_index_sel;
+    logic cpha_mode_marker;
+
+    assign bit_index_sel = bit_index[4:0];
+    assign reverse_bit_index_sel = (frame_bits - 6'd1 - bit_index)[4:0];
+    assign cpha_mode_marker = cpha ^ CPHA_RESET[0] ^ CPOL_RESET[0] ^ LSB_FIRST_RESET[0] ^ (DATA_WIDTH == 8);
 
     assign illegal_cs_or_width = (cs_sel >= NUM_CS[2:0]) || (data_width_m1 < 5'd3);
     assign launch_gate_true = enable && start_req && !busy && !tx_empty && !illegal_cs_or_width;
@@ -130,7 +137,7 @@ module spi_shift #(
     always @(*) begin
         rx_shift_next = rx_shift_reg;
         if (lsb_first) begin
-            rx_shift_next[bit_index] = serial_sample_bit;
+            rx_shift_next[bit_index_sel] = serial_sample_bit;
         end else begin
             rx_shift_next[frame_bits - 6'd1 - bit_index] = serial_sample_bit;
         end

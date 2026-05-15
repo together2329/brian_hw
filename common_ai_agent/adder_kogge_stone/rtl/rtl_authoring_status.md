@@ -4,9 +4,9 @@
 
 - Top: adder_kogge_stone
 - Packets: 7
-- LLM-actionable tasks: 130
-- Human-locked tasks: 4
-- Tool-evidence tasks: 7
+- LLM-actionable tasks: 9
+- Human-locked tasks: 3
+- Tool-evidence tasks: 4
 - Deferred human QA allowed: False
 - PASS allowed: False
 - Target scale locked: True
@@ -15,19 +15,17 @@
 
 ## Next LLM Packets
 
-- module__adder_kogge_stone_regs: rtl/authoring_packets/module__adder_kogge_stone_regs.json (llm_open=27, human_locked=0)
-- module__adder_kogge_stone_core: rtl/authoring_packets/module__adder_kogge_stone_core.json (llm_open=43, human_locked=0)
-- module__adder_kogge_stone: rtl/authoring_packets/module__adder_kogge_stone.json (llm_open=45, human_locked=0)
+- module__adder_kogge_stone_core: rtl/authoring_packets/module__adder_kogge_stone_core.json (llm_open=1, human_locked=0)
 - unowned_tasks: rtl/authoring_packets/unowned_tasks.json (llm_open=6, human_locked=0)
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=9, human_locked=0)
+- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
 
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=7, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=4, next_tool=audit-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 
-- rtl_gate_human_closure: human_locked=4, json=rtl/authoring_packets/rtl_gate_human_closure.json
+- rtl_gate_human_closure: human_locked=3, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

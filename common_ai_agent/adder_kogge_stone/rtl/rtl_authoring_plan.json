@@ -9,79 +9,16 @@
       {
         "gate_kind": "static_rtl_evidence",
         "owner_module": "adder_kogge_stone",
-        "reason": "26 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "status": "open",
         "task_id": "RTL-0007"
       },
       {
-        "gate_kind": "owner_logic_structure_evidence",
-        "owner_module": "adder_kogge_stone",
-        "reason": "3 owner logic structure issue(s) remain. adder_kogge_stone_regs: Behavior-owner module is not declared in its owner file; adder_kogge_stone_core: Behavior-owner module is not declared in its owner file; adder_kogge_stone: Behavior-owner module is not declared in its owner file",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "status": "open",
-        "task_id": "RTL-0008"
-      },
-      {
-        "gate_kind": "rtl_placeholder_free_evidence",
-        "owner_module": "adder_kogge_stone",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "status": "open",
-        "task_id": "RTL-0009"
-      },
-      {
-        "gate_kind": "top_io_contract_evidence",
-        "owner_module": "adder_kogge_stone",
-        "reason": "1 top IO contract issue(s) remain. adder_kogge_stone: SSOT top module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "status": "open",
-        "task_id": "RTL-0010"
-      },
-      {
-        "gate_kind": "top_output_drive_evidence",
-        "owner_module": "adder_kogge_stone",
-        "reason": "1 top output drive issue(s) remain. adder_kogge_stone: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "status": "open",
-        "task_id": "RTL-0011"
-      },
-      {
-        "gate_kind": "top_input_consumption_evidence",
-        "owner_module": "adder_kogge_stone",
-        "reason": "1 top input consumption issue(s) remain. adder_kogge_stone: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "status": "open",
-        "task_id": "RTL-0012"
-      },
-      {
-        "gate_kind": "manifest_hierarchy_integration",
-        "owner_module": "adder_kogge_stone",
-        "reason": "3 manifest hierarchy integration issue(s) remain. adder_kogge_stone: SSOT top module is not declared in listed RTL sources; adder_kogge_stone_regs: SSOT manifest child module is not declared in listed RTL sources; adder_kogge_stone_core: SSOT manifest child module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "status": "open",
-        "task_id": "RTL-0013"
-      },
-      {
-        "gate_kind": "manifest_signal_flow_evidence",
-        "owner_module": "adder_kogge_stone",
-        "reason": "1 manifest signal-flow issue(s) remain. adder_kogge_stone: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "status": "open",
-        "task_id": "RTL-0015"
-      },
-      {
         "gate_kind": "rtl_implementation_depth_evidence",
         "owner_module": "adder_kogge_stone",
-        "reason": "8 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL source-file count is below the SSOT-locked target scale: actual=0 required=3; Production RTL module count is below the SSOT-locked target scale: actual=0 required=3",
+        "reason": "1 production RTL implementation-depth issue(s) remain. Production RTL procedural block count is below the SSOT-locked target scale: actual=4 required=6",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
         "status": "open",
@@ -97,15 +34,6 @@
         "source_ref": "quality_gates.rtl_gen.owner_traceability",
         "status": "open",
         "task_id": "RTL-0005"
-      },
-      {
-        "gate_kind": "manifest_connection_contract_evidence",
-        "owner_module": "adder_kogge_stone",
-        "reason": "4 SSOT connection contract issue(s) remain. adder_kogge_stone_core: SSOT connection contract targets a module not declared in RTL; adder_kogge_stone_core: SSOT connection contract targets a module not declared in RTL; adder_kogge_stone_regs: SSOT connection contract targets a module not declared in RTL",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "status": "open",
-        "task_id": "RTL-0016"
       },
       {
         "gate_kind": "golden_authority_artifacts",
@@ -128,36 +56,9 @@
     ],
     "blocked_by_tool_evidence": [
       {
-        "gate_kind": "common_ai_agent_authoring",
-        "owner_module": "adder_kogge_stone",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "gate_kind": "dut_compile",
-        "owner_module": "adder_kogge_stone",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "gate_kind": "dut_lint",
-        "owner_module": "adder_kogge_stone",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "adder_kogge_stone",
-        "reason": "140 required non-closure TODO(s) remain open.",
+        "reason": "15 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -264,7 +165,7 @@
         "task_id": "RTL-0005"
       }
     ],
-    "open_required_todos": 141,
+    "open_required_todos": 16,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -273,76 +174,6 @@
       "Do not sign off top integration while required connection contracts are missing."
     ],
     "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_authoring_provenance.json",
-        "artifacts": [
-          "adder_kogge_stone/rtl/rtl_authoring_provenance.json",
-          "adder_kogge_stone/rtl/rtl_todo_plan.json"
-        ],
-        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-        "commands": [
-          "python3 src/headless_workflow.py --root . --ip adder_kogge_stone --stages rtl-gen",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py adder_kogge_stone --root . --audit-rtl"
-        ],
-        "gate_kind": "common_ai_agent_authoring",
-        "prerequisites": [
-          "An LLM authoring pass emitted or repaired DUT RTL files."
-        ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "stage_sequence": [
-          "ssot-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "adder_kogge_stone/rtl/rtl_compile.json",
-          "adder_kogge_stone/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py adder_kogge_stone --top adder_kogge_stone --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py adder_kogge_stone --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "adder_kogge_stone/list/adder_kogge_stone.f covers the current DUT RTL sources."
-        ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "artifact": "lint/dut_lint.json",
-        "artifacts": [
-          "adder_kogge_stone/lint/dut_lint.json"
-        ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-        "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py adder_kogge_stone --top adder_kogge_stone",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py adder_kogge_stone --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_lint",
-        "prerequisites": [
-          "adder_kogge_stone/list/adder_kogge_stone.f covers the current DUT RTL/header sources."
-        ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "stage_sequence": [
-          "lint",
-          "dut_lint"
-        ],
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
       {
         "artifact": "rtl/rtl_todo_plan.json",
         "artifacts": [
@@ -357,7 +188,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "140 required non-closure TODO(s) remain open.",
+        "reason": "15 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -456,86 +287,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 27,
-        "open_required_count": 27,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__adder_kogge_stone_regs.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__adder_kogge_stone_regs.md",
-      "owner_file": "rtl/adder_kogge_stone_regs.sv",
-      "owner_module": "adder_kogge_stone_regs",
-      "packet_id": "module__adder_kogge_stone_regs",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1,
-          "registers.field": 17,
-          "registers.register": 8,
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 27,
-          "task_limit": 48
-        },
-        "open_required_count": 27,
-        "required_count": 27,
-        "source_refs": [
-          "workflow_todos.rtl-gen[1]",
-          "registers.register_list.CONTROL",
-          "registers.register_list.CONTROL.fields.start",
-          "registers.register_list.CONTROL.fields.hold_mode",
-          "registers.register_list.CONTROL.fields.clr_done",
-          "registers.register_list.CONTROL.fields.reserved_31_3",
-          "registers.register_list.STATUS",
-          "registers.register_list.STATUS.fields.busy",
-          "registers.register_list.STATUS.fields.done",
-          "registers.register_list.STATUS.fields.overflow",
-          "registers.register_list.STATUS.fields.reserved_31_3",
-          "registers.register_list.A_DATA",
-          "registers.register_list.A_DATA.fields.a_data",
-          "registers.register_list.B_DATA",
-          "registers.register_list.B_DATA.fields.b_data",
-          "registers.register_list.CIN",
-          "registers.register_list.CIN.fields.cin",
-          "registers.register_list.CIN.fields.reserved_31_1",
-          "registers.register_list.SUM_RESULT",
-          "registers.register_list.SUM_RESULT.fields.sum_result",
-          "registers.register_list.COUT_RESULT",
-          "registers.register_list.COUT_RESULT.fields.cout_result",
-          "registers.register_list.COUT_RESULT.fields.reserved_31_1",
-          "registers.register_list.CONFIG"
-        ],
-        "status_counts": {
-          "open": 27
-        },
-        "task_count": 27
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 43,
-        "open_required_count": 43,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -582,7 +335,7 @@
           "module_task_count": 43,
           "task_limit": 48
         },
-        "open_required_count": 43,
+        "open_required_count": 1,
         "required_count": 43,
         "source_refs": [
           "workflow_todos.rtl-gen[0]",
@@ -611,97 +364,10 @@
           "function_model.transactions.FM_ADD.error_cases.error_case_1"
         ],
         "status_counts": {
-          "open": 43
+          "open": 1,
+          "pass": 42
         },
         "task_count": 43
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 45,
-        "open_required_count": 45,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/module__adder_kogge_stone.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__adder_kogge_stone.md",
-      "owner_file": "rtl/adder_kogge_stone.sv",
-      "owner_module": "adder_kogge_stone",
-      "packet_id": "module__adder_kogge_stone",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1,
-          "error_handling.recovery": 1,
-          "integration.connections": 4,
-          "integration.dependencies": 3,
-          "io_list.port": 15,
-          "parameters.item": 5,
-          "rtl_flow.seed": 1,
-          "rtl_flow.top": 1,
-          "security.assets": 2,
-          "synthesis.constraints": 3,
-          "synthesis.ppa_targets": 3,
-          "test_requirements.scenario": 6,
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 46,
-          "task_limit": 48
-        },
-        "open_required_count": 45,
-        "required_count": 46,
-        "source_refs": [
-          "top_module",
-          "io_list",
-          "workflow_todos.rtl-gen[2]",
-          "error_handling.recovery.recovery_0",
-          "security.assets.register_map",
-          "security.assets.adder_result",
-          "integration.dependencies.external_modules",
-          "integration.dependencies.external_clocks",
-          "integration.dependencies.external_resets",
-          "integration.connections.PCLK",
-          "integration.connections.PRESETn",
-          "integration.connections.PCLK",
-          "integration.connections.PRESETn",
-          "synthesis.constraints.constraint_0",
-          "synthesis.constraints.constraint_1",
-          "synthesis.constraints.constraint_2",
-          "synthesis.ppa_targets.area_um2_max",
-          "synthesis.ppa_targets.power_mw_max",
-          "synthesis.ppa_targets.frequency_mhz_min",
-          "sub_modules.adder_kogge_stone.module_equivalence",
-          "parameters.DATA_WIDTH",
-          "parameters.ADDR_WIDTH",
-          "parameters.APB_DATA_WIDTH",
-          "parameters.CLOCK_FREQ_MHZ"
-        ],
-        "status_counts": {
-          "open": 45,
-          "pass": 1
-        },
-        "task_count": 46
       }
     },
     {
@@ -766,8 +432,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 9,
-        "open_required_count": 9,
+        "llm_actionable_open_count": 2,
+        "open_required_count": 2,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -789,7 +455,7 @@
           "rtl_gate.rtl_gen": 10
         },
         "module_slice": {},
-        "open_required_count": 9,
+        "open_required_count": 2,
         "required_count": 10,
         "source_refs": [
           "quality_gates.rtl_gen.static_rtl_evidence",
@@ -804,8 +470,8 @@
           "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
         ],
         "status_counts": {
-          "open": 9,
-          "pass": 1
+          "open": 2,
+          "pass": 8
         },
         "task_count": 10
       }
@@ -821,15 +487,6 @@
             "source_ref": "quality_gates.rtl_gen.owner_traceability",
             "status": "open",
             "task_id": "RTL-0005"
-          },
-          {
-            "gate_kind": "manifest_connection_contract_evidence",
-            "owner_module": "adder_kogge_stone",
-            "reason": "4 SSOT connection contract issue(s) remain. adder_kogge_stone_core: SSOT connection contract targets a module not declared in RTL; adder_kogge_stone_core: SSOT connection contract targets a module not declared in RTL; adder_kogge_stone_regs: SSOT connection contract targets a module not declared in RTL",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-            "status": "open",
-            "task_id": "RTL-0016"
           },
           {
             "gate_kind": "golden_authority_artifacts",
@@ -855,11 +512,11 @@
         "deferred_human_qa_allowed": false,
         "draft_allowed": false,
         "evidence_closure_allowed": false,
-        "human_locked_open_count": 4,
+        "human_locked_open_count": 3,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 4,
+        "open_required_count": 3,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -881,7 +538,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 4,
+        "open_required_count": 3,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.ssot_required_sections",
@@ -893,8 +550,8 @@
           "quality_gates.rtl_gen.cycle_model_artifacts"
         ],
         "status_counts": {
-          "open": 4,
-          "pass": 3
+          "open": 3,
+          "pass": 4
         },
         "task_count": 7
       }
@@ -904,36 +561,9 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [
           {
-            "gate_kind": "common_ai_agent_authoring",
-            "owner_module": "adder_kogge_stone",
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
-          {
-            "gate_kind": "dut_compile",
-            "owner_module": "adder_kogge_stone",
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "gate_kind": "dut_lint",
-            "owner_module": "adder_kogge_stone",
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "status": "open",
-            "task_id": "RTL-0018"
-          },
-          {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "adder_kogge_stone",
-            "reason": "140 required non-closure TODO(s) remain open.",
+            "reason": "15 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -975,85 +605,15 @@
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 7,
+        "open_required_count": 4,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
           "Never use a fixed RTL template as the implementation."
         ],
-        "tool_evidence_open_count": 7,
+        "tool_evidence_open_count": 4,
         "tool_evidence_plan": [
-          {
-            "artifact": "rtl/rtl_authoring_provenance.json",
-            "artifacts": [
-              "adder_kogge_stone/rtl/rtl_authoring_provenance.json",
-              "adder_kogge_stone/rtl/rtl_todo_plan.json"
-            ],
-            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-            "commands": [
-              "python3 src/headless_workflow.py --root . --ip adder_kogge_stone --stages rtl-gen",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py adder_kogge_stone --root . --audit-rtl"
-            ],
-            "gate_kind": "common_ai_agent_authoring",
-            "prerequisites": [
-              "An LLM authoring pass emitted or repaired DUT RTL files."
-            ],
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "stage_sequence": [
-              "ssot-rtl"
-            ],
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
-          {
-            "artifact": "rtl/rtl_compile.json",
-            "artifacts": [
-              "adder_kogge_stone/rtl/rtl_compile.json",
-              "adder_kogge_stone/rtl/rtl_compile.log"
-            ],
-            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-            "commands": [
-              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py adder_kogge_stone --top adder_kogge_stone --project-root .",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py adder_kogge_stone --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_compile",
-            "prerequisites": [
-              "adder_kogge_stone/list/adder_kogge_stone.f covers the current DUT RTL sources."
-            ],
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "stage_sequence": [
-              "ssot-rtl",
-              "dut_compile"
-            ],
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "artifact": "lint/dut_lint.json",
-            "artifacts": [
-              "adder_kogge_stone/lint/dut_lint.json"
-            ],
-            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-            "commands": [
-              "python3 workflow/lint/scripts/dut_lint_report.py adder_kogge_stone --top adder_kogge_stone",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py adder_kogge_stone --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_lint",
-            "prerequisites": [
-              "adder_kogge_stone/list/adder_kogge_stone.f covers the current DUT RTL/header sources."
-            ],
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "stage_sequence": [
-              "lint",
-              "dut_lint"
-            ],
-            "status": "open",
-            "task_id": "RTL-0018"
-          },
           {
             "artifact": "rtl/rtl_todo_plan.json",
             "artifacts": [
@@ -1068,7 +628,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "140 required non-closure TODO(s) remain open.",
+            "reason": "15 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -1165,7 +725,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 7,
+        "open_required_count": 4,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -1177,9 +737,175 @@
           "quality_gates.rtl_gen.coverage_closure"
         ],
         "status_counts": {
-          "open": 7
+          "open": 4,
+          "pass": 3
         },
         "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__adder_kogge_stone_regs.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__adder_kogge_stone_regs.md",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "packet_id": "module__adder_kogge_stone_regs",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "registers.field": 17,
+          "registers.register": 8,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 27,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 27,
+        "source_refs": [
+          "workflow_todos.rtl-gen[1]",
+          "registers.register_list.CONTROL",
+          "registers.register_list.CONTROL.fields.start",
+          "registers.register_list.CONTROL.fields.hold_mode",
+          "registers.register_list.CONTROL.fields.clr_done",
+          "registers.register_list.CONTROL.fields.reserved_31_3",
+          "registers.register_list.STATUS",
+          "registers.register_list.STATUS.fields.busy",
+          "registers.register_list.STATUS.fields.done",
+          "registers.register_list.STATUS.fields.overflow",
+          "registers.register_list.STATUS.fields.reserved_31_3",
+          "registers.register_list.A_DATA",
+          "registers.register_list.A_DATA.fields.a_data",
+          "registers.register_list.B_DATA",
+          "registers.register_list.B_DATA.fields.b_data",
+          "registers.register_list.CIN",
+          "registers.register_list.CIN.fields.cin",
+          "registers.register_list.CIN.fields.reserved_31_1",
+          "registers.register_list.SUM_RESULT",
+          "registers.register_list.SUM_RESULT.fields.sum_result",
+          "registers.register_list.COUT_RESULT",
+          "registers.register_list.COUT_RESULT.fields.cout_result",
+          "registers.register_list.COUT_RESULT.fields.reserved_31_1",
+          "registers.register_list.CONFIG"
+        ],
+        "status_counts": {
+          "pass": 27
+        },
+        "task_count": 27
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/module__adder_kogge_stone.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__adder_kogge_stone.md",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "packet_id": "module__adder_kogge_stone",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "error_handling.recovery": 1,
+          "integration.connections": 4,
+          "integration.dependencies": 3,
+          "io_list.port": 15,
+          "parameters.item": 5,
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1,
+          "security.assets": 2,
+          "synthesis.constraints": 3,
+          "synthesis.ppa_targets": 3,
+          "test_requirements.scenario": 6,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 46,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 46,
+        "source_refs": [
+          "top_module",
+          "io_list",
+          "workflow_todos.rtl-gen[2]",
+          "error_handling.recovery.recovery_0",
+          "security.assets.register_map",
+          "security.assets.adder_result",
+          "integration.dependencies.external_modules",
+          "integration.dependencies.external_clocks",
+          "integration.dependencies.external_resets",
+          "integration.connections.PCLK",
+          "integration.connections.PRESETn",
+          "integration.connections.PCLK",
+          "integration.connections.PRESETn",
+          "synthesis.constraints.constraint_0",
+          "synthesis.constraints.constraint_1",
+          "synthesis.constraints.constraint_2",
+          "synthesis.ppa_targets.area_um2_max",
+          "synthesis.ppa_targets.power_mw_max",
+          "synthesis.ppa_targets.frequency_mhz_min",
+          "sub_modules.adder_kogge_stone.module_equivalence",
+          "parameters.DATA_WIDTH",
+          "parameters.ADDR_WIDTH",
+          "parameters.APB_DATA_WIDTH",
+          "parameters.CLOCK_FREQ_MHZ"
+        ],
+        "status_counts": {
+          "pass": 46
+        },
+        "task_count": 46
       }
     }
   ],
@@ -1226,15 +952,13 @@
     "deferred_human_qa_allowed": false,
     "gate_packets": 3,
     "human_locked_packets": 1,
-    "human_locked_tasks": 4,
-    "llm_actionable_packets": 5,
-    "llm_actionable_tasks": 130,
+    "human_locked_tasks": 3,
+    "llm_actionable_packets": 3,
+    "llm_actionable_tasks": 9,
     "max_packet_required_tasks": 46,
     "module_packets": 3,
     "next_llm_packets": [
-      "module__adder_kogge_stone_regs",
       "module__adder_kogge_stone_core",
-      "module__adder_kogge_stone",
       "unowned_tasks",
       "rtl_gate_evidence_closure"
     ],
@@ -1249,7 +973,7 @@
     "sliced_module_packets": 0,
     "target_scale_present": true,
     "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 7,
+    "tool_evidence_tasks": 4,
     "total_tasks": 146,
     "unowned_packets": 1
   },

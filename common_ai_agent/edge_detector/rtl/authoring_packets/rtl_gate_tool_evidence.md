@@ -29,17 +29,13 @@
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, features, function_model, function_model.output_rules, function_model.state_variables, function_model.transactions
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=2, min_procedural_blocks=4, min_source_files=2, min_state_updates=4
 - Tool-evidence blockers:
-  - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
-  - dut_compile: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
-  - dut_lint: Missing canonical DUT lint artifact: lint/dut_lint.json.
-  - dynamic_todo_closure: 119 required non-closure TODO(s) remain open.
+  - common_ai_agent_authoring: RTL authoring provenance is incomplete: type, todo_plan_sha256
+  - dynamic_todo_closure: 9 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
   - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
 - Tool-evidence runbook:
   - common_ai_agent_authoring: stages=ssot-rtl; artifact=edge_detector/rtl/rtl_authoring_provenance.json
-  - dut_compile: stages=ssot-rtl, dut_compile; artifact=edge_detector/rtl/rtl_compile.json
-  - dut_lint: stages=lint, dut_lint; artifact=edge_detector/lint/dut_lint.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=edge_detector/rtl/rtl_todo_plan.json
   - protocol_assertion_evidence: stages=ssot-protocol-assertions, sim; artifact=edge_detector/verify/protocol_assertions.sva
   - fl_rtl_goal_audit: stages=ssot-fl-model, ssot-equiv-goals, ssot-tb-cocotb, sim, goal-audit; artifact=edge_detector/sim/fl_rtl_goal_audit.json
@@ -64,7 +60,7 @@
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
-- Current reason: Missing common_ai_agent RTL authoring provenance.
+- Current reason: RTL authoring provenance is incomplete: type, todo_plan_sha256
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -81,13 +77,13 @@ Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
-- Current reason: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
+- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -102,13 +98,13 @@ Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
-- Current reason: Missing canonical DUT lint artifact: lint/dut_lint.json.
+- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -130,7 +126,7 @@ Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
-- Current reason: 119 required non-closure TODO(s) remain open.
+- Current reason: 9 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero
