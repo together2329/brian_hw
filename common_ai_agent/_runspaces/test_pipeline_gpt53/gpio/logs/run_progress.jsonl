@@ -18,3 +18,5 @@
 {"event": "stage_start", "stage": "equiv-goals", "ts": "2026-05-15T09:53:20Z"}
 {"event": "stage_end", "message": "[ssot-equiv-goals] BLOCKED\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py\nmodule: gpio\nsource: gpio/yaml/gpio.ssot.yaml\ngoals: total=37 required=36 blocked=1 module=2/3\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-mode", "stage": "equiv-goals", "status": "blocked", "ts": "2026-05-15T09:53:20Z"}
 {"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gpio/logs/headless_run.json", "status": "blocked", "ts": "2026-05-15T09:53:20Z"}
+{"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53", "stages": ["rtl-gen", "tb-gen", "sim", "sim-debug", "lint", "coverage"], "target_ip": "gpio", "ts": "2026-05-15T09:54:43Z"}
+{"event": "stage_start", "stage": "rtl-gen", "ts": "2026-05-15T09:54:43Z"}

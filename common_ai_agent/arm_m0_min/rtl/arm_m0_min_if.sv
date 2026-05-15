@@ -39,7 +39,7 @@ module arm_m0_min_if #(
         end else if (!fault_halt) begin
             if (i_hready) begin
                 if_instr <= i_hrdata;
-                if_valid <= 1'b1;
+                if_valid <= !i_hresp;
                 if (branch_taken) begin
                     pc_reg <= branch_target;
                 end else if (!hold_pc) begin

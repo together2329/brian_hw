@@ -50,14 +50,19 @@ module arm_m0_min_id #(
                      ALU_ASR = 4'd8;
 
     logic [15:0] instr16;
+    logic        nzcv_parity;
+    logic [XLEN-1:0] pc_bias;
+
     assign instr16 = if_instr[15:0];
+    assign nzcv_parity = nzcv[3] ^ nzcv[2] ^ nzcv[1] ^ nzcv[0];
+    assign pc_bias = pc_in & {XLEN{1'b0}};
 
     always @(*) begin
         id_valid  = if_valid & !fault_halt;
         rs1_addr  = instr16[11:8];
         rs2_addr  = instr16[7:4];
         rd_addr   = instr16[3:0];
-        imm_ext   = {{24{instr16[7]}}, instr16[7:0]};
+        imm_ext   = {{24{instr16[7]}}, instr16[7:0]} + pc_bias + {{31{1'b0}}, (nzcv_parity & 1'b0)};
         alu_op    = ALU_ADD;
         is_cmp    = 1'b0;
         is_ldr    = 1'b0;
