@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.ordering, cycle_model.pipeline, dataflow, decomposition, error_handling, features, fsm, fsm.control, function_model, function_model.state_variables, function_model.transactions.GC_TXN_ADVANCE, function_model.transactions.GC_TXN_CLEAR, function_model.transactions.GC_TXN_HOLD, function_model.transactions.GC_TXN_RESET
 - Module slice: 9/9 section=workflow_todo task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: RTL must implement priority reset>clear>enable>hold, gray/bin transforms, and one-cycle wrap done pulse.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: gray_counter_core in rtl/gray_counter_core.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_CORE_SEMANTICS.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - All function_model transactions implemented with matching observable outputs
   - cycle_model latency/ordering rules hold in simulation

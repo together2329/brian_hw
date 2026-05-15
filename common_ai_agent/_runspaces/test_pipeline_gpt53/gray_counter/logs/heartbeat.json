@@ -1,8 +1,7 @@
 {
-  "log_stage": "rtl-gen-packet-00-module__gray_counter_core__function_model_01",
   "model": "gpt-5.3-codex",
-  "phase": "llm_call",
-  "stage": "rtl-gen",
-  "state": "running",
-  "ts": "2026-05-15T09:09:46Z"
+  "phase": "finished",
+  "state": "done",
+  "status": "fail",
+  "ts": "2026-05-15T09:13:37Z"
 }

@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 48
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.ordering, cycle_model.pipeline, dataflow, decomposition, error_handling, features, fsm, fsm.control, function_model, function_model.state_variables, function_model.transactions.GC_TXN_ADVANCE, function_model.transactions.GC_TXN_CLEAR, function_model.transactions.GC_TXN_HOLD, function_model.transactions.GC_TXN_RESET
 - Module slice: 1/9 section=function_model task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.gray_state
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.gray_state.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.state_variables.
 SSOT item context: name=gray_state; reset=0.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -65,14 +65,14 @@ SSOT item context: name=gray_state; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.bin_state
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.bin_state.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.state_variables.
 SSOT item context: name=bin_state; reset=0.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -86,14 +86,14 @@ SSOT item context: name=bin_state; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.done_state
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.done_state.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.state_variables.
 SSOT item context: name=done_state; reset=0.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -107,14 +107,14 @@ SSOT item context: name=done_state; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.GC_TXN_RESET
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.GC_TXN_RESET.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_RESET.
 SSOT item context: id=GC_TXN_RESET; name=asynchronous_reset_assert.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -127,14 +127,14 @@ SSOT item context: id=GC_TXN_RESET; name=asynchronous_reset_assert.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.GC_TXN_RESET.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_RESET.preconditions.precondition_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_RESET.
 SSOT item context: value=rst_n == 0.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -147,14 +147,14 @@ SSOT item context: value=rst_n == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.GC_TXN_RESET.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_RESET.inputs.input_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_RESET.
 SSOT item context: value=rst_n.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -167,14 +167,14 @@ SSOT item context: value=rst_n.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_RESET.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_RESET.outputs.output_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_RESET.
 SSOT item context: value=gray_value == 0.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -187,14 +187,14 @@ SSOT item context: value=gray_value == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_RESET.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_RESET.outputs.output_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_RESET.
 SSOT item context: value=bin_value == 0.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -207,14 +207,14 @@ SSOT item context: value=bin_value == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_RESET.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_RESET.outputs.output_2.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_RESET.
 SSOT item context: value=done == 0.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -227,14 +227,14 @@ SSOT item context: value=done == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_RESET.output_rules.gray_value_reset
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_RESET.output_rules.gray_value_reset.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_RESET.
 SSOT item context: name=gray_value_reset; port=gray_value; expr=0; width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -251,14 +251,14 @@ SSOT item context: name=gray_value_reset; port=gray_value; expr=0; width=WIDTH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_RESET.output_rules.bin_value_reset
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_RESET.output_rules.bin_value_reset.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_RESET.
 SSOT item context: name=bin_value_reset; port=bin_value; expr=0; width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -275,14 +275,14 @@ SSOT item context: name=bin_value_reset; port=bin_value; expr=0; width=WIDTH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_RESET.output_rules.done_reset
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_RESET.output_rules.done_reset.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_RESET.
 SSOT item context: name=done_reset; port=done; expr=0; width=1.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -299,14 +299,14 @@ SSOT item context: name=done_reset; port=done; expr=0; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.GC_TXN_RESET.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_RESET.side_effects.side_effect_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_RESET.
 SSOT item context: value=gray_state set to 0 immediately on reset assertion.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -319,14 +319,14 @@ SSOT item context: value=gray_state set to 0 immediately on reset assertion.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.GC_TXN_RESET.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_RESET.side_effects.side_effect_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_RESET.
 SSOT item context: value=done_state cleared.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -339,14 +339,14 @@ SSOT item context: value=done_state cleared.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.GC_TXN_CLEAR
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: id=GC_TXN_CLEAR; name=synchronous_clear.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -359,14 +359,14 @@ SSOT item context: id=GC_TXN_CLEAR; name=synchronous_clear.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.GC_TXN_CLEAR.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.preconditions.precondition_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: value=rst_n == 1.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -379,14 +379,14 @@ SSOT item context: value=rst_n == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.GC_TXN_CLEAR.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.preconditions.precondition_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: value=clear sampled high on rising clock edge.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -399,14 +399,14 @@ SSOT item context: value=clear sampled high on rising clock edge.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.GC_TXN_CLEAR.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.inputs.input_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: value=clear.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -419,14 +419,14 @@ SSOT item context: value=clear.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_CLEAR.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.outputs.output_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: value=gray_value == 0 after edge.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -439,14 +439,14 @@ SSOT item context: value=gray_value == 0 after edge.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_CLEAR.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.outputs.output_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: value=bin_value == 0 after edge.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -459,14 +459,14 @@ SSOT item context: value=bin_value == 0 after edge.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_CLEAR.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.outputs.output_2.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: value=done == 0 after edge.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -479,14 +479,14 @@ SSOT item context: value=done == 0 after edge.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_CLEAR.output_rules.gray_value_clear
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.output_rules.gray_value_clear.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: name=gray_value_clear; port=gray_value; expr=0; width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -503,14 +503,14 @@ SSOT item context: name=gray_value_clear; port=gray_value; expr=0; width=WIDTH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_CLEAR.output_rules.bin_value_clear
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.output_rules.bin_value_clear.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: name=bin_value_clear; port=bin_value; expr=0; width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -527,14 +527,14 @@ SSOT item context: name=bin_value_clear; port=bin_value; expr=0; width=WIDTH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_CLEAR.output_rules.done_clear
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.output_rules.done_clear.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: name=done_clear; port=done; expr=0; width=1.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -551,14 +551,14 @@ SSOT item context: name=done_clear; port=done; expr=0; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: value=gray_state overwritten with 0.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -571,14 +571,14 @@ SSOT item context: value=gray_state overwritten with 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_CLEAR.
 SSOT item context: value=done_state cleared.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -591,14 +591,14 @@ SSOT item context: value=done_state cleared.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.GC_TXN_ADVANCE
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: id=GC_TXN_ADVANCE; name=advance_one_gray_step.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -611,14 +611,14 @@ SSOT item context: id=GC_TXN_ADVANCE; name=advance_one_gray_step.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: value=rst_n == 1.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -631,14 +631,14 @@ SSOT item context: value=rst_n == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: value=clear == 0 on sampled edge.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -651,14 +651,14 @@ SSOT item context: value=clear == 0 on sampled edge.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_2.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: value=enable == 1 on sampled edge.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -671,14 +671,14 @@ SSOT item context: value=enable == 1 on sampled edge.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.inputs.input_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: value=enable.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -691,14 +691,14 @@ SSOT item context: value=enable.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.inputs.input_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: value=current gray_state.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -711,14 +711,14 @@ SSOT item context: value=current gray_state.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.outputs.output_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: value=next binary state equals (current bin_state + 1) mod 2^WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -731,14 +731,14 @@ SSOT item context: value=next binary state equals (current bin_state + 1) mod 2^
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.outputs.output_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: value=next gray_value equals bin_to_gray(next binary state).
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -751,14 +751,14 @@ SSOT item context: value=next gray_value equals bin_to_gray(next binary state).
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.outputs.output_2.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: value=bin_value equals gray_to_bin(gray_value) at all observable times.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -771,14 +771,14 @@ SSOT item context: value=bin_value equals gray_to_bin(gray_value) at all observa
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.output_rules.gray_advance
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.output_rules.gray_advance.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: name=gray_advance; port=gray_value; expr=((bin_state + 1) ^ ((bin_state + 1) >> 1)) & ((1<<WIDTH)-1); width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -795,14 +795,14 @@ SSOT item context: name=gray_advance; port=gray_value; expr=((bin_state + 1) ^ (
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.output_rules.bin_observe
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.output_rules.bin_observe.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: name=bin_observe; port=bin_value; expr=gray_to_bin(gray_value); width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -819,14 +819,14 @@ SSOT item context: name=bin_observe; port=bin_value; expr=gray_to_bin(gray_value
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.output_rules.done_wrap
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.output_rules.done_wrap.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: name=done_wrap; port=done; expr=(1 if bin_state == ((1<<WIDTH)-1) else 0); width=1.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -843,14 +843,14 @@ SSOT item context: name=done_wrap; port=done; expr=(1 if bin_state == ((1<<WIDTH
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: value=gray_state updates to next_gray.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -863,14 +863,14 @@ SSOT item context: value=gray_state updates to next_gray.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: value=done_state set to 1 iff current bin_state is max value; else 0.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -883,14 +883,14 @@ SSOT item context: value=done_state set to 1 iff current bin_state is max value;
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.GC_TXN_ADVANCE.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_ADVANCE.error_cases.error_case_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_ADVANCE.
 SSOT item context: condition=WIDTH < 2.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -904,14 +904,14 @@ SSOT item context: condition=WIDTH < 2.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.GC_TXN_HOLD
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: id=GC_TXN_HOLD; name=hold_state.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -924,14 +924,14 @@ SSOT item context: id=GC_TXN_HOLD; name=hold_state.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.GC_TXN_HOLD.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.preconditions.precondition_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: value=rst_n == 1.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -944,14 +944,14 @@ SSOT item context: value=rst_n == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.GC_TXN_HOLD.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.preconditions.precondition_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: value=clear == 0 on sampled edge.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -964,14 +964,14 @@ SSOT item context: value=clear == 0 on sampled edge.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.GC_TXN_HOLD.preconditions.precondition_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.preconditions.precondition_2.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: value=enable == 0 on sampled edge.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -984,14 +984,14 @@ SSOT item context: value=enable == 0 on sampled edge.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.GC_TXN_HOLD.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.inputs.input_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: value=enable.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -1004,14 +1004,14 @@ SSOT item context: value=enable.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_HOLD.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.outputs.output_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: value=gray_value remains unchanged.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -1024,14 +1024,14 @@ SSOT item context: value=gray_value remains unchanged.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_HOLD.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.outputs.output_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: value=bin_value remains decode(gray_value).
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction

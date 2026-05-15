@@ -4,33 +4,14 @@
 
 - Top: gray_counter
 - Packets: 13
-- LLM-actionable tasks: 136
-- Human-locked tasks: 1
-- Tool-evidence tasks: 4
-- Deferred human QA allowed: True
-- PASS allowed: False
+- LLM-actionable tasks: 0
+- Human-locked tasks: 0
+- Tool-evidence tasks: 0
+- Deferred human QA allowed: False
+- PASS allowed: True
 - Target scale locked: False
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
-
-## Next LLM Packets
-
-- module__gray_counter_core__function_model_01: rtl/authoring_packets/module__gray_counter_core__function_model_01.json (llm_open=48, human_locked=0)
-- module__gray_counter_core__cycle_model: rtl/authoring_packets/module__gray_counter_core__cycle_model.json (llm_open=15, human_locked=0)
-- module__gray_counter_core__fsm: rtl/authoring_packets/module__gray_counter_core__fsm.json (llm_open=13, human_locked=0)
-- module__gray_counter_core__function_model_02: rtl/authoring_packets/module__gray_counter_core__function_model_02.json (llm_open=10, human_locked=0)
-- module__gray_counter_core__test_requirements: rtl/authoring_packets/module__gray_counter_core__test_requirements.json (llm_open=9, human_locked=0)
-- module__gray_counter_core__features: rtl/authoring_packets/module__gray_counter_core__features.json (llm_open=3, human_locked=0)
-- module__gray_counter_core__error_handling: rtl/authoring_packets/module__gray_counter_core__error_handling.json (llm_open=2, human_locked=0)
-- module__gray_counter_core__equivalence: rtl/authoring_packets/module__gray_counter_core__equivalence.json (llm_open=1, human_locked=0)
-
-## Tool Evidence Queue
-
-- rtl_gate_tool_evidence: tool_evidence=4, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
-
-## Human-Locked Queue
-
-- rtl_gate_human_closure: human_locked=1, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

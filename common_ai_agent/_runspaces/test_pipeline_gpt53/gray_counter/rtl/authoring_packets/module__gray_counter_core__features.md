@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.ordering, cycle_model.pipeline, dataflow, decomposition, error_handling, features, fsm, fsm.control, function_model, function_model.state_variables, function_model.transactions.GC_TXN_ADVANCE, function_model.transactions.GC_TXN_CLEAR, function_model.transactions.GC_TXN_HOLD, function_model.transactions.GC_TXN_RESET
 - Module slice: 5/9 section=features task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Gray_increment_progression
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Gray_increment_progression.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via features.
 SSOT item context: name=Gray increment progression; output=gray_value advances one legal Gray step.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -64,14 +64,14 @@ SSOT item context: name=Gray increment progression; output=gray_value advances o
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Wrap_pulse_generation
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Wrap_pulse_generation.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via features.
 SSOT item context: name=Wrap pulse generation; output=done asserted for exactly one cycle.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -84,14 +84,14 @@ SSOT item context: name=Wrap pulse generation; output=done asserted for exactly 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.Deterministic_clear_reset
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Deterministic_clear_reset.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via features.
 SSOT item context: name=Deterministic clear/reset; output=gray_value=0, bin_value=0, done=0.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT

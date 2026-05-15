@@ -604,6 +604,7 @@ def test_admin_usage_reports_rtl_version_run_history(tmp_path: Path) -> None:
             mode="pipeline",
             rtl_version_id=version["id"],
         )
+        db.attach_run_artifact_version(run["id"], version["artifact_version_id"], role="input")
         db.record_llm_call(
             session_id=session["id"],
             run_id=run["id"],
@@ -631,6 +632,10 @@ def test_admin_usage_reports_rtl_version_run_history(tmp_path: Path) -> None:
     assert row["llm_calls"] == 1
     assert row["tokens"] == 140
     assert row["cost"] == 0.12
+    assert payload["artifact_versions"][0]["artifact_type"] == "rtl"
+    assert payload["artifact_versions"][0]["version"] == "rtl-v002"
+    assert payload["run_artifact_sets"][0]["workflow"] == "sim"
+    assert payload["run_artifact_sets"][0]["artifact_versions"]["rtl"][0]["version"] == "rtl-v002"
 
 
 # ---------------------------------------------------------------------------

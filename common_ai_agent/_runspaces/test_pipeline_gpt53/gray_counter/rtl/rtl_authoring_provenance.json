@@ -1,0 +1,27 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_packets": [
+    "module__gray_counter_core__function_model_01",
+    "module__gray_counter_core__cycle_model",
+    "module__gray_counter_core__fsm",
+    "module__gray_counter_core__function_model_02",
+    "module__gray_counter_top",
+    "rtl_gate_evidence_closure"
+  ],
+  "contract_files": [
+    "rtl/rtl_contract.json"
+  ],
+  "generation_note": "Headless common engine recorded LLM-authored RTL artifacts from rtl_authoring_plan packets.",
+  "ip": "gray_counter",
+  "model": "gpt-5.3-codex",
+  "rtl_files": [
+    "rtl/gray_counter_core.sv",
+    "rtl/gray_counter.sv"
+  ],
+  "schema_version": 1,
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": "d473b2610c40c79069346972679ffe8377525380178163598257ddce80b959b1",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-15T09:12:57Z",
+  "workflow": "rtl-gen"
+}

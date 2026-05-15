@@ -1,19 +1,34 @@
 {
   "authoring_packets": [
     {
-      "json": "rtl/authoring_packets/module__gray_counter_core__function_model_01.json",
-      "markdown": "rtl/authoring_packets/module__gray_counter_core__function_model_01.md",
-      "packet_id": "module__gray_counter_core__function_model_01"
-    },
-    {
       "json": "rtl/authoring_packets/module__gray_counter_core__cycle_model.json",
       "markdown": "rtl/authoring_packets/module__gray_counter_core__cycle_model.md",
       "packet_id": "module__gray_counter_core__cycle_model"
     },
     {
+      "json": "rtl/authoring_packets/module__gray_counter_core__equivalence.json",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__equivalence.md",
+      "packet_id": "module__gray_counter_core__equivalence"
+    },
+    {
+      "json": "rtl/authoring_packets/module__gray_counter_core__error_handling.json",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__error_handling.md",
+      "packet_id": "module__gray_counter_core__error_handling"
+    },
+    {
+      "json": "rtl/authoring_packets/module__gray_counter_core__features.json",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__features.md",
+      "packet_id": "module__gray_counter_core__features"
+    },
+    {
       "json": "rtl/authoring_packets/module__gray_counter_core__fsm.json",
       "markdown": "rtl/authoring_packets/module__gray_counter_core__fsm.md",
       "packet_id": "module__gray_counter_core__fsm"
+    },
+    {
+      "json": "rtl/authoring_packets/module__gray_counter_core__function_model_01.json",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__function_model_01.md",
+      "packet_id": "module__gray_counter_core__function_model_01"
     },
     {
       "json": "rtl/authoring_packets/module__gray_counter_core__function_model_02.json",
@@ -24,21 +39,6 @@
       "json": "rtl/authoring_packets/module__gray_counter_core__test_requirements.json",
       "markdown": "rtl/authoring_packets/module__gray_counter_core__test_requirements.md",
       "packet_id": "module__gray_counter_core__test_requirements"
-    },
-    {
-      "json": "rtl/authoring_packets/module__gray_counter_core__features.json",
-      "markdown": "rtl/authoring_packets/module__gray_counter_core__features.md",
-      "packet_id": "module__gray_counter_core__features"
-    },
-    {
-      "json": "rtl/authoring_packets/module__gray_counter_core__error_handling.json",
-      "markdown": "rtl/authoring_packets/module__gray_counter_core__error_handling.md",
-      "packet_id": "module__gray_counter_core__error_handling"
-    },
-    {
-      "json": "rtl/authoring_packets/module__gray_counter_core__equivalence.json",
-      "markdown": "rtl/authoring_packets/module__gray_counter_core__equivalence.md",
-      "packet_id": "module__gray_counter_core__equivalence"
     },
     {
       "json": "rtl/authoring_packets/module__gray_counter_core__workflow_todo.json",
@@ -68,7 +68,7 @@
   ],
   "authoring_plan": "rtl/rtl_authoring_plan.json",
   "gate": {
-    "all_required_todos_pass": false,
+    "all_required_todos_pass": true,
     "audit_rtl": true,
     "blocking_questions": 0,
     "criteria": [
@@ -90,12 +90,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 141,
+    "open_required_todos": 0,
     "orphan_tasks": 0,
-    "static_missing": 54,
-    "status": "fail"
+    "static_missing": 0,
+    "status": "pass"
   },
-  "generated_at": "2026-05-15T09:09:46Z",
+  "generated_at": "2026-05-15T09:13:01Z",
   "ip": "gray_counter",
   "rows": [
     {
@@ -344,8 +344,13 @@
       "owner_module": "gray_counter_core",
       "source_ref": "workflow_todos.rtl-gen[0]",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "CORE",
+          "core",
+          "gray",
+          "gray_counter_core"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -359,7 +364,7 @@
           "gray_counter_core"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0020"
     },
@@ -529,8 +534,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_RESET.preconditions.precondition_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -539,7 +547,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0034"
     },
@@ -553,8 +561,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_RESET.inputs.input_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -563,7 +574,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0035"
     },
@@ -578,8 +589,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_RESET.outputs.output_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -589,7 +604,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0036"
     },
@@ -604,8 +619,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_RESET.outputs.output_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -615,7 +634,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0037"
     },
@@ -642,8 +661,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_RESET.output_rules.gray_value_reset",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -653,7 +676,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0039"
     },
@@ -668,8 +691,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_RESET.output_rules.bin_value_reset",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -679,7 +706,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0040"
     },
@@ -705,8 +732,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_RESET.side_effects.side_effect_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "gray",
+          "gray_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -715,7 +745,7 @@
           "gray_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0042"
     },
@@ -729,8 +759,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_RESET.side_effects.side_effect_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "done",
+          "done_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -739,7 +772,7 @@
           "done_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0043"
     },
@@ -765,8 +798,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_CLEAR.preconditions.precondition_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -775,7 +811,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0045"
     },
@@ -814,8 +850,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_CLEAR.outputs.output_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -825,7 +865,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0048"
     },
@@ -840,8 +880,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_CLEAR.outputs.output_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -851,7 +895,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0049"
     },
@@ -878,8 +922,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_CLEAR.output_rules.gray_value_clear",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -889,7 +937,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0051"
     },
@@ -904,8 +952,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_CLEAR.output_rules.bin_value_clear",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -915,7 +967,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0052"
     },
@@ -941,8 +993,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "gray",
+          "gray_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -951,7 +1006,7 @@
           "gray_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0054"
     },
@@ -965,8 +1020,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "done",
+          "done_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -975,7 +1033,7 @@
           "done_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0055"
     },
@@ -1001,8 +1059,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1011,7 +1072,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0057"
     },
@@ -1061,8 +1122,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_ADVANCE.inputs.input_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "gray",
+          "gray_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1071,7 +1135,7 @@
           "gray_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0061"
     },
@@ -1085,8 +1149,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_ADVANCE.outputs.output_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "bin",
+          "bin_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1095,7 +1162,7 @@
           "bin_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0062"
     },
@@ -1112,8 +1179,13 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_ADVANCE.outputs.output_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "bin",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1125,7 +1197,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0063"
     },
@@ -1143,8 +1215,14 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_ADVANCE.outputs.output_2",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1157,7 +1235,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0064"
     },
@@ -1175,8 +1253,15 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_ADVANCE.output_rules.gray_advance",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "WIDTH",
+          "bin",
+          "bin_state",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1189,7 +1274,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0065"
     },
@@ -1207,8 +1292,14 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_ADVANCE.output_rules.bin_observe",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1221,7 +1312,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0066"
     },
@@ -1236,8 +1327,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_ADVANCE.output_rules.done_wrap",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "WIDTH",
+          "bin",
+          "bin_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1247,7 +1342,7 @@
           "bin_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0067"
     },
@@ -1263,8 +1358,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_state",
+          "next"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1275,7 +1374,7 @@
           "next_gray"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0068"
     },
@@ -1291,8 +1390,13 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "bin",
+          "bin_state",
+          "done",
+          "done_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1303,7 +1407,7 @@
           "done_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0069"
     },
@@ -1316,8 +1420,10 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_ADVANCE.error_cases.error_case_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "WIDTH"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1325,7 +1431,7 @@
           "WIDTH"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0070"
     },
@@ -1351,8 +1457,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_HOLD.preconditions.precondition_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1361,7 +1470,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0072"
     },
@@ -1412,8 +1521,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_HOLD.outputs.output_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1423,7 +1536,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0076"
     },
@@ -1440,8 +1553,14 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_HOLD.outputs.output_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1453,7 +1572,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0077"
     },
@@ -1481,8 +1600,13 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_HOLD.output_rules.gray_hold",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "gray",
+          "gray_state",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1493,7 +1617,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0079"
     },
@@ -1511,8 +1635,14 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_HOLD.output_rules.bin_hold",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_state",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1525,7 +1655,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0080"
     },
@@ -1551,8 +1681,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.transactions.GC_TXN_HOLD.side_effects.side_effect_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "done",
+          "done_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1561,7 +1694,7 @@
           "done_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0082"
     },
@@ -1578,8 +1711,14 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.invariants.invariant_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_state",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1591,7 +1730,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0083"
     },
@@ -1609,8 +1748,14 @@
       "owner_module": "gray_counter_core",
       "source_ref": "function_model.invariants.invariant_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1623,7 +1768,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0084"
     },
@@ -1733,8 +1878,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "cycle_model.handshake_rules.rst_n",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1743,7 +1891,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0093"
     },
@@ -1759,8 +1907,13 @@
       "owner_module": "gray_counter_core",
       "source_ref": "cycle_model.pipeline.S0_SAMPLE",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "gray",
+          "gray_state",
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1771,7 +1924,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0094"
     },
@@ -1812,8 +1965,14 @@
       "owner_module": "gray_counter_core",
       "source_ref": "cycle_model.pipeline.S3_OBSERVE",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1825,7 +1984,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0097"
     },
@@ -1898,8 +2057,10 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.states.state_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1907,7 +2068,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0103"
     },
@@ -1920,8 +2081,10 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.states.state_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "RUN"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1929,7 +2092,7 @@
           "RUN"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0104"
     },
@@ -1942,8 +2105,10 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.states.state_2",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "WRAP_PULSE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1951,7 +2116,7 @@
           "WRAP_PULSE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0105"
     },
@@ -1964,8 +2129,10 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.states.state_3",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "CLEARED"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1973,7 +2140,7 @@
           "CLEARED"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0106"
     },
@@ -1986,8 +2153,10 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.states.state_4",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "RESET"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1995,7 +2164,7 @@
           "RESET"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0107"
     },
@@ -2011,8 +2180,13 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.transitions.transition_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "IDLE",
+          "RESET",
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2023,7 +2197,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0108"
     },
@@ -2037,8 +2211,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.transitions.transition_1",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "CLEARED",
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2047,7 +2224,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0109"
     },
@@ -2061,8 +2238,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.transitions.transition_2",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "IDLE",
+          "RUN"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2071,7 +2251,7 @@
           "RUN"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0110"
     },
@@ -2085,8 +2265,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.transitions.transition_3",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "RUN",
+          "WRAP_PULSE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2095,7 +2278,7 @@
           "WRAP_PULSE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0111"
     },
@@ -2109,8 +2292,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.transitions.transition_4",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "IDLE",
+          "RUN"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2119,7 +2305,7 @@
           "RUN"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0112"
     },
@@ -2133,8 +2319,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.transitions.transition_5",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "RUN",
+          "WRAP_PULSE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2143,7 +2332,7 @@
           "WRAP_PULSE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0113"
     },
@@ -2157,8 +2346,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.transitions.transition_6",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "IDLE",
+          "WRAP_PULSE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2167,7 +2359,7 @@
           "WRAP_PULSE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0114"
     },
@@ -2181,8 +2373,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "fsm.control.transitions.transition_7",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "CLEARED",
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2191,7 +2386,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0115"
     },
@@ -2206,8 +2401,12 @@
       "owner_module": "gray_counter_core",
       "source_ref": "features.Gray_increment_progression",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2217,7 +2416,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0116"
     },
@@ -2246,8 +2445,14 @@
       "owner_module": "gray_counter_core",
       "source_ref": "features.Deterministic_clear_reset",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2259,7 +2464,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0118"
     },
@@ -2273,8 +2478,11 @@
       "owner_module": "gray_counter_core",
       "source_ref": "error_handling.recovery.recovery_0",
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2283,7 +2491,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "task_id": "RTL-0119"
     },

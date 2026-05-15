@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 10
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.ordering, cycle_model.pipeline, dataflow, decomposition, error_handling, features, fsm, fsm.control, function_model, function_model.state_variables, function_model.transactions.GC_TXN_ADVANCE, function_model.transactions.GC_TXN_CLEAR, function_model.transactions.GC_TXN_HOLD, function_model.transactions.GC_TXN_RESET
 - Module slice: 2/9 section=function_model task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.GC_TXN_HOLD.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.outputs.output_2.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: value=done == 0.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -64,14 +64,14 @@ SSOT item context: value=done == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_HOLD.output_rules.gray_hold
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.output_rules.gray_hold.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: name=gray_hold; port=gray_value; expr=gray_state; width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -88,14 +88,14 @@ SSOT item context: name=gray_hold; port=gray_value; expr=gray_state; width=WIDTH
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_HOLD.output_rules.bin_hold
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.output_rules.bin_hold.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: name=bin_hold; port=bin_value; expr=gray_to_bin(gray_state); width=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -112,14 +112,14 @@ SSOT item context: name=bin_hold; port=bin_value; expr=gray_to_bin(gray_state); 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.GC_TXN_HOLD.output_rules.done_hold
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.output_rules.done_hold.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: name=done_hold; port=done; expr=0; width=1.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -136,14 +136,14 @@ SSOT item context: name=done_hold; port=done; expr=0; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.GC_TXN_HOLD.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.GC_TXN_HOLD.side_effects.side_effect_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.transactions.GC_TXN_HOLD.
 SSOT item context: value=done_state forced low in non-wrap hold cycles.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -156,14 +156,14 @@ SSOT item context: value=done_state forced low in non-wrap hold cycles.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_0
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.
 SSOT item context: value=gray_value is always a legal WIDTH-bit Gray encoding of bin_state..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -176,14 +176,14 @@ SSOT item context: value=gray_value is always a legal WIDTH-bit Gray encoding of
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_1
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.
 SSOT item context: value=bin_value always equals gray_to_bin(gray_value) combinationally..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -196,14 +196,14 @@ SSOT item context: value=bin_value always equals gray_to_bin(gray_value) combina
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_2
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_2.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.
 SSOT item context: value=done is asserted for at most one consecutive cycle per wrap event..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -216,14 +216,14 @@ SSOT item context: value=done is asserted for at most one consecutive cycle per 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_3
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_3.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.
 SSOT item context: value=clear has priority over enable on sampled clock edges..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -236,14 +236,14 @@ SSOT item context: value=clear has priority over enable on sampled clock edges..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_4
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_4.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via function_model.
 SSOT item context: value=reset dominates all synchronous controls when asserted..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner

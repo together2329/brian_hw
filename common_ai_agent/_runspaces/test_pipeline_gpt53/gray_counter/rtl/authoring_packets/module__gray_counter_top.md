@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 26
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: integration, integration.connections, io_list, io_list.interfaces, io_list.interfaces.control, io_list.interfaces.status
 
@@ -53,14 +53,14 @@ Owner: gray_counter_top in rtl/gray_counter.sv via semantic_terms:top.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: gray_counter_top in rtl/gray_counter.sv via semantic_terms:top.
 SSOT item context: value=gray_counter.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width
@@ -73,14 +73,14 @@ SSOT item context: value=gray_counter.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.asset_0
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.asset_0.
 Owner: gray_counter_top in rtl/gray_counter.sv via top_fallback.
 SSOT item context: value=Correct state transition semantics.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -93,14 +93,14 @@ SSOT item context: value=Correct state transition semantics.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.asset_1
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.asset_1.
 Owner: gray_counter_top in rtl/gray_counter.sv via top_fallback.
 SSOT item context: value=Deterministic reset/clear behavior.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -113,14 +113,14 @@ SSOT item context: value=Deterministic reset/clear behavior.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.asset_2
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.asset_2.
 Owner: gray_counter_top in rtl/gray_counter.sv via top_fallback.
 SSOT item context: value=Accurate done pulse used for downstream checks.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -133,14 +133,14 @@ SSOT item context: value=Accurate done pulse used for downstream checks.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.dependencie_0
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.dependencie_0.
 Owner: gray_counter_top in rtl/gray_counter.sv via integration.
 SSOT item context: value=Single clean synchronous clock source.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -153,14 +153,14 @@ SSOT item context: value=Single clean synchronous clock source.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.dependencie_1
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.dependencie_1.
 Owner: gray_counter_top in rtl/gray_counter.sv via integration.
 SSOT item context: value=Asynchronous active-low reset source meeting timing assumptions.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -173,14 +173,14 @@ SSOT item context: value=Asynchronous active-low reset source meeting timing ass
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.dependencie_2
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.dependencie_2.
 Owner: gray_counter_top in rtl/gray_counter.sv via integration.
 SSOT item context: value=Upstream stimulus driver for enable/clear.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -193,14 +193,14 @@ SSOT item context: value=Upstream stimulus driver for enable/clear.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.soc_clk_or_tb_clk
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.soc_clk_or_tb_clk.
 Owner: gray_counter_top in rtl/gray_counter.sv via integration.connections.
 SSOT item context: port=clk; signal=soc_clk_or_tb_clk.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -214,14 +214,14 @@ SSOT item context: port=clk; signal=soc_clk_or_tb_clk.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.soc_rst_n_or_tb_rst_n
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.soc_rst_n_or_tb_rst_n.
 Owner: gray_counter_top in rtl/gray_counter.sv via integration.connections.
 SSOT item context: port=rst_n; signal=soc_rst_n_or_tb_rst_n.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -235,14 +235,14 @@ SSOT item context: port=rst_n; signal=soc_rst_n_or_tb_rst_n.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.control_enable
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.control_enable.
 Owner: gray_counter_top in rtl/gray_counter.sv via integration.connections.
 SSOT item context: port=enable; signal=control_enable.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -256,14 +256,14 @@ SSOT item context: port=enable; signal=control_enable.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.control_clear
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.control_clear.
 Owner: gray_counter_top in rtl/gray_counter.sv via integration.connections.
 SSOT item context: port=clear; signal=control_clear.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -277,14 +277,14 @@ SSOT item context: port=clear; signal=control_clear.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.observed_gray_value
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.observed_gray_value.
 Owner: gray_counter_top in rtl/gray_counter.sv via integration.connections.
 SSOT item context: port=gray_value; signal=observed_gray_value.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -298,14 +298,14 @@ SSOT item context: port=gray_value; signal=observed_gray_value.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.observed_bin_value
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.observed_bin_value.
 Owner: gray_counter_top in rtl/gray_counter.sv via integration.connections.
 SSOT item context: port=bin_value; signal=observed_bin_value.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -319,14 +319,14 @@ SSOT item context: port=bin_value; signal=observed_bin_value.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.observed_done
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.observed_done.
 Owner: gray_counter_top in rtl/gray_counter.sv via integration.connections.
 SSOT item context: port=done; signal=observed_done.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -340,14 +340,14 @@ SSOT item context: port=done; signal=observed_done.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_0
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_0.
 Owner: gray_counter_top in rtl/gray_counter.sv via top_fallback.
 SSOT item context: value=Primary clock constraint from timing.target_clocks.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -360,14 +360,14 @@ SSOT item context: value=Primary clock constraint from timing.target_clocks.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_1
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_1.
 Owner: gray_counter_top in rtl/gray_counter.sv via top_fallback.
 SSOT item context: value=Asynchronous reset path treated per library reset semantics.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -380,14 +380,14 @@ SSOT item context: value=Asynchronous reset path treated per library reset seman
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_2
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_2.
 Owner: gray_counter_top in rtl/gray_counter.sv via top_fallback.
 SSOT item context: value=Honor WIDTH parameterization without hardcoded constants.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -400,14 +400,14 @@ SSOT item context: value=Honor WIDTH parameterization without hardcoded constant
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.WIDTH.
 Owner: gray_counter_top in rtl/gray_counter.sv via top_fallback.
 SSOT item context: name=WIDTH.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -420,14 +420,14 @@ SSOT item context: name=WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.CLOCK_FREQ_MHZ
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.CLOCK_FREQ_MHZ.
 Owner: gray_counter_top in rtl/gray_counter.sv via top_fallback.
 SSOT item context: name=CLOCK_FREQ_MHZ.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -440,14 +440,14 @@ SSOT item context: name=CLOCK_FREQ_MHZ.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.clock_domains.clk.ports.clk
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.clk.ports.clk.
 Owner: gray_counter_top in rtl/gray_counter.sv via io_list.
 SSOT item context: name=clk; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -462,14 +462,14 @@ SSOT item context: name=clk; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.resets.rst_n.ports.rst_n
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.rst_n.ports.rst_n.
 Owner: gray_counter_top in rtl/gray_counter.sv via io_list.
 SSOT item context: name=rst_n; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -484,14 +484,14 @@ SSOT item context: name=rst_n; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.control.ports.enable
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.control.ports.enable.
 Owner: gray_counter_top in rtl/gray_counter.sv via io_list.interfaces.control.
 SSOT item context: name=enable; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -506,14 +506,14 @@ SSOT item context: name=enable; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.control.ports.clear
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.control.ports.clear.
 Owner: gray_counter_top in rtl/gray_counter.sv via io_list.interfaces.control.
 SSOT item context: name=clear; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -528,14 +528,14 @@ SSOT item context: name=clear; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.status.ports.gray_value
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.status.ports.gray_value.
 Owner: gray_counter_top in rtl/gray_counter.sv via io_list.interfaces.status.
 SSOT item context: name=gray_value; width=WIDTH; direction=output.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -550,14 +550,14 @@ SSOT item context: name=gray_value; width=WIDTH; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.status.ports.bin_value
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.status.ports.bin_value.
 Owner: gray_counter_top in rtl/gray_counter.sv via io_list.interfaces.status.
 SSOT item context: name=bin_value; width=WIDTH; direction=output.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -572,14 +572,14 @@ SSOT item context: name=bin_value; width=WIDTH; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.status.ports.done
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.status.ports.done.
 Owner: gray_counter_top in rtl/gray_counter.sv via io_list.interfaces.status.
 SSOT item context: name=done; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/gray_counter.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

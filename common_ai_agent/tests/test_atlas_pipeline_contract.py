@@ -270,8 +270,10 @@ def test_rtl_completion_registers_version_and_fans_out_context(
 
     assert rtl_job["rtl_version"] == "rtl-v001"
     assert rtl_job["rtl_sha256_tree"]
+    assert rtl_job["artifact_versions"]["rtl"]["version"] == "rtl-v001"
     assert {job["stage_id"] for job in dispatched} == {"lint", "tb"}
     assert all(job["rtl_version_id"] == rtl_job["rtl_version_id"] for job in dispatched)
+    assert all(job["artifact_versions"]["rtl"]["version"] == "rtl-v001" for job in dispatched)
 
     from core.atlas_db import AtlasDB
 
@@ -280,6 +282,107 @@ def test_rtl_completion_registers_version_and_fans_out_context(
     assert len(versions) == 1
     assert versions[0]["version"] == "rtl-v001"
     assert versions[0]["artifact_manifest"][0]["path"].startswith(f"{ip}/")
+
+
+def test_pipeline_propagates_ssot_rtl_tb_versions_to_sim(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    ip = "demo_ip"
+    (tmp_path / ip / "yaml").mkdir(parents=True)
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+    (tmp_path / ip / "list").mkdir(parents=True)
+    (tmp_path / ip / "tb").mkdir(parents=True)
+    (tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").write_text("ip: demo_ip\n", encoding="utf-8")
+    (tmp_path / ip / "rtl" / f"{ip}.sv").write_text("module demo_ip; endmodule\n", encoding="utf-8")
+    (tmp_path / ip / "list" / f"{ip}.f").write_text(f"../rtl/{ip}.sv\n", encoding="utf-8")
+    (tmp_path / ip / "tb" / "run_tests.py").write_text("def test_smoke(): pass\n", encoding="utf-8")
+
+    pipeline_id = "pipe-artifacts"
+    ssot_job = {
+        "job_id": "ssot-job",
+        "run_id": "worker-ssot",
+        "pipeline_id": pipeline_id,
+        "stage_id": "ssot",
+        "workflow": "ssot-gen",
+        "status": "completed",
+        "pipeline_index": 0,
+        "depends_on": [],
+        "project_root": str(tmp_path),
+        "ip": ip,
+    }
+    rtl_job = {
+        "job_id": "rtl-job",
+        "run_id": "worker-rtl",
+        "pipeline_id": pipeline_id,
+        "stage_id": "rtl",
+        "workflow": "rtl-gen",
+        "status": "queued",
+        "pipeline_index": 1,
+        "depends_on": ["ssot-job"],
+        "project_root": str(tmp_path),
+        "ip": ip,
+    }
+    tb_job = {
+        "job_id": "tb-job",
+        "run_id": "worker-tb",
+        "pipeline_id": pipeline_id,
+        "stage_id": "tb",
+        "workflow": "tb-gen",
+        "status": "queued",
+        "pipeline_index": 2,
+        "depends_on": ["rtl-job"],
+        "project_root": str(tmp_path),
+        "ip": ip,
+    }
+    sim_job = {
+        "job_id": "sim-job",
+        "pipeline_id": pipeline_id,
+        "stage_id": "sim",
+        "workflow": "sim",
+        "status": "queued",
+        "pipeline_index": 3,
+        "depends_on": ["tb-job"],
+        "project_root": str(tmp_path),
+        "ip": ip,
+    }
+
+    dispatched: list[dict] = []
+
+    def fake_dispatch(job):
+        dispatched.append(dict(job))
+        job["status"] = "running"
+
+    monkeypatch.setattr(jobs, "_dispatch_job_to_worker", fake_dispatch)
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        for job in (ssot_job, rtl_job, tb_job, sim_job):
+            jobs._jobs[job["job_id"]] = job
+    try:
+        jobs._advance_pipeline_from(ssot_job)
+        assert rtl_job["artifact_versions"]["ssot"]["version"] == "ssot-v001"
+        rtl_job["status"] = "completed"
+        jobs._advance_pipeline_from(rtl_job)
+        assert tb_job["artifact_versions"]["ssot"]["version"] == "ssot-v001"
+        assert tb_job["artifact_versions"]["rtl"]["version"] == "rtl-v001"
+        tb_job["status"] = "completed"
+        jobs._advance_pipeline_from(tb_job)
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+    assert sim_job["artifact_versions"]["ssot"]["version"] == "ssot-v001"
+    assert sim_job["artifact_versions"]["rtl"]["version"] == "rtl-v001"
+    assert sim_job["artifact_versions"]["tb"]["version"] == "tb-v001"
+
+    from core.atlas_db import AtlasDB
+
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        artifact_versions = db.list_artifact_versions()
+        edges = db.list_artifact_version_edges()
+    assert {row["artifact_type"] for row in artifact_versions} == {"ssot", "rtl", "tb"}
+    assert {edge["relation"] for edge in edges} == {"generated_from", "verified_against"}
 
 
 def test_worker_dispatch_posts_rtl_version_context(monkeypatch) -> None:
@@ -319,6 +422,10 @@ def test_worker_dispatch_posts_rtl_version_context(monkeypatch) -> None:
         "rtl_version": "rtl-v001",
         "rtl_sha256_tree": "tree123",
         "rtl_git_tag": "atlas/demo_ip/rtl-v001",
+        "artifact_versions": {
+            "ssot": {"id": "av_ssot", "artifact_type": "ssot", "version": "ssot-v001"},
+            "rtl": {"id": "av_rtl", "artifact_type": "rtl", "version": "rtl-v001"},
+        },
     }
     with jobs._jobs_lock:
         jobs._jobs.clear()
@@ -330,8 +437,10 @@ def test_worker_dispatch_posts_rtl_version_context(monkeypatch) -> None:
             jobs._jobs.clear()
 
     assert posted["rtl_version_id"] == "rv_123"
+    assert posted["artifact_versions"][0]["version"] == "ssot-v001"
     assert "rtl_version_id: rv_123" in posted["context"]
     assert "rtl_git_tag: atlas/demo_ip/rtl-v001" in posted["context"]
+    assert "ssot: ssot-v001" in posted["context"]
 
 
 def test_worker_launch_command_anchors_to_served_project_root(tmp_path: Path) -> None:

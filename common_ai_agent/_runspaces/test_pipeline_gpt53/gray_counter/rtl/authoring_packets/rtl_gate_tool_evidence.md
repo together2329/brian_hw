@@ -22,20 +22,10 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Tool-evidence blockers:
-  - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
-  - dut_compile: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
-  - dut_lint: Missing canonical DUT lint artifact: lint/dut_lint.json.
-  - dynamic_todo_closure: 140 required non-closure TODO(s) remain open.
-- Tool-evidence runbook:
-  - common_ai_agent_authoring: stages=ssot-rtl; artifact=gray_counter/rtl/rtl_authoring_provenance.json
-  - dut_compile: stages=ssot-rtl, dut_compile; artifact=gray_counter/rtl/rtl_compile.json
-  - dut_lint: stages=lint, dut_lint; artifact=gray_counter/lint/dut_lint.json
-  - dynamic_todo_closure: stages=audit-rtl; artifact=gray_counter/rtl/rtl_todo_plan.json
 - SSOT connection contracts:
   - gray_counter_core.clk <= clk (sub_modules[0].connections[0])
   - gray_counter_core.rst_n <= rst_n (sub_modules[0].connections[1])
@@ -57,13 +47,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: gray_counter_top in rtl/gray_counter.sv via semantic_terms:top.
-- Current reason: Missing common_ai_agent RTL authoring provenance.
+- Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -80,13 +70,13 @@ Owner: gray_counter_top in rtl/gray_counter.sv via semantic_terms:top.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: gray_counter_top in rtl/gray_counter.sv via semantic_terms:top.
-- Current reason: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
+- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -101,13 +91,13 @@ Owner: gray_counter_top in rtl/gray_counter.sv via semantic_terms:top.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: gray_counter_top in rtl/gray_counter.sv via semantic_terms:top.
-- Current reason: Missing canonical DUT lint artifact: lint/dut_lint.json.
+- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -123,13 +113,13 @@ Owner: gray_counter_top in rtl/gray_counter.sv via semantic_terms:top.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dynamic_todo_closure
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: gray_counter_top in rtl/gray_counter.sv via semantic_terms:top.
-- Current reason: 140 required non-closure TODO(s) remain open.
+- Current reason: Every required non-closure TODO has pass status.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

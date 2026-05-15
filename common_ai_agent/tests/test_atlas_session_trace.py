@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+import json
 
 from core.atlas_db import AtlasDB
 
@@ -256,6 +257,56 @@ def test_trace_recorder_from_env_anchors_run_to_active_rtl_version(
     assert run["rtl_git_tag"] == "atlas/dma/rtl-v001"
     assert artifact["rtl_version_id"] == version["id"]
     assert artifacts[0]["rtl_version_id"] == version["id"]
+
+
+def test_trace_recorder_from_env_attaches_artifact_version_set(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from core.atlas_trace import TraceRecorder
+
+    db_path = tmp_path / "atlas.db"
+    with AtlasDB(str(db_path)) as db:
+        workspace = db.upsert_workspace("trace-workspace", owner_user_id="alice", local_path=str(tmp_path))
+        ip = db.upsert_ip_block(workspace["id"], "dma")
+        ssot = db.register_artifact_version(
+            ip_id=ip["id"],
+            workspace_id=workspace["id"],
+            artifact_type="ssot",
+            version="ssot-v001",
+            sha256_tree="ssot-tree",
+        )
+        tb = db.register_artifact_version(
+            ip_id=ip["id"],
+            workspace_id=workspace["id"],
+            artifact_type="tb",
+            version="tb-v001",
+            sha256_tree="tb-tree",
+        )
+
+    monkeypatch.setenv("ATLAS_TRACE_ENABLE", "1")
+    monkeypatch.setenv("ATLAS_TRACE_DB_PATH", str(db_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", "alice/dma/sim")
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "dma")
+    monkeypatch.setenv("ATLAS_DEFAULT_WORKFLOW", "sim")
+    monkeypatch.setenv(
+        "ATLAS_ACTIVE_ARTIFACT_VERSIONS",
+        json.dumps([
+            {"id": ssot["id"], "artifact_type": "ssot", "version": "ssot-v001"},
+            {"id": tb["id"], "artifact_type": "tb", "version": "tb-v001"},
+        ]),
+    )
+    monkeypatch.delenv("ATLAS_ACTIVE_RUN_ID", raising=False)
+
+    recorder = TraceRecorder.from_env()
+    assert recorder is not None
+
+    with AtlasDB(str(db_path)) as db:
+        sets = db.list_run_artifact_version_sets(workflows=["sim"])
+
+    assert sets[0]["artifact_versions"]["ssot"][0]["version"] == "ssot-v001"
+    assert sets[0]["artifact_versions"]["tb"][0]["version"] == "tb-v001"
 
 
 def test_permission_policy_enforces_ranked_ip_access(tmp_path: Path) -> None:

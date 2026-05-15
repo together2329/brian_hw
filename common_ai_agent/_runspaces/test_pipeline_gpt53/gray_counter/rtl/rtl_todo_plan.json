@@ -13,7 +13,7 @@
     "type": "rtl_connection_contract_suggestions"
   },
   "gate": {
-    "all_required_todos_pass": false,
+    "all_required_todos_pass": true,
     "audit_rtl": true,
     "blocking_questions": 0,
     "criteria": [
@@ -35,105 +35,61 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 141,
+    "open_required_todos": 0,
     "orphan_tasks": 0,
-    "static_missing": 54,
-    "status": "fail"
+    "static_missing": 0,
+    "status": "pass"
   },
-  "generated_at": "2026-05-15T09:09:46Z",
+  "generated_at": "2026-05-15T09:13:01Z",
   "ip": "gray_counter",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 21,
-    "connection_contract_issues": [
-      {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
-        "module": "gray_counter_core",
-        "port": "clk",
-        "source_ref": "sub_modules[0].connections[0]"
-      },
-      {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
-        "module": "gray_counter_core",
-        "port": "rst_n",
-        "source_ref": "sub_modules[0].connections[1]"
-      },
-      {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
-        "module": "gray_counter_core",
-        "port": "enable",
-        "source_ref": "sub_modules[0].connections[2]"
-      },
-      {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
-        "module": "gray_counter_core",
-        "port": "clear",
-        "source_ref": "sub_modules[0].connections[3]"
-      },
-      {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
-        "module": "gray_counter_core",
-        "port": "gray_value",
-        "source_ref": "sub_modules[0].connections[4]"
-      },
-      {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
-        "module": "gray_counter_core",
-        "port": "bin_value",
-        "source_ref": "sub_modules[0].connections[5]"
-      },
-      {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
-        "module": "gray_counter_core",
-        "port": "done",
-        "source_ref": "sub_modules[0].connections[6]"
-      }
+    "connection_contract_issues": [],
+    "connection_contract_status": "pass",
+    "declared_modules": [
+      "gray_counter",
+      "gray_counter_core"
     ],
-    "connection_contract_status": "fail",
-    "declared_modules": [],
-    "graph": {},
-    "issues": [
-      {
-        "file": "rtl/gray_counter.sv",
-        "issue": "SSOT top module is not declared in listed RTL sources",
-        "module": "gray_counter"
-      },
-      {
-        "file": "rtl/gray_counter_core.sv",
-        "issue": "SSOT manifest child module is not declared in listed RTL sources",
-        "module": "gray_counter_core"
-      }
-    ],
+    "graph": {
+      "gray_counter": [
+        "gray_counter_core"
+      ],
+      "gray_counter_core": []
+    },
+    "issues": [],
     "port_connection_issues": [],
     "port_connection_status": "pass",
-    "reachable_modules": [],
-    "roots": [],
-    "sources": [],
-    "status": "fail"
+    "reachable_modules": [
+      "gray_counter",
+      "gray_counter_core"
+    ],
+    "roots": [
+      "gray_counter"
+    ],
+    "sources": [
+      "rtl/gray_counter.sv",
+      "rtl/gray_counter_core.sv"
+    ],
+    "status": "pass"
   },
   "manifest_signal_flow_evidence": {
-    "checked_inputs": 0,
-    "checked_outputs": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
-        "module": "gray_counter"
-      }
+    "checked_inputs": 4,
+    "checked_outputs": 3,
+    "issues": [],
+    "reachable_modules": [
+      "gray_counter",
+      "gray_counter_core"
     ],
-    "reachable_modules": [],
-    "roots": [],
-    "status": "fail"
+    "roots": [
+      "gray_counter"
+    ],
+    "status": "pass"
   },
   "orphans": [],
   "owner_logic_evidence": {
     "checked": 1,
-    "issues": [
-      {
-        "file": "rtl/gray_counter_core.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "gray_counter_core"
-      }
-    ],
-    "status": "fail"
+    "issues": [],
+    "status": "pass"
   },
   "policy": {
     "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
@@ -152,21 +108,50 @@
   "reference_scale_gap": {},
   "rtl_implementation_depth_evidence": {
     "aggregate": {
-      "behavior_owner_logic_modules": 0,
-      "control_flow": 0,
-      "depth_score": 0,
-      "instances": 0,
-      "lines": 0,
-      "logic_modules": 0,
-      "modules": 0,
-      "nonconstant_assigns": 0,
-      "procedural_blocks": 0,
-      "source_files": 0,
-      "state_updates": 0,
-      "storage_decls": 0
+      "behavior_owner_logic_modules": 1,
+      "control_flow": 14,
+      "depth_score": 75,
+      "instances": 1,
+      "lines": 191,
+      "logic_modules": 2,
+      "modules": 2,
+      "nonconstant_assigns": 8,
+      "procedural_blocks": 3,
+      "source_files": 2,
+      "state_updates": 14,
+      "storage_decls": 14
     },
     "issues": [],
-    "modules": [],
+    "modules": [
+      {
+        "depth_score": 70,
+        "file": "rtl/gray_counter_core.sv",
+        "metrics": {
+          "control_flow": 14,
+          "instances": 0,
+          "nonconstant_assigns": 7,
+          "placeholder_tokens": false,
+          "procedural_blocks": 3,
+          "state_updates": 14,
+          "storage_decls": 12
+        },
+        "module": "gray_counter_core"
+      },
+      {
+        "depth_score": 5,
+        "file": "rtl/gray_counter.sv",
+        "metrics": {
+          "control_flow": 0,
+          "instances": 1,
+          "nonconstant_assigns": 1,
+          "placeholder_tokens": false,
+          "procedural_blocks": 0,
+          "state_updates": 0,
+          "storage_decls": 2
+        },
+        "module": "gray_counter"
+      }
+    ],
     "profile": "standard",
     "reference_comparison": null,
     "status": "pass",
@@ -181,13 +166,9 @@
     }
   },
   "rtl_placeholder_free_evidence": {
-    "checked": 0,
-    "issues": [
-      {
-        "issue": "No listed RTL source files were readable, so placeholder-free evidence cannot be checked"
-      }
-    ],
-    "status": "fail"
+    "checked": 2,
+    "issues": [],
+    "status": "pass"
   },
   "schema_version": 1,
   "source": "gray_counter/yaml/gray_counter.ssot.yaml",
@@ -534,822 +515,13 @@
   ],
   "static_rtl_evidence": {
     "checked": 54,
-    "missing": 54,
-    "missing_tasks": [
-      {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "CORE",
-          "RTL_TODO_CORE_SEMANTICS",
-          "SEMANTICS",
-          "TODO",
-          "core",
-          "gray",
-          "gray_counter_core"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[0]",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0020"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_RESET.preconditions.precondition_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0034"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_RESET.inputs.input_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0035"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_RESET.outputs.output_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0036"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_RESET.outputs.output_1",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0037"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_RESET.output_rules.gray_value_reset",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0039"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_RESET.output_rules.bin_value_reset",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0040"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gray",
-          "gray_state"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_RESET.side_effects.side_effect_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0042"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "done",
-          "done_state"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_RESET.side_effects.side_effect_1",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0043"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.preconditions.precondition_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0045"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.outputs.output_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0048"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.outputs.output_1",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0049"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.output_rules.gray_value_clear",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0051"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.output_rules.bin_value_clear",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0052"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gray",
-          "gray_state"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0054"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "done",
-          "done_state"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_1",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0055"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0057"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gray",
-          "gray_state"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.inputs.input_1",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_state"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.outputs.output_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0062"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_to_gray",
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.outputs.output_1",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0063"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_value",
-          "gray",
-          "gray_to_bin",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.outputs.output_2",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0064"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "WIDTH",
-          "bin",
-          "bin_state",
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.output_rules.gray_advance",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0065"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_value",
-          "gray",
-          "gray_to_bin",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.output_rules.bin_observe",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0066"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "WIDTH",
-          "bin",
-          "bin_state"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.output_rules.done_wrap",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0067"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gray",
-          "gray_state",
-          "next",
-          "next_gray"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0068"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_state",
-          "done",
-          "done_state"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_1",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0069"
-      },
-      {
-        "category": "function_model.error_case",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "WIDTH"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.error_cases.error_case_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0070"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.preconditions.precondition_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0072"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.outputs.output_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0076"
-      },
-      {
-        "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_value",
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.outputs.output_1",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0077"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gray",
-          "gray_state",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.output_rules.gray_hold",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0079"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_value",
-          "gray",
-          "gray_state",
-          "gray_to_bin",
-          "value"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.output_rules.bin_hold",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0080"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "done",
-          "done_state"
-        ],
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.side_effects.side_effect_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0082"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_state",
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.invariants.invariant_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0083"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_value",
-          "gray",
-          "gray_to_bin",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "function_model.invariants.invariant_1",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0084"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "cycle_model.handshake_rules.rst_n",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0093"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gray",
-          "gray_state",
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "cycle_model.pipeline.S0_SAMPLE",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0094"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "bin",
-          "bin_value",
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "cycle_model.pipeline.S3_OBSERVE",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0097"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "IDLE"
-        ],
-        "source_ref": "fsm.control.states.state_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0103"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "RUN"
-        ],
-        "source_ref": "fsm.control.states.state_1",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0104"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "WRAP_PULSE"
-        ],
-        "source_ref": "fsm.control.states.state_2",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0105"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "CLEARED"
-        ],
-        "source_ref": "fsm.control.states.state_3",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0106"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "RESET"
-        ],
-        "source_ref": "fsm.control.states.state_4",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0107"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "IDLE",
-          "RESET",
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "fsm.control.transitions.transition_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0108"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "CLEARED",
-          "IDLE"
-        ],
-        "source_ref": "fsm.control.transitions.transition_1",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0109"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "IDLE",
-          "RUN"
-        ],
-        "source_ref": "fsm.control.transitions.transition_2",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0110"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "RUN",
-          "WRAP_PULSE"
-        ],
-        "source_ref": "fsm.control.transitions.transition_3",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0111"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "IDLE",
-          "RUN"
-        ],
-        "source_ref": "fsm.control.transitions.transition_4",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0112"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "RUN",
-          "WRAP_PULSE"
-        ],
-        "source_ref": "fsm.control.transitions.transition_5",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0113"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "IDLE",
-          "WRAP_PULSE"
-        ],
-        "source_ref": "fsm.control.transitions.transition_6",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0114"
-      },
-      {
-        "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "CLEARED",
-          "IDLE"
-        ],
-        "source_ref": "fsm.control.transitions.transition_7",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0115"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "features.Gray_increment_progression",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0116"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "bin",
-          "bin_value",
-          "gray",
-          "gray_value",
-          "value"
-        ],
-        "source_ref": "features.Deterministic_clear_reset",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0118"
-      },
-      {
-        "category": "error_handling.recovery",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/gray_counter_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "rst_n"
-        ],
-        "source_ref": "error_handling.recovery.recovery_0",
-        "source_scope": "rtl/gray_counter_core.sv",
-        "task_id": "RTL-0119"
-      }
-    ],
-    "passed": 0,
-    "sources": []
+    "missing": 0,
+    "missing_tasks": [],
+    "passed": 54,
+    "sources": [
+      "rtl/gray_counter.sv",
+      "rtl/gray_counter_core.sv"
+    ]
   },
   "summary": {
     "blocking_questions": 0,
@@ -1545,9 +717,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1738,9 +910,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1786,9 +958,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "54 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1833,9 +1005,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 owner logic structure issue(s) remain. gray_counter_core: Behavior-owner module is not declared in its owner file",
+        "reason": "Behavior-owner RTL modules contain real implementation structure.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1883,9 +1055,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1930,9 +1102,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top IO contract issue(s) remain. gray_counter: SSOT top module is not declared in listed RTL sources",
+        "reason": "SSOT top IO contracts match the RTL top declaration.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1977,9 +1149,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top output drive issue(s) remain. gray_counter: SSOT top module is not declared, so output drive evidence cannot be checked",
+        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2024,9 +1196,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top input consumption issue(s) remain. gray_counter: SSOT top module is not declared, so input consumption evidence cannot be checked",
+        "reason": "SSOT top inputs have RTL consumption evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2071,9 +1243,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "2 manifest hierarchy integration issue(s) remain. gray_counter: SSOT top module is not declared in listed RTL sources; gray_counter_core: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2165,9 +1337,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 manifest signal-flow issue(s) remain. gray_counter: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
+        "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2212,9 +1384,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "7 SSOT connection contract issue(s) remain. gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL",
+        "reason": "SSOT connection contracts are satisfied by reachable RTL named port maps.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2261,9 +1433,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2311,9 +1483,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2358,9 +1530,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "140 required non-closure TODO(s) remain open.",
+        "reason": "Every required non-closure TODO has pass status.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2403,8 +1575,13 @@
         "workflow_todos.rtl-gen[0]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "CORE",
+          "core",
+          "gray",
+          "gray_counter_core"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2418,7 +1595,7 @@
           "gray_counter_core"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -2428,9 +1605,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_CORE_SEMANTICS",
@@ -2481,9 +1658,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2524,9 +1701,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2571,9 +1748,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2618,9 +1795,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2665,9 +1842,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2712,9 +1889,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2759,9 +1936,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2806,9 +1983,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2853,9 +2030,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2898,9 +2075,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2943,9 +2120,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2988,9 +2165,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3032,9 +2209,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3067,8 +2244,11 @@
         "function_model.transactions.GC_TXN_RESET.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3077,7 +2257,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3087,9 +2267,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3122,8 +2302,11 @@
         "function_model.transactions.GC_TXN_RESET.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3132,7 +2315,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3142,9 +2325,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3178,8 +2361,12 @@
         "function_model.transactions.GC_TXN_RESET.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3189,7 +2376,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3199,9 +2386,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3235,8 +2422,12 @@
         "function_model.transactions.GC_TXN_RESET.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3246,7 +2437,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3256,9 +2447,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3299,9 +2490,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3342,8 +2533,12 @@
         "function_model.transactions.GC_TXN_RESET.output_rules.gray_value_reset"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3353,7 +2548,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -3363,9 +2558,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3406,8 +2601,12 @@
         "function_model.transactions.GC_TXN_RESET.output_rules.bin_value_reset"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3417,7 +2616,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -3427,9 +2626,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3477,9 +2676,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3512,8 +2711,11 @@
         "function_model.transactions.GC_TXN_RESET.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "gray",
+          "gray_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3522,7 +2724,7 @@
           "gray_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3532,9 +2734,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3567,8 +2769,11 @@
         "function_model.transactions.GC_TXN_RESET.side_effects.side_effect_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "done",
+          "done_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3577,7 +2782,7 @@
           "done_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3587,9 +2792,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3631,9 +2836,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3666,8 +2871,11 @@
         "function_model.transactions.GC_TXN_CLEAR.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3676,7 +2884,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3686,9 +2894,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3729,9 +2937,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3772,9 +2980,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3808,8 +3016,12 @@
         "function_model.transactions.GC_TXN_CLEAR.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3819,7 +3031,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3829,9 +3041,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3865,8 +3077,12 @@
         "function_model.transactions.GC_TXN_CLEAR.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3876,7 +3092,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3886,9 +3102,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3929,9 +3145,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3972,8 +3188,12 @@
         "function_model.transactions.GC_TXN_CLEAR.output_rules.gray_value_clear"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -3983,7 +3203,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -3993,9 +3213,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4036,8 +3256,12 @@
         "function_model.transactions.GC_TXN_CLEAR.output_rules.bin_value_clear"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4047,7 +3271,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -4057,9 +3281,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4107,9 +3331,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4142,8 +3366,11 @@
         "function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "gray",
+          "gray_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4152,7 +3379,7 @@
           "gray_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4162,9 +3389,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4197,8 +3424,11 @@
         "function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "done",
+          "done_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4207,7 +3437,7 @@
           "done_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4217,9 +3447,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4261,9 +3491,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4296,8 +3526,11 @@
         "function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4306,7 +3539,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4316,9 +3549,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4359,9 +3592,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4402,9 +3635,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4445,9 +3678,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4480,8 +3713,11 @@
         "function_model.transactions.GC_TXN_ADVANCE.inputs.input_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "gray",
+          "gray_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4490,7 +3726,7 @@
           "gray_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4500,9 +3736,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4535,8 +3771,11 @@
         "function_model.transactions.GC_TXN_ADVANCE.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "bin",
+          "bin_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4545,7 +3784,7 @@
           "bin_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4555,9 +3794,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4593,8 +3832,13 @@
         "function_model.transactions.GC_TXN_ADVANCE.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "bin",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4606,7 +3850,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4616,9 +3860,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4655,8 +3899,14 @@
         "function_model.transactions.GC_TXN_ADVANCE.outputs.output_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4669,7 +3919,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4679,9 +3929,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4725,8 +3975,15 @@
         "function_model.transactions.GC_TXN_ADVANCE.output_rules.gray_advance"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "WIDTH",
+          "bin",
+          "bin_state",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4739,7 +3996,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -4749,9 +4006,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4795,8 +4052,14 @@
         "function_model.transactions.GC_TXN_ADVANCE.output_rules.bin_observe"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4809,7 +4072,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -4819,9 +4082,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4862,8 +4125,12 @@
         "function_model.transactions.GC_TXN_ADVANCE.output_rules.done_wrap"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "WIDTH",
+          "bin",
+          "bin_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4873,7 +4140,7 @@
           "bin_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -4883,9 +4150,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4920,8 +4187,12 @@
         "function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_state",
+          "next"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4932,7 +4203,7 @@
           "next_gray"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4942,9 +4213,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4979,8 +4250,13 @@
         "function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "bin",
+          "bin_state",
+          "done",
+          "done_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4991,7 +4267,7 @@
           "done_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5001,9 +4277,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5036,8 +4312,10 @@
         "function_model.transactions.GC_TXN_ADVANCE.error_cases.error_case_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "WIDTH"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -5045,7 +4323,7 @@
           "WIDTH"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -5055,9 +4333,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5099,9 +4377,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5134,8 +4412,11 @@
         "function_model.transactions.GC_TXN_HOLD.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5144,7 +4425,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5154,9 +4435,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5197,9 +4478,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5240,9 +4521,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5283,9 +4564,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5319,8 +4600,12 @@
         "function_model.transactions.GC_TXN_HOLD.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5330,7 +4615,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5340,9 +4625,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5378,8 +4663,14 @@
         "function_model.transactions.GC_TXN_HOLD.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5391,7 +4682,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5401,9 +4692,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5444,9 +4735,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5488,8 +4779,13 @@
         "function_model.transactions.GC_TXN_HOLD.output_rules.gray_hold"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "gray",
+          "gray_state",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5500,7 +4796,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -5510,9 +4806,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5556,8 +4852,14 @@
         "function_model.transactions.GC_TXN_HOLD.output_rules.bin_hold"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_state",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5570,7 +4872,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -5580,9 +4882,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5630,9 +4932,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5665,8 +4967,11 @@
         "function_model.transactions.GC_TXN_HOLD.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "done",
+          "done_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5675,7 +4980,7 @@
           "done_state"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5685,9 +4990,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5723,8 +5028,14 @@
         "function_model.invariants.invariant_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_state",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5736,7 +5047,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5746,9 +5057,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5785,8 +5096,14 @@
         "function_model.invariants.invariant_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5799,7 +5116,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5809,9 +5126,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5852,9 +5169,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5895,9 +5212,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5938,9 +5255,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5982,9 +5299,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6024,9 +5341,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6066,9 +5383,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6110,9 +5427,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6154,9 +5471,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6190,8 +5507,11 @@
         "cycle_model.handshake_rules.rst_n"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6200,7 +5520,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -6210,9 +5530,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6251,8 +5571,13 @@
         "cycle_model.pipeline.S0_SAMPLE"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "gray",
+          "gray_state",
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6263,7 +5588,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -6273,9 +5598,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6320,9 +5645,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6367,9 +5692,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6409,8 +5734,14 @@
         "cycle_model.pipeline.S3_OBSERVE"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6422,7 +5753,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -6432,9 +5763,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6476,9 +5807,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6520,9 +5851,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6564,9 +5895,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6608,9 +5939,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6652,9 +5983,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6687,8 +6018,10 @@
         "fsm.control.states.state_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -6696,7 +6029,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -6706,9 +6039,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6741,8 +6074,10 @@
         "fsm.control.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "RUN"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -6750,7 +6085,7 @@
           "RUN"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -6760,9 +6095,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6795,8 +6130,10 @@
         "fsm.control.states.state_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "WRAP_PULSE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -6804,7 +6141,7 @@
           "WRAP_PULSE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -6814,9 +6151,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6849,8 +6186,10 @@
         "fsm.control.states.state_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "CLEARED"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -6858,7 +6197,7 @@
           "CLEARED"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -6868,9 +6207,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6903,8 +6242,10 @@
         "fsm.control.states.state_4"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "RESET"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -6912,7 +6253,7 @@
           "RESET"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -6922,9 +6263,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6963,8 +6304,13 @@
         "fsm.control.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "IDLE",
+          "RESET",
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6975,7 +6321,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -6985,9 +6331,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7024,8 +6370,11 @@
         "fsm.control.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "CLEARED",
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7034,7 +6383,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -7044,9 +6393,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7083,8 +6432,11 @@
         "fsm.control.transitions.transition_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "IDLE",
+          "RUN"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7093,7 +6445,7 @@
           "RUN"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -7103,9 +6455,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7142,8 +6494,11 @@
         "fsm.control.transitions.transition_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "RUN",
+          "WRAP_PULSE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7152,7 +6507,7 @@
           "WRAP_PULSE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -7162,9 +6517,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7201,8 +6556,11 @@
         "fsm.control.transitions.transition_4"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "IDLE",
+          "RUN"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7211,7 +6569,7 @@
           "RUN"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -7221,9 +6579,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7260,8 +6618,11 @@
         "fsm.control.transitions.transition_5"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "RUN",
+          "WRAP_PULSE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7270,7 +6631,7 @@
           "WRAP_PULSE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -7280,9 +6641,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7319,8 +6680,11 @@
         "fsm.control.transitions.transition_6"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "IDLE",
+          "WRAP_PULSE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7329,7 +6693,7 @@
           "WRAP_PULSE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -7339,9 +6703,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7378,8 +6742,11 @@
         "fsm.control.transitions.transition_7"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "CLEARED",
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7388,7 +6755,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -7398,9 +6765,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7435,8 +6802,12 @@
         "features.Gray_increment_progression"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -7446,7 +6817,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7456,9 +6827,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7500,9 +6871,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7539,8 +6910,14 @@
         "features.Deterministic_clear_reset"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bin",
+          "bin_value",
+          "gray",
+          "gray_value",
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -7552,7 +6929,7 @@
           "value"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7562,9 +6939,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7597,8 +6974,11 @@
         "error_handling.recovery.recovery_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7607,7 +6987,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/gray_counter_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7617,9 +6997,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7660,9 +7040,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7703,9 +7083,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7746,9 +7126,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7789,9 +7169,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7832,9 +7212,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7875,9 +7255,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7918,9 +7298,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7969,9 +7349,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8021,9 +7401,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8069,9 +7449,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8116,9 +7496,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8167,9 +7547,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8218,9 +7598,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8267,9 +7647,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8314,9 +7694,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8357,9 +7737,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8400,9 +7780,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8443,9 +7823,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8489,9 +7869,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8535,9 +7915,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8581,9 +7961,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8627,9 +8007,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8673,9 +8053,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8719,9 +8099,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8765,9 +8145,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8811,9 +8191,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8857,826 +8237,60 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
   "todo_completion": {
-    "all_required_todos_pass": false,
+    "all_required_todos_pass": true,
     "audit_rtl": true,
-    "open_required_tasks": 141,
-    "open_tasks": [
-      {
-        "category": "rtl_flow.top",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "io_list",
-        "task_id": "RTL-0002"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "54 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "task_id": "RTL-0007"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 owner logic structure issue(s) remain. gray_counter_core: Behavior-owner module is not declared in its owner file",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "task_id": "RTL-0008"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "task_id": "RTL-0009"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top IO contract issue(s) remain. gray_counter: SSOT top module is not declared in listed RTL sources",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "task_id": "RTL-0010"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top output drive issue(s) remain. gray_counter: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "task_id": "RTL-0011"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top input consumption issue(s) remain. gray_counter: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "task_id": "RTL-0012"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "2 manifest hierarchy integration issue(s) remain. gray_counter: SSOT top module is not declared in listed RTL sources; gray_counter_core: SSOT manifest child module is not declared in listed RTL sources",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "task_id": "RTL-0013"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 manifest signal-flow issue(s) remain. gray_counter: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "task_id": "RTL-0015"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "7 SSOT connection contract issue(s) remain. gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL",
-        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "task_id": "RTL-0016"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "task_id": "RTL-0017"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "task_id": "RTL-0018"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "140 required non-closure TODO(s) remain open.",
-        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "task_id": "RTL-0019"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "workflow_todos.rtl-gen[0]",
-        "task_id": "RTL-0020"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "parameters.WIDTH",
-        "task_id": "RTL-0021"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "parameters.CLOCK_FREQ_MHZ",
-        "task_id": "RTL-0022"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "io_list.clock_domains.clk.ports.clk",
-        "task_id": "RTL-0023"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "io_list.resets.rst_n.ports.rst_n",
-        "task_id": "RTL-0024"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "io_list.interfaces.control.ports.enable",
-        "task_id": "RTL-0025"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "io_list.interfaces.control.ports.clear",
-        "task_id": "RTL-0026"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "io_list.interfaces.status.ports.gray_value",
-        "task_id": "RTL-0027"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "io_list.interfaces.status.ports.bin_value",
-        "task_id": "RTL-0028"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "io_list.interfaces.status.ports.done",
-        "task_id": "RTL-0029"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.state_variables.gray_state",
-        "task_id": "RTL-0030"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.state_variables.bin_state",
-        "task_id": "RTL-0031"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.state_variables.done_state",
-        "task_id": "RTL-0032"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_RESET",
-        "task_id": "RTL-0033"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_RESET.preconditions.precondition_0",
-        "task_id": "RTL-0034"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_RESET.inputs.input_0",
-        "task_id": "RTL-0035"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_RESET.outputs.output_0",
-        "task_id": "RTL-0036"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_RESET.outputs.output_1",
-        "task_id": "RTL-0037"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_RESET.outputs.output_2",
-        "task_id": "RTL-0038"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_RESET.output_rules.gray_value_reset",
-        "task_id": "RTL-0039"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_RESET.output_rules.bin_value_reset",
-        "task_id": "RTL-0040"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_RESET.output_rules.done_reset",
-        "task_id": "RTL-0041"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_RESET.side_effects.side_effect_0",
-        "task_id": "RTL-0042"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_RESET.side_effects.side_effect_1",
-        "task_id": "RTL-0043"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR",
-        "task_id": "RTL-0044"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.preconditions.precondition_0",
-        "task_id": "RTL-0045"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.preconditions.precondition_1",
-        "task_id": "RTL-0046"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.inputs.input_0",
-        "task_id": "RTL-0047"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.outputs.output_0",
-        "task_id": "RTL-0048"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.outputs.output_1",
-        "task_id": "RTL-0049"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.outputs.output_2",
-        "task_id": "RTL-0050"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.output_rules.gray_value_clear",
-        "task_id": "RTL-0051"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.output_rules.bin_value_clear",
-        "task_id": "RTL-0052"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.output_rules.done_clear",
-        "task_id": "RTL-0053"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_0",
-        "task_id": "RTL-0054"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_CLEAR.side_effects.side_effect_1",
-        "task_id": "RTL-0055"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE",
-        "task_id": "RTL-0056"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_0",
-        "task_id": "RTL-0057"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_1",
-        "task_id": "RTL-0058"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.preconditions.precondition_2",
-        "task_id": "RTL-0059"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.inputs.input_0",
-        "task_id": "RTL-0060"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.inputs.input_1",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.outputs.output_0",
-        "task_id": "RTL-0062"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.outputs.output_1",
-        "task_id": "RTL-0063"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.outputs.output_2",
-        "task_id": "RTL-0064"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.output_rules.gray_advance",
-        "task_id": "RTL-0065"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.output_rules.bin_observe",
-        "task_id": "RTL-0066"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.output_rules.done_wrap",
-        "task_id": "RTL-0067"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_0",
-        "task_id": "RTL-0068"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.side_effects.side_effect_1",
-        "task_id": "RTL-0069"
-      },
-      {
-        "category": "function_model.error_case",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_ADVANCE.error_cases.error_case_0",
-        "task_id": "RTL-0070"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD",
-        "task_id": "RTL-0071"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.preconditions.precondition_0",
-        "task_id": "RTL-0072"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.preconditions.precondition_1",
-        "task_id": "RTL-0073"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.preconditions.precondition_2",
-        "task_id": "RTL-0074"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.inputs.input_0",
-        "task_id": "RTL-0075"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.outputs.output_0",
-        "task_id": "RTL-0076"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.outputs.output_1",
-        "task_id": "RTL-0077"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.outputs.output_2",
-        "task_id": "RTL-0078"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.output_rules.gray_hold",
-        "task_id": "RTL-0079"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.output_rules.bin_hold",
-        "task_id": "RTL-0080"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.output_rules.done_hold",
-        "task_id": "RTL-0081"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.transactions.GC_TXN_HOLD.side_effects.side_effect_0",
-        "task_id": "RTL-0082"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.invariants.invariant_0",
-        "task_id": "RTL-0083"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.invariants.invariant_1",
-        "task_id": "RTL-0084"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.invariants.invariant_2",
-        "task_id": "RTL-0085"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.invariants.invariant_3",
-        "task_id": "RTL-0086"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "function_model.invariants.invariant_4",
-        "task_id": "RTL-0087"
-      },
-      {
-        "category": "cycle_model.clock",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.clock",
-        "task_id": "RTL-0088"
-      },
-      {
-        "category": "cycle_model.reset",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.reset",
-        "task_id": "RTL-0089"
-      },
-      {
-        "category": "cycle_model.latency",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.latency",
-        "task_id": "RTL-0090"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.handshake_rules.enable",
-        "task_id": "RTL-0091"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.handshake_rules.clear",
-        "task_id": "RTL-0092"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.handshake_rules.rst_n",
-        "task_id": "RTL-0093"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.pipeline.S0_SAMPLE",
-        "task_id": "RTL-0094"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.pipeline.S1_COMPUTE",
-        "task_id": "RTL-0095"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.pipeline.S2_COMMIT",
-        "task_id": "RTL-0096"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.pipeline.S3_OBSERVE",
-        "task_id": "RTL-0097"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_0",
-        "task_id": "RTL-0098"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_1",
-        "task_id": "RTL-0099"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_2",
-        "task_id": "RTL-0100"
-      },
-      {
-        "category": "cycle_model.backpressure",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.backpressure.backpressure_rule_0",
-        "task_id": "RTL-0101"
-      },
-      {
-        "category": "cycle_model.observability",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "cycle_model.observability.observability_signal_0",
-        "task_id": "RTL-0102"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.states.state_0",
-        "task_id": "RTL-0103"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.states.state_1",
-        "task_id": "RTL-0104"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.states.state_2",
-        "task_id": "RTL-0105"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.states.state_3",
-        "task_id": "RTL-0106"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.states.state_4",
-        "task_id": "RTL-0107"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.transitions.transition_0",
-        "task_id": "RTL-0108"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.transitions.transition_1",
-        "task_id": "RTL-0109"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.transitions.transition_2",
-        "task_id": "RTL-0110"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.transitions.transition_3",
-        "task_id": "RTL-0111"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.transitions.transition_4",
-        "task_id": "RTL-0112"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.transitions.transition_5",
-        "task_id": "RTL-0113"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.transitions.transition_6",
-        "task_id": "RTL-0114"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "fsm.control.transitions.transition_7",
-        "task_id": "RTL-0115"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "features.Gray_increment_progression",
-        "task_id": "RTL-0116"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "features.Wrap_pulse_generation",
-        "task_id": "RTL-0117"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "features.Deterministic_clear_reset",
-        "task_id": "RTL-0118"
-      },
-      {
-        "category": "error_handling.recovery",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "error_handling.recovery.recovery_0",
-        "task_id": "RTL-0119"
-      },
-      {
-        "category": "error_handling.recovery",
-        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
-        "source_ref": "error_handling.recovery.recovery_1",
-        "task_id": "RTL-0120"
-      },
-      {
-        "category": "security.assets",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "security.assets.asset_0",
-        "task_id": "RTL-0121"
-      },
-      {
-        "category": "security.assets",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "security.assets.asset_1",
-        "task_id": "RTL-0122"
-      },
-      {
-        "category": "security.assets",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "security.assets.asset_2",
-        "task_id": "RTL-0123"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "integration.dependencies.dependencie_0",
-        "task_id": "RTL-0124"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "integration.dependencies.dependencie_1",
-        "task_id": "RTL-0125"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "integration.dependencies.dependencie_2",
-        "task_id": "RTL-0126"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "integration.connections.soc_clk_or_tb_clk",
-        "task_id": "RTL-0127"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "integration.connections.soc_rst_n_or_tb_rst_n",
-        "task_id": "RTL-0128"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "integration.connections.control_enable",
-        "task_id": "RTL-0129"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "integration.connections.control_clear",
-        "task_id": "RTL-0130"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "integration.connections.observed_gray_value",
-        "task_id": "RTL-0131"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "integration.connections.observed_bin_value",
-        "task_id": "RTL-0132"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/gray_counter.sv.",
-        "source_ref": "integration.connections.observed_done",
-        "task_id": "RTL-0133"
-      }
-    ],
-    "required_passed": 5,
+    "open_required_tasks": 0,
+    "open_tasks": [],
+    "required_passed": 146,
     "required_total": 146,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
   "top": "gray_counter",
   "top_input_consumption_evidence": {
-    "checked": 0,
-    "consumed": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "module": "gray_counter"
-      }
+    "checked": 2,
+    "consumed": 2,
+    "issues": [],
+    "roots": [
+      "gray_counter"
     ],
-    "roots": [],
-    "status": "fail"
+    "status": "pass"
   },
   "top_io_contract_evidence": {
     "contracts": 7,
-    "issues": [
-      {
-        "file": "rtl/gray_counter.sv",
-        "issue": "SSOT top module is not declared in listed RTL sources",
-        "module": "gray_counter"
-      }
+    "declared_top_ports": [
+      "bin_value",
+      "clear",
+      "clk",
+      "done",
+      "enable",
+      "gray_value",
+      "rst_n"
     ],
-    "roots": [],
-    "status": "fail"
+    "issues": [],
+    "roots": [
+      "gray_counter"
+    ],
+    "status": "pass",
+    "top_parameters": {
+      "CLOCK_FREQ_MHZ": 200,
+      "WIDTH": 4
+    }
   },
   "top_output_drive_evidence": {
-    "checked": 0,
-    "driven": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so output drive evidence cannot be checked",
-        "module": "gray_counter"
-      }
+    "checked": 3,
+    "driven": 3,
+    "issues": [],
+    "roots": [
+      "gray_counter"
     ],
-    "roots": [],
-    "status": "fail"
+    "status": "pass"
   },
   "type": "ssot_derived_rtl_todo_plan"
 }

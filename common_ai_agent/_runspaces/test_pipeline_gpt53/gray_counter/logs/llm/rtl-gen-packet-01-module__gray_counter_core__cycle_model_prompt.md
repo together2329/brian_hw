@@ -1676,68 +1676,127 @@ module gray_counter_core #(
     output logic             done
 );
 
-    // WIDTH constraint from SSOT error_handling. This is a build-time guard.
-    localparam integer WIDTH_CHECK = (WIDTH >= 2) ? 1 : -1;
+    localparam [2:0] ST_RESET      = 3'd0;
+    localparam [2:0] ST_IDLE       = 3'd1;
+    localparam [2:0] ST_RUN        = 3'd2;
+    localparam [2:0] ST_WRAP_PULSE = 3'd3;
+    localparam [2:0] ST_CLEARED    = 3'd4;
 
-    // Architectural state variables owned by this module.
     logic [WIDTH-1:0] gray_state;
     logic [WIDTH-1:0] bin_state;
     logic             done_state;
 
-    // Combinational decode/next-state helpers.
-    logic [WIDTH-1:0] gray_to_bin_s1;
-    logic [WIDTH-1:0] gray_to_bin_s2;
-    logic [WIDTH-1:0] gray_to_bin_s3;
-    logic [WIDTH-1:0] gray_to_bin_s4;
-    logic [WIDTH-1:0] gray_to_bin_s5;
-    logic [WIDTH-1:0] gray_to_bin_cur;
     logic [WIDTH-1:0] bin_next;
     logic [WIDTH-1:0] gray_next;
     logic             wrap_detect;
 
-    // Gray->binary prefix XOR fold without loops/functions.
-    assign gray_to_bin_s1  = gray_state ^ (gray_state >> 1);
-    assign gray_to_bin_s2  = gray_to_bin_s1 ^ (gray_to_bin_s1 >> 2);
-    assign gray_to_bin_s3  = gray_to_bin_s2 ^ (gray_to_bin_s2 >> 4);
-    assign gray_to_bin_s4  = gray_to_bin_s3 ^ (gray_to_bin_s3 >> 8);
-    assign gray_to_bin_s5  = gray_to_bin_s4 ^ (gray_to_bin_s4 >> 16);
-    assign gray_to_bin_cur = gray_to_bin_s5 ^ (gray_to_bin_s5 >> 32);
+    logic [2:0]       fsm_state;
+    logic [2:0]       fsm_next;
 
-    // GC_TXN_ADVANCE datapath: increment modulo 2^WIDTH and re-encode to Gray.
-    assign bin_next    = gray_to_bin_cur + {{(WIDTH-1){1'b0}}, 1'b1};
+    logic [WIDTH-1:0] bin_decode_stage;
+    logic [WIDTH-1:0] bin_decode_gray;
+
+    logic [WIDTH-1:0] width_all_ones;
+    assign width_all_ones = {WIDTH{1'b1}};
+
+    assign bin_next    = bin_state + {{(WIDTH-1){1'b0}}, 1'b1};
     assign gray_next   = bin_next ^ (bin_next >> 1);
-    assign wrap_detect = (gray_to_bin_cur == {WIDTH{1'b1}});
+    assign wrap_detect = (bin_state == width_all_ones) ? 1'b1 : 1'b0;
 
-    // GC_TXN_RESET (async assert), then synchronous priority: clear > enable > hold.
+    always @(*) begin
+        bin_decode_stage = gray_state;
+        bin_decode_stage = bin_decode_stage ^ (bin_decode_stage >> 1);
+        bin_decode_stage = bin_decode_stage ^ (bin_decode_stage >> 2);
+        bin_decode_stage = bin_decode_stage ^ (bin_decode_stage >> 4);
+        bin_decode_stage = bin_decode_stage ^ (bin_decode_stage >> 8);
+        bin_decode_stage = bin_decode_stage ^ (bin_decode_stage >> 16);
+        bin_decode_gray  = bin_decode_stage;
+    end
+
+    always @(*) begin
+        fsm_next = fsm_state;
+        case (fsm_state)
+            ST_RESET: begin
+                if (rst_n) begin
+                    fsm_next = ST_IDLE;
+                end
+            end
+            ST_IDLE: begin
+                if (clear) begin
+                    fsm_next = ST_CLEARED;
+                end else if (enable) begin
+                    if (wrap_detect) begin
+                        fsm_next = ST_WRAP_PULSE;
+                    end else begin
+                        fsm_next = ST_RUN;
+                    end
+                end
+            end
+            ST_RUN: begin
+                if (clear) begin
+                    fsm_next = ST_CLEARED;
+                end else if (!enable) begin
+                    fsm_next = ST_IDLE;
+                end else if (wrap_detect) begin
+                    fsm_next = ST_WRAP_PULSE;
+                end else begin
+                    fsm_next = ST_RUN;
+                end
+            end
+            ST_WRAP_PULSE: begin
+                if (clear) begin
+                    fsm_next = ST_CLEARED;
+                end else if (enable) begin
+                    fsm_next = ST_RUN;
+                end else begin
+                    fsm_next = ST_IDLE;
+                end
+            end
+            ST_CLEARED: begin
+                if (clear) begin
+                    fsm_next = ST_CLEARED;
+                end else begin
+                    fsm_next = ST_IDLE;
+                end
+            end
+            default: begin
+                fsm_next = ST_RESET;
+            end
+        endcase
+    end
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             gray_state <= {WIDTH{1'b0}};
             bin_state  <= {WIDTH{1'b0}};
             done_state <= 1'b0;
+            fsm_state  <= ST_RESET;
         end else begin
+            fsm_state <= fsm_next;
+
             if (clear) begin
-                // GC_TXN_CLEAR: clear dominates enable on sampled edge.
                 gray_state <= {WIDTH{1'b0}};
                 bin_state  <= {WIDTH{1'b0}};
                 done_state <= 1'b0;
             end else if (enable) begin
-                // GC_TXN_ADVANCE: one-step Gray progression and one-cycle wrap pulse.
                 gray_state <= gray_next;
                 bin_state  <= bin_next;
-                done_state <= wrap_detect;
+                if (wrap_detect) begin
+                    done_state <= 1'b1;
+                end else begin
+                    done_state <= 1'b0;
+                end
             end else begin
-                // GC_TXN_HOLD: keep state, force done low outside wrap cycle.
                 gray_state <= gray_state;
-                bin_state  <= gray_to_bin_cur;
+                bin_state  <= bin_state;
                 done_state <= 1'b0;
             end
         end
     end
 
-    // Observable outputs: gray/done are registered; bin_value is combinational decode.
     assign gray_value = gray_state;
+    assign bin_value  = bin_decode_gray;
     assign done       = done_state;
-    assign bin_value  = gray_to_bin_cur;
 
 endmodule
 

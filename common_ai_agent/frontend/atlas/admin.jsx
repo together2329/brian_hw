@@ -557,6 +557,18 @@ function AdminPage() {
   const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString());
   const usd = (n) => (n == null ? '—' : `$${Number(n).toFixed(4)}`);
   const shortId = (value) => String(value || '').slice(0, 8) || '—';
+  const firstVersion = (row, type) => {
+    const items = (row.artifact_versions && row.artifact_versions[type]) || [];
+    return items.length ? items[0] : null;
+  };
+  const versionText = (row, type) => {
+    const item = firstVersion(row, type);
+    return item ? item.version || shortId(item.artifact_version_id) : '—';
+  };
+  const versionTagText = (row, type) => {
+    const item = firstVersion(row, type);
+    return item ? item.git_tag || item.sha256_tree || shortId(item.artifact_version_id) : '—';
+  };
   const payloadText = (value) => {
     if (value == null || value === '') return '—';
     try {
@@ -1612,6 +1624,104 @@ function AdminPage() {
                           <td style={{ ...tdStyle, maxWidth: 280, whiteSpace: 'normal' }}>
                             {row.error_summary || '—'}
                           </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'versions' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>Created</th>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Workspace</th>
+                      <th style={thStyle}>Type</th>
+                      <th style={thStyle}>Version</th>
+                      <th style={thStyle}>Status</th>
+                      <th style={thStyle}>Git Tag</th>
+                      <th style={thStyle}>Tree Hash</th>
+                      <th style={thStyle}>Primary Path</th>
+                      <th style={thStyle}>Source Run</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredArtifactVersions.length === 0 ? (
+                      <tr>
+                        <td colSpan={10} style={{ ...tdStyle, ...emptyStateStyle }}>
+                          No artifact versions yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredArtifactVersions.map((row) => (
+                        <tr key={row.artifact_version_id}>
+                          <td style={tdStyle}>{formatDate(row.created_at)}</td>
+                          <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                          <td style={tdStyle}>{row.workspace || 'default'}</td>
+                          <td style={tdStyle}>{row.artifact_type || '—'}</td>
+                          <td style={tdStyle} title={row.artifact_version_id || ''}>{row.version || shortId(row.artifact_version_id)}</td>
+                          <td style={tdStyle}>{row.status || '—'}</td>
+                          <td style={{ ...tdStyle, maxWidth: 220, wordBreak: 'break-word' }}>{row.git_tag || '—'}</td>
+                          <td style={tdStyle} title={row.sha256_tree || ''}>{shortId(row.sha256_tree)}</td>
+                          <td style={{ ...tdStyle, maxWidth: 280, wordBreak: 'break-word' }}>
+                            {row.primary_path || row.root_path || '—'}
+                          </td>
+                          <td style={tdStyle} title={row.source_run_id || ''}>{shortId(row.source_run_id)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'run-sets' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>When</th>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Workspace</th>
+                      <th style={thStyle}>Workflow</th>
+                      <th style={thStyle}>Status</th>
+                      <th style={thStyle}>SSOT</th>
+                      <th style={thStyle}>RTL</th>
+                      <th style={thStyle}>TB</th>
+                      <th style={thStyle}>SSOT Anchor</th>
+                      <th style={thStyle}>RTL Anchor</th>
+                      <th style={thStyle}>TB Anchor</th>
+                      <th style={thStyle}>LLM Calls</th>
+                      <th style={thStyle}>Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRunArtifactSets.length === 0 ? (
+                      <tr>
+                        <td colSpan={13} style={{ ...tdStyle, ...emptyStateStyle }}>
+                          No run artifact sets yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredRunArtifactSets.map((row) => (
+                        <tr key={row.run_id}>
+                          <td style={tdStyle}>{formatDate(row.started_at || row.created_at)}</td>
+                          <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                          <td style={tdStyle}>{row.workspace || 'default'}</td>
+                          <td style={tdStyle}>{row.workflow || '—'}</td>
+                          <td style={tdStyle}>{row.status || '—'}</td>
+                          <td style={tdStyle}>{versionText(row, 'ssot')}</td>
+                          <td style={tdStyle}>{versionText(row, 'rtl')}</td>
+                          <td style={tdStyle}>{versionText(row, 'tb')}</td>
+                          <td style={{ ...tdStyle, maxWidth: 220, wordBreak: 'break-word' }}>{versionTagText(row, 'ssot')}</td>
+                          <td style={{ ...tdStyle, maxWidth: 220, wordBreak: 'break-word' }}>{versionTagText(row, 'rtl')}</td>
+                          <td style={{ ...tdStyle, maxWidth: 220, wordBreak: 'break-word' }}>{versionTagText(row, 'tb')}</td>
+                          <td style={tdStyle}>{fmt(row.llm_calls)}</td>
+                          <td style={tdStyle}>{usd(row.cost)}</td>
                         </tr>
                       ))
                     )}

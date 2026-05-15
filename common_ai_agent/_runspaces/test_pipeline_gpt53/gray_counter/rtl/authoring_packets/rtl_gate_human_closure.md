@@ -22,12 +22,10 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 1
-- Locked-truth blockers:
-  - manifest_connection_contract_evidence: 7 SSOT connection contract issue(s) remain. gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL
+- Human-locked open tasks: 0
 - SSOT connection contracts:
   - gray_counter_core.clk <= clk (sub_modules[0].connections[0])
   - gray_counter_core.rst_n <= rst_n (sub_modules[0].connections[1])
@@ -107,13 +105,13 @@ Owner: gray_counter_top in rtl/gray_counter.sv via semantic_terms:top.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: gray_counter_top in rtl/gray_counter.sv via semantic_terms:top.
-- Current reason: 7 SSOT connection contract issue(s) remain. gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL
+- Current reason: SSOT connection contracts are satisfied by reachable RTL named port maps.
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

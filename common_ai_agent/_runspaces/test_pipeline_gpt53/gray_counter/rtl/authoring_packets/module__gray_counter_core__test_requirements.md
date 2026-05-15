@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 9
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.ordering, cycle_model.pipeline, dataflow, decomposition, error_handling, features, fsm, fsm.control, function_model, function_model.state_variables, function_model.transactions.GC_TXN_ADVANCE, function_model.transactions.GC_TXN_CLEAR, function_model.transactions.GC_TXN_HOLD, function_model.transactions.GC_TXN_RESET
 - Module slice: 7/9 section=test_requirements task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC01
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC01.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via test_requirements.
 SSOT item context: id=SC01; name=reset contract; expected=Architectural state, status, outputs, and debug observability match function_model reset outputs..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -65,14 +65,14 @@ SSOT item context: id=SC01; name=reset contract; expected=Architectural state, s
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC02
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC02.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via test_requirements.
 SSOT item context: id=SC02; name=primary approved behavior; expected=Externally observable result/status/side effects match the function_model primary transaction..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -86,14 +86,14 @@ SSOT item context: id=SC02; name=primary approved behavior; expected=Externally 
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC03
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC03.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via test_requirements.
 SSOT item context: id=SC03; name=cycle handshake and backpressure; expected=Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -107,14 +107,14 @@ SSOT item context: id=SC03; name=cycle handshake and backpressure; expected=Payl
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC04
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC04.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via test_requirements.
 SSOT item context: id=SC04; name=error and recovery policy; expected=Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -128,14 +128,14 @@ SSOT item context: id=SC04; name=error and recovery policy; expected=Error/statu
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC05
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC05.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via test_requirements.
 SSOT item context: id=SC05; name=debug and trace observability; expected=Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -149,14 +149,14 @@ SSOT item context: id=SC05; name=debug and trace observability; expected=Debug/s
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC06
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC06.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via test_requirements.
 SSOT item context: id=SC06; name=function_model transaction GC_TXN_RESET; expected=Outputs and side effects match `GC_TXN_RESET` exactly..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -170,14 +170,14 @@ SSOT item context: id=SC06; name=function_model transaction GC_TXN_RESET; expect
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC07
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC07.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via test_requirements.
 SSOT item context: id=SC07; name=function_model transaction GC_TXN_CLEAR; expected=Outputs and side effects match `GC_TXN_CLEAR` exactly..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -191,14 +191,14 @@ SSOT item context: id=SC07; name=function_model transaction GC_TXN_CLEAR; expect
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC08
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC08.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via test_requirements.
 SSOT item context: id=SC08; name=function_model transaction GC_TXN_ADVANCE; expected=Outputs and side effects match `GC_TXN_ADVANCE` exactly..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -212,14 +212,14 @@ SSOT item context: id=SC08; name=function_model transaction GC_TXN_ADVANCE; expe
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC09
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC09.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via test_requirements.
 SSOT item context: id=SC09; name=function_model transaction GC_TXN_HOLD; expected=Outputs and side effects match `GC_TXN_HOLD` exactly..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared

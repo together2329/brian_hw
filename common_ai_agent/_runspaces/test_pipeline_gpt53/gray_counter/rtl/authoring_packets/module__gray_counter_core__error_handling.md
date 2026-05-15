@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 2
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.ordering, cycle_model.pipeline, dataflow, decomposition, error_handling, features, fsm, fsm.control, function_model, function_model.state_variables, function_model.transactions.GC_TXN_ADVANCE, function_model.transactions.GC_TXN_CLEAR, function_model.transactions.GC_TXN_HOLD, function_model.transactions.GC_TXN_RESET
 - Module slice: 6/9 section=error_handling task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_0
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via error_handling.
 SSOT item context: value=For runtime control behavior, asserting rst_n low recovers architectural state to zero..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -64,14 +64,14 @@ SSOT item context: value=For runtime control behavior, asserting rst_n low recov
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_1
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via error_handling.
 SSOT item context: value=Parameter misconfiguration requires rebuild with legal WIDTH..
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

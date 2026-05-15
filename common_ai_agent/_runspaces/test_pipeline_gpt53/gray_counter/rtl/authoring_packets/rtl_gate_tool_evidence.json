@@ -349,154 +349,24 @@
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
-    "blocked_by_tool_evidence": [
-      {
-        "gate_kind": "common_ai_agent_authoring",
-        "owner_module": "gray_counter_top",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "gate_kind": "dut_compile",
-        "owner_module": "gray_counter_top",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "gate_kind": "dut_lint",
-        "owner_module": "gray_counter_top",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
-        "gate_kind": "dynamic_todo_closure",
-        "owner_module": "gray_counter_top",
-        "reason": "140 required non-closure TODO(s) remain open.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "status": "open",
-        "task_id": "RTL-0019"
-      }
-    ],
+    "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": false,
     "evidence_closure_allowed": true,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 4,
-    "pass_allowed": false,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
       "Never use a fixed RTL template as the implementation."
     ],
-    "tool_evidence_open_count": 4,
-    "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_authoring_provenance.json",
-        "artifacts": [
-          "gray_counter/rtl/rtl_authoring_provenance.json",
-          "gray_counter/rtl/rtl_todo_plan.json"
-        ],
-        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-        "commands": [
-          "python3 src/headless_workflow.py --root . --ip gray_counter --stages rtl-gen",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
-        ],
-        "gate_kind": "common_ai_agent_authoring",
-        "prerequisites": [
-          "An LLM authoring pass emitted or repaired DUT RTL files."
-        ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "stage_sequence": [
-          "ssot-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "gray_counter/rtl/rtl_compile.json",
-          "gray_counter/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py gray_counter --top gray_counter --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "gray_counter/list/gray_counter.f covers the current DUT RTL sources."
-        ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "artifact": "lint/dut_lint.json",
-        "artifacts": [
-          "gray_counter/lint/dut_lint.json"
-        ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-        "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py gray_counter --top gray_counter",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_lint",
-        "prerequisites": [
-          "gray_counter/list/gray_counter.f covers the current DUT RTL/header sources."
-        ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "stage_sequence": [
-          "lint",
-          "dut_lint"
-        ],
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
-        "artifact": "rtl/rtl_todo_plan.json",
-        "artifacts": [
-          "gray_counter/rtl/rtl_todo_plan.json",
-          "gray_counter/rtl/rtl_authoring_status.md"
-        ],
-        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
-        ],
-        "gate_kind": "dynamic_todo_closure",
-        "prerequisites": [
-          "All non-closure required TODOs have pass status."
-        ],
-        "reason": "140 required non-closure TODO(s) remain open.",
-        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "stage_sequence": [
-          "audit-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0019"
-      }
-    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
     "work_allowed": true
   },
   "ip": "gray_counter",
@@ -520,7 +390,7 @@
       "rtl_gate.rtl_gen": 4
     },
     "module_slice": {},
-    "open_required_count": 4,
+    "open_required_count": 0,
     "required_count": 4,
     "source_refs": [
       "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -529,7 +399,7 @@
       "quality_gates.rtl_gen.dynamic_todo_closure"
     ],
     "status_counts": {
-      "open": 4
+      "pass": 4
     },
     "task_count": 4
   },
@@ -578,9 +448,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -625,9 +495,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -673,9 +543,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -718,9 +588,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "140 required non-closure TODO(s) remain open.",
+        "reason": "Every required non-closure TODO has pass status.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],

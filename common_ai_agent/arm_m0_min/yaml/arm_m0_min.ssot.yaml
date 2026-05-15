@@ -1,0 +1,142 @@
+top_module:
+  name: "arm_m0_min"
+  file: "rtl/arm_m0_min.sv"
+  version: "1.0"
+  type: "cpu"
+  description: "3-stage in-order ARMv6-M Thumb-1 educational core with minimal ISA subset."
+  reference_spec: "ARMv6-M (subset constrained by SSOT)"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
+sub_modules:
+  - { name: "arm_m0_min_if", file: "rtl/arm_m0_min_if.sv", ownership: "manifest", ssot_gen: true, implements: ["io_list.interfaces.ahb_i_master", "cycle_model.pipeline"], source_sections: ["io_list", "cycle_model"], cycle_model_refs: ["cycle_model.pipeline"], description: "Instruction fetch interface/control" }
+  - { name: "arm_m0_min_id", file: "rtl/arm_m0_min_id.sv", ownership: "manifest", ssot_gen: true, implements: ["isa_spec.decode_contract", "function_model.transactions"], source_sections: ["isa_spec", "function_model"], function_model_refs: ["function_model.transactions"], description: "Thumb decode and operand select" }
+  - { name: "arm_m0_min_ex", file: "rtl/arm_m0_min_ex.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model.transactions", "cycle_model.pipeline", "error_handling"], source_sections: ["function_model", "cycle_model", "error_handling"], function_model_refs: ["function_model.transactions"], cycle_model_refs: ["cycle_model.pipeline"], description: "Execute, memory, and writeback" }
+  - { name: "arm_m0_min_rf", file: "rtl/arm_m0_min_rf.sv", ownership: "manifest", ssot_gen: true, implements: ["register_file"], source_sections: ["register_file"], ssot_refs: ["register_file"], description: "16x32 register file" }
+decomposition: TBD
+parameters: TBD
+io_list:
+  clock_domains:
+    - name: "clk"
+      frequency_mhz: 50
+      description: "Core clock"
+      ports:
+        - { name: "clk", width: 1, direction: "input", description: "System clock" }
+  resets:
+    - name: "rst"
+      polarity: "active_high"
+      sync_async: "sync"
+      description: "Synchronous active-high reset"
+      ports:
+        - { name: "rst", width: 1, direction: "input", description: "Synchronous reset" }
+  interfaces:
+    - name: "ahb_i_master"
+      type: "AHB-Lite"
+      role: "master"
+      description: "Instruction fetch master"
+      protocol:
+        handshake: "Address/control valid when HTRANS!=IDLE; transfer completes when HREADY=1"
+        backpressure: "Core stalls fetch stage when HREADY=0"
+      ports:
+        - { name: "i_haddr", width: 32, direction: "output", description: "Instruction address" }
+        - { name: "i_htrans", width: 2, direction: "output", description: "Transfer type" }
+        - { name: "i_hwrite", width: 1, direction: "output", description: "Always 0 for fetch" }
+        - { name: "i_hsize", width: 3, direction: "output", description: "Transfer size" }
+        - { name: "i_hburst", width: 3, direction: "output", description: "Burst type (SINGLE)" }
+        - { name: "i_hprot", width: 4, direction: "output", description: "Protection control" }
+        - { name: "i_hmastlock", width: 1, direction: "output", description: "Always 0" }
+        - { name: "i_hready", width: 1, direction: "input", description: "Transfer ready" }
+        - { name: "i_hrdata", width: 32, direction: "input", description: "Read data return" }
+        - { name: "i_hresp", width: 1, direction: "input", description: "OKAY/ERROR response" }
+    - name: "ahb_d_master"
+      type: "AHB-Lite"
+      role: "master"
+      description: "Data load/store master"
+      protocol:
+        handshake: "Address/control phase then data/response phase with HREADY gating completion"
+        backpressure: "Core stalls memory stage when HREADY=0"
+      ports:
+        - { name: "d_haddr", width: 32, direction: "output", description: "Data address" }
+        - { name: "d_htrans", width: 2, direction: "output", description: "Transfer type" }
+        - { name: "d_hwrite", width: 1, direction: "output", description: "Write enable" }
+        - { name: "d_hsize", width: 3, direction: "output", description: "Transfer size" }
+        - { name: "d_hburst", width: 3, direction: "output", description: "Burst type (SINGLE)" }
+        - { name: "d_hprot", width: 4, direction: "output", description: "Protection control" }
+        - { name: "d_hmastlock", width: 1, direction: "output", description: "Always 0" }
+        - { name: "d_hwdata", width: 32, direction: "output", description: "Write data" }
+        - { name: "d_hready", width: 1, direction: "input", description: "Transfer ready" }
+        - { name: "d_hrdata", width: 32, direction: "input", description: "Read data return" }
+        - { name: "d_hresp", width: 1, direction: "input", description: "OKAY/ERROR response" }
+features: TBD
+dataflow: TBD
+function_model:
+  purpose: "Architectural behavior contract independent of cycles."
+  state_variables:
+    - { name: "pc", source: "register_file.R15", reset: 0, description: "Program counter" }
+    - { name: "regs", source: "register_file.R0_R15", reset: 0, description: "General-purpose register bank" }
+    - { name: "nzcv", source: "registers.PSR", reset: 0, description: "Condition flags updated by CMP only" }
+  gaps_identified:
+    - "Exact branch immediate sign-extension details per encoding table handled in isa_spec.decode_contract"
+    - "AHB fault architectural visibility beyond halt is intentionally excluded"
+cycle_model:
+  purpose: "3-stage in-order timing contract."
+  clock: "clk"
+  reset:
+    assertion: "rst=1 sampled on rising clk resets pipeline and architectural state"
+    deassertion: "rst=0 enables normal execution from next rising edge"
+  pipeline:
+    - { stage: "IF", action: "Issue AHB-Lite instruction fetch and latch instruction when i_hready=1" }
+    - { stage: "ID", action: "Decode Thumb-1 instruction and read register operands" }
+    - { stage: "EX", action: "Execute ALU/branch/load-store and commit writeback" }
+  handshake_rules:
+    - { signal: "i_hready", rule: "IF stage stalls while low" }
+    - { signal: "d_hready", rule: "EX stage stalls for load/store completion while low" }
+  gaps_identified:
+    - "Exact taken-branch penalty cycles are implementation-fixed in rtl-gen and must satisfy ordering invariants"
+    - "No speculative execution or out-of-order behavior permitted"
+clock_reset_domains: TBD
+cdc_requirements: TBD
+rdc_requirements: TBD
+registers: TBD
+memory: TBD
+interrupts: TBD
+fsm: TBD
+rtl_contract: TBD
+timing: TBD
+power: TBD
+security: TBD
+error_handling: TBD
+debug_observability: TBD
+integration: TBD
+dft: TBD
+synthesis: TBD
+pnr: TBD
+coding_rules: TBD
+reuse_modules: TBD
+custom:
+  assumptions:
+    - "No /new-ip scaffold was present in workspace; directory created manually to proceed."
+    - "Single clock domain only; no CDC/RDC crossings in this educational core."
+    - "AHB-Lite uses 32-bit data path on both I-bus and D-bus; instruction fetch consumes lower 16 bits of word-aligned fetch as needed."
+    - "On any AHB ERROR response, pipeline enters fault-halt state until reset (precise exception model not implemented)."
+    - "No interrupts, NVIC, SysTick, debug module, MPU/MMU, or cache hierarchy."
+    - "R13 and R14 are plain GPRs in this educational subset; no special stack/link side effects."
+    - "Branches are PC-relative with implementation-defined immediate range bounded by Thumb-1 encoding."
+  note: "Pipeline mode: non-blocking QA policy; unresolved choices captured as assumptions."
+dir_structure: TBD
+filelist: TBD
+test_requirements: TBD
+quality_gates: TBD
+traceability: TBD
+workflow_todos: TBD
+generation_flow: TBD
+isa_spec: TBD
+register_file: TBD
+purpose:
+  summary: "Educational ARMv6-M Thumb-1 in-order microcontroller core with 3-stage pipeline."
+  scope: "Implements exactly 15 Thumb-1 instructions and excludes interrupts, caches, MMU, and Thumb-2."
+  intent: "Deterministic teaching core with explicit architectural contracts for RTL and DV."
+type: "cpu"
+submodules: TBD

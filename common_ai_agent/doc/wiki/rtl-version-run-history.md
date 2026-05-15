@@ -1,67 +1,55 @@
-# RTL Version And Run History
+# Artifact Version And Run History
 
 ## Current Gap
 
 Today the UI can show workflow, cost, todo, tool, and intervention history, but
-it does not reliably show which RTL snapshot a lint or sim run used. The admin
-usage payload does not expose `rtl_version_id`, `rtl_version`, or
-`rtl_sha256_tree` yet. That means a failed lint/sim result can be stale after an
-RTL repair, even if it still looks like the latest result in the UI.
+it must also show which artifact snapshots a downstream run used. A failed sim
+is not trustworthy unless it states the exact `ssot`, `rtl`, and `tb` versions
+it consumed. A failed lint/syn/sta/pnr result is stale if a newer RTL version
+exists after a repair.
 
 ## Required Contract
 
-Every RTL handoff must create an immutable RTL version record. Downstream runs
-must reference that record instead of implicitly reading "whatever files are in
-the folder now".
+Every major handoff must create an immutable artifact version record. Downstream
+runs must reference those records instead of implicitly reading "whatever files
+are in the folder now".
 
 ```
-rtl-gen produces RTL -> register rtl_version -> lint/sim/syn/sta/pnr run against rtl_version
-RTL repair produces new files -> register new rtl_version -> rerun affected downstream stages
+ssot-gen -> ssot-v003
+rtl-gen  -> rtl-v007 generated_from ssot-v003
+tb-gen   -> tb-v004 generated_from ssot-v003, verified_against rtl-v007
+sim      -> input set: ssot-v003 + rtl-v007 + tb-v004
 ```
 
-Do not overwrite old run results. Old results are evidence for the old RTL
-version. New RTL gets new downstream workflow runs.
+Do not overwrite old run results. Old results are evidence for the old input
+artifact set. New SSOT/RTL/TB gets new downstream workflow runs.
 
 ## DB Shape
 
-Add `rtl_versions` as the version anchor:
+Use generic artifact version graph tables:
 
-- `id`
-- `ip_id`
-- `workspace_id`
-- `source_run_id`
-- `source_stage_id`
-- `version`
-- `label`
-- `rtl_root`
-- `filelist_path`
-- `top_module`
-- `artifact_manifest`
-- `sha256_tree`
-- `git_commit`
-- `git_tag`
-- `status`
-- `created_at`
+- `artifact_versions`: immutable snapshots such as `ssot`, `rtl`, `tb`,
+  `fl_model`, `cl_model`, `netlist`, or `sdc`.
+- `artifact_version_edges`: parent-child graph such as `generated_from`,
+  `verified_against`, `repaired_from`, or `promoted_from`.
+- `run_artifact_versions`: many-to-many mapping from workflow runs to the
+  artifact versions they used or produced.
 
-Add `rtl_version_id` to:
+Keep `rtl_versions` as a compatibility wrapper over `artifact_versions` for the
+existing RTL Runs UI and APIs. New generic UI should prefer artifact version
+sets.
 
-- `workflow_runs`
-- `workflow_stages`
-- `artifacts`
+Common version tags:
 
-The DB stores metadata, paths, hashes, manifests, and relationships. Large
-artifacts stay in the file/object store.
-
-`git_tag` is optional but recommended for durable review points. A stable tag
-scheme should be human-readable and IP-scoped, for example:
-
-```
-atlas/<ip>/rtl-v003
+```text
+atlas/<ip>/ssot-v003
+atlas/<ip>/rtl-v007
+atlas/<ip>/tb-v004
 ```
 
 The DB remains the run ledger; git tags are reproducible source anchors. Local
-pipeline runs without tags must still work, but released or reviewed RTL
-handoffs should carry both `git_commit` and `git_tag`.
+pipeline runs without tags must still work, but released or reviewed handoffs
+should carry both `git_commit` and `git_tag`.
 
 Implementation default: pipeline registration records the current `git_commit`
 when the workspace is a git repo. It records `git_tag` only when the tag already
@@ -70,20 +58,18 @@ create `atlas/<ip>/<version>` automatically.
 
 ## UI Visibility
 
-The UI must show the RTL version anywhere a downstream result can be trusted or
-reused:
+The UI must show the artifact version set anywhere a downstream result can be
+trusted or reused:
 
-- Active workflow banner: `lint on rtl-v003` or `sim on rtl-v003`.
-- Admin dashboard: table grouped by IP, workspace, RTL version, workflow,
-  git tag, status, duration, cost, LLM calls, and last error.
+- Active workflow banner: `sim uses ssot-v003 / rtl-v007 / tb-v004`.
+- Admin dashboard: `Versions` table listing all SSOT/RTL/TB versions.
+- Admin dashboard: `Run Sets` table listing which SSOT/RTL/TB each workflow run
+  consumed.
+- Existing Admin `RTL Runs` remains for RTL-focused lint/sim/syn/sta/pnr view.
 - Workflow report tabs: lint, sim, coverage, syn, sta, and pnr report headers
-  must include `rtl_version`, `sha256_tree`, and source RTL artifact link.
-- Run detail view: show the exact filelist, top module, artifact manifest, and
-  parent RTL-gen run.
-- Repair view: when lint/sim fails, show whether the latest RTL version is newer
-  than the failed run. If newer, mark the old result stale and queue a rerun.
-
-Current UI status: not implemented. This is a required DB/API/frontend follow-up.
+  must include the artifact version set and source artifact links.
+- Repair view: when lint/sim fails, show whether a newer required input version
+  exists. If newer, mark the old result stale and queue a rerun.
 
 ## Repair Loop
 
@@ -97,8 +83,12 @@ When lint or sim finds an issue:
 
 ## Acceptance Criteria
 
-- A lint/sim/syn/sta/pnr run cannot be created without a visible RTL version
-  when it consumes RTL.
+- A sim run can answer: "Which SSOT, RTL, and TB versions did it use?"
+- A TB version can answer: "Which SSOT and RTL versions was it generated or
+  verified against?"
+- An RTL version can answer: "Which SSOT version generated it?"
+- A lint/syn/sta/pnr run cannot be created without a visible RTL version when it
+  consumes RTL.
 - Admin can answer: "Which RTL version did this run use?"
 - Admin can answer: "Which git tag anchors this RTL version?"
 - Admin can answer: "Which lint/sim runs are stale after the latest RTL repair?"

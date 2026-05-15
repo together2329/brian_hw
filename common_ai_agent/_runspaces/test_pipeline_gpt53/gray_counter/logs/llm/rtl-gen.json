@@ -1,0 +1,24 @@
+{
+  "error": "",
+  "finish_reason": "",
+  "finished_at": "2026-05-15T09:13:01Z",
+  "input_hash": "dd2f4c0a363b949aed3dd81e65c35c52684094a838eaa6465f1020d8bee182bd",
+  "model": "gpt-5.3-codex",
+  "output_hash": "d266654b20b7cf4a171f65937632f9c5a80c693c42ae1980869bada3c1c02606",
+  "parsed_artifacts": [
+    {
+      "kind": "rtl",
+      "path": "gray_counter/rtl/gray_counter_core.sv"
+    },
+    {
+      "kind": "rtl",
+      "path": "gray_counter/rtl/gray_counter.sv"
+    }
+  ],
+  "prompt_hash": "25d8958160e13ad1b1a05d73bb68e9efdb77e8ff73110bf4f865f72628cd6011",
+  "raw_response": "{\"generator\": \"packet_llm\", \"packet_logs\": [\"gray_counter/logs/llm/rtl-gen-packet-00-module__gray_counter_core__function_model_01.json\", \"gray_counter/logs/llm/rtl-gen-packet-01-module__gray_counter_core__cycle_model.json\", \"gray_counter/logs/llm/rtl-gen-packet-02-module__gray_counter_core__fsm.json\", \"gray_counter/logs/llm/rtl-gen-packet-03-module__gray_counter_core__function_model_02.json\"], \"reason\": \"packet-mode rtl-gen completed with per-packet LLM artifacts\", \"rtl_files\": [\"rtl/gray_counter_core.sv\", \"rtl/gray_counter.sv\"], \"status\": \"pass\"}",
+  "stage": "rtl-gen",
+  "started_at": "2026-05-15T09:13:01Z",
+  "status": "pass",
+  "usage": {}
+}

@@ -1,0 +1,31 @@
+{
+  "error": "model output did not contain expected JSON object with files[] tb-gen artifact",
+  "finish_reason": "",
+  "finished_at": "2026-05-15T09:13:36Z",
+  "input_hash": "ce6f6e524a0148f3c4d1bf38123bf26cae7439a53d6bafdcde45f20c757f1cba",
+  "model": "gpt-5.3-codex",
+  "output_hash": "d54cfbb686212b84173bb5298c83806b3d5831834ad560ef51c7fee0413a8f13",
+  "parsed_artifacts": [],
+  "prompt_hash": "429715b6d38c6d12db29d639e6cbb6b6c2d0b038740844015bfb8289dc6464b9",
+  "raw_response": "{\n  \"module\": \"gray_counter\",\n  \"task\": \"tb-gen preparation\",\n  \"status\": \"blocked\",\n  \"reason\": \"SSOT stimulus/expected-results authority not provided. Equivalence goals + FunctionalModel are available, but scenario intent and pass/fail criteria must come from SSOT test_requirements.\",\n  \"inputs_detected\": {\n    \"equivalence_goals\": \"gray_counter/verify/equivalence_goals.json\",\n    \"functional_model\": \"gray_counter/model/functional_model.py\",\n    \"rtl_contract\": \"gray_counter/rtl/rtl_contract.json\",\n    \"ssot_yaml\": null\n  },\n  \"backend\": \"ssot-tb-cocotb\",\n  \"scoreboard_contract\": {\n    \"must_call_functional_model\": true,\n    \"no_handwritten_expected_behavior\": true,\n    \"implementation\": \"Use EquivalenceScoreboard from workflow/tb-gen/runtime/equivalence_scoreboard.py (or equivalent import) to load equivalence_goals.json and call FunctionalModel.apply for fl_expected.\",\n    \"event_log\": \"gray_counter/sim/scoreboard_events.jsonl\",\n    \"required_event_fields\": [\n      \"goal_id\",\n      \"scenario_id\",\n      \"cycle\",\n      \"stimulus\",\n      \"fl_expected\",\n      \"rtl_observed\",\n      \"passed\",\n      \"mismatch\",\n      \"coverage_refs\"\n    ]\n  },\n  \"planned_tb_artifacts\": [\n    \"gray_counter/tb/cocotb/test_gray_counter.py\",\n    \"gray_counter/tb/cocotb/test_runner.py\",\n    \"gray_counter/tb/cocotb/transactions.py\",\n    \"gray_counter/tb/cocotb/sequences.py\",\n    \"gray_counter/tb/cocotb/agents.py\",\n    \"gray_counter/tb/cocotb/scoreboard.py\",\n    \"gray_counter/tb/cocotb/coverage.py\",\n    \"gray_counter/tb/cocotb/uvm_env.py\"\n  ],\n  \"blocking_requirements_from_ssot_gen\": [\n    \"test_requirements.scenarios[] (stimulus + expected per scenario)\",\n    \"test_requirements.scoreboard_checks\",\n    \"coverage_goals\",\n    \"clock/reset protocol authority if not fully specified elsewhere\",\n    \"quality_gates pass/fail criteria\"\n  ],\n  \"handoff\": \"[SSOT TBD REPORT] -> ssot-gen: Missing SSOT YAML with test_requirements/function_model linkage needed to finalize and run TB while preserving SSOT authority.\",\n  \"ssot_tbd_report\": \"present\"\n}",
+  "stage": "tb-gen",
+  "started_at": "2026-05-15T09:13:21Z",
+  "status": "blocked",
+  "usage": {
+    "cache_created": 0,
+    "cache_read": 0,
+    "cost": {
+      "pricing_per_1m": {
+        "cache": 0.26,
+        "input": 1.4,
+        "output": 4.4
+      },
+      "usd": 0.012488399999999998
+    },
+    "input": 6604,
+    "output": 737,
+    "total": 7341,
+    "total_cache_created": 0,
+    "total_cache_read": 0
+  }
+}

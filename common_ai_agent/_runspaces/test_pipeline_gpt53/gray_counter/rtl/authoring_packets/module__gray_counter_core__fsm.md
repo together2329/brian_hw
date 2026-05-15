@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 13
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.ordering, cycle_model.pipeline, dataflow, decomposition, error_handling, features, fsm, fsm.control, function_model, function_model.state_variables, function_model.transactions.GC_TXN_ADVANCE, function_model.transactions.GC_TXN_CLEAR, function_model.transactions.GC_TXN_HOLD, function_model.transactions.GC_TXN_RESET
 - Module slice: 4/9 section=fsm task_limit=48
@@ -44,14 +44,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.control.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.states.state_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: value=IDLE.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -65,14 +65,14 @@ SSOT item context: value=IDLE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.control.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.states.state_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: value=RUN.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -86,14 +86,14 @@ SSOT item context: value=RUN.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.control.states.state_2
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.states.state_2.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: value=WRAP_PULSE.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -107,14 +107,14 @@ SSOT item context: value=WRAP_PULSE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.control.states.state_3
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.states.state_3.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: value=CLEARED.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -128,14 +128,14 @@ SSOT item context: value=CLEARED.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.control.states.state_4
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.states.state_4.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: value=RESET.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -149,14 +149,14 @@ SSOT item context: value=RESET.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.control.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_0.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: from=RESET; to=IDLE; condition=rst_n deasserted and first rising edge observed.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -171,14 +171,14 @@ SSOT item context: from=RESET; to=IDLE; condition=rst_n deasserted and first ris
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.control.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_1.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: from=IDLE; to=CLEARED; condition=clear sampled high.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -193,14 +193,14 @@ SSOT item context: from=IDLE; to=CLEARED; condition=clear sampled high.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.control.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_2.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: from=IDLE; to=RUN; condition=enable sampled high and clear low.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -215,14 +215,14 @@ SSOT item context: from=IDLE; to=RUN; condition=enable sampled high and clear lo
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.control.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_3.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: from=RUN; to=WRAP_PULSE; condition=advance event causes max->0 wrap.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -237,14 +237,14 @@ SSOT item context: from=RUN; to=WRAP_PULSE; condition=advance event causes max->
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.control.transitions.transition_4
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_4.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: from=RUN; to=IDLE; condition=enable sampled low and clear low.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -259,14 +259,14 @@ SSOT item context: from=RUN; to=IDLE; condition=enable sampled low and clear low
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.control.transitions.transition_5
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_5.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: from=WRAP_PULSE; to=RUN; condition=enable remains high after one pulse cycle.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -281,14 +281,14 @@ SSOT item context: from=WRAP_PULSE; to=RUN; condition=enable remains high after 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.control.transitions.transition_6
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_6.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: from=WRAP_PULSE; to=IDLE; condition=enable low after pulse.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -303,14 +303,14 @@ SSOT item context: from=WRAP_PULSE; to=IDLE; condition=enable low after pulse.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.control.transitions.transition_7
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_7.
 Owner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.
 SSOT item context: from=CLEARED; to=IDLE; condition=clear low on next edge.
-- Current reason: Owner RTL file is missing: rtl/gray_counter_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented

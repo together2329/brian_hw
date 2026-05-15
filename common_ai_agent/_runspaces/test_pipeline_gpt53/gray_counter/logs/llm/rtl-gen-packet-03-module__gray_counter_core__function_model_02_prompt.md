@@ -1676,151 +1676,138 @@ module gray_counter_core #(
     output logic             done
 );
 
-    // WIDTH constraint from SSOT error_handling (ERR_PARAM_WIDTH).
-    localparam integer WIDTH_CHECK = (WIDTH >= 2) ? WIDTH : -1;
-    logic [WIDTH_CHECK-1:0] width_must_be_ge_2;
+    // SSOT FSM states from fsm.control.states: IDLE, RUN, WRAP_PULSE, CLEARED, RESET.
+    localparam [2:0] RESET      = 3'd0;
+    localparam [2:0] IDLE       = 3'd1;
+    localparam [2:0] RUN        = 3'd2;
+    localparam [2:0] WRAP_PULSE = 3'd3;
+    localparam [2:0] CLEARED    = 3'd4;
 
-    // SSOT FSM states (fsm.control.states): RESET, IDLE, RUN, WRAP_PULSE, CLEARED.
-    localparam [2:0] IDLE       = 3'd0,
-                     RUN        = 3'd1,
-                     WRAP_PULSE = 3'd2,
-                     CLEARED    = 3'd3,
-                     RESET      = 3'd4;
-
-    logic [2:0] state;
-    logic [2:0] next_state;
-
-    // Architectural state variables (function_model.state_variables).
     logic [WIDTH-1:0] gray_state;
     logic [WIDTH-1:0] bin_state;
     logic             done_state;
 
-    // S1_COMPUTE combinational decode/next-state helpers.
-    logic [WIDTH-1:0] gray_to_bin_s1;
-    logic [WIDTH-1:0] gray_to_bin_s2;
-    logic [WIDTH-1:0] gray_to_bin_s3;
-    logic [WIDTH-1:0] gray_to_bin_s4;
-    logic [WIDTH-1:0] gray_to_bin_s5;
-    logic [WIDTH-1:0] gray_to_bin_cur;
     logic [WIDTH-1:0] internal_bin_next;
-    logic [WIDTH-1:0] gray_next;
+    logic [WIDTH-1:0] internal_gray_next;
     logic             wrap_detect;
 
-    // Keep guard net live in synthesis/lint while still enforcing WIDTH legality.
-    assign width_must_be_ge_2 = {WIDTH_CHECK{1'b0}};
+    logic [2:0]       fsm_state;
+    logic [2:0]       fsm_next;
 
-    // Gray->binary prefix XOR fold without loops/functions.
-    assign gray_to_bin_s1  = gray_state ^ (gray_state >> 1);
-    assign gray_to_bin_s2  = gray_to_bin_s1 ^ (gray_to_bin_s1 >> 2);
-    assign gray_to_bin_s3  = gray_to_bin_s2 ^ (gray_to_bin_s2 >> 4);
-    assign gray_to_bin_s4  = gray_to_bin_s3 ^ (gray_to_bin_s3 >> 8);
-    assign gray_to_bin_s5  = gray_to_bin_s4 ^ (gray_to_bin_s4 >> 16);
-    assign gray_to_bin_cur = gray_to_bin_s5 ^ (gray_to_bin_s5 >> 32);
+    logic [WIDTH-1:0] bin_decode_stage;
+    logic [WIDTH-1:0] bin_decode_gray;
 
-    // S1_COMPUTE: derive next binary/Gray and wrap from current sampled state.
-    assign internal_bin_next = gray_to_bin_cur + {{(WIDTH-1){1'b0}}, 1'b1};
-    assign gray_next         = internal_bin_next ^ (internal_bin_next >> 1);
-    assign wrap_detect       = (gray_to_bin_cur == {WIDTH{1'b1}});
+    logic [WIDTH-1:0] width_all_ones;
 
-    // Conventional explicit FSM next-state decode per SSOT transitions.
-    // clear has priority over enable in all functional states when rst_n is high.
+    // S1_COMPUTE: derive next binary/Gray and wrap condition from current state.
+    assign width_all_ones    = {WIDTH{1'b1}};
+    assign internal_bin_next = bin_state + {{(WIDTH-1){1'b0}}, 1'b1};
+    assign internal_gray_next = internal_bin_next ^ (internal_bin_next >> 1);
+    assign wrap_detect       = (bin_state == width_all_ones) ? 1'b1 : 1'b0;
+
+    // S3_OBSERVE: bin_value is a combinational decode of the current registered gray_state.
+    // Fixed unrolled XOR-fold is loop-free and keeps WIDTH-parameterized output sizing.
     always @(*) begin
-        next_state = state;
-        case (state)
+        bin_decode_stage = gray_state;
+        bin_decode_stage = bin_decode_stage ^ (bin_decode_stage >> 1);
+        bin_decode_stage = bin_decode_stage ^ (bin_decode_stage >> 2);
+        bin_decode_stage = bin_decode_stage ^ (bin_decode_stage >> 4);
+        bin_decode_stage = bin_decode_stage ^ (bin_decode_stage >> 8);
+        bin_decode_stage = bin_decode_stage ^ (bin_decode_stage >> 16);
+        bin_decode_gray  = bin_decode_stage;
+    end
+
+    // Explicit FSM next-state decode for SSOT transitions:
+    // RESET->IDLE, IDLE->{CLEARED/RUN}, RUN->{WRAP_PULSE/IDLE/CLEARED},
+    // WRAP_PULSE->{RUN/IDLE/CLEARED}, CLEARED->{CLEARED/IDLE}.
+    always @(*) begin
+        fsm_next = fsm_state;
+        case (fsm_state)
             RESET: begin
-                // transition_0: RESET -> IDLE after reset deassertion and first edge.
-                next_state = IDLE;
+                if (rst_n) begin
+                    fsm_next = IDLE;
+                end
             end
 
             IDLE: begin
-                // transition_1: IDLE -> CLEARED on clear sampled high.
-                // transition_2: IDLE -> RUN on enable sampled high and clear low.
                 if (clear) begin
-                    next_state = CLEARED;
+                    fsm_next = CLEARED;
                 end else if (enable) begin
-                    next_state = RUN;
-                end else begin
-                    next_state = IDLE;
+                    if (wrap_detect) begin
+                        fsm_next = WRAP_PULSE;
+                    end else begin
+                        fsm_next = RUN;
+                    end
                 end
             end
 
             RUN: begin
-                // transition_3: RUN -> WRAP_PULSE when enabled advance wraps max->0.
-                // transition_4: RUN -> IDLE when enable sampled low and clear low.
                 if (clear) begin
-                    next_state = CLEARED;
+                    fsm_next = CLEARED;
                 end else if (!enable) begin
-                    next_state = IDLE;
+                    fsm_next = IDLE;
                 end else if (wrap_detect) begin
-                    next_state = WRAP_PULSE;
+                    fsm_next = WRAP_PULSE;
                 end else begin
-                    next_state = RUN;
+                    fsm_next = RUN;
                 end
             end
 
             WRAP_PULSE: begin
-                // One-cycle pulse state, then branch by next sampled enable.
-                // transition_5: WRAP_PULSE -> RUN when enable remains high.
-                // transition_6: WRAP_PULSE -> IDLE when enable low after pulse.
                 if (clear) begin
-                    next_state = CLEARED;
+                    fsm_next = CLEARED;
                 end else if (enable) begin
-                    next_state = RUN;
+                    fsm_next = RUN;
                 end else begin
-                    next_state = IDLE;
+                    fsm_next = IDLE;
                 end
             end
 
             CLEARED: begin
-                // transition_7: CLEARED -> IDLE when clear low on next edge.
-                if (!clear) begin
-                    next_state = IDLE;
+                if (clear) begin
+                    fsm_next = CLEARED;
                 end else begin
-                    next_state = CLEARED;
+                    fsm_next = IDLE;
                 end
             end
 
             default: begin
-                next_state = RESET;
+                fsm_next = RESET;
             end
         endcase
     end
 
-    // S0_SAMPLE + S2_COMMIT in one always block:
-    // - async reset dominates while rst_n is low
-    // - clear has priority over enable at sampled edge
-    // - done commits with gray_state on the same edge (latency=1 from sample to observe)
+    // S0_SAMPLE + S2_COMMIT on clk edge with required ordering: reset > clear > enable > hold.
+    // Asynchronous active-low reset dominates all synchronous controls.
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            state      <= RESET;
             gray_state <= {WIDTH{1'b0}};
             bin_state  <= {WIDTH{1'b0}};
             done_state <= 1'b0;
+            fsm_state  <= RESET;
         end else begin
-            state <= next_state;
+            fsm_state <= fsm_next;
 
             if (clear) begin
                 gray_state <= {WIDTH{1'b0}};
                 bin_state  <= {WIDTH{1'b0}};
                 done_state <= 1'b0;
             end else if (enable) begin
-                // latency=1 contract: update result registers on accepting edge.
-                gray_state <= gray_next;
+                // latency=1: commit next gray/bin and wrap done on this accepting edge.
+                gray_state <= internal_gray_next;
                 bin_state  <= internal_bin_next;
                 done_state <= wrap_detect;
             end else begin
-                // Hold transaction: keep counter state, force done low.
                 gray_state <= gray_state;
-                bin_state  <= gray_to_bin_cur;
+                bin_state  <= bin_state;
                 done_state <= 1'b0;
             end
         end
     end
 
-    // S3_OBSERVE: gray_value/done are registered observables; bin_value is combinational decode.
     assign gray_value = gray_state;
+    assign bin_value  = bin_decode_gray;
     assign done       = done_state;
-    assign bin_value  = gray_to_bin_cur;
 
 endmodule
 
