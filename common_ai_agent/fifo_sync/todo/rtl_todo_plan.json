@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 44,
+    "open_required_todos": 42,
     "orphan_tasks": 0,
     "static_missing": 33,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:11:55Z",
+  "generated_at": "2026-05-15T02:17:50Z",
   "ip": "fifo_sync",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 18,
@@ -1344,6 +1344,7 @@
           "dataflow",
           "dataflow.read_path",
           "dataflow.write_path",
+          "decomposition.units.storage",
           "memory",
           "memory.instances"
         ],
@@ -1356,6 +1357,7 @@
           "cycle_model",
           "cycle_model.handshake_rules",
           "cycle_model.pipeline",
+          "decomposition.units.pointer_control",
           "fsm",
           "fsm.ptr_fsm",
           "function_model",
@@ -1369,6 +1371,7 @@
         "refs": [
           "cycle_model",
           "cycle_model.latency",
+          "decomposition.units.flag_generation",
           "function_model",
           "function_model.transactions",
           "function_model.transactions.output_rules"
@@ -1379,6 +1382,7 @@
         "file": "rtl/fifo_sync_regs.sv",
         "name": "fifo_sync_regs",
         "refs": [
+          "decomposition.units.csr_access",
           "io_list",
           "io_list.interfaces.apb_csr",
           "registers",
@@ -2234,9 +2238,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/fifo_sync.sv; rerun DUT compile after the final RTL edit.",
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2284,9 +2288,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "lint/dut_lint.json is older than current RTL source rtl/fifo_sync.sv; rerun DUT lint after the final RTL edit.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2331,7 +2335,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "43 required non-closure TODO(s) remain open.",
+        "reason": "41 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -2628,7 +2632,7 @@
           "rtl_todo_plan.json task criteria",
           "sim/fl_rtl_goal_audit.json"
         ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "required": true,
         "status": "open"
       }
@@ -16154,7 +16158,7 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 44,
+    "open_required_tasks": 42,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
@@ -16176,19 +16180,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/fifo_sync.sv; rerun DUT compile after the final RTL edit.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "task_id": "RTL-0017"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "lint/dut_lint.json is older than current RTL source rtl/fifo_sync.sv; rerun DUT lint after the final RTL edit.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "task_id": "RTL-0018"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "43 required non-closure TODO(s) remain open.",
+        "reason": "41 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -16212,7 +16204,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit is not clean.",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "task_id": "RTL-0025"
       },
@@ -16421,7 +16413,7 @@
         "task_id": "RTL-0195"
       }
     ],
-    "required_passed": 225,
+    "required_passed": 227,
     "required_total": 269,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

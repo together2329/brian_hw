@@ -26,7 +26,7 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 7
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, fsm, fsm.ptr_fsm, function_model, function_model.state_variables
+- Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, decomposition.units.pointer_control, fsm, fsm.ptr_fsm, function_model, function_model.state_variables
 - SSOT connection contracts:
   - fifo_sync_ptrs.clk_i <= PCLK (integration.connections[0])
   - fifo_sync_ptrs.rst_ni <= PRESETn (integration.connections[1])

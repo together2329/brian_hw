@@ -19,6 +19,7 @@
       "file": "rtl/fifo_sync_regs.sv",
       "name": "fifo_sync_regs",
       "refs": [
+        "decomposition.units.csr_access",
         "io_list",
         "io_list.interfaces.apb_csr",
         "registers",
@@ -1908,7 +1909,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "6b09b70c762b5a848981608dade6a77fd83d5460524c0d8f571affa50413d05e",
+  "todo_plan_sha256": "032a3ff3857e4d4f801c2168d90f620b1f2667ea7c6cbf3a2353967d335fc389",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

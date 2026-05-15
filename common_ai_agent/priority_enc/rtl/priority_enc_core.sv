@@ -26,6 +26,7 @@ module priority_enc_core #(
     assign priority_valid_comb = |masked_data;
     assign apb_csr_bad_addr_seen = (PADDR != 12'h000) & (PADDR != 12'h004) & (PADDR != 12'h008);
     assign STATUS_write_seen = PWRITE & (PADDR == 12'h008);
+    assign apb_status_error_shadow = apb_csr_bad_addr_seen | STATUS_write_seen;
     always @(*) begin
         priority_index_comb = {INDEX_WIDTH{1'b0}};
         if (masked_data[7]) begin

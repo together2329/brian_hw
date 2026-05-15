@@ -26,7 +26,7 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: io_list, io_list.interfaces.apb_csr, registers, registers.register_list
+- Owner refs: decomposition.units.csr_access, io_list, io_list.interfaces.apb_csr, registers, registers.register_list
 - SSOT connection contracts:
   - fifo_sync_regs.clk_i <= PCLK (integration.connections[16])
   - fifo_sync_regs.rst_ni <= PRESETn (integration.connections[17])

@@ -1284,6 +1284,24 @@ class WorkflowStageEngine:
         lines = [headline, f"script: {script}", f"module: {ip}", f"top: {top}"]
         self._append_runs(lines, [run])
         artifacts = [f"{ip}/lint/dut_lint.json"]
+        artifacts += self._write_stage_todo_evidence_plan(
+            ip=ip,
+            stage="lint",
+            status=status,
+            headline=headline,
+            runs=[run],
+            artifacts=artifacts,
+            tasks=[
+                {
+                    "id": "LINT-0001",
+                    "content": "Run DUT lint and close all report findings",
+                    "detail": "Use the lint workflow report as the approval source for syntax, style, and structural RTL findings.",
+                    "criteria": "lint/dut_lint.json exists and dut_lint exits 0 with no blocking findings.",
+                    "required_evidence": [f"{ip}/lint/dut_lint.json", "dut_lint returncode 0"],
+                    "source_refs": [f"{ip}/yaml/{ip}.ssot.yaml", f"{ip}/rtl"],
+                }
+            ],
+        )
         self._append_expected(lines, artifacts)
         return self._result("lint", ip, status, headline, lines, runs=[run], artifacts=artifacts, metadata={"top": top})
 
@@ -1349,6 +1367,38 @@ class WorkflowStageEngine:
             f"{ip}/sim/scoreboard_events.jsonl after /sim",
             f"{ip}/cov/coverage.json after /sim",
         ]
+        artifacts += self._write_stage_todo_evidence_plan(
+            ip=ip,
+            stage="ssot-tb-cocotb",
+            status=status,
+            headline=headline,
+            runs=runs,
+            artifacts=artifacts,
+            human_review_needed=blocked_doc.get("questions") if blocked_doc else [],
+            tasks=[
+                {
+                    "id": "TB-0001",
+                    "content": "Generate SSOT-derived pyuvm/cocotb testbench",
+                    "detail": "Derive the testbench from SSOT scenarios, equivalence goals, and the RTL contract; do not approve a fixed template fallback.",
+                    "criteria": "emit_goal_scoreboard_cocotb exits 0 and writes test_<ip>.py, test_runner.py, tb_manifest.json, and tb_generation.json.",
+                    "required_evidence": [
+                        f"{ip}/tb/cocotb/test_{ip}.py",
+                        f"{ip}/tb/cocotb/test_runner.py",
+                        f"{ip}/tb/cocotb/tb_manifest.json",
+                        f"{ip}/tb/cocotb/tb_generation.json",
+                    ],
+                    "source_refs": [f"{ip}/yaml/{ip}.ssot.yaml", f"{ip}/verify/equivalence_goals.json"],
+                },
+                {
+                    "id": "TB-0002",
+                    "content": "Validate TB structure and scoreboard contract",
+                    "detail": "The generated TB must instantiate the common equivalence scoreboard and expose the rows required by SIM and Coverage.",
+                    "criteria": "check_pyuvm_structure and equivalence_scoreboard --self-check both exit 0.",
+                    "required_evidence": ["check_pyuvm_structure returncode 0", "equivalence_scoreboard_self_check returncode 0"],
+                    "source_refs": [f"{ip}/tb/cocotb/test_{ip}.py", f"{ip}/tb/cocotb/tb_manifest.json"],
+                },
+            ],
+        )
         self._append_expected(lines, artifacts)
         if status == "pass":
             lines += ["", "next: run /sim, /sim-debug, and /goal-audit to collect FL-vs-RTL evidence."]
@@ -1361,6 +1411,28 @@ class WorkflowStageEngine:
         runner = self._find_tb_runner(ip)
         if runner is None:
             headline = "[sim] blocked: no executable TB runner found"
+            artifacts = self._write_stage_todo_evidence_plan(
+                ip=ip,
+                stage="sim",
+                status="blocked",
+                headline=headline,
+                runs=[],
+                artifacts=[f"{ip}/tb/cocotb/test_runner.py", f"{ip}/sim/results.xml"],
+                tasks=[
+                    {
+                        "id": "SIM-0001",
+                        "content": "Run generated testbench and collect simulator evidence",
+                        "detail": "Simulation cannot start until TB GEN creates an executable runner.",
+                        "criteria": "A supported TB runner exists and sim.sh produces passing results.xml plus scoreboard_events.jsonl.",
+                        "required_evidence": [
+                            f"{ip}/tb/cocotb/test_runner.py",
+                            f"{ip}/sim/results.xml",
+                            f"{ip}/sim/scoreboard_events.jsonl",
+                        ],
+                        "source_refs": [f"{ip}/tb/cocotb"],
+                    }
+                ],
+            )
             lines = [
                 f"[sim] blocked: no executable TB runner found for {ip}",
                 "expected one of:",
@@ -1370,7 +1442,8 @@ class WorkflowStageEngine:
                 f"- {ip}/tb/run_tests.py",
                 "Run /tb <ip> first.",
             ]
-            return self._result("sim", ip, "blocked", headline, lines, blocker=f"{ip}/tb")
+            self._append_expected(lines, artifacts)
+            return self._result("sim", ip, "blocked", headline, lines, artifacts=artifacts, blocker=f"{ip}/tb")
         script = self.workflow_root / "tb-gen" / "scripts" / "sim.sh"
         validator = self.workflow_root / "tb-gen" / "scripts" / "check_tb_sim_evidence.sh"
         coverage_script = self.workflow_root / "coverage" / "scripts" / "ssot_coverage_summary.py"
@@ -1413,6 +1486,36 @@ class WorkflowStageEngine:
             f"{ip}/cov/coverage.json",
             f"{ip}/sim/sim_report.txt",
         ]
+        artifacts += self._write_stage_todo_evidence_plan(
+            ip=ip,
+            stage="sim",
+            status=status,
+            headline=headline,
+            runs=runs,
+            artifacts=artifacts,
+            tasks=[
+                {
+                    "id": "SIM-0001",
+                    "content": "Run generated testbench and collect simulator evidence",
+                    "detail": "Run the generated TB through sim.sh and require machine-readable pass/fail evidence.",
+                    "criteria": "sim.sh and check_tb_sim_evidence both exit 0; results.xml, scoreboard_events.jsonl, and sim_report.txt exist.",
+                    "required_evidence": [
+                        f"{ip}/sim/results.xml or {ip}/tb/cocotb/results.xml",
+                        f"{ip}/sim/scoreboard_events.jsonl",
+                        f"{ip}/sim/sim_report.txt",
+                    ],
+                    "source_refs": [rel_runner, f"{ip}/yaml/{ip}.ssot.yaml"],
+                },
+                {
+                    "id": "SIM-0002",
+                    "content": "Produce coverage-ready scoreboard rows",
+                    "detail": "Simulation evidence must carry goal/scenario/coverage references so Coverage can audit FL/CL bins against RTL observations.",
+                    "criteria": "ssot_coverage_summary exits 0, or a blocked coverage capability is explicitly recorded by policy.",
+                    "required_evidence": [f"{ip}/cov/coverage.json", "ssot_coverage_summary returncode 0 or explicit rc=3 policy override"],
+                    "source_refs": [f"{ip}/verify/equivalence_goals.json", f"{ip}/cov/fcov_plan.json"],
+                },
+            ],
+        )
         self._append_expected(lines, artifacts)
         return self._result("sim", ip, status, headline, lines, runs=runs, artifacts=artifacts, metadata={"runner": rel_runner})
 
@@ -1485,6 +1588,47 @@ class WorkflowStageEngine:
             f"{ip}/sim/coverage_report.md",
             f"{ip}/sim/results.xml or {ip}/tb/cocotb/results.xml",
         ]
+        artifacts += self._write_stage_todo_evidence_plan(
+            ip=ip,
+            stage="coverage",
+            status=status,
+            headline=headline,
+            runs=runs,
+            artifacts=artifacts,
+            summary={
+                "functional": functional,
+                "line": lines_metric,
+                "branch": branches_metric,
+                "limitations": limitations,
+            },
+            human_review_needed=[
+                {"id": key, "reason": value}
+                for key, value in limitations.items()
+            ],
+            tasks=[
+                {
+                    "id": "COV-0001",
+                    "content": "Audit SSOT function and cycle coverage against RTL simulation evidence",
+                    "detail": "Coverage approval comes from SSOT coverage bins matched to scoreboard rows observed from RTL simulation, not raw model-only hits.",
+                    "criteria": "check_tb_sim_evidence exits 0, ssot_coverage_summary exits 0, coverage.json status is pass/ok, and function/cycle bins meet target.",
+                    "required_evidence": [
+                        f"{ip}/cov/fcov_plan.json",
+                        f"{ip}/cov/coverage_functional.json",
+                        f"{ip}/cov/coverage.json",
+                        f"{ip}/sim/scoreboard_events.jsonl",
+                    ],
+                    "source_refs": [f"{ip}/yaml/{ip}.ssot.yaml", f"{ip}/verify/equivalence_goals.json"],
+                },
+                {
+                    "id": "COV-0002",
+                    "content": "Record coverage limitations instead of approving unsupported proof",
+                    "detail": "If a coverage adapter cannot prove a bin, keep the stage blocked or human_review_needed with limitations attached.",
+                    "criteria": "coverage.json limitations is empty for pass, or each limitation is surfaced in human_review_needed.",
+                    "required_evidence": [f"{ip}/cov/coverage.json limitations"],
+                    "source_refs": [f"{ip}/cov/coverage.json"],
+                },
+            ],
+        )
         self._append_expected(lines, artifacts)
         if status == "pass":
             lines += ["", "next: run /sim-debug and /goal-audit before any synthesis-stage work."]
@@ -1606,6 +1750,134 @@ class WorkflowStageEngine:
     def _append_artifacts(self, lines: list[str], artifacts: list[str]) -> None:
         lines += ["", "artifacts:"]
         lines += [f"- {artifact}" for artifact in artifacts]
+
+    def _write_stage_todo_evidence_plan(
+        self,
+        *,
+        ip: str,
+        stage: str,
+        status: str,
+        headline: str,
+        runs: list[ToolRun],
+        artifacts: list[str],
+        tasks: list[dict[str, Any]],
+        summary: dict[str, Any] | None = None,
+        human_review_needed: list[Any] | None = None,
+    ) -> list[str]:
+        """Persist a small evidence-backed todo ledger for non-RTL stages."""
+
+        stage_key = canonical_stage(stage)
+        workflow = STAGE_WORKFLOW.get(stage_key, stage_key)
+        dir_name, slug = {
+            "lint": ("lint", "lint"),
+            "ssot-tb-cocotb": ("tb", "tb"),
+            "sim": ("sim", "sim"),
+            "coverage": ("cov", "coverage"),
+        }.get(stage_key, (stage_key.replace("-", "_"), stage_key.replace("-", "_")))
+        plan_rel = f"{dir_name}/{slug}_todo_plan.json"
+        tracker_rel = f"todo/{slug}_todo_tracker.json"
+        legacy_tracker_rel = f"{dir_name}/{slug}_todo_tracker.json"
+
+        if status == "pass":
+            approval_state = "approved"
+            completion_status = "pass"
+        elif status == "human_gate":
+            approval_state = "human_review_needed"
+            completion_status = "open"
+        elif status == "blocked":
+            approval_state = "blocked"
+            completion_status = "open"
+        else:
+            approval_state = "rejected"
+            completion_status = "open"
+
+        run_dicts = [run.to_dict() for run in runs]
+        now = _utc()
+        enriched_tasks: list[dict[str, Any]] = []
+        for raw in tasks:
+            task = dict(raw)
+            task.setdefault("required", True)
+            task.setdefault("owner_workflow", workflow)
+            task.setdefault("approval_policy", "evidence_required")
+            task.setdefault("fallback_if_no_evidence", "human_review_needed")
+            task["approval_state"] = approval_state
+            task["todo_completion"] = {
+                "status": completion_status,
+                "reason": headline,
+                "evidence_basis": list(task.get("required_evidence") or []) + [run["label"] for run in run_dicts],
+            }
+            enriched_tasks.append(task)
+
+        open_required = sum(
+            1
+            for task in enriched_tasks
+            if task.get("required", True) and (task.get("todo_completion") or {}).get("status") != "pass"
+        )
+        review_items = list(human_review_needed or [])
+        plan = {
+            "schema_version": "golden_todo_stage.v1",
+            "type": "stage_todo_evidence_plan",
+            "stage": stage_key,
+            "workflow": workflow,
+            "ip": ip,
+            "generated_at": now,
+            "approval_policy": "evidence_required",
+            "fallback_if_no_evidence": "human_review_needed",
+            "status": status,
+            "headline": headline,
+            "gate": {
+                "status": status,
+                "approval_state": approval_state,
+                "all_required_todos_pass": open_required == 0,
+                "open_required_todos": open_required,
+            },
+            "todo_completion": {
+                "all_required_todos_pass": open_required == 0,
+                "open_required_tasks": open_required,
+                "status_counts": {
+                    "pass": sum(1 for task in enriched_tasks if (task.get("todo_completion") or {}).get("status") == "pass"),
+                    "open": sum(1 for task in enriched_tasks if (task.get("todo_completion") or {}).get("status") != "pass"),
+                },
+            },
+            "tasks": enriched_tasks,
+            "runs": run_dicts,
+            "artifacts": artifacts,
+            "summary": summary or {},
+            "human_review_needed": review_items,
+        }
+
+        tracker_tasks = []
+        for task in enriched_tasks:
+            completion = task.get("todo_completion") if isinstance(task.get("todo_completion"), dict) else {}
+            tracker_tasks.append(
+                {
+                    "content": task.get("content") or task.get("id"),
+                    "activeForm": task.get("activeForm") or task.get("content") or task.get("id"),
+                    "detail": task.get("detail", ""),
+                    "criteria": task.get("criteria", ""),
+                    "priority": task.get("priority", "high"),
+                    "status": task.get("approval_state"),
+                    "source_id": task.get("id"),
+                    "source_plan": plan_rel,
+                    "approval_policy": task.get("approval_policy"),
+                    "required_evidence": task.get("required_evidence", []),
+                    "todo_completion": completion,
+                }
+            )
+        tracker = {
+            "schema_version": "todo_tracker.dynamic.v1",
+            "name": f"{ip}-{workflow}",
+            "description": f"Dynamic {workflow} todo list from {plan_rel}",
+            "source_plan": plan_rel,
+            "ui_grouping": False,
+            "tasks": tracker_tasks,
+        }
+
+        ip_dir = self.ip_dir(ip)
+        _write_json(ip_dir / plan_rel, plan)
+        _write_json(ip_dir / tracker_rel, tracker)
+        _write_json(ip_dir / legacy_tracker_rel, tracker)
+        return [f"{ip}/{plan_rel}", f"{ip}/{tracker_rel}", f"{ip}/{legacy_tracker_rel}"]
 
     def _result(
         self,

@@ -26,7 +26,7 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: dataflow, dataflow.read_path, dataflow.write_path, memory, memory.instances
+- Owner refs: dataflow, dataflow.read_path, dataflow.write_path, decomposition.units.storage, memory, memory.instances
 - SSOT connection contracts:
   - fifo_sync_mem.clk_i <= PCLK (integration.connections[2])
   - fifo_sync_mem.wr_en_i <= push_accepted (integration.connections[3])

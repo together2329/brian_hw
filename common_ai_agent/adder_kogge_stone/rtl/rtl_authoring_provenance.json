@@ -7,12 +7,12 @@
   "surface": "headless_common_engine",
   "source": "adder_kogge_stone/yaml/adder_kogge_stone.ssot.yaml",
   "todo_plan": "rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "974a79222007ecdacc712c6611b62d69c5bbb57c66e73bb2c078038e3f64cede",
+  "todo_plan_sha256": "5b1e30c58fdc35da20dbd7537ab665739792be7972ae6cc8e21efb9f43e61c2d",
   "rtl_files": [
     "rtl/adder_kogge_stone.sv",
     "rtl/adder_kogge_stone_regs.sv",
     "rtl/adder_kogge_stone_core.sv"
   ],
   "filelist": "list/adder_kogge_stone.f",
-  "generated_at": "2026-05-15T02:16:22Z"
+  "generated_at": "2026-05-15T02:18:02Z"
 }

@@ -29,16 +29,12 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Tool-evidence blockers:
   - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
-  - dut_compile: rtl/rtl_compile.json is older than current RTL source rtl/fifo_sync.sv; rerun DUT compile after the final RTL edit.
-  - dut_lint: lint/dut_lint.json is older than current RTL source rtl/fifo_sync.sv; rerun DUT lint after the final RTL edit.
-  - dynamic_todo_closure: 43 required non-closure TODO(s) remain open.
+  - dynamic_todo_closure: 41 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
-  - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
+  - fl_rtl_goal_audit: FL-vs-RTL goal audit is not clean.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
 - Tool-evidence runbook:
   - common_ai_agent_authoring: stages=ssot-rtl; artifact=fifo_sync/rtl/rtl_authoring_provenance.json
-  - dut_compile: stages=ssot-rtl, dut_compile; artifact=fifo_sync/rtl/rtl_compile.json
-  - dut_lint: stages=lint, dut_lint; artifact=fifo_sync/lint/dut_lint.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=fifo_sync/rtl/rtl_todo_plan.json
   - protocol_assertion_evidence: stages=ssot-protocol-assertions, sim; artifact=fifo_sync/verify/protocol_assertions.sva
   - fl_rtl_goal_audit: stages=ssot-fl-model, ssot-equiv-goals, ssot-tb-cocotb, sim, goal-audit; artifact=fifo_sync/sim/fl_rtl_goal_audit.json
@@ -87,13 +83,13 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: rtl/rtl_compile.json is older than current RTL source rtl/fifo_sync.sv; rerun DUT compile after the final RTL edit.
+- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -108,13 +104,13 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: lint/dut_lint.json is older than current RTL source rtl/fifo_sync.sv; rerun DUT lint after the final RTL edit.
+- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -136,7 +132,7 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: 43 required non-closure TODO(s) remain open.
+- Current reason: 41 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero
@@ -177,7 +173,7 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 - Detail: Passing compile/lint is not enough. The final RTL must be proven against FunctionalModel-derived equivalence goals using real RTL-observed evidence.
 SSOT ref: quality_gates.rtl_gen.fl_rtl_goal_audit.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
+- Current reason: FL-vs-RTL goal audit is not clean.
 - Criteria:
   - sim/fl_rtl_goal_audit.json exists
   - fl_rtl_goal_audit.json is newer than or equal to every listed DUT RTL source
