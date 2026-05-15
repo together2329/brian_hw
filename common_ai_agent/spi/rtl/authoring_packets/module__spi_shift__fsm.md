@@ -26,9 +26,9 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, cycle_model.ordering, cycle_model.pipeline, features, fsm, fsm.channel_level, function_model, function_model.transactions
-- Module slice: 4/7 section=fsm task_limit=48
-- Slice rule: Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, cycle_model.handshake_rules.launch_gate, cycle_model.ordering, cycle_model.pipeline, cycle_model.pipeline.S1_LAUNCH_CHECK, cycle_model.pipeline.S2_ASSERT_CS, cycle_model.pipeline.S3_SHIFT, cycle_model.pipeline.S4_SAMPLE, cycle_model.pipeline.S5_COMPLETE, dataflow, dataflow.control_path, features, features.APB-programmed frame transfer, features.Programmable SPI mode and bit order, fsm, fsm.channel_level
+- Module slice: 3/6 section=fsm task_limit=48
+- Slice rule: Owner module spi_shift is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT target scale: min_behavior_owner_logic_modules=3, min_depth_score=40, min_logic_modules=4, min_modules=6, min_procedural_blocks=20, min_source_files=6, min_state_updates=25
 - SSOT connection contracts:
   - spi_shift.start_req <= start_req (integration.connections[0])

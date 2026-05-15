@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: spi_clkgen
 - Owner file: rtl/spi_clkgen.sv
-- Task count: 21
-- Required tasks: 21
+- Task count: 14
+- Required tasks: 14
 
 ## Rules
 
@@ -24,75 +24,12 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 2
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, parameters, parameters.PRESCALE_WIDTH, timing
+- Owner refs: cycle_model, cycle_model.handshake_rules.sample_edge, cycle_model.handshake_rules.sclk_o, cycle_model.performance, cycle_model.pipeline.S3_SHIFT, cycle_model.pipeline.S4_SAMPLE, parameters, parameters.PRESCALE_WIDTH, timing, timing.protocol_timing
 - SSOT target scale: min_behavior_owner_logic_modules=3, min_depth_score=40, min_logic_modules=4, min_modules=6, min_procedural_blocks=20, min_source_files=6, min_state_updates=25
 
 ## Tasks
-
-### RTL-0119: Implement handshake rule: APB
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: cycle_model.handshake_rules
-- Source ref: cycle_model.handshake_rules.APB
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.handshake_rules.APB.
-Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.
-SSOT item context: signal=APB.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.handshake_rules.APB
-  - Primary implementation evidence is in rtl/spi_clkgen.sv
-  - cycle_model.handshake_rules.APB appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.handshake_rules.APB
-
-### RTL-0120: Implement handshake rule: CTRL.start
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: cycle_model.handshake_rules
-- Source ref: cycle_model.handshake_rules.CTRL_start
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.handshake_rules.CTRL_start.
-Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.
-SSOT item context: signal=CTRL.start.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.handshake_rules.CTRL_start
-  - Primary implementation evidence is in rtl/spi_clkgen.sv
-  - cycle_model.handshake_rules.CTRL_start appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.handshake_rules.CTRL_start
-
-### RTL-0121: Implement handshake rule: launch_gate
-
-- Priority: high
-- Required: True
-- Status: open
-- Category: cycle_model.handshake_rules
-- Source ref: cycle_model.handshake_rules.launch_gate
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.handshake_rules.launch_gate.
-Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.
-SSOT item context: signal=launch_gate.
-- Current reason: Required RTL static evidence is missing.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.handshake_rules.launch_gate
-  - Primary implementation evidence is in rtl/spi_clkgen.sv
-  - cycle_model.handshake_rules.launch_gate appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.handshake_rules.launch_gate
 
 ### RTL-0122: Implement handshake rule: sclk_o
 
@@ -103,7 +40,7 @@ SSOT item context: signal=launch_gate.
 - Source ref: cycle_model.handshake_rules.sclk_o
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.sclk_o.
-Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.
+Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.sclk_o.
 SSOT item context: signal=sclk_o.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -124,7 +61,7 @@ SSOT item context: signal=sclk_o.
 - Source ref: cycle_model.handshake_rules.sample_edge
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.sample_edge.
-Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.
+Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.sample_edge.
 SSOT item context: signal=sample_edge.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -136,72 +73,6 @@ SSOT item context: signal=sample_edge.
   - cycle_model.handshake_rules.sample_edge appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.sample_edge
 
-### RTL-0124: Implement pipeline stage: S0_APB_CFG
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: cycle_model.pipeline
-- Source ref: cycle_model.pipeline.S0_APB_CFG
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.pipeline.S0_APB_CFG.
-Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.
-SSOT item context: stage=S0_APB_CFG; action=Program mode/prescale/CS and push TX words; cycle=t.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.pipeline.S0_APB_CFG
-  - Primary implementation evidence is in rtl/spi_clkgen.sv
-  - cycle_model.pipeline.S0_APB_CFG timing uses SSOT cycle/latency t
-  - cycle_model.pipeline.S0_APB_CFG appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.pipeline.S0_APB_CFG
-
-### RTL-0125: Implement pipeline stage: S1_LAUNCH_CHECK
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: cycle_model.pipeline
-- Source ref: cycle_model.pipeline.S1_LAUNCH_CHECK
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.pipeline.S1_LAUNCH_CHECK.
-Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.
-SSOT item context: stage=S1_LAUNCH_CHECK; action=Evaluate launch preconditions and latch frame context; cycle=t+0..t+1.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.pipeline.S1_LAUNCH_CHECK
-  - Primary implementation evidence is in rtl/spi_clkgen.sv
-  - cycle_model.pipeline.S1_LAUNCH_CHECK timing uses SSOT cycle/latency t+0..t+1
-  - cycle_model.pipeline.S1_LAUNCH_CHECK appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.pipeline.S1_LAUNCH_CHECK
-
-### RTL-0126: Implement pipeline stage: S2_ASSERT_CS
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: cycle_model.pipeline
-- Source ref: cycle_model.pipeline.S2_ASSERT_CS
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.pipeline.S2_ASSERT_CS.
-Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.
-SSOT item context: stage=S2_ASSERT_CS; action=Drive selected chip select active-low; cycle=next.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.pipeline.S2_ASSERT_CS
-  - Primary implementation evidence is in rtl/spi_clkgen.sv
-  - cycle_model.pipeline.S2_ASSERT_CS timing uses SSOT cycle/latency next
-  - cycle_model.pipeline.S2_ASSERT_CS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.pipeline.S2_ASSERT_CS
-
 ### RTL-0128: Implement pipeline stage: S4_SAMPLE
 
 - Priority: high
@@ -211,7 +82,7 @@ SSOT item context: stage=S2_ASSERT_CS; action=Drive selected chip select active-
 - Source ref: cycle_model.pipeline.S4_SAMPLE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S4_SAMPLE.
-Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.
+Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.S4_SAMPLE.
 SSOT item context: stage=S4_SAMPLE; action=Sample MISO/loopback bit and advance bit_index; cycle=repeating.
 - Current reason: Required RTL static evidence is missing.
 - Criteria:
@@ -223,28 +94,6 @@ SSOT item context: stage=S4_SAMPLE; action=Sample MISO/loopback bit and advance 
   - cycle_model.pipeline.S4_SAMPLE timing uses SSOT cycle/latency repeating
   - cycle_model.pipeline.S4_SAMPLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.pipeline.S4_SAMPLE
-
-### RTL-0129: Implement pipeline stage: S5_COMPLETE
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: cycle_model.pipeline
-- Source ref: cycle_model.pipeline.S5_COMPLETE
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.pipeline.S5_COMPLETE.
-Owner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.
-SSOT item context: stage=S5_COMPLETE; action=Push RX word if possible, update done/errors/pending, manage CS hold/deassert; cycle=terminal.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.pipeline.S5_COMPLETE
-  - Primary implementation evidence is in rtl/spi_clkgen.sv
-  - cycle_model.pipeline.S5_COMPLETE timing uses SSOT cycle/latency terminal
-  - cycle_model.pipeline.S5_COMPLETE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.pipeline.S5_COMPLETE
 
 ### RTL-0245: Prove module spi_clkgen is functionally equivalent to FL
 

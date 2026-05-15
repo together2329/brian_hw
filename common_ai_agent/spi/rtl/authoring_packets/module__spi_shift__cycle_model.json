@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 7,
+      "count": 6,
       "enabled": true,
-      "index": 3,
+      "index": 2,
       "key": "cycle_model",
-      "module_task_count": 88,
-      "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 67,
+      "rule": "Owner module spi_shift is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "cycle_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -24,13 +24,36 @@
       "name": "spi_shift",
       "refs": [
         "cycle_model",
+        "cycle_model.handshake_rules.launch_gate",
         "cycle_model.ordering",
         "cycle_model.pipeline",
+        "cycle_model.pipeline.S1_LAUNCH_CHECK",
+        "cycle_model.pipeline.S2_ASSERT_CS",
+        "cycle_model.pipeline.S3_SHIFT",
+        "cycle_model.pipeline.S4_SAMPLE",
+        "cycle_model.pipeline.S5_COMPLETE",
+        "dataflow",
+        "dataflow.control_path",
         "features",
+        "features.APB-programmed frame transfer",
+        "features.Programmable SPI mode and bit order",
         "fsm",
         "fsm.channel_level",
         "function_model",
-        "function_model.transactions"
+        "function_model.invariants",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.active_cs",
+        "function_model.state_variables.busy",
+        "function_model.state_variables.ctrl_enable",
+        "function_model.state_variables.ctrl_mode",
+        "function_model.state_variables.frame_bits",
+        "function_model.state_variables.prescale_div",
+        "function_model.state_variables.sticky_errors",
+        "function_model.transactions.FM_FRAME_COMPLETE",
+        "function_model.transactions.FM_FRAME_LAUNCH",
+        "function_model.transactions.FM_SHIFT_SAMPLE"
       ],
       "wiring_only": false
     },
@@ -156,24 +179,28 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
+      "cycle_model.handshake_rules": 1,
       "cycle_model.ordering": 3,
-      "cycle_model.pipeline": 1
+      "cycle_model.pipeline": 3
     },
     "module_slice": {
-      "count": 7,
+      "count": 6,
       "enabled": true,
-      "index": 3,
+      "index": 2,
       "key": "cycle_model",
-      "module_task_count": 88,
-      "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 67,
+      "rule": "Owner module spi_shift is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "cycle_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
     "open_required_count": 1,
-    "required_count": 4,
+    "required_count": 7,
     "source_refs": [
+      "cycle_model.handshake_rules.launch_gate",
+      "cycle_model.pipeline.S1_LAUNCH_CHECK",
+      "cycle_model.pipeline.S2_ASSERT_CS",
       "cycle_model.pipeline.S3_SHIFT",
       "cycle_model.ordering.ordering_rule_0",
       "cycle_model.ordering.ordering_rule_1",
@@ -181,11 +208,161 @@
     ],
     "status_counts": {
       "open": 1,
-      "pass": 3
+      "pass": 6
     },
-    "task_count": 4
+    "task_count": 7
   },
   "tasks": [
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: launch_gate",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.launch_gate",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "cycle_model.handshake_rules.launch_gate appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.launch_gate.\nOwner: spi_shift in rtl/spi_shift.sv via cycle_model.handshake_rules.launch_gate.\nSSOT item context: signal=launch_gate.",
+      "evidence_terms": [
+        "gate",
+        "launch",
+        "launch_gate"
+      ],
+      "id": "RTL-0121",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.launch_gate",
+      "ssot_context": {
+        "signal": "launch_gate"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.launch_gate"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "gate",
+          "launch",
+          "launch_gate"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "gate",
+          "launch",
+          "launch_gate"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S1_LAUNCH_CHECK",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S1_LAUNCH_CHECK",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "cycle_model.pipeline.S1_LAUNCH_CHECK timing uses SSOT cycle/latency t+0..t+1",
+        "cycle_model.pipeline.S1_LAUNCH_CHECK appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_LAUNCH_CHECK.\nOwner: spi_shift in rtl/spi_shift.sv via cycle_model.pipeline.S1_LAUNCH_CHECK.\nSSOT item context: stage=S1_LAUNCH_CHECK; action=Evaluate launch preconditions and latch frame context; cycle=t+0..t+1.",
+      "evidence_terms": [],
+      "id": "RTL-0125",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S1_LAUNCH_CHECK",
+      "ssot_context": {
+        "action": "Evaluate launch preconditions and latch frame context",
+        "cycle": "t+0..t+1",
+        "stage": "S1_LAUNCH_CHECK"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_LAUNCH_CHECK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S2_ASSERT_CS",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S2_ASSERT_CS",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "cycle_model.pipeline.S2_ASSERT_CS timing uses SSOT cycle/latency next",
+        "cycle_model.pipeline.S2_ASSERT_CS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_ASSERT_CS.\nOwner: spi_shift in rtl/spi_shift.sv via cycle_model.pipeline.S2_ASSERT_CS.\nSSOT item context: stage=S2_ASSERT_CS; action=Drive selected chip select active-low; cycle=next.",
+      "evidence_terms": [],
+      "id": "RTL-0126",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S2_ASSERT_CS",
+      "ssot_context": {
+        "action": "Drive selected chip select active-low",
+        "cycle": "next",
+        "stage": "S2_ASSERT_CS"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S2_ASSERT_CS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
     {
       "category": "cycle_model.pipeline",
       "content": "Implement pipeline stage: S3_SHIFT",
@@ -198,7 +375,7 @@
         "cycle_model.pipeline.S3_SHIFT timing uses SSOT cycle/latency repeating",
         "cycle_model.pipeline.S3_SHIFT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S3_SHIFT.\nOwner: spi_shift in rtl/spi_shift.sv via cycle_model.pipeline.\nSSOT item context: stage=S3_SHIFT; action=Generate sclk_o edges and launch MOSI bits; cycle=repeating.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S3_SHIFT.\nOwner: spi_shift in rtl/spi_shift.sv via cycle_model.pipeline.S3_SHIFT.\nSSOT item context: stage=S3_SHIFT; action=Generate sclk_o edges and launch MOSI bits; cycle=repeating.",
       "evidence_terms": [
         "sclk",
         "sclk_o"
@@ -372,7 +549,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "2a60bf453550d0ce8554eb62210062c7cf9b821cfd849f3ea1217a035cfae11d",
+  "todo_plan_sha256": "1524a7a2a61d385b4fcd964fb83fe59969f7a9a74725a1517172f0b8e2da9c0e",
   "top": "spi",
   "type": "rtl_authoring_packet"
 }

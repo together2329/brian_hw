@@ -106,9 +106,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 3,
-    "open_required_count": 3,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -152,7 +152,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 3,
+    "open_required_count": 0,
     "required_count": 14,
     "source_refs": [
       "fsm.ptr_fsm.states.state_0",
@@ -171,8 +171,7 @@
       "fsm.ptr_fsm.transitions.transition_8"
     ],
     "status_counts": {
-      "open": 3,
-      "pass": 11
+      "pass": 14
     },
     "task_count": 14
   },
@@ -259,8 +258,10 @@
         "fsm.ptr_fsm.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ALMOST_EMPTY"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -268,7 +269,7 @@
           "ALMOST_EMPTY"
         ],
         "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -278,9 +279,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -311,8 +312,10 @@
         "fsm.ptr_fsm.states.state_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "NORMAL"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -320,7 +323,7 @@
           "NORMAL"
         ],
         "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -330,9 +333,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -363,8 +366,10 @@
         "fsm.ptr_fsm.states.state_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ALMOST_FULL"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -372,7 +377,7 @@
           "ALMOST_FULL"
         ],
         "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -382,9 +387,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -479,9 +484,11 @@
         "fsm.ptr_fsm.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 6,
         "matched_terms": [
+          "ALMOST",
           "EMPTY",
+          "NORMAL",
           "accepted",
           "push",
           "push_accepted"
@@ -553,8 +560,10 @@
         "fsm.ptr_fsm.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 6,
         "matched_terms": [
+          "ALMOST",
+          "ALMOST_EMPTY",
           "EMPTY",
           "accepted",
           "push",
@@ -624,8 +633,9 @@
         "fsm.ptr_fsm.transitions.transition_2"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
+          "ALMOST_EMPTY",
           "EMPTY",
           "accepted",
           "pop",
@@ -696,9 +706,12 @@
         "fsm.ptr_fsm.transitions.transition_3"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 7,
         "matched_terms": [
+          "ALMOST",
+          "ALMOST_EMPTY",
           "EMPTY",
+          "NORMAL",
           "accepted",
           "push",
           "push_accepted"
@@ -772,9 +785,12 @@
         "fsm.ptr_fsm.transitions.transition_4"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 7,
         "matched_terms": [
+          "ALMOST",
+          "ALMOST_FULL",
           "FULL",
+          "NORMAL",
           "accepted",
           "push",
           "push_accepted"
@@ -848,9 +864,12 @@
         "fsm.ptr_fsm.transitions.transition_5"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 7,
         "matched_terms": [
+          "ALMOST",
+          "ALMOST_EMPTY",
           "EMPTY",
+          "NORMAL",
           "accepted",
           "pop",
           "pop_accepted"
@@ -921,8 +940,9 @@
         "fsm.ptr_fsm.transitions.transition_6"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
+          "ALMOST_FULL",
           "DEPTH",
           "FULL",
           "accepted",
@@ -995,9 +1015,12 @@
         "fsm.ptr_fsm.transitions.transition_7"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 7,
         "matched_terms": [
+          "ALMOST",
+          "ALMOST_FULL",
           "FULL",
+          "NORMAL",
           "accepted",
           "pop",
           "pop_accepted"
@@ -1068,8 +1091,9 @@
         "fsm.ptr_fsm.transitions.transition_8"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
+          "ALMOST_FULL",
           "DEPTH",
           "FULL",
           "accepted",

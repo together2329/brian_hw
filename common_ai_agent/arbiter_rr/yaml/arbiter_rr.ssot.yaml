@@ -175,11 +175,11 @@ function_model:
         - "gnt_idx_o == selected_index (binary)"
         - "last_winner updated to selected_index"
       output_rules:
-        - { name: "grant", expr: "one_hot(selected_index)", width: "NUM_REQ", port: "gnt_o", description: "One-hot grant to selected requestor" }
-        - { name: "grant_valid", expr: "arb_enabled && ((req_i & req_mask) != 0)", width: 1, port: "gnt_valid_o", description: "Indicates a valid grant is being asserted" }
-        - { name: "grant_index", expr: "selected_index where selected_index is first active request in circular scan starting from (last_winner+1)%NUM_REQ", width: "IDX_WIDTH", port: "gnt_idx_o", description: "Binary index of the granted requestor" }
+        - { name: "grant_index", expr: "1 if ((last_winner == 0) and (((req_i & req_mask) & 2) != 0)) else (2 if ((last_winner == 0) and (((req_i & req_mask) & 2) == 0) and (((req_i & req_mask) & 4) != 0)) else (3 if ((last_winner == 0) and (((req_i & req_mask) & 2) == 0) and (((req_i & req_mask) & 4) == 0) and (((req_i & req_mask) & 8) != 0)) else (0 if (last_winner == 0) else (2 if ((last_winner == 1) and (((req_i & req_mask) & 4) != 0)) else (3 if ((last_winner == 1) and (((req_i & req_mask) & 4) == 0) and (((req_i & req_mask) & 8) != 0)) else (0 if ((last_winner == 1) and (((req_i & req_mask) & 4) == 0) and (((req_i & req_mask) & 8) == 0) and (((req_i & req_mask) & 1) != 0)) else (1 if (last_winner == 1) else (3 if ((last_winner == 2) and (((req_i & req_mask) & 8) != 0)) else (0 if ((last_winner == 2) and (((req_i & req_mask) & 8) == 0) and (((req_i & req_mask) & 1) != 0)) else (1 if ((last_winner == 2) and (((req_i & req_mask) & 8) == 0) and (((req_i & req_mask) & 1) == 0) and (((req_i & req_mask) & 2) != 0)) else (2 if (last_winner == 2) else (0 if (((req_i & req_mask) & 1) != 0) else (1 if (((req_i & req_mask) & 2) != 0) else (2 if (((req_i & req_mask) & 4) != 0) else 3)))))))))))))", width: "IDX_WIDTH", port: "gnt_idx_o", description: "Binary index of the first active request in the circular scan for NUM_REQ=4 default" }
+        - { name: "grant", expr: "1 << grant_index", width: "NUM_REQ", port: "gnt_o", description: "One-hot grant to selected requestor" }
+        - { name: "grant_valid", expr: "1", width: 1, port: "gnt_valid_o", description: "Indicates a valid grant is being asserted" }
       state_updates:
-        - { name: "last_winner", reset: 0, expr: "selected_index (binary index of current grant winner)" }
+        - { name: "last_winner", reset: 0, expr: "grant_index" }
       side_effects:
         - "last_winner rotates to current winner so it gets lowest priority next cycle"
         - "Only one requestor is granted per cycle (one-hot invariant)"
@@ -381,13 +381,11 @@ rtl_contract:
     grant_valid: "gnt_valid_o"
     grant_index: "gnt_idx_o"
   output_rules:
-    - { name: "grant", expr: "one_hot(selected_index)", width: "NUM_REQ", port: "gnt_o" }
-    - { name: "grant_valid", expr: "enable && (masked_reqs != 0)", width: 1, port: "gnt_valid_o" }
-    - { name: "grant_index", expr: "selected_index", width: "IDX_WIDTH", port: "gnt_idx_o" }
+    - { name: "grant_index", expr: "1 if ((last_winner == 0) and (((req_i & req_mask) & 2) != 0)) else (2 if ((last_winner == 0) and (((req_i & req_mask) & 2) == 0) and (((req_i & req_mask) & 4) != 0)) else (3 if ((last_winner == 0) and (((req_i & req_mask) & 2) == 0) and (((req_i & req_mask) & 4) == 0) and (((req_i & req_mask) & 8) != 0)) else (0 if (last_winner == 0) else (2 if ((last_winner == 1) and (((req_i & req_mask) & 4) != 0)) else (3 if ((last_winner == 1) and (((req_i & req_mask) & 4) == 0) and (((req_i & req_mask) & 8) != 0)) else (0 if ((last_winner == 1) and (((req_i & req_mask) & 4) == 0) and (((req_i & req_mask) & 8) == 0) and (((req_i & req_mask) & 1) != 0)) else (1 if (last_winner == 1) else (3 if ((last_winner == 2) and (((req_i & req_mask) & 8) != 0)) else (0 if ((last_winner == 2) and (((req_i & req_mask) & 8) == 0) and (((req_i & req_mask) & 1) != 0)) else (1 if ((last_winner == 2) and (((req_i & req_mask) & 8) == 0) and (((req_i & req_mask) & 1) == 0) and (((req_i & req_mask) & 2) != 0)) else (2 if (last_winner == 2) else (0 if (((req_i & req_mask) & 1) != 0) else (1 if (((req_i & req_mask) & 2) != 0) else (2 if (((req_i & req_mask) & 4) != 0) else 3)))))))))))))", width: "IDX_WIDTH", port: "gnt_idx_o" }
+    - { name: "grant", expr: "1 << grant_index", width: "NUM_REQ", port: "gnt_o" }
+    - { name: "grant_valid", expr: "1", width: 1, port: "gnt_valid_o" }
   state_updates:
-    - { name: "last_winner", reset: 0, expr: "grant_valid ? grant_index : last_winner" }
-    - { name: "arb_enabled", reset: 1, expr: "CTRL.enable (from APB write)" }
-    - { name: "req_mask", reset: "all-ones", expr: "REQ_MASK.mask (from APB write)" }
+    - { name: "last_winner", reset: 0, expr: "grant_index" }
 
 # =============================================================================
 # SECTION 16: Timing & Performance

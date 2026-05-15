@@ -235,8 +235,99 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
+        "llm_actionable_open_count": 4,
+        "open_required_count": 4,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__spi_fifo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__spi_fifo.md",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_module": "spi_fifo",
+      "packet_id": "module__spi_fifo",
+      "summary": {
+        "categories": {
+          "cycle_model.backpressure": 2,
+          "cycle_model.clock": 1,
+          "cycle_model.handshake_rules": 2,
+          "cycle_model.latency": 1,
+          "cycle_model.observability": 1,
+          "cycle_model.pipeline": 2,
+          "cycle_model.reset": 1,
+          "equivalence.module": 1,
+          "function_model.error_case": 2,
+          "function_model.input": 1,
+          "function_model.output": 2,
+          "function_model.precondition": 2,
+          "function_model.side_effect": 6,
+          "function_model.state_variable": 2,
+          "function_model.transaction": 3,
+          "memory.instances": 2
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 31,
+          "task_limit": 48
+        },
+        "open_required_count": 4,
+        "required_count": 31,
+        "source_refs": [
+          "function_model.state_variables.tx_fifo",
+          "function_model.state_variables.rx_fifo",
+          "function_model.transactions.FM_APB_TX_PUSH",
+          "function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0",
+          "function_model.transactions.FM_APB_TX_PUSH.inputs.input_0",
+          "function_model.transactions.FM_APB_TX_PUSH.outputs.output_0",
+          "function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0",
+          "function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1",
+          "function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0",
+          "function_model.transactions.FM_FRAME_COMPLETE",
+          "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0",
+          "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1",
+          "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_2",
+          "function_model.transactions.FM_APB_RX_POP",
+          "function_model.transactions.FM_APB_RX_POP.preconditions.precondition_0",
+          "function_model.transactions.FM_APB_RX_POP.outputs.output_0",
+          "function_model.transactions.FM_APB_RX_POP.side_effects.side_effect_0",
+          "function_model.transactions.FM_APB_RX_POP.error_cases.error_case_0",
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency",
+          "cycle_model.handshake_rules.APB",
+          "cycle_model.handshake_rules.CTRL_start",
+          "cycle_model.pipeline.S0_APB_CFG"
+        ],
+        "status_counts": {
+          "open": 4,
+          "pass": 27
+        },
+        "task_count": 31
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -255,8 +346,8 @@
       "packet_id": "module__spi_clkgen",
       "summary": {
         "categories": {
-          "cycle_model.handshake_rules": 5,
-          "cycle_model.pipeline": 5,
+          "cycle_model.handshake_rules": 2,
+          "cycle_model.pipeline": 1,
           "equivalence.module": 1,
           "parameters.item": 10
         },
@@ -265,22 +356,15 @@
           "enabled": false,
           "index": 1,
           "key": "all",
-          "module_task_count": 21,
+          "module_task_count": 14,
           "task_limit": 48
         },
-        "open_required_count": 2,
-        "required_count": 21,
+        "open_required_count": 1,
+        "required_count": 14,
         "source_refs": [
-          "cycle_model.handshake_rules.APB",
-          "cycle_model.handshake_rules.CTRL_start",
-          "cycle_model.handshake_rules.launch_gate",
           "cycle_model.handshake_rules.sclk_o",
           "cycle_model.handshake_rules.sample_edge",
-          "cycle_model.pipeline.S0_APB_CFG",
-          "cycle_model.pipeline.S1_LAUNCH_CHECK",
-          "cycle_model.pipeline.S2_ASSERT_CS",
           "cycle_model.pipeline.S4_SAMPLE",
-          "cycle_model.pipeline.S5_COMPLETE",
           "sub_modules.spi_clkgen.module_equivalence",
           "parameters.APB_ADDR_WIDTH",
           "parameters.APB_DATA_WIDTH",
@@ -294,10 +378,10 @@
           "parameters.PCLK_FREQ_MHZ"
         ],
         "status_counts": {
-          "open": 2,
-          "pass": 19
+          "open": 1,
+          "pass": 13
         },
-        "task_count": 21
+        "task_count": 14
       }
     },
     {
@@ -311,8 +395,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 5,
-        "open_required_count": 5,
+        "llm_actionable_open_count": 7,
+        "open_required_count": 7,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -323,141 +407,68 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__spi_shift__function_model_01.json",
+      "json": "rtl/authoring_packets/module__spi_shift__function_model.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__spi_shift__function_model_01.md",
+      "markdown": "rtl/authoring_packets/module__spi_shift__function_model.md",
       "owner_file": "rtl/spi_shift.sv",
       "owner_module": "spi_shift",
-      "packet_id": "module__spi_shift__function_model_01",
+      "packet_id": "module__spi_shift__function_model",
       "summary": {
         "categories": {
-          "function_model.error_case": 5,
-          "function_model.input": 2,
-          "function_model.output": 7,
-          "function_model.precondition": 10,
-          "function_model.side_effect": 9,
-          "function_model.state_variable": 10,
-          "function_model.transaction": 5
+          "function_model.error_case": 4,
+          "function_model.input": 1,
+          "function_model.invariant": 5,
+          "function_model.output": 6,
+          "function_model.precondition": 8,
+          "function_model.side_effect": 4,
+          "function_model.state_variable": 7,
+          "function_model.transaction": 2
         },
         "module_slice": {
-          "count": 7,
+          "count": 6,
           "enabled": true,
           "index": 1,
-          "key": "function_model_01",
-          "module_task_count": 88,
-          "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "key": "function_model",
+          "module_task_count": 67,
+          "rule": "Owner module spi_shift is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "function_model",
-          "section_chunk_count": 2,
+          "section_chunk_count": 1,
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 5,
-        "required_count": 48,
+        "open_required_count": 7,
+        "required_count": 37,
         "source_refs": [
           "function_model.state_variables.ctrl_enable",
           "function_model.state_variables.ctrl_mode",
           "function_model.state_variables.active_cs",
           "function_model.state_variables.frame_bits",
           "function_model.state_variables.prescale_div",
-          "function_model.state_variables.tx_fifo",
-          "function_model.state_variables.rx_fifo",
           "function_model.state_variables.busy",
           "function_model.state_variables.sticky_errors",
-          "function_model.state_variables.int_pending",
-          "function_model.transactions.FM_APB_TX_PUSH",
-          "function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0",
-          "function_model.transactions.FM_APB_TX_PUSH.inputs.input_0",
-          "function_model.transactions.FM_APB_TX_PUSH.outputs.output_0",
-          "function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0",
-          "function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1",
-          "function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0",
           "function_model.transactions.FM_FRAME_LAUNCH",
           "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_0",
           "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_1",
           "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_2",
           "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_3",
           "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_4",
-          "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5"
+          "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5",
+          "function_model.transactions.FM_FRAME_LAUNCH.outputs.output_0",
+          "function_model.transactions.FM_FRAME_LAUNCH.outputs.output_1",
+          "function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_0",
+          "function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_1",
+          "function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_0",
+          "function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_1",
+          "function_model.transactions.FM_SHIFT_SAMPLE",
+          "function_model.transactions.FM_SHIFT_SAMPLE.preconditions.precondition_0",
+          "function_model.transactions.FM_SHIFT_SAMPLE.inputs.input_0",
+          "function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_0"
         ],
         "status_counts": {
-          "open": 5,
-          "pass": 43
+          "open": 7,
+          "pass": 30
         },
-        "task_count": 48
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 5,
-        "open_required_count": 5,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__spi_shift__function_model_02.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__spi_shift__function_model_02.md",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_module": "spi_shift",
-      "packet_id": "module__spi_shift__function_model_02",
-      "summary": {
-        "categories": {
-          "function_model.error_case": 2,
-          "function_model.invariant": 5,
-          "function_model.output": 2,
-          "function_model.precondition": 1,
-          "function_model.side_effect": 2,
-          "function_model.transaction": 1
-        },
-        "module_slice": {
-          "count": 7,
-          "enabled": true,
-          "index": 2,
-          "key": "function_model_02",
-          "module_task_count": 88,
-          "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "function_model",
-          "section_chunk_count": 2,
-          "section_chunk_index": 2,
-          "task_limit": 48
-        },
-        "open_required_count": 5,
-        "required_count": 13,
-        "source_refs": [
-          "function_model.transactions.FM_APB_RX_POP.outputs.output_0",
-          "function_model.transactions.FM_APB_RX_POP.side_effects.side_effect_0",
-          "function_model.transactions.FM_APB_RX_POP.error_cases.error_case_0",
-          "function_model.transactions.FM_INT_CLEAR",
-          "function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0",
-          "function_model.transactions.FM_INT_CLEAR.outputs.output_0",
-          "function_model.transactions.FM_INT_CLEAR.side_effects.side_effect_0",
-          "function_model.transactions.FM_INT_CLEAR.error_cases.error_case_0",
-          "function_model.invariants.invariant_0",
-          "function_model.invariants.invariant_1",
-          "function_model.invariants.invariant_2",
-          "function_model.invariants.invariant_3",
-          "function_model.invariants.invariant_4"
-        ],
-        "status_counts": {
-          "open": 5,
-          "pass": 8
-        },
-        "task_count": 13
+        "task_count": 37
       }
     },
     {
@@ -491,24 +502,28 @@
       "packet_id": "module__spi_shift__cycle_model",
       "summary": {
         "categories": {
+          "cycle_model.handshake_rules": 1,
           "cycle_model.ordering": 3,
-          "cycle_model.pipeline": 1
+          "cycle_model.pipeline": 3
         },
         "module_slice": {
-          "count": 7,
+          "count": 6,
           "enabled": true,
-          "index": 3,
+          "index": 2,
           "key": "cycle_model",
-          "module_task_count": 88,
-          "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 67,
+          "rule": "Owner module spi_shift is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "cycle_model",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
           "task_limit": 48
         },
         "open_required_count": 1,
-        "required_count": 4,
+        "required_count": 7,
         "source_refs": [
+          "cycle_model.handshake_rules.launch_gate",
+          "cycle_model.pipeline.S1_LAUNCH_CHECK",
+          "cycle_model.pipeline.S2_ASSERT_CS",
           "cycle_model.pipeline.S3_SHIFT",
           "cycle_model.ordering.ordering_rule_0",
           "cycle_model.ordering.ordering_rule_1",
@@ -516,9 +531,9 @@
         ],
         "status_counts": {
           "open": 1,
-          "pass": 3
+          "pass": 6
         },
-        "task_count": 4
+        "task_count": 7
       }
     },
     {
@@ -555,12 +570,12 @@
           "features.item": 3
         },
         "module_slice": {
-          "count": 7,
+          "count": 6,
           "enabled": true,
-          "index": 5,
+          "index": 4,
           "key": "features",
-          "module_task_count": 88,
-          "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 67,
+          "rule": "Owner module spi_shift is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "features",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -936,12 +951,12 @@
           "equivalence.module": 1
         },
         "module_slice": {
-          "count": 6,
+          "count": 5,
           "enabled": true,
-          "index": 5,
+          "index": 4,
           "key": "equivalence",
-          "module_task_count": 65,
-          "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 63,
+          "rule": "Owner module spi_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "equivalence",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -981,63 +996,6 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__spi_regs__error_handling.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__spi_regs__error_handling.md",
-      "owner_file": "rtl/spi_regs.sv",
-      "owner_module": "spi_regs",
-      "packet_id": "module__spi_regs__error_handling",
-      "summary": {
-        "categories": {
-          "error_handling.recovery": 2
-        },
-        "module_slice": {
-          "count": 6,
-          "enabled": true,
-          "index": 3,
-          "key": "error_handling",
-          "module_task_count": 65,
-          "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "error_handling",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 0,
-        "required_count": 2,
-        "source_refs": [
-          "error_handling.recovery.recovery_0",
-          "error_handling.recovery.recovery_1"
-        ],
-        "status_counts": {
-          "pass": 2
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": false,
-        "llm_actionable_open_count": 0,
-        "open_required_count": 0,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
       "json": "rtl/authoring_packets/module__spi_regs__interrupts.json",
       "kind": "module",
       "markdown": "rtl/authoring_packets/module__spi_regs__interrupts.md",
@@ -1049,12 +1007,12 @@
           "interrupts.sources": 8
         },
         "module_slice": {
-          "count": 6,
+          "count": 5,
           "enabled": true,
-          "index": 4,
+          "index": 3,
           "key": "interrupts",
-          "module_task_count": 65,
-          "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 63,
+          "rule": "Owner module spi_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "interrupts",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1112,12 +1070,12 @@
           "io_list.port": 16
         },
         "module_slice": {
-          "count": 6,
+          "count": 5,
           "enabled": true,
           "index": 1,
           "key": "io_list",
-          "module_task_count": 65,
-          "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 63,
+          "rule": "Owner module spi_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "io_list",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1184,12 +1142,12 @@
           "registers.register": 7
         },
         "module_slice": {
-          "count": 6,
+          "count": 5,
           "enabled": true,
           "index": 2,
           "key": "registers",
-          "module_task_count": 65,
-          "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 63,
+          "rule": "Owner module spi_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "registers",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1263,12 +1221,12 @@
           "workflow_todo.rtl_gen": 1
         },
         "module_slice": {
-          "count": 6,
+          "count": 5,
           "enabled": true,
-          "index": 6,
+          "index": 5,
           "key": "workflow_todo",
-          "module_task_count": 65,
-          "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 63,
+          "rule": "Owner module spi_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "workflow_todo",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1308,72 +1266,6 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__spi_fifo.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__spi_fifo.md",
-      "owner_file": "rtl/spi_fifo.sv",
-      "owner_module": "spi_fifo",
-      "packet_id": "module__spi_fifo",
-      "summary": {
-        "categories": {
-          "cycle_model.backpressure": 2,
-          "cycle_model.clock": 1,
-          "cycle_model.latency": 1,
-          "cycle_model.observability": 1,
-          "cycle_model.reset": 1,
-          "equivalence.module": 1,
-          "memory.instances": 2
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 9,
-          "task_limit": 48
-        },
-        "open_required_count": 0,
-        "required_count": 9,
-        "source_refs": [
-          "cycle_model.clock",
-          "cycle_model.reset",
-          "cycle_model.latency",
-          "cycle_model.backpressure.backpressure_rule_0",
-          "cycle_model.backpressure.backpressure_rule_1",
-          "cycle_model.observability.observability_signal_0",
-          "memory.instances.tx_fifo",
-          "memory.instances.rx_fifo",
-          "sub_modules.spi_fifo.module_equivalence"
-        ],
-        "status_counts": {
-          "pass": 9
-        },
-        "task_count": 9
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": false,
-        "llm_actionable_open_count": 0,
-        "open_required_count": 0,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
       "json": "rtl/authoring_packets/module__spi_shift__equivalence.json",
       "kind": "module",
       "markdown": "rtl/authoring_packets/module__spi_shift__equivalence.md",
@@ -1385,12 +1277,12 @@
           "equivalence.module": 1
         },
         "module_slice": {
-          "count": 7,
+          "count": 6,
           "enabled": true,
-          "index": 6,
+          "index": 5,
           "key": "equivalence",
-          "module_task_count": 88,
-          "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 67,
+          "rule": "Owner module spi_shift is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "equivalence",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1442,12 +1334,12 @@
           "fsm.transition": 11
         },
         "module_slice": {
-          "count": 7,
+          "count": 6,
           "enabled": true,
-          "index": 4,
+          "index": 3,
           "key": "fsm",
-          "module_task_count": 88,
-          "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 67,
+          "rule": "Owner module spi_shift is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "fsm",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1515,12 +1407,12 @@
           "workflow_todo.rtl_gen": 1
         },
         "module_slice": {
-          "count": 7,
+          "count": 6,
           "enabled": true,
-          "index": 7,
+          "index": 6,
           "key": "workflow_todo",
-          "module_task_count": 88,
-          "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "module_task_count": 67,
+          "rule": "Owner module spi_shift is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "workflow_todo",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1569,6 +1461,13 @@
       "summary": {
         "categories": {
           "equivalence.module": 1,
+          "error_handling.recovery": 2,
+          "function_model.error_case": 1,
+          "function_model.output": 1,
+          "function_model.precondition": 1,
+          "function_model.side_effect": 1,
+          "function_model.state_variable": 1,
+          "function_model.transaction": 1,
           "registers.field": 17,
           "registers.register": 3
         },
@@ -1577,12 +1476,18 @@
           "enabled": false,
           "index": 1,
           "key": "all",
-          "module_task_count": 21,
+          "module_task_count": 29,
           "task_limit": 48
         },
         "open_required_count": 0,
-        "required_count": 21,
+        "required_count": 29,
         "source_refs": [
+          "function_model.state_variables.int_pending",
+          "function_model.transactions.FM_INT_CLEAR",
+          "function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0",
+          "function_model.transactions.FM_INT_CLEAR.outputs.output_0",
+          "function_model.transactions.FM_INT_CLEAR.side_effects.side_effect_0",
+          "function_model.transactions.FM_INT_CLEAR.error_cases.error_case_0",
           "registers.register_list.INT_MASK",
           "registers.register_list.INT_MASK.fields.done_en",
           "registers.register_list.INT_MASK.fields.tx_overrun_en",
@@ -1600,15 +1505,12 @@
           "registers.register_list.INT_PENDING.fields.mode_fault_pend",
           "registers.register_list.INT_PENDING.fields.illegal_access_pend",
           "registers.register_list.INT_PENDING.fields.tx_empty_level",
-          "registers.register_list.INT_PENDING.fields.rx_full_level",
-          "registers.register_list.INT_CLEAR",
-          "registers.register_list.INT_CLEAR.fields.w1c",
-          "sub_modules.spi_int.module_equivalence"
+          "registers.register_list.INT_PENDING.fields.rx_full_level"
         ],
         "status_counts": {
-          "pass": 21
+          "pass": 29
         },
-        "task_count": 21
+        "task_count": 29
       }
     },
     {
@@ -1744,25 +1646,25 @@
     "human_locked_tasks": 3,
     "llm_actionable_packets": 6,
     "llm_actionable_tasks": 16,
-    "max_packet_required_tasks": 48,
-    "module_packets": 17,
+    "max_packet_required_tasks": 37,
+    "module_packets": 15,
     "next_llm_packets": [
+      "module__spi_fifo",
       "module__spi_clkgen",
-      "module__spi_shift__function_model_01",
-      "module__spi_shift__function_model_02",
+      "module__spi_shift__function_model",
       "module__spi_shift__cycle_model",
       "module__spi_shift__features",
       "rtl_gate_evidence_closure"
     ],
     "packet_task_limit": 48,
-    "packets": 20,
+    "packets": 18,
     "pass_allowed": false,
     "pending_connection_contract_suggestions": 0,
     "recommended_packet_batch_limit": 4,
     "reference_profile_present": false,
     "reference_scale_gap_present": false,
     "required_tasks": 258,
-    "sliced_module_packets": 13,
+    "sliced_module_packets": 11,
     "target_scale_present": true,
     "tool_evidence_packets": 1,
     "tool_evidence_tasks": 4,
@@ -1780,7 +1682,7 @@
     "min_state_updates": 25,
     "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
   },
-  "todo_plan_sha256": "2a60bf453550d0ce8554eb62210062c7cf9b821cfd849f3ea1217a035cfae11d",
+  "todo_plan_sha256": "1524a7a2a61d385b4fcd964fb83fe59969f7a9a74725a1517172f0b8e2da9c0e",
   "top": "spi",
   "type": "rtl_authoring_plan"
 }

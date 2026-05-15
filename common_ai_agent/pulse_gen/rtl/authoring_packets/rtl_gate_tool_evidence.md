@@ -28,8 +28,10 @@
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Tool-evidence blockers:
-  - dynamic_todo_closure: 1 required non-closure TODO(s) remain open.
+  - common_ai_agent_authoring: RTL authoring provenance is incomplete: todo_plan_sha256
+  - dynamic_todo_closure: 2 required non-closure TODO(s) remain open.
 - Tool-evidence runbook:
+  - common_ai_agent_authoring: stages=ssot-rtl; artifact=pulse_gen/rtl/rtl_authoring_provenance.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=pulse_gen/rtl/rtl_todo_plan.json
 - SSOT connection contracts:
   - pulse_gen_core.clk_i <= PCLK (integration.connections[0])
@@ -52,13 +54,13 @@
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
-- Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
+- Current reason: RTL authoring provenance is incomplete: todo_plan_sha256
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -124,7 +126,7 @@ Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
-- Current reason: 1 required non-closure TODO(s) remain open.
+- Current reason: 2 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

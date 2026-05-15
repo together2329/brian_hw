@@ -12,7 +12,7 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 21,
+      "module_task_count": 14,
       "task_limit": 48
     },
     "owner": {
@@ -20,11 +20,15 @@
       "name": "spi_clkgen",
       "refs": [
         "cycle_model",
-        "cycle_model.handshake_rules",
-        "cycle_model.pipeline",
+        "cycle_model.handshake_rules.sample_edge",
+        "cycle_model.handshake_rules.sclk_o",
+        "cycle_model.performance",
+        "cycle_model.pipeline.S3_SHIFT",
+        "cycle_model.pipeline.S4_SAMPLE",
         "parameters",
         "parameters.PRESCALE_WIDTH",
-        "timing"
+        "timing",
+        "timing.protocol_timing"
       ],
       "wiring_only": false
     },
@@ -86,8 +90,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 2,
-    "open_required_count": 2,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -116,8 +120,8 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "cycle_model.handshake_rules": 5,
-      "cycle_model.pipeline": 5,
+      "cycle_model.handshake_rules": 2,
+      "cycle_model.pipeline": 1,
       "equivalence.module": 1,
       "parameters.item": 10
     },
@@ -126,22 +130,15 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 21,
+      "module_task_count": 14,
       "task_limit": 48
     },
-    "open_required_count": 2,
-    "required_count": 21,
+    "open_required_count": 1,
+    "required_count": 14,
     "source_refs": [
-      "cycle_model.handshake_rules.APB",
-      "cycle_model.handshake_rules.CTRL_start",
-      "cycle_model.handshake_rules.launch_gate",
       "cycle_model.handshake_rules.sclk_o",
       "cycle_model.handshake_rules.sample_edge",
-      "cycle_model.pipeline.S0_APB_CFG",
-      "cycle_model.pipeline.S1_LAUNCH_CHECK",
-      "cycle_model.pipeline.S2_ASSERT_CS",
       "cycle_model.pipeline.S4_SAMPLE",
-      "cycle_model.pipeline.S5_COMPLETE",
       "sub_modules.spi_clkgen.module_equivalence",
       "parameters.APB_ADDR_WIDTH",
       "parameters.APB_DATA_WIDTH",
@@ -155,152 +152,12 @@
       "parameters.PCLK_FREQ_MHZ"
     ],
     "status_counts": {
-      "open": 2,
-      "pass": 19
+      "open": 1,
+      "pass": 13
     },
-    "task_count": 21
+    "task_count": 14
   },
   "tasks": [
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: APB",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.APB",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
-        "cycle_model.handshake_rules.APB appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.APB.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=APB.",
-      "evidence_terms": [],
-      "id": "RTL-0119",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_module": "spi_clkgen",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.APB",
-      "ssot_context": {
-        "signal": "APB"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.APB"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: CTRL.start",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.CTRL_start",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
-        "cycle_model.handshake_rules.CTRL_start appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.CTRL_start.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=CTRL.start.",
-      "evidence_terms": [],
-      "id": "RTL-0120",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_module": "spi_clkgen",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.CTRL_start",
-      "ssot_context": {
-        "signal": "CTRL.start"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.CTRL_start"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: launch_gate",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.launch_gate",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
-        "cycle_model.handshake_rules.launch_gate appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.launch_gate.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=launch_gate.",
-      "evidence_terms": [
-        "gate",
-        "launch",
-        "launch_gate"
-      ],
-      "id": "RTL-0121",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_module": "spi_clkgen",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.launch_gate",
-      "ssot_context": {
-        "signal": "launch_gate"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.launch_gate"
-      ],
-      "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "gate",
-          "launch",
-          "launch_gate"
-        ],
-        "source_scope": "rtl/spi_clkgen.sv",
-        "status": "missing"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Required RTL static evidence is missing.",
-        "required": true,
-        "status": "open"
-      }
-    },
     {
       "category": "cycle_model.handshake_rules",
       "content": "Implement handshake rule: sclk_o",
@@ -312,7 +169,7 @@
         "Primary implementation evidence is in rtl/spi_clkgen.sv",
         "cycle_model.handshake_rules.sclk_o appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sclk_o.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=sclk_o.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sclk_o.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.sclk_o.\nSSOT item context: signal=sclk_o.",
       "evidence_terms": [
         "sclk",
         "sclk_o"
@@ -369,7 +226,7 @@
         "Primary implementation evidence is in rtl/spi_clkgen.sv",
         "cycle_model.handshake_rules.sample_edge appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sample_edge.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=sample_edge.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sample_edge.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.sample_edge.\nSSOT item context: signal=sample_edge.",
       "evidence_terms": [
         "edge",
         "sample",
@@ -420,141 +277,6 @@
     },
     {
       "category": "cycle_model.pipeline",
-      "content": "Implement pipeline stage: S0_APB_CFG",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.pipeline.S0_APB_CFG",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
-        "cycle_model.pipeline.S0_APB_CFG timing uses SSOT cycle/latency t",
-        "cycle_model.pipeline.S0_APB_CFG appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_APB_CFG.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S0_APB_CFG; action=Program mode/prescale/CS and push TX words; cycle=t.",
-      "evidence_terms": [],
-      "id": "RTL-0124",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_module": "spi_clkgen",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.pipeline.S0_APB_CFG",
-      "ssot_context": {
-        "action": "Program mode/prescale/CS and push TX words",
-        "cycle": "t",
-        "stage": "S0_APB_CFG"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline.S0_APB_CFG"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.pipeline",
-      "content": "Implement pipeline stage: S1_LAUNCH_CHECK",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.pipeline.S1_LAUNCH_CHECK",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
-        "cycle_model.pipeline.S1_LAUNCH_CHECK timing uses SSOT cycle/latency t+0..t+1",
-        "cycle_model.pipeline.S1_LAUNCH_CHECK appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_LAUNCH_CHECK.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S1_LAUNCH_CHECK; action=Evaluate launch preconditions and latch frame context; cycle=t+0..t+1.",
-      "evidence_terms": [],
-      "id": "RTL-0125",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_module": "spi_clkgen",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.pipeline.S1_LAUNCH_CHECK",
-      "ssot_context": {
-        "action": "Evaluate launch preconditions and latch frame context",
-        "cycle": "t+0..t+1",
-        "stage": "S1_LAUNCH_CHECK"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline.S1_LAUNCH_CHECK"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.pipeline",
-      "content": "Implement pipeline stage: S2_ASSERT_CS",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.pipeline.S2_ASSERT_CS",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
-        "cycle_model.pipeline.S2_ASSERT_CS timing uses SSOT cycle/latency next",
-        "cycle_model.pipeline.S2_ASSERT_CS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_ASSERT_CS.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S2_ASSERT_CS; action=Drive selected chip select active-low; cycle=next.",
-      "evidence_terms": [],
-      "id": "RTL-0126",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_module": "spi_clkgen",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.pipeline.S2_ASSERT_CS",
-      "ssot_context": {
-        "action": "Drive selected chip select active-low",
-        "cycle": "next",
-        "stage": "S2_ASSERT_CS"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline.S2_ASSERT_CS"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.pipeline",
       "content": "Implement pipeline stage: S4_SAMPLE",
       "criteria": [
         "RTL contains the control/state/handshake logic for this cycle rule",
@@ -565,7 +287,7 @@
         "cycle_model.pipeline.S4_SAMPLE timing uses SSOT cycle/latency repeating",
         "cycle_model.pipeline.S4_SAMPLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S4_SAMPLE.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S4_SAMPLE; action=Sample MISO/loopback bit and advance bit_index; cycle=repeating.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S4_SAMPLE.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.S4_SAMPLE.\nSSOT item context: stage=S4_SAMPLE; action=Sample MISO/loopback bit and advance bit_index; cycle=repeating.",
       "evidence_terms": [
         "bit",
         "bit_index",
@@ -610,51 +332,6 @@
         "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
-      }
-    },
-    {
-      "category": "cycle_model.pipeline",
-      "content": "Implement pipeline stage: S5_COMPLETE",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.pipeline.S5_COMPLETE",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
-        "cycle_model.pipeline.S5_COMPLETE timing uses SSOT cycle/latency terminal",
-        "cycle_model.pipeline.S5_COMPLETE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S5_COMPLETE.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S5_COMPLETE; action=Push RX word if possible, update done/errors/pending, manage CS hold/deassert; cycle=terminal.",
-      "evidence_terms": [],
-      "id": "RTL-0129",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_module": "spi_clkgen",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.pipeline.S5_COMPLETE",
-      "ssot_context": {
-        "action": "Push RX word if possible, update done/errors/pending, manage CS hold/deassert",
-        "cycle": "terminal",
-        "stage": "S5_COMPLETE"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline.S5_COMPLETE"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
       }
     },
     {
@@ -1109,7 +786,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "2a60bf453550d0ce8554eb62210062c7cf9b821cfd849f3ea1217a035cfae11d",
+  "todo_plan_sha256": "1524a7a2a61d385b4fcd964fb83fe59969f7a9a74725a1517172f0b8e2da9c0e",
   "top": "spi",
   "type": "rtl_authoring_packet"
 }

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "fl_rtl_goal_audit",
   "ip": "spi",
-  "generated_at": "2026-05-15T02:26:55Z",
+  "generated_at": "2026-05-15T02:34:21Z",
   "status": "fail",
   "source_of_truth": {
     "ssot": "spi/yaml/spi.ssot.yaml",

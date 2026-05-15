@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: spi_int
 - Owner file: rtl/spi_int.sv
-- Task count: 21
-- Required tasks: 21
+- Task count: 29
+- Required tasks: 29
 
 ## Rules
 
@@ -26,10 +26,132 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: error_handling, interrupts, registers, registers.register_list
+- Owner refs: error_handling, error_handling.recovery, features.Interrupt and sticky error reporting, function_model, function_model.invariants.invariant_2, function_model.invariants.invariant_4, function_model.state_variables.int_pending, function_model.transactions.FM_INT_CLEAR, interrupts, registers, registers.register_list.INT_CLEAR, registers.register_list.INT_MASK, registers.register_list.INT_PENDING
 - SSOT target scale: min_behavior_owner_logic_modules=3, min_depth_score=40, min_logic_modules=4, min_modules=6, min_procedural_blocks=20, min_source_files=6, min_state_updates=25
 
 ## Tasks
+
+### RTL-0064: Implement RTL state owner for FL state int_pending
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.state_variable
+- Source ref: function_model.state_variables.int_pending
+- Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
+SSOT ref: function_model.state_variables.int_pending.
+Owner: spi_int in rtl/spi_int.sv via function_model.state_variables.int_pending.
+SSOT item context: name=int_pending; reset=0.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - State has a flop/register/memory owner in RTL
+  - Reset value matches SSOT
+  - Every transaction update occurs at the SSOT-defined acceptance/cycle point
+  - Traceability keeps source_ref function_model.state_variables.int_pending
+  - Primary implementation evidence is in rtl/spi_int.sv
+  - int_pending reset behavior matches SSOT value 0
+- SSOT refs: function_model.state_variables.int_pending
+
+### RTL-0106: Implement transaction FM_INT_CLEAR
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.transaction
+- Source ref: function_model.transactions.FM_INT_CLEAR
+- Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
+SSOT ref: function_model.transactions.FM_INT_CLEAR.
+Owner: spi_int in rtl/spi_int.sv via function_model.transactions.FM_INT_CLEAR.
+SSOT item context: id=FM_INT_CLEAR; name=w1c_interrupt_and_status_clear.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - Acceptance/precondition logic is explicit in RTL
+  - All outputs and side effects occur exactly once per accepted transaction
+  - The transaction is covered by equivalence goals and scoreboard observations downstream
+  - Traceability keeps source_ref function_model.transactions.FM_INT_CLEAR
+  - Primary implementation evidence is in rtl/spi_int.sv
+- SSOT refs: function_model.transactions.FM_INT_CLEAR
+
+### RTL-0107: Implement precondition for FM_INT_CLEAR: precondition_0
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.precondition
+- Source ref: function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0.
+Owner: spi_int in rtl/spi_int.sv via function_model.transactions.FM_INT_CLEAR.
+SSOT item context: value=APB write handshake to INT_CLEAR.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0
+  - Primary implementation evidence is in rtl/spi_int.sv
+- SSOT refs: function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0
+
+### RTL-0108: Implement output for FM_INT_CLEAR: output_0
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.output
+- Source ref: function_model.transactions.FM_INT_CLEAR.outputs.output_0
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_INT_CLEAR.outputs.output_0.
+Owner: spi_int in rtl/spi_int.sv via function_model.transactions.FM_INT_CLEAR.
+SSOT item context: value=Selected sticky pending/status bits cleared.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_INT_CLEAR.outputs.output_0
+  - Primary implementation evidence is in rtl/spi_int.sv
+- SSOT refs: function_model.transactions.FM_INT_CLEAR.outputs.output_0
+
+### RTL-0109: Implement side effect for FM_INT_CLEAR: side_effect_0
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.side_effect
+- Source ref: function_model.transactions.FM_INT_CLEAR.side_effects.side_effect_0
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_INT_CLEAR.side_effects.side_effect_0.
+Owner: spi_int in rtl/spi_int.sv via function_model.transactions.FM_INT_CLEAR.
+SSOT item context: value=FIFO level-derived pending bits remain level-sensitive and unaffected by W1C.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_INT_CLEAR.side_effects.side_effect_0
+  - Primary implementation evidence is in rtl/spi_int.sv
+- SSOT refs: function_model.transactions.FM_INT_CLEAR.side_effects.side_effect_0
+
+### RTL-0110: Implement error case for FM_INT_CLEAR: error_case_0
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.error_case
+- Source ref: function_model.transactions.FM_INT_CLEAR.error_cases.error_case_0
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_INT_CLEAR.error_cases.error_case_0.
+Owner: spi_int in rtl/spi_int.sv via function_model.transactions.FM_INT_CLEAR.
+SSOT item context: condition=write to read-only register or bad byte strobes.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_INT_CLEAR.error_cases.error_case_0
+  - Primary implementation evidence is in rtl/spi_int.sv
+  - function_model.transactions.FM_INT_CLEAR.error_cases.error_case_0 condition is implemented as RTL control logic: write to read-only register or bad byte strobes
+- SSOT refs: function_model.transactions.FM_INT_CLEAR.error_cases.error_case_0
 
 ### RTL-0166: Implement CSR/register INT_MASK
 
@@ -40,7 +162,7 @@
 - Source ref: registers.register_list.INT_MASK
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.INT_MASK.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.
 SSOT item context: name=INT_MASK; width=32; reset=0; access=rw; offset=20.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -64,7 +186,7 @@ SSOT item context: name=INT_MASK; width=32; reset=0; access=rw; offset=20.
 - Source ref: registers.register_list.INT_MASK.fields.done_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_MASK.fields.done_en.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.
 SSOT item context: name=done_en; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -90,7 +212,7 @@ SSOT item context: name=done_en; reset=0; access=rw.
 - Source ref: registers.register_list.INT_MASK.fields.tx_overrun_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_MASK.fields.tx_overrun_en.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.
 SSOT item context: name=tx_overrun_en; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -116,7 +238,7 @@ SSOT item context: name=tx_overrun_en; reset=0; access=rw.
 - Source ref: registers.register_list.INT_MASK.fields.rx_overrun_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_MASK.fields.rx_overrun_en.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.
 SSOT item context: name=rx_overrun_en; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -142,7 +264,7 @@ SSOT item context: name=rx_overrun_en; reset=0; access=rw.
 - Source ref: registers.register_list.INT_MASK.fields.rx_underrun_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_MASK.fields.rx_underrun_en.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.
 SSOT item context: name=rx_underrun_en; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -168,7 +290,7 @@ SSOT item context: name=rx_underrun_en; reset=0; access=rw.
 - Source ref: registers.register_list.INT_MASK.fields.mode_fault_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_MASK.fields.mode_fault_en.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.
 SSOT item context: name=mode_fault_en; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -194,7 +316,7 @@ SSOT item context: name=mode_fault_en; reset=0; access=rw.
 - Source ref: registers.register_list.INT_MASK.fields.illegal_access_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_MASK.fields.illegal_access_en.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.
 SSOT item context: name=illegal_access_en; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -220,7 +342,7 @@ SSOT item context: name=illegal_access_en; reset=0; access=rw.
 - Source ref: registers.register_list.INT_MASK.fields.tx_empty_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_MASK.fields.tx_empty_en.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.
 SSOT item context: name=tx_empty_en; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -246,7 +368,7 @@ SSOT item context: name=tx_empty_en; reset=0; access=rw.
 - Source ref: registers.register_list.INT_MASK.fields.rx_full_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_MASK.fields.rx_full_en.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.
 SSOT item context: name=rx_full_en; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -272,7 +394,7 @@ SSOT item context: name=rx_full_en; reset=0; access=rw.
 - Source ref: registers.register_list.INT_PENDING
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.INT_PENDING.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.
 SSOT item context: name=INT_PENDING; width=32; reset=64; access=ro; offset=24.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -296,7 +418,7 @@ SSOT item context: name=INT_PENDING; width=32; reset=64; access=ro; offset=24.
 - Source ref: registers.register_list.INT_PENDING.fields.done_pend
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_PENDING.fields.done_pend.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.
 SSOT item context: name=done_pend; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -322,7 +444,7 @@ SSOT item context: name=done_pend; reset=0; access=ro.
 - Source ref: registers.register_list.INT_PENDING.fields.tx_overrun_pend
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_PENDING.fields.tx_overrun_pend.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.
 SSOT item context: name=tx_overrun_pend; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -348,7 +470,7 @@ SSOT item context: name=tx_overrun_pend; reset=0; access=ro.
 - Source ref: registers.register_list.INT_PENDING.fields.rx_overrun_pend
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_PENDING.fields.rx_overrun_pend.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.
 SSOT item context: name=rx_overrun_pend; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -374,7 +496,7 @@ SSOT item context: name=rx_overrun_pend; reset=0; access=ro.
 - Source ref: registers.register_list.INT_PENDING.fields.rx_underrun_pend
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_PENDING.fields.rx_underrun_pend.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.
 SSOT item context: name=rx_underrun_pend; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -400,7 +522,7 @@ SSOT item context: name=rx_underrun_pend; reset=0; access=ro.
 - Source ref: registers.register_list.INT_PENDING.fields.mode_fault_pend
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_PENDING.fields.mode_fault_pend.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.
 SSOT item context: name=mode_fault_pend; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -426,7 +548,7 @@ SSOT item context: name=mode_fault_pend; reset=0; access=ro.
 - Source ref: registers.register_list.INT_PENDING.fields.illegal_access_pend
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_PENDING.fields.illegal_access_pend.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.
 SSOT item context: name=illegal_access_pend; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -452,7 +574,7 @@ SSOT item context: name=illegal_access_pend; reset=0; access=ro.
 - Source ref: registers.register_list.INT_PENDING.fields.tx_empty_level
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_PENDING.fields.tx_empty_level.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.
 SSOT item context: name=tx_empty_level; reset=1; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -478,7 +600,7 @@ SSOT item context: name=tx_empty_level; reset=1; access=ro.
 - Source ref: registers.register_list.INT_PENDING.fields.rx_full_level
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_PENDING.fields.rx_full_level.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.
 SSOT item context: name=rx_full_level; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -504,7 +626,7 @@ SSOT item context: name=rx_full_level; reset=0; access=ro.
 - Source ref: registers.register_list.INT_CLEAR
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.INT_CLEAR.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_CLEAR.
 SSOT item context: name=INT_CLEAR; width=32; reset=0; access=wo; offset=28.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -528,7 +650,7 @@ SSOT item context: name=INT_CLEAR; width=32; reset=0; access=wo; offset=28.
 - Source ref: registers.register_list.INT_CLEAR.fields.w1c
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INT_CLEAR.fields.w1c.
-Owner: spi_int in rtl/spi_int.sv via registers.register_list.
+Owner: spi_int in rtl/spi_int.sv via registers.register_list.INT_CLEAR.
 SSOT item context: name=w1c; reset=0; access=wo.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -544,6 +666,46 @@ SSOT item context: name=w1c; reset=0; access=wo.
   - w1c readback returns implemented RTL state when readable
   - w1c write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.INT_CLEAR.fields.w1c
+
+### RTL-0224: Implement error/fault item recovery_0
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: error_handling.recovery
+- Source ref: error_handling.recovery.recovery_0
+- Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
+SSOT ref: error_handling.recovery.recovery_0.
+Owner: spi_int in rtl/spi_int.sv via error_handling.recovery.
+SSOT item context: value=Sticky status and sticky interrupt pending bits clear via INT_CLEAR W1C or reset..
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner/evidence is named for this SSOT item
+  - Behavior is not represented only by comments or TB code
+  - Downstream verification can observe or justify the item
+  - Traceability keeps source_ref error_handling.recovery.recovery_0
+  - Primary implementation evidence is in rtl/spi_int.sv
+- SSOT refs: error_handling.recovery.recovery_0
+
+### RTL-0225: Implement error/fault item recovery_1
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: error_handling.recovery
+- Source ref: error_handling.recovery.recovery_1
+- Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
+SSOT ref: error_handling.recovery.recovery_1.
+Owner: spi_int in rtl/spi_int.sv via error_handling.recovery.
+SSOT item context: value=soft_reset pulse in CTRL clears FIFOs, busy, done, and sticky status bits while preserving programmable static config....
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner/evidence is named for this SSOT item
+  - Behavior is not represented only by comments or TB code
+  - Downstream verification can observe or justify the item
+  - Traceability keeps source_ref error_handling.recovery.recovery_1
+  - Primary implementation evidence is in rtl/spi_int.sv
+- SSOT refs: error_handling.recovery.recovery_1
 
 ### RTL-0247: Prove module spi_int is functionally equivalent to FL
 

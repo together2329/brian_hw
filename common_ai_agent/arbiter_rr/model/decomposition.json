@@ -596,15 +596,15 @@
           "matched_ref": "function_model"
         },
         {
+          "ref": "function_model.transactions.fm1.output_rules.grant_index",
+          "matched_ref": "function_model"
+        },
+        {
           "ref": "function_model.transactions.fm1.output_rules.grant",
           "matched_ref": "function_model"
         },
         {
           "ref": "function_model.transactions.fm1.output_rules.grant_valid",
-          "matched_ref": "function_model"
-        },
-        {
-          "ref": "function_model.transactions.fm1.output_rules.grant_index",
           "matched_ref": "function_model"
         },
         {

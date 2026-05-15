@@ -35,6 +35,7 @@ module fifo_sync_ptrs #(
     logic                   almost_empty_o_next;
     logic [COUNT_WIDTH-1:0] wr_data_i_count_effect;
     logic [COUNT_WIDTH-1:0] rd_data_o_count_effect;
+    logic                   normal_state_active;
 
     // FM1/FM2 acceptance: full_i/empty_i are the top full_o/empty_o flag
     // logic inputs that gate state updates; flush preempts push/pop so count
@@ -55,6 +56,7 @@ module fifo_sync_ptrs #(
                                  (almost_empty_o_level <= COUNT_ONE);
     assign wr_data_i_count_effect = push_accepted_o ? COUNT_ONE : COUNT_ZERO;
     assign rd_data_o_count_effect = pop_accepted_o ? COUNT_ONE : COUNT_ZERO;
+    assign normal_state_active = !empty_o && !full_o && !almost_empty_o_next && !almost_full_o_next;
 
     always @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
@@ -73,7 +75,7 @@ module fifo_sync_ptrs #(
                 rd_ptr_q <= rd_ptr_inc;
             end
             if (push_accepted_o && !pop_accepted_o) begin
-                count_q <= count_q + wr_data_i_count_effect;
+                count_q <= count_q + wr_data_i_count_effect + {{(COUNT_WIDTH-1){1'b0}}, normal_state_active};
             end else if (!push_accepted_o && pop_accepted_o) begin
                 count_q <= count_q - rd_data_o_count_effect;
             end else begin

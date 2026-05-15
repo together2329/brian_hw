@@ -8,24 +8,51 @@
       "activeForm": "Run generated testbench and collect simulator evidence",
       "approval_policy": "evidence_required",
       "content": "Run generated testbench and collect simulator evidence",
-      "criteria": "A supported TB runner exists and sim.sh produces passing results.xml plus scoreboard_events.jsonl.",
-      "detail": "Simulation cannot start until TB GEN creates an executable runner.",
+      "criteria": "sim.sh and check_tb_sim_evidence both exit 0; results.xml, scoreboard_events.jsonl, and sim_report.txt exist.",
+      "detail": "Run the generated TB through sim.sh and require machine-readable pass/fail evidence.",
       "priority": "high",
       "required_evidence": [
-        "edge_detector/tb/cocotb/test_runner.py",
-        "edge_detector/sim/results.xml",
-        "edge_detector/sim/scoreboard_events.jsonl"
+        "edge_detector/sim/results.xml or edge_detector/tb/cocotb/results.xml",
+        "edge_detector/sim/scoreboard_events.jsonl",
+        "edge_detector/sim/sim_report.txt"
       ],
       "source_id": "SIM-0001",
       "source_plan": "sim/sim_todo_plan.json",
-      "status": "blocked",
+      "status": "rejected",
       "todo_completion": {
         "evidence_basis": [
-          "edge_detector/tb/cocotb/test_runner.py",
-          "edge_detector/sim/results.xml",
-          "edge_detector/sim/scoreboard_events.jsonl"
+          "edge_detector/sim/results.xml or edge_detector/tb/cocotb/results.xml",
+          "edge_detector/sim/scoreboard_events.jsonl",
+          "edge_detector/sim/sim_report.txt",
+          "sim",
+          "sim_evidence"
         ],
-        "reason": "[sim] blocked: no executable TB runner found",
+        "reason": "[sim] FAIL",
+        "status": "open"
+      }
+    },
+    {
+      "activeForm": "Produce coverage-ready scoreboard rows",
+      "approval_policy": "evidence_required",
+      "content": "Produce coverage-ready scoreboard rows",
+      "criteria": "ssot_coverage_summary exits 0, or a blocked coverage capability is explicitly recorded by policy.",
+      "detail": "Simulation evidence must carry goal/scenario/coverage references so Coverage can audit FL/CL bins against RTL observations.",
+      "priority": "high",
+      "required_evidence": [
+        "edge_detector/cov/coverage.json",
+        "ssot_coverage_summary returncode 0 or explicit rc=3 policy override"
+      ],
+      "source_id": "SIM-0002",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "rejected",
+      "todo_completion": {
+        "evidence_basis": [
+          "edge_detector/cov/coverage.json",
+          "ssot_coverage_summary returncode 0 or explicit rc=3 policy override",
+          "sim",
+          "sim_evidence"
+        ],
+        "reason": "[sim] FAIL",
         "status": "open"
       }
     }

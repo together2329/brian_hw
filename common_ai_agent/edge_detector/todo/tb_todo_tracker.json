@@ -19,17 +19,19 @@
       ],
       "source_id": "TB-0001",
       "source_plan": "tb/tb_todo_plan.json",
-      "status": "human_review_needed",
+      "status": "approved",
       "todo_completion": {
         "evidence_basis": [
           "edge_detector/tb/cocotb/test_edge_detector.py",
           "edge_detector/tb/cocotb/test_runner.py",
           "edge_detector/tb/cocotb/tb_manifest.json",
           "edge_detector/tb/cocotb/tb_generation.json",
-          "emit_goal_scoreboard_cocotb"
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check"
         ],
-        "reason": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
-        "status": "open"
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
       }
     },
     {
@@ -45,15 +47,17 @@
       ],
       "source_id": "TB-0002",
       "source_plan": "tb/tb_todo_plan.json",
-      "status": "human_review_needed",
+      "status": "approved",
       "todo_completion": {
         "evidence_basis": [
           "check_pyuvm_structure returncode 0",
           "equivalence_scoreboard_self_check returncode 0",
-          "emit_goal_scoreboard_cocotb"
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check"
         ],
-        "reason": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
-        "status": "open"
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
       }
     }
   ],

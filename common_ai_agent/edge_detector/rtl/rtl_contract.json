@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "edge_detector",
+  "top": "edge_detector",
+  "generated_at": "2026-05-15T02:40:00Z",
+  "contract": {
+    "top": "edge_detector",
+    "clock": "PCLK",
+    "reset": "PRESETn",
+    "reset_active": "low",
+    "transaction": "DETECT",
+    "sample_condition": "1",
+    "latency": 3,
+    "input_map": {
+      "signal_in": "signal_i",
+      "signal_i": "signal_i",
+      "enable": "PSEL",
+      "irq_enable": "PENABLE"
+    },
+    "outputs": [
+      { "name": "edge_o", "port": "edge_o", "width": "WIDTH" },
+      { "name": "irq_o", "port": "irq_o", "width": 1 },
+      { "name": "PRDATA", "port": "PRDATA", "width": 32 },
+      { "name": "PREADY", "port": "PREADY", "width": 1 },
+      { "name": "PSLVERR", "port": "PSLVERR", "width": 1 }
+    ],
+    "special_outputs": {
+      "ready": "PREADY",
+      "error": "PSLVERR",
+      "interrupt": "irq_o"
+    },
+    "state_vars": {
+      "sync_chain": { "reset": 0 },
+      "prev_sync": { "reset": 0 },
+      "status_edge_sticky": { "reset": 0 },
+      "status_overflow": { "reset": 0 }
+    },
+    "apb_registers": true,
+    "source": "LLM-authored RTL contract derived from edge_detector SSOT rtl_contract/function_model/io_list"
+  }
+}

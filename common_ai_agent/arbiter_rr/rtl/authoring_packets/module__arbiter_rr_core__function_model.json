@@ -261,9 +261,9 @@
       "function_model.transactions.FM1.outputs.output_1",
       "function_model.transactions.FM1.outputs.output_2",
       "function_model.transactions.FM1.outputs.output_3",
+      "function_model.transactions.FM1.output_rules.grant_index",
       "function_model.transactions.FM1.output_rules.grant",
       "function_model.transactions.FM1.output_rules.grant_valid",
-      "function_model.transactions.FM1.output_rules.grant_index",
       "function_model.transactions.FM1.state_updates.last_winner",
       "function_model.transactions.FM1.side_effects.side_effect_0",
       "function_model.transactions.FM1.side_effects.side_effect_1",
@@ -1005,6 +1005,92 @@
     },
     {
       "category": "function_model.output_rule",
+      "content": "Implement output rule for FM1: grant_index",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.output_rules.grant_index",
+        "Primary implementation evidence is in rtl/arbiter_rr_core.sv",
+        "grant_index width matches SSOT value IDX_WIDTH",
+        "grant_index RTL expression implements SSOT expression 1 if ((last_winner == 0) and (((req_i & req_mask) & 2) != 0)) else (2 if ((last_winner == 0) and (((req_i & req_mask)...",
+        "DUT port gnt_idx_o is the implementation/observation point for grant_index",
+        "grant_index is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.output_rules.grant_index.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.\nSSOT item context: name=grant_index; port=gnt_idx_o; expr=1 if ((last_winner == 0) and (((req_i & req_mask) & 2) != 0)) else (2 if ((last_winner == 0) and (((req_i & req_mask)...; width=IDX_WIDTH.",
+      "evidence_terms": [
+        "gnt",
+        "gnt_idx_o",
+        "idx",
+        "last",
+        "last_winner",
+        "mask",
+        "req",
+        "req_i",
+        "req_mask",
+        "winner"
+      ],
+      "id": "RTL-0061",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.output_rules.grant_index",
+      "ssot_context": {
+        "expr": "1 if ((last_winner == 0) and (((req_i & req_mask) & 2) != 0)) else (2 if ((last_winner == 0) and (((req_i & req_mask)...",
+        "name": "grant_index",
+        "port": "gnt_idx_o",
+        "width": "IDX_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.output_rules.grant_index"
+      ],
+      "static_evidence": {
+        "matched_count": 9,
+        "matched_terms": [
+          "gnt",
+          "gnt_idx_o",
+          "idx",
+          "last",
+          "last_winner",
+          "mask",
+          "req",
+          "req_i",
+          "winner"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "gnt",
+          "gnt_idx_o",
+          "idx",
+          "last",
+          "last_winner",
+          "mask",
+          "req",
+          "req_i",
+          "req_mask",
+          "winner"
+        ],
+        "source_scope": "rtl/arbiter_rr_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
       "content": "Implement output rule for FM1: grant",
       "criteria": [
         "RTL owner logic is identifiable for this SSOT leaf",
@@ -1013,29 +1099,26 @@
         "Traceability keeps source_ref function_model.transactions.FM1.output_rules.grant",
         "Primary implementation evidence is in rtl/arbiter_rr_core.sv",
         "grant width matches SSOT value NUM_REQ",
-        "grant RTL expression implements SSOT expression one_hot(selected_index)",
+        "grant RTL expression implements SSOT expression 1 << grant_index",
         "DUT port gnt_o is the implementation/observation point for grant",
         "grant is not implemented only in FunctionalModel or scoreboard code"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.output_rules.grant.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.\nSSOT item context: name=grant; port=gnt_o; expr=one_hot(selected_index); width=NUM_REQ.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.output_rules.grant.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.\nSSOT item context: name=grant; port=gnt_o; expr=1 << grant_index; width=NUM_REQ.",
       "evidence_terms": [
         "gnt",
         "gnt_o",
-        "hot",
-        "index",
-        "one",
-        "one_hot",
-        "selected",
-        "selected_index"
+        "grant",
+        "grant_index",
+        "index"
       ],
-      "id": "RTL-0061",
+      "id": "RTL-0062",
       "owner_file": "rtl/arbiter_rr_core.sv",
       "owner_module": "arbiter_rr_core",
       "priority": "high",
       "required": true,
       "source_ref": "function_model.transactions.FM1.output_rules.grant",
       "ssot_context": {
-        "expr": "one_hot(selected_index)",
+        "expr": "1 << grant_index",
         "name": "grant",
         "port": "gnt_o",
         "width": "NUM_REQ"
@@ -1044,13 +1127,12 @@
         "function_model.transactions.FM1.output_rules.grant"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 4,
         "matched_terms": [
           "gnt",
           "gnt_o",
-          "index",
-          "selected",
-          "selected_index"
+          "grant",
+          "index"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1058,12 +1140,9 @@
         "required_terms": [
           "gnt",
           "gnt_o",
-          "hot",
-          "index",
-          "one",
-          "one_hot",
-          "selected",
-          "selected_index"
+          "grant",
+          "grant_index",
+          "index"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
         "status": "pass"
@@ -1091,31 +1170,24 @@
         "Traceability keeps source_ref function_model.transactions.FM1.output_rules.grant_valid",
         "Primary implementation evidence is in rtl/arbiter_rr_core.sv",
         "grant_valid width matches SSOT value 1",
-        "grant_valid RTL expression implements SSOT expression arb_enabled && ((req_i & req_mask) != 0)",
+        "grant_valid RTL expression implements SSOT expression 1",
         "DUT port gnt_valid_o is the implementation/observation point for grant_valid",
         "grant_valid is not implemented only in FunctionalModel or scoreboard code"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.output_rules.grant_valid.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.\nSSOT item context: name=grant_valid; port=gnt_valid_o; expr=arb_enabled && ((req_i & req_mask) != 0); width=1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.output_rules.grant_valid.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.\nSSOT item context: name=grant_valid; port=gnt_valid_o; expr=1; width=1.",
       "evidence_terms": [
-        "arb",
-        "arb_enabled",
-        "enabled",
         "gnt",
         "gnt_valid_o",
-        "mask",
-        "req",
-        "req_i",
-        "req_mask",
         "valid"
       ],
-      "id": "RTL-0062",
+      "id": "RTL-0063",
       "owner_file": "rtl/arbiter_rr_core.sv",
       "owner_module": "arbiter_rr_core",
       "priority": "high",
       "required": true,
       "source_ref": "function_model.transactions.FM1.output_rules.grant_valid",
       "ssot_context": {
-        "expr": "arb_enabled && ((req_i & req_mask) != 0)",
+        "expr": "1",
         "name": "grant_valid",
         "port": "gnt_valid_o",
         "width": "1"
@@ -1124,125 +1196,19 @@
         "function_model.transactions.FM1.output_rules.grant_valid"
       ],
       "static_evidence": {
-        "matched_count": 9,
+        "matched_count": 3,
         "matched_terms": [
-          "arb",
-          "arb_enabled",
-          "enabled",
           "gnt",
           "gnt_valid_o",
-          "mask",
-          "req",
-          "req_i",
           "valid"
         ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
-          "arb",
-          "arb_enabled",
-          "enabled",
           "gnt",
           "gnt_valid_o",
-          "mask",
-          "req",
-          "req_i",
-          "req_mask",
           "valid"
-        ],
-        "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "pass"
-      },
-      "todo_completion": {
-        "criteria_total": 9,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "function_model.output_rule",
-      "content": "Implement output rule for FM1: grant_index",
-      "criteria": [
-        "RTL owner logic is identifiable for this SSOT leaf",
-        "Reset/enable/error behavior is consistent with the parent transaction",
-        "Downstream equivalence/coverage can observe this behavior",
-        "Traceability keeps source_ref function_model.transactions.FM1.output_rules.grant_index",
-        "Primary implementation evidence is in rtl/arbiter_rr_core.sv",
-        "grant_index width matches SSOT value IDX_WIDTH",
-        "grant_index RTL expression implements SSOT expression selected_index where selected_index is first active request in circular scan starting from (last_winner+1)%NUM_REQ",
-        "DUT port gnt_idx_o is the implementation/observation point for grant_index",
-        "grant_index is not implemented only in FunctionalModel or scoreboard code"
-      ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.output_rules.grant_index.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.\nSSOT item context: name=grant_index; port=gnt_idx_o; expr=selected_index where selected_index is first active request in circular scan starting from (last_winner+1)%NUM_REQ; width=IDX_WIDTH.",
-      "evidence_terms": [
-        "NUM",
-        "NUM_REQ",
-        "REQ",
-        "gnt",
-        "gnt_idx_o",
-        "idx",
-        "index",
-        "last",
-        "last_winner",
-        "selected",
-        "selected_index",
-        "winner"
-      ],
-      "id": "RTL-0063",
-      "owner_file": "rtl/arbiter_rr_core.sv",
-      "owner_module": "arbiter_rr_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "function_model.transactions.FM1.output_rules.grant_index",
-      "ssot_context": {
-        "expr": "selected_index where selected_index is first active request in circular scan starting from (last_winner+1)%NUM_REQ",
-        "name": "grant_index",
-        "port": "gnt_idx_o",
-        "width": "IDX_WIDTH"
-      },
-      "ssot_refs": [
-        "function_model.transactions.FM1.output_rules.grant_index"
-      ],
-      "static_evidence": {
-        "matched_count": 12,
-        "matched_terms": [
-          "NUM",
-          "NUM_REQ",
-          "REQ",
-          "gnt",
-          "gnt_idx_o",
-          "idx",
-          "index",
-          "last",
-          "last_winner",
-          "selected",
-          "selected_index",
-          "winner"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "NUM",
-          "NUM_REQ",
-          "REQ",
-          "gnt",
-          "gnt_idx_o",
-          "idx",
-          "index",
-          "last",
-          "last_winner",
-          "selected",
-          "selected_index",
-          "winner"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
         "status": "pass"
@@ -1270,14 +1236,14 @@
         "Traceability keeps source_ref function_model.transactions.FM1.state_updates.last_winner",
         "Primary implementation evidence is in rtl/arbiter_rr_core.sv",
         "last_winner reset behavior matches SSOT value 0",
-        "last_winner RTL expression implements SSOT expression selected_index (binary index of current grant winner)",
+        "last_winner RTL expression implements SSOT expression grant_index",
         "last_winner updates exactly once at the SSOT-defined transaction acceptance point"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.state_updates.last_winner.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.\nSSOT item context: name=last_winner; expr=selected_index (binary index of current grant winner); reset=0.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.state_updates.last_winner.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.\nSSOT item context: name=last_winner; expr=grant_index; reset=0.",
       "evidence_terms": [
-        "index",
-        "selected",
-        "selected_index"
+        "grant",
+        "grant_index",
+        "index"
       ],
       "id": "RTL-0064",
       "owner_file": "rtl/arbiter_rr_core.sv",
@@ -1286,7 +1252,7 @@
       "required": true,
       "source_ref": "function_model.transactions.FM1.state_updates.last_winner",
       "ssot_context": {
-        "expr": "selected_index (binary index of current grant winner)",
+        "expr": "grant_index",
         "name": "last_winner",
         "reset": "0"
       },
@@ -1294,19 +1260,18 @@
         "function_model.transactions.FM1.state_updates.last_winner"
       ],
       "static_evidence": {
-        "matched_count": 3,
+        "matched_count": 2,
         "matched_terms": [
-          "index",
-          "selected",
-          "selected_index"
+          "grant",
+          "index"
         ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
-          "index",
-          "selected",
-          "selected_index"
+          "grant",
+          "grant_index",
+          "index"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
         "status": "pass"
@@ -2553,7 +2518,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "57a0bb887bd3dc03af9cb6dc20da2a398bd0f8f5de49c2960ce3509bde81c58c",
+  "todo_plan_sha256": "d249f4a6a57e3a02ee859050bfbd563fc32176218d8220af76c1d245fbc4fef0",
   "top": "arbiter_rr",
   "type": "rtl_authoring_packet"
 }

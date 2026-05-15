@@ -893,9 +893,9 @@
           "function_model.transactions.FM1.outputs.output_1",
           "function_model.transactions.FM1.outputs.output_2",
           "function_model.transactions.FM1.outputs.output_3",
+          "function_model.transactions.FM1.output_rules.grant_index",
           "function_model.transactions.FM1.output_rules.grant",
           "function_model.transactions.FM1.output_rules.grant_valid",
-          "function_model.transactions.FM1.output_rules.grant_index",
           "function_model.transactions.FM1.state_updates.last_winner",
           "function_model.transactions.FM1.side_effects.side_effect_0",
           "function_model.transactions.FM1.side_effects.side_effect_1",
@@ -1645,7 +1645,7 @@
     "min_state_updates": 3,
     "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
   },
-  "todo_plan_sha256": "57a0bb887bd3dc03af9cb6dc20da2a398bd0f8f5de49c2960ce3509bde81c58c",
+  "todo_plan_sha256": "d249f4a6a57e3a02ee859050bfbd563fc32176218d8220af76c1d245fbc4fef0",
   "top": "arbiter_rr",
   "type": "rtl_authoring_plan"
 }

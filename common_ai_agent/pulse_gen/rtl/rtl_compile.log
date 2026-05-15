@@ -1,3 +1,0 @@
-rtl/pulse_gen.sv:53: error: Unable to bind wire/reg/memory `pulse_gen_core.status_done_o' in `pulse_gen'
-rtl/pulse_gen.sv:53: error: Unable to elaborate r-value: ((PREADY_zero_wait_state)|((1'd0)&(TOP_io_list_live)))|((1'd0)&(pulse_gen_core.status_done_o))
-2 error(s) during elaboration.

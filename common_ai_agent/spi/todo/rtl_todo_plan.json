@@ -47,7 +47,7 @@
     "static_missing": 14,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:29:07Z",
+  "generated_at": "2026-05-15T02:33:46Z",
   "ip": "spi",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 5,
@@ -574,17 +574,34 @@
     "missing": 14,
     "missing_tasks": [
       {
+        "category": "function_model.input",
+        "matched_count": 1,
+        "matched_terms": [
+          "DATA"
+        ],
+        "owner_file": "rtl/spi_fifo.sv",
+        "required_match_count": 2,
+        "required_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH"
+        ],
+        "source_ref": "function_model.transactions.FM_APB_TX_PUSH.inputs.input_0",
+        "source_scope": "rtl/spi_fifo.sv",
+        "task_id": "RTL-0067"
+      },
+      {
         "category": "function_model.error_case",
         "matched_count": 0,
         "matched_terms": [],
-        "owner_file": "rtl/spi_shift.sv",
+        "owner_file": "rtl/spi_fifo.sv",
         "required_match_count": 2,
         "required_terms": [
           "PSTRB",
           "TXDATA"
         ],
         "source_ref": "function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0",
-        "source_scope": "rtl/spi_shift.sv",
+        "source_scope": "rtl/spi_fifo.sv",
         "task_id": "RTL-0071"
       },
       {
@@ -640,6 +657,41 @@
         "task_id": "RTL-0084"
       },
       {
+        "category": "function_model.side_effect",
+        "matched_count": 1,
+        "matched_terms": [
+          "rx"
+        ],
+        "owner_file": "rtl/spi_fifo.sv",
+        "required_match_count": 2,
+        "required_terms": [
+          "overrun",
+          "rx",
+          "rx_overrun"
+        ],
+        "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0",
+        "source_scope": "rtl/spi_fifo.sv",
+        "task_id": "RTL-0097"
+      },
+      {
+        "category": "function_model.side_effect",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file": "rtl/spi_fifo.sv",
+        "required_match_count": 2,
+        "required_terms": [
+          "CS",
+          "CS_IDLE",
+          "IDLE",
+          "continuous",
+          "continuous_cs",
+          "cs"
+        ],
+        "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1",
+        "source_scope": "rtl/spi_fifo.sv",
+        "task_id": "RTL-0098"
+      },
+      {
         "category": "function_model.error_case",
         "matched_count": 1,
         "matched_terms": [
@@ -654,36 +706,6 @@
         "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.error_cases.error_case_0",
         "source_scope": "rtl/spi_shift.sv",
         "task_id": "RTL-0100"
-      },
-      {
-        "category": "function_model.error_case",
-        "matched_count": 1,
-        "matched_terms": [
-          "RX"
-        ],
-        "owner_file": "rtl/spi_shift.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "FIFO",
-          "RX"
-        ],
-        "source_ref": "function_model.transactions.FM_APB_RX_POP.error_cases.error_case_0",
-        "source_scope": "rtl/spi_shift.sv",
-        "task_id": "RTL-0105"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/spi_shift.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "INT",
-          "INT_CLEAR"
-        ],
-        "source_ref": "function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0",
-        "source_scope": "rtl/spi_shift.sv",
-        "task_id": "RTL-0107"
       },
       {
         "category": "function_model.invariant",
@@ -734,21 +756,6 @@
         "source_ref": "function_model.invariants.invariant_4",
         "source_scope": "rtl/spi_shift.sv",
         "task_id": "RTL-0115"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/spi_clkgen.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "gate",
-          "launch",
-          "launch_gate"
-        ],
-        "source_ref": "cycle_model.handshake_rules.launch_gate",
-        "source_scope": "rtl/spi_clkgen.sv",
-        "task_id": "RTL-0121"
       },
       {
         "category": "cycle_model.pipeline",
@@ -878,11 +885,22 @@
         "name": "spi_regs",
         "refs": [
           "error_handling",
+          "error_handling.error_sources.access_policy_violation",
+          "error_handling.error_sources.illegal_apb_address",
+          "error_handling.error_sources.unsupported_write_strobe",
           "interrupts",
           "io_list",
           "io_list.interfaces.apb_slave",
           "registers",
-          "registers.register_list"
+          "registers.config",
+          "registers.register_list",
+          "registers.register_list.CS_IDLE",
+          "registers.register_list.CTRL",
+          "registers.register_list.DEBUG",
+          "registers.register_list.PRESCALE",
+          "registers.register_list.RXDATA",
+          "registers.register_list.STATUS",
+          "registers.register_list.TXDATA"
         ],
         "wiring_only": false
       },
@@ -892,9 +910,17 @@
         "refs": [
           "cycle_model",
           "cycle_model.backpressure",
+          "cycle_model.pipeline.S0_APB_CFG",
+          "cycle_model.pipeline.S5_COMPLETE",
           "dataflow",
           "dataflow.rx_path",
           "dataflow.tx_path",
+          "function_model",
+          "function_model.state_variables.rx_fifo",
+          "function_model.state_variables.tx_fifo",
+          "function_model.transactions.FM_APB_RX_POP",
+          "function_model.transactions.FM_APB_TX_PUSH",
+          "function_model.transactions.FM_FRAME_COMPLETE.side_effects",
           "memory",
           "memory.instances"
         ],
@@ -905,11 +931,15 @@
         "name": "spi_clkgen",
         "refs": [
           "cycle_model",
-          "cycle_model.handshake_rules",
-          "cycle_model.pipeline",
+          "cycle_model.handshake_rules.sample_edge",
+          "cycle_model.handshake_rules.sclk_o",
+          "cycle_model.performance",
+          "cycle_model.pipeline.S3_SHIFT",
+          "cycle_model.pipeline.S4_SAMPLE",
           "parameters",
           "parameters.PRESCALE_WIDTH",
-          "timing"
+          "timing",
+          "timing.protocol_timing"
         ],
         "wiring_only": false
       },
@@ -918,13 +948,36 @@
         "name": "spi_shift",
         "refs": [
           "cycle_model",
+          "cycle_model.handshake_rules.launch_gate",
           "cycle_model.ordering",
           "cycle_model.pipeline",
+          "cycle_model.pipeline.S1_LAUNCH_CHECK",
+          "cycle_model.pipeline.S2_ASSERT_CS",
+          "cycle_model.pipeline.S3_SHIFT",
+          "cycle_model.pipeline.S4_SAMPLE",
+          "cycle_model.pipeline.S5_COMPLETE",
+          "dataflow",
+          "dataflow.control_path",
           "features",
+          "features.APB-programmed frame transfer",
+          "features.Programmable SPI mode and bit order",
           "fsm",
           "fsm.channel_level",
           "function_model",
-          "function_model.transactions"
+          "function_model.invariants",
+          "function_model.invariants.invariant_0",
+          "function_model.invariants.invariant_1",
+          "function_model.invariants.invariant_3",
+          "function_model.state_variables.active_cs",
+          "function_model.state_variables.busy",
+          "function_model.state_variables.ctrl_enable",
+          "function_model.state_variables.ctrl_mode",
+          "function_model.state_variables.frame_bits",
+          "function_model.state_variables.prescale_div",
+          "function_model.state_variables.sticky_errors",
+          "function_model.transactions.FM_FRAME_COMPLETE",
+          "function_model.transactions.FM_FRAME_LAUNCH",
+          "function_model.transactions.FM_SHIFT_SAMPLE"
         ],
         "wiring_only": false
       },
@@ -933,9 +986,18 @@
         "name": "spi_int",
         "refs": [
           "error_handling",
+          "error_handling.recovery",
+          "features.Interrupt and sticky error reporting",
+          "function_model",
+          "function_model.invariants.invariant_2",
+          "function_model.invariants.invariant_4",
+          "function_model.state_variables.int_pending",
+          "function_model.transactions.FM_INT_CLEAR",
           "interrupts",
           "registers",
-          "registers.register_list"
+          "registers.register_list.INT_CLEAR",
+          "registers.register_list.INT_MASK",
+          "registers.register_list.INT_PENDING"
         ],
         "wiring_only": false
       },
@@ -3630,11 +3692,11 @@
         "Primary implementation evidence is in rtl/spi_shift.sv",
         "ctrl_enable reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ctrl_enable.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=ctrl_enable; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ctrl_enable.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.state_variables.ctrl_enable.\nSSOT item context: name=ctrl_enable; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0055",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.state_variables.ctrl_enable",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -3675,11 +3737,11 @@
         "Primary implementation evidence is in rtl/spi_shift.sv",
         "ctrl_mode reset behavior matches SSOT value {cpol:CPOL_RESET,cpha:CPHA_RESET,lsb_first:LSB_FIRST_RESET,continuous_cs:0,loopback:0}"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ctrl_mode.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=ctrl_mode; reset={cpol:CPOL_RESET,cpha:CPHA_RESET,lsb_first:LSB_FIRST_RESET,continuous_cs:0,loopback:0}.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ctrl_mode.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.state_variables.ctrl_mode.\nSSOT item context: name=ctrl_mode; reset={cpol:CPOL_RESET,cpha:CPHA_RESET,lsb_first:LSB_FIRST_RESET,continuous_cs:0,loopback:0}.",
       "evidence_terms": [],
       "id": "RTL-0056",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.state_variables.ctrl_mode",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -3720,11 +3782,11 @@
         "Primary implementation evidence is in rtl/spi_shift.sv",
         "active_cs reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.active_cs.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=active_cs; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.active_cs.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.state_variables.active_cs.\nSSOT item context: name=active_cs; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0057",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.state_variables.active_cs",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -3765,11 +3827,11 @@
         "Primary implementation evidence is in rtl/spi_shift.sv",
         "frame_bits reset behavior matches SSOT value 8"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.frame_bits.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=frame_bits; reset=8.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.frame_bits.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.state_variables.frame_bits.\nSSOT item context: name=frame_bits; reset=8.",
       "evidence_terms": [],
       "id": "RTL-0058",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.state_variables.frame_bits",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -3810,11 +3872,11 @@
         "Primary implementation evidence is in rtl/spi_shift.sv",
         "prescale_div reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.prescale_div.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=prescale_div; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.prescale_div.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.state_variables.prescale_div.\nSSOT item context: name=prescale_div; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0059",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.state_variables.prescale_div",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -3852,15 +3914,15 @@
         "Reset value matches SSOT",
         "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
         "Traceability keeps source_ref function_model.state_variables.tx_fifo",
-        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "Primary implementation evidence is in rtl/spi_fifo.sv",
         "tx_fifo reset behavior matches SSOT value empty"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.tx_fifo.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=tx_fifo; reset=empty.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.tx_fifo.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.state_variables.tx_fifo.\nSSOT item context: name=tx_fifo; reset=empty.",
       "evidence_terms": [],
       "id": "RTL-0060",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.state_variables.tx_fifo",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -3897,15 +3959,15 @@
         "Reset value matches SSOT",
         "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
         "Traceability keeps source_ref function_model.state_variables.rx_fifo",
-        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "Primary implementation evidence is in rtl/spi_fifo.sv",
         "rx_fifo reset behavior matches SSOT value empty"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.rx_fifo.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=rx_fifo; reset=empty.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.rx_fifo.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.state_variables.rx_fifo.\nSSOT item context: name=rx_fifo; reset=empty.",
       "evidence_terms": [],
       "id": "RTL-0061",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.state_variables.rx_fifo",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -3945,11 +4007,11 @@
         "Primary implementation evidence is in rtl/spi_shift.sv",
         "busy reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.busy.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=busy; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.busy.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.state_variables.busy.\nSSOT item context: name=busy; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0062",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.state_variables.busy",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -3990,11 +4052,11 @@
         "Primary implementation evidence is in rtl/spi_shift.sv",
         "sticky_errors reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.sticky_errors.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=sticky_errors; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.sticky_errors.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.state_variables.sticky_errors.\nSSOT item context: name=sticky_errors; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0063",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.state_variables.sticky_errors",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -4032,15 +4094,15 @@
         "Reset value matches SSOT",
         "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
         "Traceability keeps source_ref function_model.state_variables.int_pending",
-        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "Primary implementation evidence is in rtl/spi_int.sv",
         "int_pending reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.int_pending.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=int_pending; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.int_pending.\nOwner: spi_int in rtl/spi_int.sv via function_model.state_variables.int_pending.\nSSOT item context: name=int_pending; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0064",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_int.sv",
+      "owner_match": "function_model.state_variables.int_pending",
+      "owner_module": "spi_int",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -4077,14 +4139,14 @@
         "All outputs and side effects occur exactly once per accepted transaction",
         "The transaction is covered by equivalence goals and scoreboard observations downstream",
         "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: id=FM_APB_TX_PUSH; name=apb_write_txdata.",
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_TX_PUSH.\nSSOT item context: id=FM_APB_TX_PUSH; name=apb_write_txdata.",
       "evidence_terms": [],
       "id": "RTL-0065",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_TX_PUSH",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -4121,14 +4183,14 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=APB write handshake to TXDATA.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_TX_PUSH.\nSSOT item context: value=APB write handshake to TXDATA.",
       "evidence_terms": [],
       "id": "RTL-0066",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_TX_PUSH",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -4164,18 +4226,18 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.inputs.input_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.inputs.input_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=PWDATA[DATA_WIDTH-1:0].",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.inputs.input_0.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_TX_PUSH.\nSSOT item context: value=PWDATA[DATA_WIDTH-1:0].",
       "evidence_terms": [
         "DATA",
         "DATA_WIDTH",
         "WIDTH"
       ],
       "id": "RTL-0067",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_TX_PUSH",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -4187,11 +4249,9 @@
         "function_model.transactions.FM_APB_TX_PUSH.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 3,
+        "matched_count": 1,
         "matched_terms": [
-          "DATA",
-          "DATA_WIDTH",
-          "WIDTH"
+          "DATA"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -4201,8 +4261,8 @@
           "DATA_WIDTH",
           "WIDTH"
         ],
-        "source_scope": "rtl/spi_shift.sv",
-        "status": "pass"
+        "source_scope": "rtl/spi_fifo.sv",
+        "status": "missing"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4212,9 +4272,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -4225,14 +4285,14 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.outputs.output_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=TX FIFO occupancy increments by one when not full.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.outputs.output_0.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_TX_PUSH.\nSSOT item context: value=TX FIFO occupancy increments by one when not full.",
       "evidence_terms": [],
       "id": "RTL-0068",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_TX_PUSH",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -4268,9 +4328,9 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=If tx_fifo full, payload is discarded and STATUS.tx_overrun set.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_TX_PUSH.\nSSOT item context: value=If tx_fifo full, payload is discarded and STATUS.tx_overrun set.",
       "evidence_terms": [
         "fifo",
         "overrun",
@@ -4279,9 +4339,9 @@
         "tx_overrun"
       ],
       "id": "RTL-0069",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_TX_PUSH",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -4295,7 +4355,7 @@
       "static_evidence": {
         "matched_count": 2,
         "matched_terms": [
-          "overrun",
+          "fifo",
           "tx"
         ],
         "owner_file_scoped": true,
@@ -4308,7 +4368,7 @@
           "tx_fifo",
           "tx_overrun"
         ],
-        "source_scope": "rtl/spi_shift.sv",
+        "source_scope": "rtl/spi_fifo.sv",
         "status": "pass"
       },
       "todo_completion": {
@@ -4332,9 +4392,9 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=tx_empty/tx_full level indicators update.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_TX_PUSH.\nSSOT item context: value=tx_empty/tx_full level indicators update.",
       "evidence_terms": [
         "empty",
         "full",
@@ -4343,9 +4403,9 @@
         "tx_full"
       ],
       "id": "RTL-0070",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_TX_PUSH",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -4357,12 +4417,13 @@
         "function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "empty",
           "full",
           "tx",
-          "tx_empty"
+          "tx_empty",
+          "tx_full"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -4374,7 +4435,7 @@
           "tx_empty",
           "tx_full"
         ],
-        "source_scope": "rtl/spi_shift.sv",
+        "source_scope": "rtl/spi_fifo.sv",
         "status": "pass"
       },
       "todo_completion": {
@@ -4398,18 +4459,18 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "Primary implementation evidence is in rtl/spi_fifo.sv",
         "function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0 condition is implemented as RTL control logic: unsupported PSTRB for TXDATA width"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=unsupported PSTRB for TXDATA width.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_TX_PUSH.\nSSOT item context: condition=unsupported PSTRB for TXDATA width.",
       "evidence_terms": [
         "PSTRB",
         "TXDATA"
       ],
       "id": "RTL-0071",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_TX_PUSH",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -4430,7 +4491,7 @@
           "PSTRB",
           "TXDATA"
         ],
-        "source_scope": "rtl/spi_shift.sv",
+        "source_scope": "rtl/spi_fifo.sv",
         "status": "missing"
       },
       "todo_completion": {
@@ -4456,11 +4517,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: id=FM_FRAME_LAUNCH; name=launch_frame.",
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: id=FM_FRAME_LAUNCH; name=launch_frame.",
       "evidence_terms": [],
       "id": "RTL-0072",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -4500,11 +4561,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_0",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=CTRL.start pulse observed.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: value=CTRL.start pulse observed.",
       "evidence_terms": [],
       "id": "RTL-0073",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -4543,7 +4604,7 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_1",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=ctrl_enable == 1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: value=ctrl_enable == 1.",
       "evidence_terms": [
         "ctrl",
         "ctrl_enable",
@@ -4551,7 +4612,7 @@
       ],
       "id": "RTL-0074",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -4602,11 +4663,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_2",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_2.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=busy == 0.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_2.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: value=busy == 0.",
       "evidence_terms": [],
       "id": "RTL-0075",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -4645,7 +4706,7 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_3",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_3.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=tx_fifo not empty.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_3.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: value=tx_fifo not empty.",
       "evidence_terms": [
         "fifo",
         "tx",
@@ -4653,7 +4714,7 @@
       ],
       "id": "RTL-0076",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -4704,7 +4765,7 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_4",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_4.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=cs_sel in [0, NUM_CS-1].",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_4.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: value=cs_sel in [0, NUM_CS-1].",
       "evidence_terms": [
         "CS",
         "NUM",
@@ -4715,7 +4776,7 @@
       ],
       "id": "RTL-0077",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -4774,7 +4835,7 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=frame_bits in [4, 32].",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: value=frame_bits in [4, 32].",
       "evidence_terms": [
         "bits",
         "frame",
@@ -4782,7 +4843,7 @@
       ],
       "id": "RTL-0078",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -4835,11 +4896,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.outputs.output_0",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=busy transitions to 1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: value=busy transitions to 1.",
       "evidence_terms": [],
       "id": "RTL-0079",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -4878,11 +4939,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.outputs.output_1",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.outputs.output_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=One TX word is consumed from TX FIFO for shift register load.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.outputs.output_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: value=One TX word is consumed from TX FIFO for shift register load.",
       "evidence_terms": [],
       "id": "RTL-0080",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -4921,14 +4982,14 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_0",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=csn_o drives exactly one active-low bit at selected CS.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: value=csn_o drives exactly one active-low bit at selected CS.",
       "evidence_terms": [
         "csn",
         "csn_o"
       ],
       "id": "RTL-0081",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -4979,11 +5040,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_1",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=SCLK idle level driven per CPOL before first active edge.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: value=SCLK idle level driven per CPOL before first active edge.",
       "evidence_terms": [],
       "id": "RTL-0082",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5023,7 +5084,7 @@
         "Primary implementation evidence is in rtl/spi_shift.sv",
         "function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_0 condition is implemented as RTL control logic: cs_sel illegal or frame_bits illegal"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=cs_sel illegal or frame_bits illegal.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: condition=cs_sel illegal or frame_bits illegal.",
       "evidence_terms": [
         "bits",
         "cs",
@@ -5034,7 +5095,7 @@
       ],
       "id": "RTL-0083",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5094,7 +5155,7 @@
         "Primary implementation evidence is in rtl/spi_shift.sv",
         "function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_1 condition is implemented as RTL control logic: CTRL.enable == 0 or tx_fifo empty or busy==1"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=CTRL.enable == 0 or tx_fifo empty or busy==1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_LAUNCH.\nSSOT item context: condition=CTRL.enable == 0 or tx_fifo empty or busy==1.",
       "evidence_terms": [
         "CTRL",
         "fifo",
@@ -5103,7 +5164,7 @@
       ],
       "id": "RTL-0084",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_LAUNCH",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5155,11 +5216,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: id=FM_SHIFT_SAMPLE; name=shift_and_sample_bits.",
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_SHIFT_SAMPLE.\nSSOT item context: id=FM_SHIFT_SAMPLE; name=shift_and_sample_bits.",
       "evidence_terms": [],
       "id": "RTL-0085",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_SHIFT_SAMPLE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5199,11 +5260,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.preconditions.precondition_0",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=busy == 1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_SHIFT_SAMPLE.\nSSOT item context: value=busy == 1.",
       "evidence_terms": [],
       "id": "RTL-0086",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_SHIFT_SAMPLE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5242,7 +5303,7 @@
         "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.inputs.input_0",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.inputs.input_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=miso_i sampled on mode-dependent sample edges or internal mosi_o if loopback=1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.inputs.input_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_SHIFT_SAMPLE.\nSSOT item context: value=miso_i sampled on mode-dependent sample edges or internal mosi_o if loopback=1.",
       "evidence_terms": [
         "miso",
         "miso_i",
@@ -5251,7 +5312,7 @@
       ],
       "id": "RTL-0087",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_SHIFT_SAMPLE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5306,14 +5367,14 @@
         "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_0",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=mosi_o presents serialized transmit bits with configured bit order.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_SHIFT_SAMPLE.\nSSOT item context: value=mosi_o presents serialized transmit bits with configured bit order.",
       "evidence_terms": [
         "mosi",
         "mosi_o"
       ],
       "id": "RTL-0088",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_SHIFT_SAMPLE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5364,7 +5425,7 @@
         "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_1",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=rx_shift_reg accumulates sampled bits.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_SHIFT_SAMPLE.\nSSOT item context: value=rx_shift_reg accumulates sampled bits.",
       "evidence_terms": [
         "reg",
         "rx",
@@ -5373,7 +5434,7 @@
       ],
       "id": "RTL-0089",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_SHIFT_SAMPLE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5428,7 +5489,7 @@
         "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_0",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=bit_index progresses from 0 to frame_bits-1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_SHIFT_SAMPLE.\nSSOT item context: value=bit_index progresses from 0 to frame_bits-1.",
       "evidence_terms": [
         "bit",
         "bit_index",
@@ -5439,7 +5500,7 @@
       ],
       "id": "RTL-0090",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_SHIFT_SAMPLE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5498,11 +5559,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_1",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=done asserted when terminal sample edge occurs.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_SHIFT_SAMPLE.\nSSOT item context: value=done asserted when terminal sample edge occurs.",
       "evidence_terms": [],
       "id": "RTL-0091",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_SHIFT_SAMPLE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5542,11 +5603,11 @@
         "Primary implementation evidence is in rtl/spi_shift.sv",
         "function_model.transactions.FM_SHIFT_SAMPLE.error_cases.error_case_0 condition is implemented as RTL control logic: none during legal frame"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=none during legal frame.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_SHIFT_SAMPLE.\nSSOT item context: condition=none during legal frame.",
       "evidence_terms": [],
       "id": "RTL-0092",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_SHIFT_SAMPLE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5583,14 +5644,14 @@
         "All outputs and side effects occur exactly once per accepted transaction",
         "The transaction is covered by equivalence goals and scoreboard observations downstream",
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: id=FM_FRAME_COMPLETE; name=complete_frame_and_store_rx.",
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_FRAME_COMPLETE.side_effects.\nSSOT item context: id=FM_FRAME_COMPLETE; name=complete_frame_and_store_rx.",
       "evidence_terms": [],
       "id": "RTL-0093",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_FRAME_COMPLETE.side_effects",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -5629,11 +5690,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.preconditions.precondition_0",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=terminal sample edge reached.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_COMPLETE.\nSSOT item context: value=terminal sample edge reached.",
       "evidence_terms": [],
       "id": "RTL-0094",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_COMPLETE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5672,11 +5733,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.outputs.output_0",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=busy transitions to 0.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_COMPLETE.\nSSOT item context: value=busy transitions to 0.",
       "evidence_terms": [],
       "id": "RTL-0095",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_COMPLETE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5715,11 +5776,11 @@
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.outputs.output_1",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.outputs.output_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=STATUS.done pulse/latched event generated.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.outputs.output_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_COMPLETE.\nSSOT item context: value=STATUS.done pulse/latched event generated.",
       "evidence_terms": [],
       "id": "RTL-0096",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_COMPLETE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5756,18 +5817,18 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=If RX FIFO has space, received frame pushed; else discard and STATUS.rx_overrun set.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_FRAME_COMPLETE.side_effects.\nSSOT item context: value=If RX FIFO has space, received frame pushed; else discard and STATUS.rx_overrun set.",
       "evidence_terms": [
         "overrun",
         "rx",
         "rx_overrun"
       ],
       "id": "RTL-0097",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_FRAME_COMPLETE.side_effects",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -5779,11 +5840,9 @@
         "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 3,
+        "matched_count": 1,
         "matched_terms": [
-          "overrun",
-          "rx",
-          "rx_overrun"
+          "rx"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -5793,8 +5852,8 @@
           "rx",
           "rx_overrun"
         ],
-        "source_scope": "rtl/spi_shift.sv",
-        "status": "pass"
+        "source_scope": "rtl/spi_fifo.sv",
+        "status": "missing"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5804,9 +5863,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -5817,9 +5876,9 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=CS deasserts to CS_IDLE unless continuous_cs holds across back-to-back frame.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_FRAME_COMPLETE.side_effects.\nSSOT item context: value=CS deasserts to CS_IDLE unless continuous_cs holds across back-to-back frame.",
       "evidence_terms": [
         "CS",
         "CS_IDLE",
@@ -5829,9 +5888,9 @@
         "cs"
       ],
       "id": "RTL-0098",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_FRAME_COMPLETE.side_effects",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -5843,15 +5902,8 @@
         "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1"
       ],
       "static_evidence": {
-        "matched_count": 6,
-        "matched_terms": [
-          "CS",
-          "CS_IDLE",
-          "IDLE",
-          "continuous",
-          "continuous_cs",
-          "cs"
-        ],
+        "matched_count": 0,
+        "matched_terms": [],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5863,8 +5915,8 @@
           "continuous_cs",
           "cs"
         ],
-        "source_scope": "rtl/spi_shift.sv",
-        "status": "pass"
+        "source_scope": "rtl/spi_fifo.sv",
+        "status": "missing"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5874,9 +5926,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -5887,14 +5939,14 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_2",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_2.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=Interrupt pending bits update for done and FIFO level.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_2.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_FRAME_COMPLETE.side_effects.\nSSOT item context: value=Interrupt pending bits update for done and FIFO level.",
       "evidence_terms": [],
       "id": "RTL-0099",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_FRAME_COMPLETE.side_effects",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -5933,14 +5985,14 @@
         "Primary implementation evidence is in rtl/spi_shift.sv",
         "function_model.transactions.FM_FRAME_COMPLETE.error_cases.error_case_0 condition is implemented as RTL control logic: RX FIFO full"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=RX FIFO full.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.FM_FRAME_COMPLETE.\nSSOT item context: condition=RX FIFO full.",
       "evidence_terms": [
         "FIFO",
         "RX"
       ],
       "id": "RTL-0100",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
+      "owner_match": "function_model.transactions.FM_FRAME_COMPLETE",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -5988,14 +6040,14 @@
         "All outputs and side effects occur exactly once per accepted transaction",
         "The transaction is covered by equivalence goals and scoreboard observations downstream",
         "Traceability keeps source_ref function_model.transactions.FM_APB_RX_POP",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: id=FM_APB_RX_POP; name=apb_read_rxdata.",
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_RX_POP.\nSSOT item context: id=FM_APB_RX_POP; name=apb_read_rxdata.",
       "evidence_terms": [],
       "id": "RTL-0101",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_RX_POP",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -6032,14 +6084,14 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_APB_RX_POP.preconditions.precondition_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=APB read handshake to RXDATA.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.preconditions.precondition_0.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_RX_POP.\nSSOT item context: value=APB read handshake to RXDATA.",
       "evidence_terms": [],
       "id": "RTL-0102",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_RX_POP",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -6075,14 +6127,14 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_APB_RX_POP.outputs.output_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=Returns oldest RX word when FIFO non-empty.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.outputs.output_0.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_RX_POP.\nSSOT item context: value=Returns oldest RX word when FIFO non-empty.",
       "evidence_terms": [],
       "id": "RTL-0103",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_RX_POP",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -6118,14 +6170,14 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_APB_RX_POP.side_effects.side_effect_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_fifo.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=RX FIFO occupancy decrements on successful pop.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.side_effects.side_effect_0.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_RX_POP.\nSSOT item context: value=RX FIFO occupancy decrements on successful pop.",
       "evidence_terms": [],
       "id": "RTL-0104",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_RX_POP",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -6161,18 +6213,18 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_APB_RX_POP.error_cases.error_case_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "Primary implementation evidence is in rtl/spi_fifo.sv",
         "function_model.transactions.FM_APB_RX_POP.error_cases.error_case_0 condition is implemented as RTL control logic: RX FIFO empty"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=RX FIFO empty.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.error_cases.error_case_0.\nOwner: spi_fifo in rtl/spi_fifo.sv via function_model.transactions.FM_APB_RX_POP.\nSSOT item context: condition=RX FIFO empty.",
       "evidence_terms": [
         "FIFO",
         "RX"
       ],
       "id": "RTL-0105",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "function_model.transactions.FM_APB_RX_POP",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -6184,8 +6236,9 @@
         "function_model.transactions.FM_APB_RX_POP.error_cases.error_case_0"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
+          "FIFO",
           "RX"
         ],
         "owner_file_scoped": true,
@@ -6195,8 +6248,8 @@
           "FIFO",
           "RX"
         ],
-        "source_scope": "rtl/spi_shift.sv",
-        "status": "missing"
+        "source_scope": "rtl/spi_fifo.sv",
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -6206,9 +6259,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6219,14 +6272,14 @@
         "All outputs and side effects occur exactly once per accepted transaction",
         "The transaction is covered by equivalence goals and scoreboard observations downstream",
         "Traceability keeps source_ref function_model.transactions.FM_INT_CLEAR",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_int.sv"
       ],
-      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_INT_CLEAR.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: id=FM_INT_CLEAR; name=w1c_interrupt_and_status_clear.",
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_INT_CLEAR.\nOwner: spi_int in rtl/spi_int.sv via function_model.transactions.FM_INT_CLEAR.\nSSOT item context: id=FM_INT_CLEAR; name=w1c_interrupt_and_status_clear.",
       "evidence_terms": [],
       "id": "RTL-0106",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_int.sv",
+      "owner_match": "function_model.transactions.FM_INT_CLEAR",
+      "owner_module": "spi_int",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -6263,17 +6316,17 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_int.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=APB write handshake to INT_CLEAR.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0.\nOwner: spi_int in rtl/spi_int.sv via function_model.transactions.FM_INT_CLEAR.\nSSOT item context: value=APB write handshake to INT_CLEAR.",
       "evidence_terms": [
         "INT",
         "INT_CLEAR"
       ],
       "id": "RTL-0107",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_int.sv",
+      "owner_match": "function_model.transactions.FM_INT_CLEAR",
+      "owner_module": "spi_int",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -6285,8 +6338,11 @@
         "function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "INT",
+          "INT_CLEAR"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6294,8 +6350,8 @@
           "INT",
           "INT_CLEAR"
         ],
-        "source_scope": "rtl/spi_shift.sv",
-        "status": "missing"
+        "source_scope": "rtl/spi_int.sv",
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -6305,9 +6361,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6318,14 +6374,14 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_INT_CLEAR.outputs.output_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_int.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INT_CLEAR.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=Selected sticky pending/status bits cleared.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INT_CLEAR.outputs.output_0.\nOwner: spi_int in rtl/spi_int.sv via function_model.transactions.FM_INT_CLEAR.\nSSOT item context: value=Selected sticky pending/status bits cleared.",
       "evidence_terms": [],
       "id": "RTL-0108",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_int.sv",
+      "owner_match": "function_model.transactions.FM_INT_CLEAR",
+      "owner_module": "spi_int",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -6361,14 +6417,14 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_INT_CLEAR.side_effects.side_effect_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv"
+        "Primary implementation evidence is in rtl/spi_int.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INT_CLEAR.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=FIFO level-derived pending bits remain level-sensitive and unaffected by W1C.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INT_CLEAR.side_effects.side_effect_0.\nOwner: spi_int in rtl/spi_int.sv via function_model.transactions.FM_INT_CLEAR.\nSSOT item context: value=FIFO level-derived pending bits remain level-sensitive and unaffected by W1C.",
       "evidence_terms": [],
       "id": "RTL-0109",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_int.sv",
+      "owner_match": "function_model.transactions.FM_INT_CLEAR",
+      "owner_module": "spi_int",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -6404,15 +6460,15 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_INT_CLEAR.error_cases.error_case_0",
-        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "Primary implementation evidence is in rtl/spi_int.sv",
         "function_model.transactions.FM_INT_CLEAR.error_cases.error_case_0 condition is implemented as RTL control logic: write to read-only register or bad byte strobes"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INT_CLEAR.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=write to read-only register or bad byte strobes.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INT_CLEAR.error_cases.error_case_0.\nOwner: spi_int in rtl/spi_int.sv via function_model.transactions.FM_INT_CLEAR.\nSSOT item context: condition=write to read-only register or bad byte strobes.",
       "evidence_terms": [],
       "id": "RTL-0110",
-      "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model.transactions",
-      "owner_module": "spi_shift",
+      "owner_file": "rtl/spi_int.sv",
+      "owner_match": "function_model.transactions.FM_INT_CLEAR",
+      "owner_module": "spi_int",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -6450,14 +6506,14 @@
         "Traceability keeps source_ref function_model.invariants.invariant_0",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: value=Only one csn_o bit may be active-low during an active frame..",
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.invariants.invariant_0.\nSSOT item context: value=Only one csn_o bit may be active-low during an active frame..",
       "evidence_terms": [
         "csn",
         "csn_o"
       ],
       "id": "RTL-0111",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.invariants.invariant_0",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -6508,11 +6564,11 @@
         "Traceability keeps source_ref function_model.invariants.invariant_1",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: value=No frame launch consumes TX FIFO unless all launch preconditions are true..",
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.invariants.invariant_0.\nSSOT item context: value=No frame launch consumes TX FIFO unless all launch preconditions are true..",
       "evidence_terms": [],
       "id": "RTL-0112",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.invariants.invariant_0",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -6551,7 +6607,7 @@
         "Traceability keeps source_ref function_model.invariants.invariant_2",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: value=irq_o equals OR(INT_PENDING & INT_MASK) at all times..",
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.invariants.invariant_0.\nSSOT item context: value=irq_o equals OR(INT_PENDING & INT_MASK) at all times..",
       "evidence_terms": [
         "INT",
         "INT_MASK",
@@ -6562,7 +6618,7 @@
       ],
       "id": "RTL-0113",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.invariants.invariant_0",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -6616,14 +6672,14 @@
         "Traceability keeps source_ref function_model.invariants.invariant_3",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: value=sclk_o is a generated output waveform; no internal sequential process is clocked by sclk_o..",
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.invariants.invariant_0.\nSSOT item context: value=sclk_o is a generated output waveform; no internal sequential process is clocked by sclk_o..",
       "evidence_terms": [
         "sclk",
         "sclk_o"
       ],
       "id": "RTL-0114",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.invariants.invariant_0",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -6673,14 +6729,14 @@
         "Traceability keeps source_ref function_model.invariants.invariant_4",
         "Primary implementation evidence is in rtl/spi_shift.sv"
       ],
-      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_4.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: value=Sticky bits clear only via reset or INT_CLEAR W1C semantics..",
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_4.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.invariants.invariant_0.\nSSOT item context: value=Sticky bits clear only via reset or INT_CLEAR W1C semantics..",
       "evidence_terms": [
         "INT",
         "INT_CLEAR"
       ],
       "id": "RTL-0115",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "function_model",
+      "owner_match": "function_model.invariants.invariant_0",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -6854,15 +6910,15 @@
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
         "Traceability keeps source_ref cycle_model.handshake_rules.APB",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "Primary implementation evidence is in rtl/spi_fifo.sv",
         "cycle_model.handshake_rules.APB appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.APB.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=APB.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.APB.\nOwner: spi_fifo in rtl/spi_fifo.sv via cycle_model.\nSSOT item context: signal=APB.",
       "evidence_terms": [],
       "id": "RTL-0119",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_match": "cycle_model.handshake_rules",
-      "owner_module": "spi_clkgen",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "cycle_model",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -6898,15 +6954,15 @@
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
         "Traceability keeps source_ref cycle_model.handshake_rules.CTRL_start",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "Primary implementation evidence is in rtl/spi_fifo.sv",
         "cycle_model.handshake_rules.CTRL_start appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.CTRL_start.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=CTRL.start.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.CTRL_start.\nOwner: spi_fifo in rtl/spi_fifo.sv via cycle_model.\nSSOT item context: signal=CTRL.start.",
       "evidence_terms": [],
       "id": "RTL-0120",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_match": "cycle_model.handshake_rules",
-      "owner_module": "spi_clkgen",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "cycle_model",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -6942,19 +6998,19 @@
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
         "Traceability keeps source_ref cycle_model.handshake_rules.launch_gate",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
         "cycle_model.handshake_rules.launch_gate appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.launch_gate.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=launch_gate.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.launch_gate.\nOwner: spi_shift in rtl/spi_shift.sv via cycle_model.handshake_rules.launch_gate.\nSSOT item context: signal=launch_gate.",
       "evidence_terms": [
         "gate",
         "launch",
         "launch_gate"
       ],
       "id": "RTL-0121",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_match": "cycle_model.handshake_rules",
-      "owner_module": "spi_clkgen",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_match": "cycle_model.handshake_rules.launch_gate",
+      "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -6966,8 +7022,12 @@
         "cycle_model.handshake_rules.launch_gate"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "gate",
+          "launch",
+          "launch_gate"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6976,8 +7036,8 @@
           "launch",
           "launch_gate"
         ],
-        "source_scope": "rtl/spi_clkgen.sv",
-        "status": "missing"
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -6987,9 +7047,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7003,14 +7063,14 @@
         "Primary implementation evidence is in rtl/spi_clkgen.sv",
         "cycle_model.handshake_rules.sclk_o appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sclk_o.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=sclk_o.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sclk_o.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.sclk_o.\nSSOT item context: signal=sclk_o.",
       "evidence_terms": [
         "sclk",
         "sclk_o"
       ],
       "id": "RTL-0122",
       "owner_file": "rtl/spi_clkgen.sv",
-      "owner_match": "cycle_model.handshake_rules",
+      "owner_match": "cycle_model.handshake_rules.sclk_o",
       "owner_module": "spi_clkgen",
       "priority": "high",
       "required": true,
@@ -7062,7 +7122,7 @@
         "Primary implementation evidence is in rtl/spi_clkgen.sv",
         "cycle_model.handshake_rules.sample_edge appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sample_edge.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=sample_edge.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sample_edge.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.sample_edge.\nSSOT item context: signal=sample_edge.",
       "evidence_terms": [
         "edge",
         "sample",
@@ -7070,7 +7130,7 @@
       ],
       "id": "RTL-0123",
       "owner_file": "rtl/spi_clkgen.sv",
-      "owner_match": "cycle_model.handshake_rules",
+      "owner_match": "cycle_model.handshake_rules.sample_edge",
       "owner_module": "spi_clkgen",
       "priority": "high",
       "required": true,
@@ -7121,16 +7181,16 @@
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
         "Traceability keeps source_ref cycle_model.pipeline.S0_APB_CFG",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "Primary implementation evidence is in rtl/spi_fifo.sv",
         "cycle_model.pipeline.S0_APB_CFG timing uses SSOT cycle/latency t",
         "cycle_model.pipeline.S0_APB_CFG appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_APB_CFG.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S0_APB_CFG; action=Program mode/prescale/CS and push TX words; cycle=t.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_APB_CFG.\nOwner: spi_fifo in rtl/spi_fifo.sv via cycle_model.pipeline.S0_APB_CFG.\nSSOT item context: stage=S0_APB_CFG; action=Program mode/prescale/CS and push TX words; cycle=t.",
       "evidence_terms": [],
       "id": "RTL-0124",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_match": "cycle_model.pipeline",
-      "owner_module": "spi_clkgen",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "cycle_model.pipeline.S0_APB_CFG",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -7168,16 +7228,16 @@
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
         "Traceability keeps source_ref cycle_model.pipeline.S1_LAUNCH_CHECK",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
         "cycle_model.pipeline.S1_LAUNCH_CHECK timing uses SSOT cycle/latency t+0..t+1",
         "cycle_model.pipeline.S1_LAUNCH_CHECK appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_LAUNCH_CHECK.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S1_LAUNCH_CHECK; action=Evaluate launch preconditions and latch frame context; cycle=t+0..t+1.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_LAUNCH_CHECK.\nOwner: spi_shift in rtl/spi_shift.sv via cycle_model.pipeline.S1_LAUNCH_CHECK.\nSSOT item context: stage=S1_LAUNCH_CHECK; action=Evaluate launch preconditions and latch frame context; cycle=t+0..t+1.",
       "evidence_terms": [],
       "id": "RTL-0125",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_match": "cycle_model.pipeline",
-      "owner_module": "spi_clkgen",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_match": "cycle_model.pipeline.S1_LAUNCH_CHECK",
+      "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -7215,16 +7275,16 @@
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
         "Traceability keeps source_ref cycle_model.pipeline.S2_ASSERT_CS",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
         "cycle_model.pipeline.S2_ASSERT_CS timing uses SSOT cycle/latency next",
         "cycle_model.pipeline.S2_ASSERT_CS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_ASSERT_CS.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S2_ASSERT_CS; action=Drive selected chip select active-low; cycle=next.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_ASSERT_CS.\nOwner: spi_shift in rtl/spi_shift.sv via cycle_model.pipeline.S2_ASSERT_CS.\nSSOT item context: stage=S2_ASSERT_CS; action=Drive selected chip select active-low; cycle=next.",
       "evidence_terms": [],
       "id": "RTL-0126",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_match": "cycle_model.pipeline",
-      "owner_module": "spi_clkgen",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_match": "cycle_model.pipeline.S2_ASSERT_CS",
+      "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -7266,14 +7326,14 @@
         "cycle_model.pipeline.S3_SHIFT timing uses SSOT cycle/latency repeating",
         "cycle_model.pipeline.S3_SHIFT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S3_SHIFT.\nOwner: spi_shift in rtl/spi_shift.sv via cycle_model.pipeline.\nSSOT item context: stage=S3_SHIFT; action=Generate sclk_o edges and launch MOSI bits; cycle=repeating.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S3_SHIFT.\nOwner: spi_shift in rtl/spi_shift.sv via cycle_model.pipeline.S3_SHIFT.\nSSOT item context: stage=S3_SHIFT; action=Generate sclk_o edges and launch MOSI bits; cycle=repeating.",
       "evidence_terms": [
         "sclk",
         "sclk_o"
       ],
       "id": "RTL-0127",
       "owner_file": "rtl/spi_shift.sv",
-      "owner_match": "cycle_model.pipeline",
+      "owner_match": "cycle_model.pipeline.S3_SHIFT",
       "owner_module": "spi_shift",
       "priority": "high",
       "required": true,
@@ -7327,7 +7387,7 @@
         "cycle_model.pipeline.S4_SAMPLE timing uses SSOT cycle/latency repeating",
         "cycle_model.pipeline.S4_SAMPLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S4_SAMPLE.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S4_SAMPLE; action=Sample MISO/loopback bit and advance bit_index; cycle=repeating.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S4_SAMPLE.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.S4_SAMPLE.\nSSOT item context: stage=S4_SAMPLE; action=Sample MISO/loopback bit and advance bit_index; cycle=repeating.",
       "evidence_terms": [
         "bit",
         "bit_index",
@@ -7335,7 +7395,7 @@
       ],
       "id": "RTL-0128",
       "owner_file": "rtl/spi_clkgen.sv",
-      "owner_match": "cycle_model.pipeline",
+      "owner_match": "cycle_model.pipeline.S4_SAMPLE",
       "owner_module": "spi_clkgen",
       "priority": "high",
       "required": true,
@@ -7384,16 +7444,16 @@
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
         "Traceability keeps source_ref cycle_model.pipeline.S5_COMPLETE",
-        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "Primary implementation evidence is in rtl/spi_fifo.sv",
         "cycle_model.pipeline.S5_COMPLETE timing uses SSOT cycle/latency terminal",
         "cycle_model.pipeline.S5_COMPLETE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S5_COMPLETE.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S5_COMPLETE; action=Push RX word if possible, update done/errors/pending, manage CS hold/deassert; cycle=terminal.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S5_COMPLETE.\nOwner: spi_fifo in rtl/spi_fifo.sv via cycle_model.pipeline.S5_COMPLETE.\nSSOT item context: stage=S5_COMPLETE; action=Push RX word if possible, update done/errors/pending, manage CS hold/deassert; cycle=terminal.",
       "evidence_terms": [],
       "id": "RTL-0129",
-      "owner_file": "rtl/spi_clkgen.sv",
-      "owner_match": "cycle_model.pipeline",
-      "owner_module": "spi_clkgen",
+      "owner_file": "rtl/spi_fifo.sv",
+      "owner_match": "cycle_model.pipeline.S5_COMPLETE",
+      "owner_module": "spi_fifo",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -7745,11 +7805,11 @@
         "CTRL access policy rw is implemented without read/write shortcuts",
         "CTRL decode uses SSOT address/offset 0"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.",
       "evidence_terms": [],
       "id": "RTL-0136",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CTRL",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -7798,11 +7858,11 @@
         "enable readback returns implemented RTL state when readable",
         "enable write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.enable.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=enable; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.enable.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=enable; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0137",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CTRL",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -7849,11 +7909,11 @@
         "start readback returns implemented RTL state when readable",
         "start write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.start.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=start; reset=0; access=wo.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.start.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=start; reset=0; access=wo.",
       "evidence_terms": [],
       "id": "RTL-0138",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CTRL",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -7900,11 +7960,11 @@
         "cpol readback returns implemented RTL state when readable",
         "cpol write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cpol.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=cpol; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cpol.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=cpol; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0139",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CTRL",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -7951,11 +8011,11 @@
         "cpha readback returns implemented RTL state when readable",
         "cpha write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cpha.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=cpha; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cpha.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=cpha; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0140",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CTRL",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8002,11 +8062,11 @@
         "lsb_first readback returns implemented RTL state when readable",
         "lsb_first write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.lsb_first.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=lsb_first; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.lsb_first.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=lsb_first; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0141",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CTRL",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8053,11 +8113,11 @@
         "continuous_cs readback returns implemented RTL state when readable",
         "continuous_cs write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.continuous_cs.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=continuous_cs; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.continuous_cs.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=continuous_cs; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0142",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CTRL",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8104,11 +8164,11 @@
         "loopback readback returns implemented RTL state when readable",
         "loopback write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.loopback.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=loopback; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.loopback.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=loopback; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0143",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CTRL",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8155,11 +8215,11 @@
         "soft_reset readback returns implemented RTL state when readable",
         "soft_reset write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.soft_reset.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=soft_reset; reset=0; access=wo.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.soft_reset.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=soft_reset; reset=0; access=wo.",
       "evidence_terms": [],
       "id": "RTL-0144",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CTRL",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8206,11 +8266,11 @@
         "cs_sel readback returns implemented RTL state when readable",
         "cs_sel write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cs_sel.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=cs_sel; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cs_sel.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=cs_sel; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0145",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CTRL",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8257,11 +8317,11 @@
         "data_width_m1 readback returns implemented RTL state when readable",
         "data_width_m1 write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.data_width_m1.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=data_width_m1; reset=7; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.data_width_m1.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=data_width_m1; reset=7; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0146",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CTRL",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8306,11 +8366,11 @@
         "STATUS access policy ro is implemented without read/write shortcuts",
         "STATUS decode uses SSOT address/offset 4"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=STATUS; width=32; reset=18; access=ro; offset=4.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=STATUS; width=32; reset=18; access=ro; offset=4.",
       "evidence_terms": [],
       "id": "RTL-0147",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8359,11 +8419,11 @@
         "busy readback returns implemented RTL state when readable",
         "busy write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.busy.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=busy; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.busy.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=busy; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0148",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8410,11 +8470,11 @@
         "tx_full readback returns implemented RTL state when readable",
         "tx_full write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_full.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=tx_full; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_full.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=tx_full; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0149",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8461,11 +8521,11 @@
         "tx_empty readback returns implemented RTL state when readable",
         "tx_empty write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_empty.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=tx_empty; reset=1; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_empty.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=tx_empty; reset=1; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0150",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8512,11 +8572,11 @@
         "rx_full readback returns implemented RTL state when readable",
         "rx_full write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_full.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_full; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_full.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=rx_full; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0151",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8563,11 +8623,11 @@
         "rx_empty readback returns implemented RTL state when readable",
         "rx_empty write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_empty.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_empty; reset=1; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_empty.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=rx_empty; reset=1; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0152",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8614,11 +8674,11 @@
         "done readback returns implemented RTL state when readable",
         "done write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.done.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=done; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.done.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=done; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0153",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8665,11 +8725,11 @@
         "tx_overrun readback returns implemented RTL state when readable",
         "tx_overrun write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_overrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=tx_overrun; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_overrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=tx_overrun; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0154",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8716,11 +8776,11 @@
         "rx_overrun readback returns implemented RTL state when readable",
         "rx_overrun write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_overrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_overrun; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_overrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=rx_overrun; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0155",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8767,11 +8827,11 @@
         "rx_underrun readback returns implemented RTL state when readable",
         "rx_underrun write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_underrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_underrun; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_underrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=rx_underrun; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0156",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8818,11 +8878,11 @@
         "mode_fault readback returns implemented RTL state when readable",
         "mode_fault write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.mode_fault.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=mode_fault; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.mode_fault.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=mode_fault; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0157",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8869,11 +8929,11 @@
         "illegal_access readback returns implemented RTL state when readable",
         "illegal_access write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.illegal_access.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=illegal_access; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.illegal_access.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=illegal_access; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0158",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8920,11 +8980,11 @@
         "cs_active readback returns implemented RTL state when readable",
         "cs_active write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.cs_active.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=cs_active; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.cs_active.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=cs_active; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0159",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.STATUS",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -8969,11 +9029,11 @@
         "PRESCALE access policy rw is implemented without read/write shortcuts",
         "PRESCALE decode uses SSOT address/offset 8"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.PRESCALE.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=PRESCALE; width=32; reset=0; access=rw; offset=8.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.PRESCALE.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.PRESCALE.\nSSOT item context: name=PRESCALE; width=32; reset=0; access=rw; offset=8.",
       "evidence_terms": [],
       "id": "RTL-0160",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.PRESCALE",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -9022,11 +9082,11 @@
         "divisor readback returns implemented RTL state when readable",
         "divisor write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.PRESCALE.fields.divisor.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=divisor; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.PRESCALE.fields.divisor.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.PRESCALE.\nSSOT item context: name=divisor; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0161",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.PRESCALE",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -9071,11 +9131,11 @@
         "TXDATA access policy wo is implemented without read/write shortcuts",
         "TXDATA decode uses SSOT address/offset 12"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.TXDATA.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=TXDATA; width=32; reset=0; access=wo; offset=12.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.TXDATA.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.TXDATA.\nSSOT item context: name=TXDATA; width=32; reset=0; access=wo; offset=12.",
       "evidence_terms": [],
       "id": "RTL-0162",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.TXDATA",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -9124,11 +9184,11 @@
         "tx_payload readback returns implemented RTL state when readable",
         "tx_payload write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.TXDATA.fields.tx_payload.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=tx_payload; reset=0; access=wo.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.TXDATA.fields.tx_payload.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.TXDATA.\nSSOT item context: name=tx_payload; reset=0; access=wo.",
       "evidence_terms": [],
       "id": "RTL-0163",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.TXDATA",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -9173,11 +9233,11 @@
         "RXDATA access policy ro is implemented without read/write shortcuts",
         "RXDATA decode uses SSOT address/offset 16"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.RXDATA.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=RXDATA; width=32; reset=0; access=ro; offset=16.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.RXDATA.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.RXDATA.\nSSOT item context: name=RXDATA; width=32; reset=0; access=ro; offset=16.",
       "evidence_terms": [],
       "id": "RTL-0164",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.RXDATA",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -9226,11 +9286,11 @@
         "rx_payload readback returns implemented RTL state when readable",
         "rx_payload write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.RXDATA.fields.rx_payload.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_payload; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.RXDATA.fields.rx_payload.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.RXDATA.\nSSOT item context: name=rx_payload; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0165",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.RXDATA",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -9275,11 +9335,11 @@
         "INT_MASK access policy rw is implemented without read/write shortcuts",
         "INT_MASK decode uses SSOT address/offset 20"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INT_MASK.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=INT_MASK; width=32; reset=0; access=rw; offset=20.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INT_MASK.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.\nSSOT item context: name=INT_MASK; width=32; reset=0; access=rw; offset=20.",
       "evidence_terms": [],
       "id": "RTL-0166",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_MASK",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9328,11 +9388,11 @@
         "done_en readback returns implemented RTL state when readable",
         "done_en write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.done_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=done_en; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.done_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.\nSSOT item context: name=done_en; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0167",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_MASK",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9379,11 +9439,11 @@
         "tx_overrun_en readback returns implemented RTL state when readable",
         "tx_overrun_en write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.tx_overrun_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=tx_overrun_en; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.tx_overrun_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.\nSSOT item context: name=tx_overrun_en; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0168",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_MASK",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9430,11 +9490,11 @@
         "rx_overrun_en readback returns implemented RTL state when readable",
         "rx_overrun_en write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.rx_overrun_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=rx_overrun_en; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.rx_overrun_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.\nSSOT item context: name=rx_overrun_en; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0169",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_MASK",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9481,11 +9541,11 @@
         "rx_underrun_en readback returns implemented RTL state when readable",
         "rx_underrun_en write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.rx_underrun_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=rx_underrun_en; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.rx_underrun_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.\nSSOT item context: name=rx_underrun_en; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0170",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_MASK",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9532,11 +9592,11 @@
         "mode_fault_en readback returns implemented RTL state when readable",
         "mode_fault_en write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.mode_fault_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=mode_fault_en; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.mode_fault_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.\nSSOT item context: name=mode_fault_en; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0171",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_MASK",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9583,11 +9643,11 @@
         "illegal_access_en readback returns implemented RTL state when readable",
         "illegal_access_en write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.illegal_access_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=illegal_access_en; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.illegal_access_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.\nSSOT item context: name=illegal_access_en; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0172",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_MASK",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9634,11 +9694,11 @@
         "tx_empty_en readback returns implemented RTL state when readable",
         "tx_empty_en write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.tx_empty_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=tx_empty_en; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.tx_empty_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.\nSSOT item context: name=tx_empty_en; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0173",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_MASK",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9685,11 +9745,11 @@
         "rx_full_en readback returns implemented RTL state when readable",
         "rx_full_en write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.rx_full_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=rx_full_en; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_MASK.fields.rx_full_en.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_MASK.\nSSOT item context: name=rx_full_en; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0174",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_MASK",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9734,11 +9794,11 @@
         "INT_PENDING access policy ro is implemented without read/write shortcuts",
         "INT_PENDING decode uses SSOT address/offset 24"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INT_PENDING.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=INT_PENDING; width=32; reset=64; access=ro; offset=24.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INT_PENDING.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.\nSSOT item context: name=INT_PENDING; width=32; reset=64; access=ro; offset=24.",
       "evidence_terms": [],
       "id": "RTL-0175",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_PENDING",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9787,11 +9847,11 @@
         "done_pend readback returns implemented RTL state when readable",
         "done_pend write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.done_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=done_pend; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.done_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.\nSSOT item context: name=done_pend; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0176",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_PENDING",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9838,11 +9898,11 @@
         "tx_overrun_pend readback returns implemented RTL state when readable",
         "tx_overrun_pend write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.tx_overrun_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=tx_overrun_pend; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.tx_overrun_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.\nSSOT item context: name=tx_overrun_pend; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0177",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_PENDING",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9889,11 +9949,11 @@
         "rx_overrun_pend readback returns implemented RTL state when readable",
         "rx_overrun_pend write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.rx_overrun_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=rx_overrun_pend; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.rx_overrun_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.\nSSOT item context: name=rx_overrun_pend; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0178",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_PENDING",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9940,11 +10000,11 @@
         "rx_underrun_pend readback returns implemented RTL state when readable",
         "rx_underrun_pend write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.rx_underrun_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=rx_underrun_pend; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.rx_underrun_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.\nSSOT item context: name=rx_underrun_pend; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0179",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_PENDING",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -9991,11 +10051,11 @@
         "mode_fault_pend readback returns implemented RTL state when readable",
         "mode_fault_pend write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.mode_fault_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=mode_fault_pend; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.mode_fault_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.\nSSOT item context: name=mode_fault_pend; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0180",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_PENDING",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -10042,11 +10102,11 @@
         "illegal_access_pend readback returns implemented RTL state when readable",
         "illegal_access_pend write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.illegal_access_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=illegal_access_pend; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.illegal_access_pend.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.\nSSOT item context: name=illegal_access_pend; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0181",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_PENDING",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -10093,11 +10153,11 @@
         "tx_empty_level readback returns implemented RTL state when readable",
         "tx_empty_level write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.tx_empty_level.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=tx_empty_level; reset=1; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.tx_empty_level.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.\nSSOT item context: name=tx_empty_level; reset=1; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0182",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_PENDING",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -10144,11 +10204,11 @@
         "rx_full_level readback returns implemented RTL state when readable",
         "rx_full_level write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.rx_full_level.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=rx_full_level; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_PENDING.fields.rx_full_level.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_PENDING.\nSSOT item context: name=rx_full_level; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0183",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_PENDING",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -10193,11 +10253,11 @@
         "INT_CLEAR access policy wo is implemented without read/write shortcuts",
         "INT_CLEAR decode uses SSOT address/offset 28"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INT_CLEAR.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=INT_CLEAR; width=32; reset=0; access=wo; offset=28.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INT_CLEAR.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_CLEAR.\nSSOT item context: name=INT_CLEAR; width=32; reset=0; access=wo; offset=28.",
       "evidence_terms": [],
       "id": "RTL-0184",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_CLEAR",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -10246,11 +10306,11 @@
         "w1c readback returns implemented RTL state when readable",
         "w1c write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_CLEAR.fields.w1c.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.\nSSOT item context: name=w1c; reset=0; access=wo.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_CLEAR.fields.w1c.\nOwner: spi_int in rtl/spi_int.sv via registers.register_list.INT_CLEAR.\nSSOT item context: name=w1c; reset=0; access=wo.",
       "evidence_terms": [],
       "id": "RTL-0185",
       "owner_file": "rtl/spi_int.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.INT_CLEAR",
       "owner_module": "spi_int",
       "priority": "high",
       "required": true,
@@ -10295,11 +10355,11 @@
         "CS_IDLE access policy rw is implemented without read/write shortcuts",
         "CS_IDLE decode uses SSOT address/offset 32"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CS_IDLE.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=CS_IDLE; width=32; reset=15; access=rw; offset=32.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CS_IDLE.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CS_IDLE.\nSSOT item context: name=CS_IDLE; width=32; reset=15; access=rw; offset=32.",
       "evidence_terms": [],
       "id": "RTL-0186",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CS_IDLE",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -10348,11 +10408,11 @@
         "cs_idle_val readback returns implemented RTL state when readable",
         "cs_idle_val write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CS_IDLE.fields.cs_idle_val.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=cs_idle_val; reset=15; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CS_IDLE.fields.cs_idle_val.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CS_IDLE.\nSSOT item context: name=cs_idle_val; reset=15; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0187",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.CS_IDLE",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -10397,11 +10457,11 @@
         "DEBUG access policy ro is implemented without read/write shortcuts",
         "DEBUG decode uses SSOT address/offset 36"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DEBUG.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=DEBUG; width=32; reset=0; access=ro; offset=36.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DEBUG.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.\nSSOT item context: name=DEBUG; width=32; reset=0; access=ro; offset=36.",
       "evidence_terms": [],
       "id": "RTL-0188",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.DEBUG",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -10450,11 +10510,11 @@
         "tx_count readback returns implemented RTL state when readable",
         "tx_count write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.tx_count.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=tx_count; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.tx_count.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.\nSSOT item context: name=tx_count; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0189",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.DEBUG",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -10501,11 +10561,11 @@
         "rx_count readback returns implemented RTL state when readable",
         "rx_count write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.rx_count.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_count; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.rx_count.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.\nSSOT item context: name=rx_count; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0190",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.DEBUG",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -10552,11 +10612,11 @@
         "bit_index readback returns implemented RTL state when readable",
         "bit_index write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.bit_index.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=bit_index; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.bit_index.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.\nSSOT item context: name=bit_index; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0191",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.DEBUG",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -10603,11 +10663,11 @@
         "active_cs readback returns implemented RTL state when readable",
         "active_cs write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.active_cs.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=active_cs; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.active_cs.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.\nSSOT item context: name=active_cs; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0192",
       "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "registers.register_list",
+      "owner_match": "registers.register_list.DEBUG",
       "owner_module": "spi_regs",
       "priority": "high",
       "required": true,
@@ -12457,17 +12517,17 @@
         "Behavior is not represented only by comments or TB code",
         "Downstream verification can observe or justify the item",
         "Traceability keeps source_ref error_handling.recovery.recovery_0",
-        "Primary implementation evidence is in rtl/spi_regs.sv"
+        "Primary implementation evidence is in rtl/spi_int.sv"
       ],
-      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: spi_regs in rtl/spi_regs.sv via error_handling.\nSSOT item context: value=Sticky status and sticky interrupt pending bits clear via INT_CLEAR W1C or reset..",
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: spi_int in rtl/spi_int.sv via error_handling.recovery.\nSSOT item context: value=Sticky status and sticky interrupt pending bits clear via INT_CLEAR W1C or reset..",
       "evidence_terms": [
         "INT",
         "INT_CLEAR"
       ],
       "id": "RTL-0224",
-      "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "error_handling",
-      "owner_module": "spi_regs",
+      "owner_file": "rtl/spi_int.sv",
+      "owner_match": "error_handling.recovery",
+      "owner_module": "spi_int",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12491,7 +12551,7 @@
           "INT",
           "INT_CLEAR"
         ],
-        "source_scope": "rtl/spi_regs.sv",
+        "source_scope": "rtl/spi_int.sv",
         "status": "pass"
       },
       "todo_completion": {
@@ -12515,18 +12575,18 @@
         "Behavior is not represented only by comments or TB code",
         "Downstream verification can observe or justify the item",
         "Traceability keeps source_ref error_handling.recovery.recovery_1",
-        "Primary implementation evidence is in rtl/spi_regs.sv"
+        "Primary implementation evidence is in rtl/spi_int.sv"
       ],
-      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_1.\nOwner: spi_regs in rtl/spi_regs.sv via error_handling.\nSSOT item context: value=soft_reset pulse in CTRL clears FIFOs, busy, done, and sticky status bits while preserving programmable static config....",
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_1.\nOwner: spi_int in rtl/spi_int.sv via error_handling.recovery.\nSSOT item context: value=soft_reset pulse in CTRL clears FIFOs, busy, done, and sticky status bits while preserving programmable static config....",
       "evidence_terms": [
         "reset",
         "soft",
         "soft_reset"
       ],
       "id": "RTL-0225",
-      "owner_file": "rtl/spi_regs.sv",
-      "owner_match": "error_handling",
-      "owner_module": "spi_regs",
+      "owner_file": "rtl/spi_int.sv",
+      "owner_match": "error_handling.recovery",
+      "owner_module": "spi_int",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -12552,7 +12612,7 @@
           "soft",
           "soft_reset"
         ],
-        "source_scope": "rtl/spi_regs.sv",
+        "source_scope": "rtl/spi_int.sv",
         "status": "pass"
       },
       "todo_completion": {
@@ -14148,6 +14208,12 @@
         "task_id": "RTL-0026"
       },
       {
+        "category": "function_model.input",
+        "reason": "Required RTL static evidence is missing.",
+        "source_ref": "function_model.transactions.FM_APB_TX_PUSH.inputs.input_0",
+        "task_id": "RTL-0067"
+      },
+      {
         "category": "function_model.error_case",
         "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0",
@@ -14172,22 +14238,22 @@
         "task_id": "RTL-0084"
       },
       {
+        "category": "function_model.side_effect",
+        "reason": "Required RTL static evidence is missing.",
+        "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0",
+        "task_id": "RTL-0097"
+      },
+      {
+        "category": "function_model.side_effect",
+        "reason": "Required RTL static evidence is missing.",
+        "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1",
+        "task_id": "RTL-0098"
+      },
+      {
         "category": "function_model.error_case",
         "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.error_cases.error_case_0",
         "task_id": "RTL-0100"
-      },
-      {
-        "category": "function_model.error_case",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.FM_APB_RX_POP.error_cases.error_case_0",
-        "task_id": "RTL-0105"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.FM_INT_CLEAR.preconditions.precondition_0",
-        "task_id": "RTL-0107"
       },
       {
         "category": "function_model.invariant",
@@ -14206,12 +14272,6 @@
         "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.invariants.invariant_4",
         "task_id": "RTL-0115"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "cycle_model.handshake_rules.launch_gate",
-        "task_id": "RTL-0121"
       },
       {
         "category": "cycle_model.pipeline",

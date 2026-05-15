@@ -26,9 +26,9 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: error_handling, interrupts, io_list, io_list.interfaces.apb_slave, registers, registers.register_list
-- Module slice: 6/6 section=workflow_todo task_limit=48
-- Slice rule: Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: error_handling, error_handling.error_sources.access_policy_violation, error_handling.error_sources.illegal_apb_address, error_handling.error_sources.unsupported_write_strobe, interrupts, io_list, io_list.interfaces.apb_slave, registers, registers.config, registers.register_list, registers.register_list.CS_IDLE, registers.register_list.CTRL, registers.register_list.DEBUG, registers.register_list.PRESCALE, registers.register_list.RXDATA, registers.register_list.STATUS
+- Module slice: 5/5 section=workflow_todo task_limit=48
+- Slice rule: Owner module spi_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT target scale: min_behavior_owner_logic_modules=3, min_depth_score=40, min_logic_modules=4, min_modules=6, min_procedural_blocks=20, min_source_files=6, min_state_updates=25
 
 ## Tasks

@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 6,
+      "count": 5,
       "enabled": true,
       "index": 1,
       "key": "io_list",
-      "module_task_count": 65,
-      "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 63,
+      "rule": "Owner module spi_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "io_list",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -24,11 +24,22 @@
       "name": "spi_regs",
       "refs": [
         "error_handling",
+        "error_handling.error_sources.access_policy_violation",
+        "error_handling.error_sources.illegal_apb_address",
+        "error_handling.error_sources.unsupported_write_strobe",
         "interrupts",
         "io_list",
         "io_list.interfaces.apb_slave",
         "registers",
-        "registers.register_list"
+        "registers.config",
+        "registers.register_list",
+        "registers.register_list.CS_IDLE",
+        "registers.register_list.CTRL",
+        "registers.register_list.DEBUG",
+        "registers.register_list.PRESCALE",
+        "registers.register_list.RXDATA",
+        "registers.register_list.STATUS",
+        "registers.register_list.TXDATA"
       ],
       "wiring_only": false
     },
@@ -123,12 +134,12 @@
       "io_list.port": 16
     },
     "module_slice": {
-      "count": 6,
+      "count": 5,
       "enabled": true,
       "index": 1,
       "key": "io_list",
-      "module_task_count": 65,
-      "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 63,
+      "rule": "Owner module spi_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "io_list",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -881,7 +892,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "2a60bf453550d0ce8554eb62210062c7cf9b821cfd849f3ea1217a035cfae11d",
+  "todo_plan_sha256": "1524a7a2a61d385b4fcd964fb83fe59969f7a9a74725a1517172f0b8e2da9c0e",
   "top": "spi",
   "type": "rtl_authoring_packet"
 }

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 6
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, decomposition.units.pointer_control, fsm.ptr_fsm, function_model, function_model.state_variables, function_model.state_variables.count, function_model.state_variables.rd_ptr, function_model.state_variables.wr_ptr
 - Module slice: 1/6 section=function_model task_limit=48
@@ -163,14 +163,14 @@ SSOT item context: value=wr_en_i == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM1.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.preconditions.precondition_1.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: value=full_o == 0 (count < DEPTH).
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -355,14 +355,14 @@ SSOT item context: name=count_o; port=count_o; expr=count + 1 - pop_accepted; wi
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM1.state_updates.mem_wr_ptr
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.state_updates.mem_wr_ptr.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: name=mem[wr_ptr]; expr=wr_data_i; reset=0.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -484,14 +484,14 @@ SSOT item context: value=rd_en_i == 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM2.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM2.preconditions.precondition_1.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: value=empty_o == 0 (count > 0).
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -926,14 +926,14 @@ SSOT item context: value=rd_data_o = mem[rd_ptr].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM3.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM3.outputs.output_1.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: value=full_o = count == DEPTH - 1.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -946,14 +946,14 @@ SSOT item context: value=full_o = count == DEPTH - 1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM3.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM3.outputs.output_2.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: value=empty_o = count == 1.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -1034,14 +1034,14 @@ SSOT item context: name=full_o; port=full_o; expr=count == DEPTH - 1; width=1.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM3.output_rules.empty_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM3.output_rules.empty_o.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.
 SSOT item context: name=empty_o; port=empty_o; expr=count == 1; width=1.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction

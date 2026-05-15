@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "edge_detector",
+  "top": "edge_detector",
+  "generated_at": "2026-05-15T02:33:51Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "edge_detector/yaml/edge_detector.ssot.yaml",
+  "equivalence_goals": "edge_detector/verify/equivalence_goals.json",
+  "rtl_contract": "edge_detector/rtl/rtl_contract.json",
+  "clock": "PCLK",
+  "reset": "PRESETn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "SYNC_STAGES": 2,
+    "EDGE_MODE": 0,
+    "WIDTH": 1,
+    "CLOCK_FREQ_MHZ": 50,
+    "RESET_POLARITY": 0
+  },
+  "ports": [
+    {
+      "name": "PCLK",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PRESETn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "signal_i",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "edge_o",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "irq_o",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "PADDR",
+      "direction": "input",
+      "width": 12
+    },
+    {
+      "name": "PSEL",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PENABLE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWRITE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWDATA",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "PSTRB",
+      "direction": "input",
+      "width": 4
+    },
+    {
+      "name": "PRDATA",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "direction": "output",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "PCLK": 1,
+    "PRESETn": 1,
+    "signal_i": 1,
+    "edge_o": 1,
+    "irq_o": 1,
+    "PADDR": 12,
+    "PSEL": 1,
+    "PENABLE": 1,
+    "PWRITE": 1,
+    "PWDATA": 32,
+    "PSTRB": 4,
+    "PRDATA": 32,
+    "PREADY": 1,
+    "PSLVERR": 1
+  },
+  "input_ports": [
+    "PADDR",
+    "PCLK",
+    "PENABLE",
+    "PRESETn",
+    "PSEL",
+    "PSTRB",
+    "PWDATA",
+    "PWRITE",
+    "signal_i"
+  ],
+  "output_ports": [
+    "PRDATA",
+    "PREADY",
+    "PSLVERR",
+    "edge_o",
+    "irq_o"
+  ],
+  "input_map": {
+    "signal_in": "signal_i",
+    "signal_i": "signal_i"
+  },
+  "sample_condition": "1",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "edge_o",
+      "port": "edge_o",
+      "width": 1
+    },
+    {
+      "name": "irq_o",
+      "port": "irq_o",
+      "width": 1
+    },
+    {
+      "name": "PRDATA",
+      "port": "PRDATA",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "port": "PSLVERR",
+      "width": 1
+    }
+  ],
+  "special_outputs": {
+    "ready": "PREADY",
+    "error": "PSLVERR",
+    "interrupt": "irq_o"
+  },
+  "transaction_kind": "DETECT",
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/rtl/edge_detector.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/rtl/edge_detector_regs.sv"
+  ],
+  "goal_count": 38,
+  "module_goal_count": 1,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_EDGE_DETECTOR",
+      "rtl_module": "edge_detector",
+      "rtl_file": "rtl/edge_detector.sv"
+    }
+  ]
+}

@@ -106,9 +106,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 6,
-    "open_required_count": 6,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -158,7 +158,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 6,
+    "open_required_count": 0,
     "required_count": 48,
     "source_refs": [
       "function_model.state_variables.wr_ptr",
@@ -187,8 +187,7 @@
       "function_model.transactions.FM2.inputs.input_0"
     ],
     "status_counts": {
-      "open": 6,
-      "pass": 42
+      "pass": 48
     },
     "task_count": 48
   },
@@ -494,9 +493,10 @@
         "function_model.transactions.FM1.preconditions.precondition_1"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "full"
+          "full",
+          "full_o"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -506,7 +506,7 @@
           "full_o"
         ],
         "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -516,9 +516,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -609,10 +609,13 @@
         "function_model.transactions.FM1.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 2,
+        "matched_count": 5,
         "matched_terms": [
+          "DATA",
           "WIDTH",
-          "wr"
+          "data",
+          "wr",
+          "wr_data_i"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -672,10 +675,11 @@
         "function_model.transactions.FM1.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "accepted",
           "full",
+          "full_o",
           "pop",
           "pop_accepted"
         ],
@@ -741,10 +745,13 @@
         "function_model.transactions.FM1.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 8,
         "matched_terms": [
+          "ALMOST",
           "FULL",
           "accepted",
+          "almost",
+          "almost_full_o",
           "full",
           "pop",
           "pop_accepted"
@@ -884,11 +891,12 @@
         "function_model.transactions.FM1.output_rules.full_o"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
           "DEPTH",
           "accepted",
           "full",
+          "full_o",
           "pop",
           "pop_accepted"
         ],
@@ -962,10 +970,13 @@
         "function_model.transactions.FM1.output_rules.almost_full_o"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 8,
         "matched_terms": [
+          "ALMOST",
           "FULL",
           "accepted",
+          "almost",
+          "almost_full_o",
           "full",
           "pop",
           "pop_accepted"
@@ -1107,9 +1118,11 @@
         "function_model.transactions.FM1.state_updates.mem_wr_ptr"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "wr"
+          "data",
+          "wr",
+          "wr_data_i"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1120,7 +1133,7 @@
           "wr_data_i"
         ],
         "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1130,9 +1143,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1436,9 +1449,10 @@
         "function_model.transactions.FM2.preconditions.precondition_1"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "empty"
+          "empty",
+          "empty_o"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1448,7 +1462,7 @@
           "empty_o"
         ],
         "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1458,9 +1472,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1609,10 +1623,12 @@
         "function_model.transactions.FM2.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 3,
+        "matched_count": 5,
         "matched_terms": [
+          "data",
           "ptr",
           "rd",
+          "rd_data_o",
           "rd_ptr"
         ],
         "owner_file_scoped": true,
@@ -1672,10 +1688,11 @@
         "function_model.transactions.FM2.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "accepted",
           "empty",
+          "empty_o",
           "push",
           "push_accepted"
         ],
@@ -1741,10 +1758,13 @@
         "function_model.transactions.FM2.outputs.output_2"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 8,
         "matched_terms": [
+          "ALMOST",
           "EMPTY",
           "accepted",
+          "almost",
+          "almost_empty_o",
           "empty",
           "push",
           "push_accepted"
@@ -1883,10 +1903,12 @@
         "function_model.transactions.FM2.output_rules.rd_data_o"
       ],
       "static_evidence": {
-        "matched_count": 3,
+        "matched_count": 5,
         "matched_terms": [
+          "data",
           "ptr",
           "rd",
+          "rd_data_o",
           "rd_ptr"
         ],
         "owner_file_scoped": true,
@@ -1953,10 +1975,11 @@
         "function_model.transactions.FM2.output_rules.empty_o"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "accepted",
           "empty",
+          "empty_o",
           "push",
           "push_accepted"
         ],
@@ -2029,10 +2052,13 @@
         "function_model.transactions.FM2.output_rules.almost_empty_o"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 8,
         "matched_terms": [
+          "ALMOST",
           "EMPTY",
           "accepted",
+          "almost",
+          "almost_empty_o",
           "empty",
           "push",
           "push_accepted"
@@ -2449,10 +2475,12 @@
         "function_model.transactions.FM3.preconditions.precondition_1"
       ],
       "static_evidence": {
-        "matched_count": 2,
+        "matched_count": 4,
         "matched_terms": [
           "empty",
-          "full"
+          "empty_o",
+          "full",
+          "full_o"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -2567,10 +2595,13 @@
         "function_model.transactions.FM3.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 2,
+        "matched_count": 5,
         "matched_terms": [
+          "DATA",
           "WIDTH",
-          "wr"
+          "data",
+          "wr",
+          "wr_data_i"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -2689,10 +2720,12 @@
         "function_model.transactions.FM3.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 3,
+        "matched_count": 5,
         "matched_terms": [
+          "data",
           "ptr",
           "rd",
+          "rd_data_o",
           "rd_ptr"
         ],
         "owner_file_scoped": true,
@@ -2749,9 +2782,10 @@
         "function_model.transactions.FM3.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "full"
+          "full",
+          "full_o"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -2761,7 +2795,7 @@
           "full_o"
         ],
         "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2771,9 +2805,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2804,9 +2838,10 @@
         "function_model.transactions.FM3.outputs.output_2"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "empty"
+          "empty",
+          "empty_o"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -2816,7 +2851,7 @@
           "empty_o"
         ],
         "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2826,9 +2861,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2925,10 +2960,12 @@
         "function_model.transactions.FM3.output_rules.rd_data_o"
       ],
       "static_evidence": {
-        "matched_count": 3,
+        "matched_count": 5,
         "matched_terms": [
+          "data",
           "ptr",
           "rd",
+          "rd_data_o",
           "rd_ptr"
         ],
         "owner_file_scoped": true,
@@ -2993,10 +3030,11 @@
         "function_model.transactions.FM3.output_rules.full_o"
       ],
       "static_evidence": {
-        "matched_count": 2,
+        "matched_count": 3,
         "matched_terms": [
           "DEPTH",
-          "full"
+          "full",
+          "full_o"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -3057,9 +3095,10 @@
         "function_model.transactions.FM3.output_rules.empty_o"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "empty"
+          "empty",
+          "empty_o"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -3069,7 +3108,7 @@
           "empty_o"
         ],
         "source_scope": "rtl/fifo_sync_ptrs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -3079,9 +3118,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],

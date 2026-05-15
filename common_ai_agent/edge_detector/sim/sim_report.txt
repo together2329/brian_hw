@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=edge_detector/sim/results.xml
+scoreboard=edge_detector/sim/scoreboard_events.jsonl
+coverage_functional=edge_detector/cov/coverage_functional.json
+waveforms=edge_detector/sim/edge_detector.vcd
+0 errors, 0 warnings

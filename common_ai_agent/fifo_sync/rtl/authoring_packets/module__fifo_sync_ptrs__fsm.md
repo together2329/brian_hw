@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, decomposition.units.pointer_control, fsm.ptr_fsm, function_model, function_model.state_variables, function_model.state_variables.count, function_model.state_variables.rd_ptr, function_model.state_variables.wr_ptr
 - Module slice: 4/6 section=fsm task_limit=48
@@ -60,14 +60,14 @@ SSOT item context: value=EMPTY.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.ptr_fsm.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.states.state_1.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: value=ALMOST_EMPTY.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -81,14 +81,14 @@ SSOT item context: value=ALMOST_EMPTY.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.ptr_fsm.states.state_2
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.states.state_2.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: value=NORMAL.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -102,14 +102,14 @@ SSOT item context: value=NORMAL.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.ptr_fsm.states.state_3
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ptr_fsm.states.state_3.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.
 SSOT item context: value=ALMOST_FULL.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT

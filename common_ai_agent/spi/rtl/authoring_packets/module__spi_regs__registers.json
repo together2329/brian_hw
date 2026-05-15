@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 6,
+      "count": 5,
       "enabled": true,
       "index": 2,
       "key": "registers",
-      "module_task_count": 65,
-      "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 63,
+      "rule": "Owner module spi_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "registers",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -24,11 +24,22 @@
       "name": "spi_regs",
       "refs": [
         "error_handling",
+        "error_handling.error_sources.access_policy_violation",
+        "error_handling.error_sources.illegal_apb_address",
+        "error_handling.error_sources.unsupported_write_strobe",
         "interrupts",
         "io_list",
         "io_list.interfaces.apb_slave",
         "registers",
-        "registers.register_list"
+        "registers.config",
+        "registers.register_list",
+        "registers.register_list.CS_IDLE",
+        "registers.register_list.CTRL",
+        "registers.register_list.DEBUG",
+        "registers.register_list.PRESCALE",
+        "registers.register_list.RXDATA",
+        "registers.register_list.STATUS",
+        "registers.register_list.TXDATA"
       ],
       "wiring_only": false
     },
@@ -124,12 +135,12 @@
       "registers.register": 7
     },
     "module_slice": {
-      "count": 6,
+      "count": 5,
       "enabled": true,
       "index": 2,
       "key": "registers",
-      "module_task_count": 65,
-      "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 63,
+      "rule": "Owner module spi_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "registers",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -183,7 +194,7 @@
         "CTRL access policy rw is implemented without read/write shortcuts",
         "CTRL decode uses SSOT address/offset 0"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.",
       "evidence_terms": [],
       "id": "RTL-0136",
       "owner_file": "rtl/spi_regs.sv",
@@ -234,7 +245,7 @@
         "enable readback returns implemented RTL state when readable",
         "enable write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.enable.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=enable; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.enable.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=enable; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0137",
       "owner_file": "rtl/spi_regs.sv",
@@ -283,7 +294,7 @@
         "start readback returns implemented RTL state when readable",
         "start write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.start.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=start; reset=0; access=wo.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.start.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=start; reset=0; access=wo.",
       "evidence_terms": [],
       "id": "RTL-0138",
       "owner_file": "rtl/spi_regs.sv",
@@ -332,7 +343,7 @@
         "cpol readback returns implemented RTL state when readable",
         "cpol write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cpol.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=cpol; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cpol.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=cpol; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0139",
       "owner_file": "rtl/spi_regs.sv",
@@ -381,7 +392,7 @@
         "cpha readback returns implemented RTL state when readable",
         "cpha write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cpha.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=cpha; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cpha.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=cpha; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0140",
       "owner_file": "rtl/spi_regs.sv",
@@ -430,7 +441,7 @@
         "lsb_first readback returns implemented RTL state when readable",
         "lsb_first write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.lsb_first.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=lsb_first; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.lsb_first.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=lsb_first; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0141",
       "owner_file": "rtl/spi_regs.sv",
@@ -479,7 +490,7 @@
         "continuous_cs readback returns implemented RTL state when readable",
         "continuous_cs write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.continuous_cs.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=continuous_cs; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.continuous_cs.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=continuous_cs; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0142",
       "owner_file": "rtl/spi_regs.sv",
@@ -528,7 +539,7 @@
         "loopback readback returns implemented RTL state when readable",
         "loopback write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.loopback.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=loopback; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.loopback.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=loopback; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0143",
       "owner_file": "rtl/spi_regs.sv",
@@ -577,7 +588,7 @@
         "soft_reset readback returns implemented RTL state when readable",
         "soft_reset write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.soft_reset.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=soft_reset; reset=0; access=wo.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.soft_reset.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=soft_reset; reset=0; access=wo.",
       "evidence_terms": [],
       "id": "RTL-0144",
       "owner_file": "rtl/spi_regs.sv",
@@ -626,7 +637,7 @@
         "cs_sel readback returns implemented RTL state when readable",
         "cs_sel write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cs_sel.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=cs_sel; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.cs_sel.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=cs_sel; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0145",
       "owner_file": "rtl/spi_regs.sv",
@@ -675,7 +686,7 @@
         "data_width_m1 readback returns implemented RTL state when readable",
         "data_width_m1 write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.data_width_m1.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=data_width_m1; reset=7; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.data_width_m1.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=data_width_m1; reset=7; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0146",
       "owner_file": "rtl/spi_regs.sv",
@@ -722,7 +733,7 @@
         "STATUS access policy ro is implemented without read/write shortcuts",
         "STATUS decode uses SSOT address/offset 4"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=STATUS; width=32; reset=18; access=ro; offset=4.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=STATUS; width=32; reset=18; access=ro; offset=4.",
       "evidence_terms": [],
       "id": "RTL-0147",
       "owner_file": "rtl/spi_regs.sv",
@@ -773,7 +784,7 @@
         "busy readback returns implemented RTL state when readable",
         "busy write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.busy.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=busy; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.busy.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=busy; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0148",
       "owner_file": "rtl/spi_regs.sv",
@@ -822,7 +833,7 @@
         "tx_full readback returns implemented RTL state when readable",
         "tx_full write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_full.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=tx_full; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_full.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=tx_full; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0149",
       "owner_file": "rtl/spi_regs.sv",
@@ -871,7 +882,7 @@
         "tx_empty readback returns implemented RTL state when readable",
         "tx_empty write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_empty.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=tx_empty; reset=1; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_empty.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=tx_empty; reset=1; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0150",
       "owner_file": "rtl/spi_regs.sv",
@@ -920,7 +931,7 @@
         "rx_full readback returns implemented RTL state when readable",
         "rx_full write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_full.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_full; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_full.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=rx_full; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0151",
       "owner_file": "rtl/spi_regs.sv",
@@ -969,7 +980,7 @@
         "rx_empty readback returns implemented RTL state when readable",
         "rx_empty write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_empty.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_empty; reset=1; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_empty.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=rx_empty; reset=1; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0152",
       "owner_file": "rtl/spi_regs.sv",
@@ -1018,7 +1029,7 @@
         "done readback returns implemented RTL state when readable",
         "done write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.done.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=done; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.done.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=done; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0153",
       "owner_file": "rtl/spi_regs.sv",
@@ -1067,7 +1078,7 @@
         "tx_overrun readback returns implemented RTL state when readable",
         "tx_overrun write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_overrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=tx_overrun; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.tx_overrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=tx_overrun; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0154",
       "owner_file": "rtl/spi_regs.sv",
@@ -1116,7 +1127,7 @@
         "rx_overrun readback returns implemented RTL state when readable",
         "rx_overrun write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_overrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_overrun; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_overrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=rx_overrun; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0155",
       "owner_file": "rtl/spi_regs.sv",
@@ -1165,7 +1176,7 @@
         "rx_underrun readback returns implemented RTL state when readable",
         "rx_underrun write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_underrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_underrun; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.rx_underrun.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=rx_underrun; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0156",
       "owner_file": "rtl/spi_regs.sv",
@@ -1214,7 +1225,7 @@
         "mode_fault readback returns implemented RTL state when readable",
         "mode_fault write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.mode_fault.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=mode_fault; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.mode_fault.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=mode_fault; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0157",
       "owner_file": "rtl/spi_regs.sv",
@@ -1263,7 +1274,7 @@
         "illegal_access readback returns implemented RTL state when readable",
         "illegal_access write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.illegal_access.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=illegal_access; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.illegal_access.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=illegal_access; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0158",
       "owner_file": "rtl/spi_regs.sv",
@@ -1312,7 +1323,7 @@
         "cs_active readback returns implemented RTL state when readable",
         "cs_active write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.cs_active.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=cs_active; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.cs_active.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=cs_active; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0159",
       "owner_file": "rtl/spi_regs.sv",
@@ -1359,7 +1370,7 @@
         "PRESCALE access policy rw is implemented without read/write shortcuts",
         "PRESCALE decode uses SSOT address/offset 8"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.PRESCALE.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=PRESCALE; width=32; reset=0; access=rw; offset=8.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.PRESCALE.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.PRESCALE.\nSSOT item context: name=PRESCALE; width=32; reset=0; access=rw; offset=8.",
       "evidence_terms": [],
       "id": "RTL-0160",
       "owner_file": "rtl/spi_regs.sv",
@@ -1410,7 +1421,7 @@
         "divisor readback returns implemented RTL state when readable",
         "divisor write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.PRESCALE.fields.divisor.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=divisor; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.PRESCALE.fields.divisor.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.PRESCALE.\nSSOT item context: name=divisor; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0161",
       "owner_file": "rtl/spi_regs.sv",
@@ -1457,7 +1468,7 @@
         "TXDATA access policy wo is implemented without read/write shortcuts",
         "TXDATA decode uses SSOT address/offset 12"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.TXDATA.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=TXDATA; width=32; reset=0; access=wo; offset=12.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.TXDATA.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.TXDATA.\nSSOT item context: name=TXDATA; width=32; reset=0; access=wo; offset=12.",
       "evidence_terms": [],
       "id": "RTL-0162",
       "owner_file": "rtl/spi_regs.sv",
@@ -1508,7 +1519,7 @@
         "tx_payload readback returns implemented RTL state when readable",
         "tx_payload write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.TXDATA.fields.tx_payload.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=tx_payload; reset=0; access=wo.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.TXDATA.fields.tx_payload.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.TXDATA.\nSSOT item context: name=tx_payload; reset=0; access=wo.",
       "evidence_terms": [],
       "id": "RTL-0163",
       "owner_file": "rtl/spi_regs.sv",
@@ -1555,7 +1566,7 @@
         "RXDATA access policy ro is implemented without read/write shortcuts",
         "RXDATA decode uses SSOT address/offset 16"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.RXDATA.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=RXDATA; width=32; reset=0; access=ro; offset=16.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.RXDATA.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.RXDATA.\nSSOT item context: name=RXDATA; width=32; reset=0; access=ro; offset=16.",
       "evidence_terms": [],
       "id": "RTL-0164",
       "owner_file": "rtl/spi_regs.sv",
@@ -1606,7 +1617,7 @@
         "rx_payload readback returns implemented RTL state when readable",
         "rx_payload write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.RXDATA.fields.rx_payload.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_payload; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.RXDATA.fields.rx_payload.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.RXDATA.\nSSOT item context: name=rx_payload; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0165",
       "owner_file": "rtl/spi_regs.sv",
@@ -1653,7 +1664,7 @@
         "CS_IDLE access policy rw is implemented without read/write shortcuts",
         "CS_IDLE decode uses SSOT address/offset 32"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CS_IDLE.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=CS_IDLE; width=32; reset=15; access=rw; offset=32.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CS_IDLE.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CS_IDLE.\nSSOT item context: name=CS_IDLE; width=32; reset=15; access=rw; offset=32.",
       "evidence_terms": [],
       "id": "RTL-0186",
       "owner_file": "rtl/spi_regs.sv",
@@ -1704,7 +1715,7 @@
         "cs_idle_val readback returns implemented RTL state when readable",
         "cs_idle_val write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CS_IDLE.fields.cs_idle_val.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=cs_idle_val; reset=15; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CS_IDLE.fields.cs_idle_val.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.CS_IDLE.\nSSOT item context: name=cs_idle_val; reset=15; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0187",
       "owner_file": "rtl/spi_regs.sv",
@@ -1751,7 +1762,7 @@
         "DEBUG access policy ro is implemented without read/write shortcuts",
         "DEBUG decode uses SSOT address/offset 36"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DEBUG.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=DEBUG; width=32; reset=0; access=ro; offset=36.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DEBUG.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.\nSSOT item context: name=DEBUG; width=32; reset=0; access=ro; offset=36.",
       "evidence_terms": [],
       "id": "RTL-0188",
       "owner_file": "rtl/spi_regs.sv",
@@ -1802,7 +1813,7 @@
         "tx_count readback returns implemented RTL state when readable",
         "tx_count write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.tx_count.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=tx_count; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.tx_count.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.\nSSOT item context: name=tx_count; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0189",
       "owner_file": "rtl/spi_regs.sv",
@@ -1851,7 +1862,7 @@
         "rx_count readback returns implemented RTL state when readable",
         "rx_count write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.rx_count.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=rx_count; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.rx_count.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.\nSSOT item context: name=rx_count; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0190",
       "owner_file": "rtl/spi_regs.sv",
@@ -1900,7 +1911,7 @@
         "bit_index readback returns implemented RTL state when readable",
         "bit_index write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.bit_index.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=bit_index; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.bit_index.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.\nSSOT item context: name=bit_index; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0191",
       "owner_file": "rtl/spi_regs.sv",
@@ -1949,7 +1960,7 @@
         "active_cs readback returns implemented RTL state when readable",
         "active_cs write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.active_cs.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.\nSSOT item context: name=active_cs; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG.fields.active_cs.\nOwner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.\nSSOT item context: name=active_cs; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0192",
       "owner_file": "rtl/spi_regs.sv",
@@ -1983,7 +1994,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "2a60bf453550d0ce8554eb62210062c7cf9b821cfd849f3ea1217a035cfae11d",
+  "todo_plan_sha256": "1524a7a2a61d385b4fcd964fb83fe59969f7a9a74725a1517172f0b8e2da9c0e",
   "top": "spi",
   "type": "rtl_authoring_packet"
 }

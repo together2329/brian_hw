@@ -26,9 +26,9 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: error_handling, interrupts, io_list, io_list.interfaces.apb_slave, registers, registers.register_list
-- Module slice: 2/6 section=registers task_limit=48
-- Slice rule: Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: error_handling, error_handling.error_sources.access_policy_violation, error_handling.error_sources.illegal_apb_address, error_handling.error_sources.unsupported_write_strobe, interrupts, io_list, io_list.interfaces.apb_slave, registers, registers.config, registers.register_list, registers.register_list.CS_IDLE, registers.register_list.CTRL, registers.register_list.DEBUG, registers.register_list.PRESCALE, registers.register_list.RXDATA, registers.register_list.STATUS
+- Module slice: 2/5 section=registers task_limit=48
+- Slice rule: Owner module spi_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT target scale: min_behavior_owner_logic_modules=3, min_depth_score=40, min_logic_modules=4, min_modules=6, min_procedural_blocks=20, min_source_files=6, min_state_updates=25
 
 ## Tasks
@@ -42,7 +42,7 @@
 - Source ref: registers.register_list.CTRL
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CTRL.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -66,7 +66,7 @@ SSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.
 - Source ref: registers.register_list.CTRL.fields.enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.enable.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=enable; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -92,7 +92,7 @@ SSOT item context: name=enable; reset=0; access=rw.
 - Source ref: registers.register_list.CTRL.fields.start
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.start.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=start; reset=0; access=wo.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -118,7 +118,7 @@ SSOT item context: name=start; reset=0; access=wo.
 - Source ref: registers.register_list.CTRL.fields.cpol
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.cpol.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=cpol; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -144,7 +144,7 @@ SSOT item context: name=cpol; reset=0; access=rw.
 - Source ref: registers.register_list.CTRL.fields.cpha
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.cpha.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=cpha; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -170,7 +170,7 @@ SSOT item context: name=cpha; reset=0; access=rw.
 - Source ref: registers.register_list.CTRL.fields.lsb_first
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.lsb_first.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=lsb_first; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -196,7 +196,7 @@ SSOT item context: name=lsb_first; reset=0; access=rw.
 - Source ref: registers.register_list.CTRL.fields.continuous_cs
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.continuous_cs.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=continuous_cs; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -222,7 +222,7 @@ SSOT item context: name=continuous_cs; reset=0; access=rw.
 - Source ref: registers.register_list.CTRL.fields.loopback
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.loopback.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=loopback; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -248,7 +248,7 @@ SSOT item context: name=loopback; reset=0; access=rw.
 - Source ref: registers.register_list.CTRL.fields.soft_reset
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.soft_reset.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=soft_reset; reset=0; access=wo.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -274,7 +274,7 @@ SSOT item context: name=soft_reset; reset=0; access=wo.
 - Source ref: registers.register_list.CTRL.fields.cs_sel
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.cs_sel.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=cs_sel; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -300,7 +300,7 @@ SSOT item context: name=cs_sel; reset=0; access=rw.
 - Source ref: registers.register_list.CTRL.fields.data_width_m1
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.data_width_m1.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=data_width_m1; reset=7; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -326,7 +326,7 @@ SSOT item context: name=data_width_m1; reset=7; access=rw.
 - Source ref: registers.register_list.STATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.STATUS.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=STATUS; width=32; reset=18; access=ro; offset=4.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -350,7 +350,7 @@ SSOT item context: name=STATUS; width=32; reset=18; access=ro; offset=4.
 - Source ref: registers.register_list.STATUS.fields.busy
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.busy.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=busy; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -376,7 +376,7 @@ SSOT item context: name=busy; reset=0; access=ro.
 - Source ref: registers.register_list.STATUS.fields.tx_full
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.tx_full.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=tx_full; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -402,7 +402,7 @@ SSOT item context: name=tx_full; reset=0; access=ro.
 - Source ref: registers.register_list.STATUS.fields.tx_empty
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.tx_empty.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=tx_empty; reset=1; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -428,7 +428,7 @@ SSOT item context: name=tx_empty; reset=1; access=ro.
 - Source ref: registers.register_list.STATUS.fields.rx_full
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.rx_full.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=rx_full; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -454,7 +454,7 @@ SSOT item context: name=rx_full; reset=0; access=ro.
 - Source ref: registers.register_list.STATUS.fields.rx_empty
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.rx_empty.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=rx_empty; reset=1; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -480,7 +480,7 @@ SSOT item context: name=rx_empty; reset=1; access=ro.
 - Source ref: registers.register_list.STATUS.fields.done
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.done.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=done; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -506,7 +506,7 @@ SSOT item context: name=done; reset=0; access=ro.
 - Source ref: registers.register_list.STATUS.fields.tx_overrun
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.tx_overrun.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=tx_overrun; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -532,7 +532,7 @@ SSOT item context: name=tx_overrun; reset=0; access=ro.
 - Source ref: registers.register_list.STATUS.fields.rx_overrun
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.rx_overrun.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=rx_overrun; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -558,7 +558,7 @@ SSOT item context: name=rx_overrun; reset=0; access=ro.
 - Source ref: registers.register_list.STATUS.fields.rx_underrun
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.rx_underrun.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=rx_underrun; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -584,7 +584,7 @@ SSOT item context: name=rx_underrun; reset=0; access=ro.
 - Source ref: registers.register_list.STATUS.fields.mode_fault
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.mode_fault.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=mode_fault; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -610,7 +610,7 @@ SSOT item context: name=mode_fault; reset=0; access=ro.
 - Source ref: registers.register_list.STATUS.fields.illegal_access
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.illegal_access.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=illegal_access; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -636,7 +636,7 @@ SSOT item context: name=illegal_access; reset=0; access=ro.
 - Source ref: registers.register_list.STATUS.fields.cs_active
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.cs_active.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=cs_active; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -662,7 +662,7 @@ SSOT item context: name=cs_active; reset=0; access=ro.
 - Source ref: registers.register_list.PRESCALE
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.PRESCALE.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.PRESCALE.
 SSOT item context: name=PRESCALE; width=32; reset=0; access=rw; offset=8.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -686,7 +686,7 @@ SSOT item context: name=PRESCALE; width=32; reset=0; access=rw; offset=8.
 - Source ref: registers.register_list.PRESCALE.fields.divisor
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.PRESCALE.fields.divisor.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.PRESCALE.
 SSOT item context: name=divisor; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -712,7 +712,7 @@ SSOT item context: name=divisor; reset=0; access=rw.
 - Source ref: registers.register_list.TXDATA
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.TXDATA.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.TXDATA.
 SSOT item context: name=TXDATA; width=32; reset=0; access=wo; offset=12.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -736,7 +736,7 @@ SSOT item context: name=TXDATA; width=32; reset=0; access=wo; offset=12.
 - Source ref: registers.register_list.TXDATA.fields.tx_payload
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.TXDATA.fields.tx_payload.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.TXDATA.
 SSOT item context: name=tx_payload; reset=0; access=wo.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -762,7 +762,7 @@ SSOT item context: name=tx_payload; reset=0; access=wo.
 - Source ref: registers.register_list.RXDATA
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.RXDATA.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.RXDATA.
 SSOT item context: name=RXDATA; width=32; reset=0; access=ro; offset=16.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -786,7 +786,7 @@ SSOT item context: name=RXDATA; width=32; reset=0; access=ro; offset=16.
 - Source ref: registers.register_list.RXDATA.fields.rx_payload
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.RXDATA.fields.rx_payload.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.RXDATA.
 SSOT item context: name=rx_payload; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -812,7 +812,7 @@ SSOT item context: name=rx_payload; reset=0; access=ro.
 - Source ref: registers.register_list.CS_IDLE
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CS_IDLE.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CS_IDLE.
 SSOT item context: name=CS_IDLE; width=32; reset=15; access=rw; offset=32.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -836,7 +836,7 @@ SSOT item context: name=CS_IDLE; width=32; reset=15; access=rw; offset=32.
 - Source ref: registers.register_list.CS_IDLE.fields.cs_idle_val
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CS_IDLE.fields.cs_idle_val.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.CS_IDLE.
 SSOT item context: name=cs_idle_val; reset=15; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -862,7 +862,7 @@ SSOT item context: name=cs_idle_val; reset=15; access=rw.
 - Source ref: registers.register_list.DEBUG
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.DEBUG.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.
 SSOT item context: name=DEBUG; width=32; reset=0; access=ro; offset=36.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -886,7 +886,7 @@ SSOT item context: name=DEBUG; width=32; reset=0; access=ro; offset=36.
 - Source ref: registers.register_list.DEBUG.fields.tx_count
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DEBUG.fields.tx_count.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.
 SSOT item context: name=tx_count; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -912,7 +912,7 @@ SSOT item context: name=tx_count; reset=0; access=ro.
 - Source ref: registers.register_list.DEBUG.fields.rx_count
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DEBUG.fields.rx_count.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.
 SSOT item context: name=rx_count; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -938,7 +938,7 @@ SSOT item context: name=rx_count; reset=0; access=ro.
 - Source ref: registers.register_list.DEBUG.fields.bit_index
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DEBUG.fields.bit_index.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.
 SSOT item context: name=bit_index; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -964,7 +964,7 @@ SSOT item context: name=bit_index; reset=0; access=ro.
 - Source ref: registers.register_list.DEBUG.fields.active_cs
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DEBUG.fields.active_cs.
-Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.
+Owner: spi_regs in rtl/spi_regs.sv via registers.register_list.DEBUG.
 SSOT item context: name=active_cs; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

@@ -307,55 +307,7 @@ SSOT item context: value=last_winner updated to selected_index.
   - Primary implementation evidence is in rtl/arbiter_rr_core.sv
 - SSOT refs: function_model.transactions.FM1.outputs.output_3
 
-### RTL-0061: Implement output rule for FM1: grant
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: function_model.output_rule
-- Source ref: function_model.transactions.FM1.output_rules.grant
-- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
-SSOT ref: function_model.transactions.FM1.output_rules.grant.
-Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
-SSOT item context: name=grant; port=gnt_o; expr=one_hot(selected_index); width=NUM_REQ.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL owner logic is identifiable for this SSOT leaf
-  - Reset/enable/error behavior is consistent with the parent transaction
-  - Downstream equivalence/coverage can observe this behavior
-  - Traceability keeps source_ref function_model.transactions.FM1.output_rules.grant
-  - Primary implementation evidence is in rtl/arbiter_rr_core.sv
-  - grant width matches SSOT value NUM_REQ
-  - grant RTL expression implements SSOT expression one_hot(selected_index)
-  - DUT port gnt_o is the implementation/observation point for grant
-  - grant is not implemented only in FunctionalModel or scoreboard code
-- SSOT refs: function_model.transactions.FM1.output_rules.grant
-
-### RTL-0062: Implement output rule for FM1: grant_valid
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: function_model.output_rule
-- Source ref: function_model.transactions.FM1.output_rules.grant_valid
-- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
-SSOT ref: function_model.transactions.FM1.output_rules.grant_valid.
-Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
-SSOT item context: name=grant_valid; port=gnt_valid_o; expr=arb_enabled && ((req_i & req_mask) != 0); width=1.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL owner logic is identifiable for this SSOT leaf
-  - Reset/enable/error behavior is consistent with the parent transaction
-  - Downstream equivalence/coverage can observe this behavior
-  - Traceability keeps source_ref function_model.transactions.FM1.output_rules.grant_valid
-  - Primary implementation evidence is in rtl/arbiter_rr_core.sv
-  - grant_valid width matches SSOT value 1
-  - grant_valid RTL expression implements SSOT expression arb_enabled && ((req_i & req_mask) != 0)
-  - DUT port gnt_valid_o is the implementation/observation point for grant_valid
-  - grant_valid is not implemented only in FunctionalModel or scoreboard code
-- SSOT refs: function_model.transactions.FM1.output_rules.grant_valid
-
-### RTL-0063: Implement output rule for FM1: grant_index
+### RTL-0061: Implement output rule for FM1: grant_index
 
 - Priority: high
 - Required: True
@@ -365,7 +317,7 @@ SSOT item context: name=grant_valid; port=gnt_valid_o; expr=arb_enabled && ((req
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.output_rules.grant_index.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
-SSOT item context: name=grant_index; port=gnt_idx_o; expr=selected_index where selected_index is first active request in circular scan starting from (last_winner+1)%NUM_REQ; width=IDX_WIDTH.
+SSOT item context: name=grant_index; port=gnt_idx_o; expr=1 if ((last_winner == 0) and (((req_i & req_mask) & 2) != 0)) else (2 if ((last_winner == 0) and (((req_i & req_mask)...; width=IDX_WIDTH.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
@@ -374,10 +326,58 @@ SSOT item context: name=grant_index; port=gnt_idx_o; expr=selected_index where s
   - Traceability keeps source_ref function_model.transactions.FM1.output_rules.grant_index
   - Primary implementation evidence is in rtl/arbiter_rr_core.sv
   - grant_index width matches SSOT value IDX_WIDTH
-  - grant_index RTL expression implements SSOT expression selected_index where selected_index is first active request in circular scan starting from (last_winner+1)%NUM_REQ
+  - grant_index RTL expression implements SSOT expression 1 if ((last_winner == 0) and (((req_i & req_mask) & 2) != 0)) else (2 if ((last_winner == 0) and (((req_i & req_mask)...
   - DUT port gnt_idx_o is the implementation/observation point for grant_index
   - grant_index is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM1.output_rules.grant_index
+
+### RTL-0062: Implement output rule for FM1: grant
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.output_rule
+- Source ref: function_model.transactions.FM1.output_rules.grant
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM1.output_rules.grant.
+Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
+SSOT item context: name=grant; port=gnt_o; expr=1 << grant_index; width=NUM_REQ.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM1.output_rules.grant
+  - Primary implementation evidence is in rtl/arbiter_rr_core.sv
+  - grant width matches SSOT value NUM_REQ
+  - grant RTL expression implements SSOT expression 1 << grant_index
+  - DUT port gnt_o is the implementation/observation point for grant
+  - grant is not implemented only in FunctionalModel or scoreboard code
+- SSOT refs: function_model.transactions.FM1.output_rules.grant
+
+### RTL-0063: Implement output rule for FM1: grant_valid
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.output_rule
+- Source ref: function_model.transactions.FM1.output_rules.grant_valid
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM1.output_rules.grant_valid.
+Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
+SSOT item context: name=grant_valid; port=gnt_valid_o; expr=1; width=1.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM1.output_rules.grant_valid
+  - Primary implementation evidence is in rtl/arbiter_rr_core.sv
+  - grant_valid width matches SSOT value 1
+  - grant_valid RTL expression implements SSOT expression 1
+  - DUT port gnt_valid_o is the implementation/observation point for grant_valid
+  - grant_valid is not implemented only in FunctionalModel or scoreboard code
+- SSOT refs: function_model.transactions.FM1.output_rules.grant_valid
 
 ### RTL-0064: Implement state update for FM1: last_winner
 
@@ -389,7 +389,7 @@ SSOT item context: name=grant_index; port=gnt_idx_o; expr=selected_index where s
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.state_updates.last_winner.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
-SSOT item context: name=last_winner; expr=selected_index (binary index of current grant winner); reset=0.
+SSOT item context: name=last_winner; expr=grant_index; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
@@ -398,7 +398,7 @@ SSOT item context: name=last_winner; expr=selected_index (binary index of curren
   - Traceability keeps source_ref function_model.transactions.FM1.state_updates.last_winner
   - Primary implementation evidence is in rtl/arbiter_rr_core.sv
   - last_winner reset behavior matches SSOT value 0
-  - last_winner RTL expression implements SSOT expression selected_index (binary index of current grant winner)
+  - last_winner RTL expression implements SSOT expression grant_index
   - last_winner updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM1.state_updates.last_winner
 

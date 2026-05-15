@@ -2,8 +2,8 @@
   "schema_version": 1,
   "type": "fl_rtl_compare",
   "ip": "edge_detector",
-  "generated_at": "2026-05-15T02:32:32Z",
-  "status": "pending",
+  "generated_at": "2026-05-15T02:34:02Z",
+  "status": "fail",
   "sources": {
     "equivalence_goals": "edge_detector/verify/equivalence_goals.json",
     "scoreboard_events": "edge_detector/sim/scoreboard_events.jsonl",
@@ -13,31 +13,29 @@
   },
   "summary": {
     "total": 38,
-    "goals_checked": 0,
+    "goals_checked": 38,
     "goals_passed": 0,
-    "goals_failed": 0,
+    "goals_failed": 38,
     "goals_blocked": 0,
-    "goals_untested": 38,
-    "scoreboard_events": 0,
+    "goals_untested": 0,
+    "scoreboard_events": 38,
     "orphan_scoreboard_events": 0,
-    "missing_evidence": [
-      "edge_detector/sim/scoreboard_events.jsonl",
-      "edge_detector/sim/results.xml"
-    ],
+    "missing_evidence": [],
     "stale_evidence": [],
     "sim_results": {
-      "exists": false,
-      "total": 0,
+      "exists": true,
+      "total": 1,
       "fail": 0,
       "errors": 0,
-      "source": ""
+      "source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/sim/results.xml",
+      "failures": 0
     }
   },
   "goals": [
     {
       "goal_id": "EQ_TRANSACTION_DETECT",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC1_executed",
         "SC2_executed",
@@ -53,8 +51,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC1",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC1_executed",
         "SC10_executed",
@@ -65,8 +63,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC2",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC2_executed"
       ],
@@ -74,8 +72,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC3",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC3_executed",
         "fcov_both_edge"
@@ -84,8 +82,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC4",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC4_executed"
       ],
@@ -93,8 +91,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC5",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC5_executed"
       ],
@@ -102,8 +100,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC6",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC6_executed",
         "fcov_w1c_clear"
@@ -112,8 +110,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC7",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC7_executed",
         "fcov_enable_gate"
@@ -122,8 +120,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC8",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC8_executed"
       ],
@@ -131,8 +129,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC9",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC9_executed"
       ],
@@ -140,8 +138,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC10",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC10_executed"
       ],
@@ -149,8 +147,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC11",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC11_executed"
       ],
@@ -158,8 +156,8 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC12",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC12_executed"
       ],
@@ -167,8 +165,8 @@
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "ccov_apb_read",
         "ccov_apb_write",
@@ -180,8 +178,8 @@
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "ccov_apb_read",
         "ccov_apb_write",
@@ -193,8 +191,8 @@
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "ccov_apb_read",
         "ccov_apb_write",
@@ -206,8 +204,8 @@
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_0",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "cycle_ordering_0",
         "cycle_ordering_1"
@@ -216,8 +214,8 @@
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_1",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "cycle_ordering_0",
         "cycle_ordering_1"
@@ -226,8 +224,8 @@
     },
     {
       "goal_id": "EQ_REGISTER_CONTROL",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC10_executed",
         "fcov_w1c_clear",
@@ -241,8 +239,8 @@
     },
     {
       "goal_id": "EQ_REGISTER_STATUS",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC10_executed",
         "fcov_sticky_set",
@@ -257,8 +255,8 @@
     },
     {
       "goal_id": "EQ_REGISTER_RAW_STATUS",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "SC10_executed",
         "fcov_w1c_clear",
@@ -271,8 +269,8 @@
     },
     {
       "goal_id": "EQ_ERROR_NONE",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "fcov_reserved_mode",
         "error_error_0",
@@ -282,22 +280,22 @@
     },
     {
       "goal_id": "EQ_DEBUG_OBSERVABILITY",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [],
       "coverage_hit": null
     },
     {
       "goal_id": "EQ_MODULE_EDGE_DETECTOR",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [],
       "coverage_hit": null
     },
     {
       "goal_id": "EQ_COVERAGE_CCOV_SYNC_LATENCY",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "ccov_sync_latency"
       ],
@@ -305,8 +303,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_CCOV_EDGE_DECODE",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "ccov_edge_decode"
       ],
@@ -314,8 +312,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_CCOV_IRQ_SAME_CYCLE",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "ccov_irq_same_cycle"
       ],
@@ -323,8 +321,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_SYNC_LATENCY",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "cycle_latency_sync_latency"
       ],
@@ -332,8 +330,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_INTERRUPT_LATENCY",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "cycle_latency_interrupt_latency"
       ],
@@ -341,8 +339,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "cycle_pipeline_s0_sync"
       ],
@@ -350,8 +348,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_EDGE_DECODE",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "cycle_pipeline_s1_edge_decode"
       ],
@@ -359,8 +357,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S2_OUTPUT",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "cycle_pipeline_s2_output"
       ],
@@ -368,8 +366,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "cycle_backpressure_0"
       ],
@@ -377,8 +375,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "cycle_perf_depth"
       ],
@@ -386,8 +384,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "cycle_perf_frequency_mhz"
       ],
@@ -395,8 +393,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "cycle_perf_throughput"
       ],
@@ -404,8 +402,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_FSM_NOTE_SYNC_SAMPLE_TO_EDGE_DECODE_0",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "fsm_note_sync_sample_to_edge_decode_0"
       ],
@@ -413,8 +411,8 @@
     },
     {
       "goal_id": "EQ_COVERAGE_FSM_NOTE_EDGE_DECODE_TO_OUTPUT_PULSE_1",
-      "status": "untested",
-      "events": 0,
+      "status": "fail",
+      "events": 1,
       "coverage_refs": [
         "fsm_note_edge_decode_to_output_pulse_1"
       ],

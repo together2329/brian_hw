@@ -14,7 +14,6 @@ module pulse_gen_core #(
     input  logic                    int_enable_i,
     input  logic                    status_done_i,
     input  logic                    status_busy_i,
-    inout wire                     status_done_o,
     output logic [PULSE_OUT_WIDTH-1:0] pulse_out,
     output logic                    irq_o,
     output logic                    status_busy_o,
