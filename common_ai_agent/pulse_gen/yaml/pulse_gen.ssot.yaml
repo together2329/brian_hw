@@ -116,6 +116,7 @@ io_list:
         - { name: "PSLVERR", width: 1,  direction: "output", description: "APB slave error" }
     - name: "pulse_output"
       type: "custom"
+      role: "master"
       clock_domain: "pclk"
       reset_domain: "presetn"
       description: "Parameterized one-shot pulse output bus"

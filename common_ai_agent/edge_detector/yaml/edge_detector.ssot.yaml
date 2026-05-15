@@ -131,7 +131,39 @@ dataflow:
     source: "APB write to CONTROL register"
     effect: "Updates EDGE_MODE enable/mask bits; may gate edge_o generation"
     sequence: "PWDATA -> PADDR decode -> CONTROL.write -> edge_decode mask"
-function_model: TBD
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the IP computes independent of cycle timing."
+  state_variables:
+    - { name: "sync_chain", source: "rtl_contract.state_updates.sync_chain", reset: 0, description: "Synchronizer shift register of width WIDTH*SYNC_STAGES" }
+    - { name: "prev_sync", source: "rtl_contract.state_updates.prev_sync", reset: 0, description: "Previous-cycle synced sample for edge comparison" }
+    - { name: "control_reg", source: "registers.CONTROL", reset: 0x00000002, description: "Edge mode, enable, irq_enable configuration" }
+    - { name: "status_sticky", source: "registers.STATUS.edge_sticky", reset: 0, description: "Sticky edge-detected flags (W1C clear)" }
+    - { name: "status_overflow", source: "registers.STATUS.overflow", reset: 0, description: "Overflow flag set when edge occurs before sticky cleared" }
+  transactions:
+    - id: "DETECT"
+      name: "edge_detect"
+      preconditions:
+        - "enable == 1"
+        - "sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion"
+      inputs:
+        - "signal_i at PCLK domain (after sync)"
+      outputs:
+        - "edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE"
+        - "status_sticky |= edge_o"
+        - "status_overflow |= edge_o & status_sticky"
+        - "irq_o = |edge_o && irq_enable"
+      side_effects:
+        - "sync_chain shifts every PCLK cycle"
+        - "prev_sync updates to last stage of sync_chain"
+      error_cases: []
+  output_rules:
+    - { name: "edge_o", expr: "(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}", width: "WIDTH", port: "edge_o", description: "One-cycle pulse per detected edge, masked by mode and enable" }
+    - { name: "irq_o", expr: "|edge_o && irq_enable", width: 1, port: "irq_o", description: "Interrupt asserted when any edge detected and irq_enable set" }
+  invariants:
+    - "edge_o is asserted for exactly one PCLK cycle per qualifying edge transition."
+    - "No edge_o pulse occurs when enable == 0."
+    - "status_sticky persists until software W1C clear."
+  reference_model_hint: "tb-gen should implement a Python scoreboard model from this section and compare expected/got for every scenario."
 cycle_model: TBD
 clock_reset_domains:
   domains:
