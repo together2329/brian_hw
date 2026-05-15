@@ -534,6 +534,56 @@ def _dynamic_todo_project_roots(project_root: Path | None = None) -> list[Path]:
     return roots
 
 
+_DYNAMIC_TODO_TEMPLATE_PATHS: dict[str, tuple[str, ...]] = {
+    "ssot-rtl": (
+        "todo/rtl_todo_tracker.json",
+        "todo/rtl_todo_plan.todo.json",
+        "rtl/rtl_todo_tracker.json",
+        "rtl/rtl_todo_plan.todo.json",
+    ),
+    "rtl-gen": (
+        "todo/rtl_todo_tracker.json",
+        "rtl/rtl_todo_tracker.json",
+    ),
+    "rtl": (
+        "todo/rtl_todo_tracker.json",
+        "rtl/rtl_todo_tracker.json",
+    ),
+    "lint": (
+        "todo/lint_todo_tracker.json",
+        "lint/lint_todo_tracker.json",
+    ),
+    "ssot-tb-cocotb": (
+        "todo/tb_todo_tracker.json",
+        "tb/tb_todo_tracker.json",
+    ),
+    "ssot-tb": (
+        "todo/tb_todo_tracker.json",
+        "tb/tb_todo_tracker.json",
+    ),
+    "tb-gen": (
+        "todo/tb_todo_tracker.json",
+        "tb/tb_todo_tracker.json",
+    ),
+    "tb": (
+        "todo/tb_todo_tracker.json",
+        "tb/tb_todo_tracker.json",
+    ),
+    "sim": (
+        "todo/sim_todo_tracker.json",
+        "sim/sim_todo_tracker.json",
+    ),
+    "coverage": (
+        "todo/coverage_todo_tracker.json",
+        "cov/coverage_todo_tracker.json",
+    ),
+    "cov": (
+        "todo/coverage_todo_tracker.json",
+        "cov/coverage_todo_tracker.json",
+    ),
+}
+
+
 def load_dynamic_todo_template(
     template_name: str,
     ip: str = "",
@@ -542,22 +592,19 @@ def load_dynamic_todo_template(
 ) -> tuple[Optional[list], Optional[Path], Optional[dict]]:
     """Load a per-IP dynamic TodoTracker template when one exists.
 
-    The static ``ssot-rtl`` template is only a seed. Once rtl-gen has derived
-    SSOT-specific tasks, the active TodoTracker list should come from
-    ``<ip>/todo/rtl_todo_tracker.json`` (legacy fallback: ``<ip>/rtl/...``).
+    Static templates are only seeds. Once a workflow has produced an
+    SSOT-specific stage ledger, the active TodoTracker list should come from
+    ``<ip>/todo/<stage>_todo_tracker.json`` with stage-local legacy fallbacks.
     """
-    if template_name != "ssot-rtl" or not ip:
+    key = (template_name or "").strip().lower()
+    if key not in _DYNAMIC_TODO_TEMPLATE_PATHS or not ip:
         return None, None, None
     if ".." in ip or "/" in ip or "\\" in ip:
         return None, None, None
 
     for root in _dynamic_todo_project_roots(project_root):
-        for path in (
-            root / ip / "todo" / "rtl_todo_tracker.json",
-            root / ip / "todo" / "rtl_todo_plan.todo.json",
-            root / ip / "rtl" / "rtl_todo_tracker.json",
-            root / ip / "rtl" / "rtl_todo_plan.todo.json",
-        ):
+        for rel in _DYNAMIC_TODO_TEMPLATE_PATHS[key]:
+            path = root / ip / rel
             if not path.is_file():
                 continue
             try:
@@ -654,8 +701,8 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
             surface = run_common_stage_surface(project_root=Path.cwd(), source_root=None, alias=alias, ip=ip)
             if not surface.handled:
                 return f"[Error] Unknown stage: {alias}"
-            if alias == "ssot-rtl" and surface.status in {"blocked", "fail", "human_gate"}:
-                tasks, path, _ = load_dynamic_todo_template("ssot-rtl", ip, project_root=Path.cwd())
+            if surface.status in {"blocked", "fail", "human_gate"}:
+                tasks, path, _ = load_dynamic_todo_template(alias, ip, project_root=Path.cwd())
                 if tasks and path:
                     try:
                         import config
@@ -669,12 +716,12 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
                             source_text = str(path)
                         return (
                             surface.message
-                            + f"\n\ntodo_tracker: loaded {len(tasks)} dynamic SSOT RTL TODOs from "
+                            + f"\n\ntodo_tracker: loaded {len(tasks)} dynamic {alias} TODOs from "
                             + source_text
                             + "\n"
                         )
                     except Exception as exc:
-                        return surface.message + f"\n\ntodo_tracker: failed to load dynamic RTL TODOs: {exc}\n"
+                        return surface.message + f"\n\ntodo_tracker: failed to load dynamic {alias} TODOs: {exc}\n"
             return surface.message
 
         return _stage_handler
