@@ -402,6 +402,13 @@ class EquivalenceScoreboard:
         known.update(output_names)
         known.update(update_names)
         known.update({"true", "false", "True", "False", "and", "or", "not"})
+        helpers_fn = getattr(self.model_module, "_default_rule_helpers", None)
+        if callable(helpers_fn):
+            try:
+                known.update(helpers_fn().keys())
+            except Exception:
+                pass
+        known.update({"read_mux", "reduction_or"})
         for name in sorted(names - known):
             if name and name not in txn:
                 txn[name] = len(txn) + 1

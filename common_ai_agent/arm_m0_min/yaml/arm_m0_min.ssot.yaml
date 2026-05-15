@@ -104,17 +104,45 @@ memory: TBD
 interrupts: TBD
 fsm: TBD
 rtl_contract: TBD
-timing: TBD
-power: TBD
-security: TBD
-error_handling: TBD
-debug_observability: TBD
-integration: TBD
-dft: TBD
-synthesis: TBD
-pnr: TBD
-coding_rules: TBD
-reuse_modules: TBD
+timing:
+  assumptions:
+    - "Educational target frequency assumption: 50 MHz single-clock operation."
+    - "No multi-cycle or false-path timing exceptions beyond synchronous reset behavior."
+power:
+  assumptions:
+    - "Single always-on power domain; no power gating or retention in this revision."
+    - "Clock gating is optional and not architecturally visible."
+security:
+  assumptions:
+    - "No privilege levels, MPU/MMU, TrustZone, or security state transitions."
+    - "Instruction/data bus access control is external to this core."
+error_handling:
+  assumptions:
+    - "AHB-Lite ERROR response on I-bus or D-bus transitions core to fault-halt state until reset."
+    - "No architected exception entry/stacking in this educational subset."
+debug_observability:
+  assumptions:
+    - "Pipeline stage state, PC, register writeback, and bus handshake signals must be observable in simulation waveforms."
+integration:
+  assumptions:
+    - "Core is integrated as dual AHB-Lite masters (instruction/data) with external memory/interconnect termination."
+    - "No interrupt wires required (no NVIC/SysTick/IRQ inputs)."
+dft:
+  assumptions:
+    - "No MBIST requirements (no SRAM macros in this leaf contract)."
+    - "Scan/test insertion policy is delegated to SoC-level DFT flow."
+synthesis:
+  assumptions:
+    - "SystemVerilog 2012 subset compatible with downstream rtl-gen coding rules."
+    - "Educational-tiny implementation focus; PPA signoff not required for this phase."
+pnr:
+  assumptions:
+    - "Physical implementation constraints are deferred; no floorplan commitments in Phase-1."
+coding_rules:
+  assumptions:
+    - "Sequential logic uses nonblocking assignments; combinational logic uses blocking assignments."
+    - "No latches; reset behavior follows synchronous active-high policy."
+reuse_modules: []
 custom:
   assumptions:
     - "No /new-ip scaffold was present in workspace; directory created manually to proceed."
@@ -125,18 +153,49 @@ custom:
     - "R13 and R14 are plain GPRs in this educational subset; no special stack/link side effects."
     - "Branches are PC-relative with implementation-defined immediate range bounded by Thumb-1 encoding."
   note: "Pipeline mode: non-blocking QA policy; unresolved choices captured as assumptions."
-dir_structure: TBD
-filelist: TBD
-test_requirements: TBD
-quality_gates: TBD
-traceability: TBD
-workflow_todos: TBD
-generation_flow: TBD
-isa_spec: TBD
-register_file: TBD
+dir_structure:
+  assumptions:
+    - "Canonical IP workspace layout under arm_m0_min/{yaml,rtl,list,tb,tc,sim,sdc,lint,doc,req}."
+filelist:
+  assumptions:
+    - "No RTL/TB list artifacts are generated in ssot-gen phase; filelist materialized downstream."
+test_requirements:
+  assumptions:
+    - "DV must cover all 15 supported instructions and both taken/not-taken branch conditions."
+    - "DV must include AHB ready deassertion stalls and AHB ERROR fault-halt behavior."
+quality_gates:
+  rtl_gen:
+    target_scale: "educational-tiny"
+  assumptions:
+    - "Phase-1 gate requires explicit architecture assumptions and interface contracts, not RTL completion."
+traceability:
+  assumptions:
+    - "isa_spec and register_file drive decode/execute/register-writeback checks in downstream rtl-gen/tb-gen."
+workflow_todos:
+  rtl-gen:
+    - id: "RTL_TODO_1"
+      approval_policy: "evidence_required"
+      content: "Implement 3-stage IF/ID/EX in-order pipeline from SSOT"
+      detail: "Map function_model/cycle_model and isa_spec decode contract into owner modules."
+      criteria:
+        - "All 15 instructions execute per isa_spec"
+        - "AHB-Lite stall and error semantics match cycle_model/error_handling"
+      source_refs: ["function_model", "cycle_model", "isa_spec", "error_handling"]
+      owner_module: "arm_m0_min_ex"
+      owner_file: "rtl/arm_m0_min_ex.sv"
+generation_flow:
+  assumptions:
+    - "After SSOT validation, handoff target is rtl-gen only."
+isa_spec:
+  assumptions:
+    - "Instruction subset fixed to: ADD SUB AND ORR EOR MOV CMP LDR STR B BEQ BNE LSL LSR ASR."
+    - "Thumb-1 16-bit decode only; no Thumb-2 encodings."
+register_file:
+  assumptions:
+    - "16 GPRs R0..R15, 32-bit each; R15 is PC; R13/R14 treated as plain GPRs."
+    - "Synchronous write in EX commit; read in ID; reset clears all to 0 with PC reset to 0x00000000."
 purpose:
   summary: "Educational ARMv6-M Thumb-1 in-order microcontroller core with 3-stage pipeline."
   scope: "Implements exactly 15 Thumb-1 instructions and excludes interrupts, caches, MMU, and Thumb-2."
   intent: "Deterministic teaching core with explicit architectural contracts for RTL and DV."
 type: "cpu"
-submodules: TBD
