@@ -128,7 +128,7 @@ module spi #(
 
     spi_int u_int (
         .PCLK(PCLK), .PRESETn(PRESETn), .soft_reset(soft_reset), .int_mask(int_mask), .int_clear_w1c(int_clear_w1c),
-        .done_event(done_event), .tx_overrun_event(tx_overrun_event), .rx_overrun_event(rx_overrun_event | top_marker | (rx_overrun_event & top_marker)),
+        .done_event(done_event), .tx_overrun_event(tx_overrun_event), .rx_overrun_event(rx_overrun_event | rx_overrun_shift_event | top_marker),
         .rx_underrun_event(rx_underrun_event), .mode_fault_event(mode_fault_event), .illegal_access_event(illegal_access_event),
         .tx_empty_level(tx_empty), .rx_full_level(rx_full), .int_pending_raw(int_pending_raw), .irq_o(irq_o)
     );

@@ -12,7 +12,7 @@ from pathlib import Path
 import yaml
 
 from src.headless_workflow import _stable_json_sha256, _structured_ssot_yaml
-from src.workflow_stage_engine import WorkflowStageEngine, _rtl_manifest_progress, canonical_stage
+from src.workflow_stage_engine import ToolRun, WorkflowStageEngine, _rtl_manifest_progress, canonical_stage
 
 
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
@@ -402,6 +402,97 @@ def test_coverage_stage_requires_sim_evidence_and_preserves_raw_functional_bins(
     assert coverage["functional"] == {"hit": 1, "total": 1, "pct": 100.0}
     assert coverage["functional_bins"]["FCOV_DOUBLE"]["hit"] is True
     assert coverage["limitations"] == {}
+    plan = json.loads((ip_dir / "cov" / "coverage_todo_plan.json").read_text(encoding="utf-8"))
+    assert plan["schema_version"] == "golden_todo_stage.v1"
+    assert plan["approval_policy"] == "evidence_required"
+    assert plan["gate"]["approval_state"] == "approved"
+    assert plan["todo_completion"]["all_required_todos_pass"] is True
+    assert plan["tasks"][0]["id"] == "COV-0001"
+    assert plan["tasks"][0]["todo_completion"]["status"] == "pass"
+    assert f"{ip}/cov/coverage.json" in plan["tasks"][0]["required_evidence"]
+    tracker = json.loads((ip_dir / "todo" / "coverage_todo_tracker.json").read_text(encoding="utf-8"))
+    assert tracker["source_plan"] == "cov/coverage_todo_plan.json"
+    assert tracker["tasks"][0]["source_id"] == "COV-0001"
+
+
+def test_lint_stage_writes_evidence_todo_plan(tmp_path: Path, monkeypatch):
+    ip = "lint_todo_probe"
+    _write_ssot(tmp_path, ip)
+    engine = WorkflowStageEngine(tmp_path)
+
+    def _fake_run_tool(label: str, command: list[str], timeout_s: int = 180) -> ToolRun:
+        return ToolRun(label=label, command=command, returncode=0, stdout="lint clean")
+
+    monkeypatch.setattr(engine, "_run_tool", _fake_run_tool)
+
+    result = engine.run_stage("lint", ip)
+
+    assert result.status == "pass", result.message
+    ip_dir = tmp_path / ip
+    plan = json.loads((ip_dir / "lint" / "lint_todo_plan.json").read_text(encoding="utf-8"))
+    assert plan["stage"] == "lint"
+    assert plan["workflow"] == "lint"
+    assert plan["tasks"][0]["approval_state"] == "approved"
+    assert plan["tasks"][0]["approval_policy"] == "evidence_required"
+    assert plan["tasks"][0]["todo_completion"]["status"] == "pass"
+    tracker = json.loads((ip_dir / "todo" / "lint_todo_tracker.json").read_text(encoding="utf-8"))
+    assert tracker["source_plan"] == "lint/lint_todo_plan.json"
+    assert tracker["tasks"][0]["source_id"] == "LINT-0001"
+    assert f"{ip}/todo/lint_todo_tracker.json" in result.artifacts
+
+
+def test_tb_stage_writes_human_review_todo_plan_for_blocked_contract(tmp_path: Path, monkeypatch):
+    ip = "tb_human_gate_probe"
+    _write_ssot(tmp_path, ip)
+    ip_dir = tmp_path / ip
+    blocked_path = ip_dir / "tb" / "cocotb" / "tb_blocked.json"
+    blocked_path.parent.mkdir(parents=True, exist_ok=True)
+    blocked_path.write_text(
+        json.dumps(
+            {
+                "reason": "SSOT/RTL contract decision required",
+                "next_action": "approve signal naming policy",
+                "questions": [{"id": "TBQ-1", "decision_needed": "Which reset polarity should TB drive?"}],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    engine = WorkflowStageEngine(tmp_path)
+
+    def _fake_run_tool(label: str, command: list[str], timeout_s: int = 180) -> ToolRun:
+        return ToolRun(label=label, command=command, returncode=0, stdout=f"{label} ok")
+
+    monkeypatch.setattr(engine, "_run_tool", _fake_run_tool)
+
+    result = engine.run_stage("ssot-tb-cocotb", ip)
+
+    assert result.status == "human_gate", result.message
+    plan = json.loads((ip_dir / "tb" / "tb_todo_plan.json").read_text(encoding="utf-8"))
+    assert plan["stage"] == "ssot-tb-cocotb"
+    assert plan["workflow"] == "tb-gen"
+    assert plan["gate"]["approval_state"] == "human_review_needed"
+    assert plan["human_review_needed"][0]["id"] == "TBQ-1"
+    assert plan["tasks"][0]["todo_completion"]["status"] == "open"
+    tracker = json.loads((ip_dir / "todo" / "tb_todo_tracker.json").read_text(encoding="utf-8"))
+    assert tracker["tasks"][0]["status"] == "human_review_needed"
+
+
+def test_sim_stage_writes_blocked_todo_plan_without_runner(tmp_path: Path):
+    ip = "sim_blocked_todo_probe"
+
+    result = WorkflowStageEngine(tmp_path).run_stage("sim", ip)
+
+    assert result.status == "blocked", result.message
+    ip_dir = tmp_path / ip
+    plan = json.loads((ip_dir / "sim" / "sim_todo_plan.json").read_text(encoding="utf-8"))
+    assert plan["stage"] == "sim"
+    assert plan["gate"]["approval_state"] == "blocked"
+    assert plan["tasks"][0]["id"] == "SIM-0001"
+    assert plan["tasks"][0]["todo_completion"]["status"] == "open"
+    tracker = json.loads((ip_dir / "todo" / "sim_todo_tracker.json").read_text(encoding="utf-8"))
+    assert tracker["source_plan"] == "sim/sim_todo_plan.json"
 
 
 def test_coverage_stage_reports_function_and_cycle_model_coverage_separately(tmp_path: Path):
