@@ -15,7 +15,14 @@ top_module:
     clock_freq_mhz: 50
     area_um2: null
     power_mw: null
-sub_modules: TBD
+sub_modules:
+  - { name: "edge_detector", file: "rtl/edge_detector.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model", "cycle_model", "features", "dataflow"], source_sections: ["function_model", "cycle_model", "features", "dataflow"], function_model_refs: ["function_model.transactions", "function_model.state_variables", "function_model.output_rules"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.latency"], feature_refs: ["features"], dataflow_refs: ["dataflow"], description: "Top-level edge detector core behavior" }
+
+decomposition:
+  units:
+    - { id: "sync", kind: "datapath", source_refs: ["function_model.state_variables.sync_chain"], rtl_candidates: ["edge_detector"], verification_impact: ["test_requirements.scenarios.SC1", "coverage_goals.cycle.CCOV_SYNC_LATENCY"] }
+    - { id: "edge_detect", kind: "datapath/control", source_refs: ["function_model.transactions.DETECT", "function_model.output_rules"], rtl_candidates: ["edge_detector"], verification_impact: ["test_requirements.scenarios.SC2", "coverage_goals.function.FCOV_EDGE_DETECT"] }
+    - { id: "csr_decode", kind: "control", source_refs: ["registers.register_list", "io_list.interfaces.apb_csr"], rtl_candidates: ["edge_detector"], verification_impact: ["test_requirements.scenarios.SC5"] }
 decomposition: TBD
 parameters:
   - name: "SYNC_STAGES"
@@ -95,7 +102,22 @@ io_list:
         - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
         - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready" }
         - { name: "PSLVERR", width: 1,  direction: "output", description: "APB error" }
-features: TBD
+features:
+  - name: "Input Synchronization"
+    trigger: "signal_i arrives from an asynchronous or multi-clock source"
+    datapath: "signal_i passes through SYNC_STAGES flip-flops clocked by PCLK"
+    control: "No FSM; purely sequential sampling"
+    output: "synced signal stable on PCLK domain after SYNC_STAGES cycles"
+  - name: "Edge Detection"
+    trigger: "synced signal changes between consecutive PCLK cycles"
+    datapath: "Compare current synced sample with previous sample; decode per EDGE_MODE"
+    control: "Combinational decode into rising/falling/both edge flags"
+    output: "One-cycle pulse on edge_o[WIDTH-1:0] per detected edge"
+  - name: "APB-lite CSR"
+    trigger: "APB access to valid register address"
+    datapath: "PADDR decode -> register read/write; PRDATA mux or register update"
+    control: "APB slave stateless decode (PSEL && PENABLE)"
+    output: "PRDATA, PREADY, PSLVERR; side effects on CONTROL/STATUS registers"
 dataflow: TBD
 function_model: TBD
 cycle_model: TBD

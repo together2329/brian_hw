@@ -1,137 +1,834 @@
-ip: arbiter_rr
-version: "1.0"
-purpose: "4-input parameterized round-robin arbiter with APB-lite CSR interface and 1-cycle grant latency"
-type: "bus"
+# =============================================================================
+# arbiter_rr.ssot.yaml — Single Source of Truth
+# IP: 4-input (parameterized N-input) round-robin arbiter
+# =============================================================================
 top_module:
   name: "arbiter_rr"
   file: "rtl/arbiter_rr.sv"
   version: "1.0"
-  description: "4-input round-robin arbiter with APB-lite CSR"
+  type: "bus"
+  description: "Parameterized N-input round-robin arbiter with 1-cycle latency, configurable request masking, and APB-lite CSR for runtime control."
   reference_spec: "user-defined"
   target:
     technology: "generic"
     clock_freq_mhz: 50
     area_um2: null
     power_mw: null
+
+# =============================================================================
+# SECTION 1: Sub-Module List (Hierarchy)
+# =============================================================================
+decomposition:
+  units:
+    - { id: "arbitrate", kind: "control", source_refs: ["function_model.transactions.FM1"], rtl_candidates: ["arbiter_rr_core"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "csr_decode", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["arbiter_rr_regs"], verification_impact: ["test_requirements.scenarios"] }
+
 sub_modules:
-  - { name: "arbiter_rr_regs", file: "rtl/arbiter_rr_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list"], source_sections: ["registers"], register_refs: ["registers.register_list"], description: "APB-lite register decode" }
-  - { name: "arbiter_rr_core", file: "rtl/arbiter_rr_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model.transactions", "cycle_model.pipeline", "fsm"], source_sections: ["function_model", "cycle_model", "fsm"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline"], fsm_refs: ["fsm"], description: "Round-robin arbitration core logic" }
-decomposition: TBD
+  - { name: "arbiter_rr_regs", file: "rtl/arbiter_rr_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list", "io_list.interfaces.apb_slave"], source_sections: ["registers", "io_list"], register_refs: ["registers.register_list"], description: "APB-lite register decode and read/write logic" }
+  - { name: "arbiter_rr_core", file: "rtl/arbiter_rr_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model.transactions", "cycle_model.pipeline", "fsm.arb_fsm", "features"], source_sections: ["function_model", "cycle_model", "fsm", "features"], function_model_refs: ["function_model.transactions.FM1", "function_model.transactions.FM2"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"], fsm_refs: ["fsm.arb_fsm"], description: "Round-robin arbitration core with priority rotation" }
+  # No separate wrapper — arbiter_rr.sv is the synthesizable top with direct port wiring
+
+# =============================================================================
+# SECTION 2: Parameters
+# =============================================================================
 parameters:
   - name: "NUM_REQ"
     default: 4
     type: int
-    description: "Number of request inputs (must be >= 2)"
+    description: "Number of request/grant port pairs"
+    drives: ["arbiter_rr.sv", "arbiter_rr_core.sv", "arbiter_rr_regs.sv"]
+  - name: "IDX_WIDTH"
+    default: 2
+    type: int
+    description: "Bit width of grant index output (= $clog2(NUM_REQ))"
     drives: ["arbiter_rr.sv", "arbiter_rr_core.sv"]
-  - name: "DATA_WIDTH"
+  - name: "APB_ADDR_WIDTH"
+    default: 8
+    type: int
+    description: "APB address width in bits"
+    drives: ["arbiter_rr_regs.sv"]
+  - name: "APB_DATA_WIDTH"
     default: 32
     type: int
-    description: "Data width in bits for optional data bypass"
-    drives: ["arbiter_rr.sv"]
-  - name: "CLOCK_FREQ_MHZ"
-    default: 50
-    type: int
-    description: "Target clock frequency in MHz"
-    drives: ["tb_top.sv", "docs/README.md"]
-  - name: "RESET_POLARITY"
-    default: "active_low"
-    type: enum
-    values: ["active_low", "active_high"]
-    drives: ["ALL .sv files"]
+    description: "APB data width in bits"
+    drives: ["arbiter_rr_regs.sv"]
+
+# =============================================================================
+# SECTION 3: IO List (Ports)
+# =============================================================================
 io_list:
   clock_domains:
-    - name: "PCLK"
+    - name: "pclk"
       frequency_mhz: 50
-      description: "Main peripheral clock"
+      description: "Single system clock"
       ports:
         - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
   resets:
-    - name: "PRESETn"
+    - name: "presetn"
       polarity: "active_low"
       sync_async: "async_assert_sync_deassert"
-      description: "Active-low reset, async assert, sync deassert"
+      description: "System reset — async assert, sync deassert"
       ports:
-        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low reset" }
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low async reset" }
   interfaces:
-    - name: "apb_csr"
-      type: "APB4_LITE"
+    - name: "apb_slave"
+      type: "APB-lite"
       role: "slave"
-      clock_domain: "PCLK"
-      reset_domain: "PRESETn"
-      description: "APB-lite register access interface"
+      clock_domain: "pclk"
+      reset_domain: "presetn"
+      description: "APB-lite CSR access for mask/enable/status registers"
       protocol:
         setup_phase: "PSEL=1, PENABLE=0 captures address/control."
         access_phase: "PSEL=1, PENABLE=1 completes when PREADY=1."
         read_rule: "PRDATA is valid in the completing access phase for reads."
         write_rule: "PWDATA is sampled in the completing access phase for writes."
-        error_rule: "PSLVERR is asserted only with PREADY=1 for illegal or unsupported access."
+        error_rule: "PSLVERR=1 only with PREADY=1 for unsupported access."
       ports:
-        - { name: "PADDR",   width: 12, direction: "input",  description: "APB address" }
+        - { name: "PADDR",   width: 8,  direction: "input",  description: "APB address bus" }
         - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
         - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
-        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write (1=write, 0=read)" }
         - { name: "PWDATA",  width: 32, direction: "input",  description: "APB write data" }
         - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
-        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready" }
-        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB error" }
-    - name: "req_grant"
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready (0=wait, 1=complete)" }
+        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB slave error" }
+    - name: "request_inputs"
       type: "custom"
-      clock_domain: "PCLK"
-      reset_domain: "PRESETn"
-      description: "Request/grant arbitration interface"
+      clock_domain: "pclk"
+      reset_domain: "presetn"
+      description: "N-bit request vector from requestors"
       protocol:
-        request_rule: "REQ[i] may be asserted asynchronously to PCLK; sampled on rising edge."
-        grant_rule: "GNT[i] is asserted for one cycle when request i wins arbitration."
-        valid_rule: "GNT is mutually exclusive (one-hot)."
+        sampling: "Sampled on rising PCLK when PRESETn is high."
+        stability: "Requesters must hold req_i stable until gnt_o is asserted for their bit."
       ports:
-        - { name: "REQ",  width: "NUM_REQ", direction: "input",  description: "Request inputs" }
-        - { name: "GNT",  width: "NUM_REQ", direction: "output", description: "Grant outputs (one-hot)" }
+        - { name: "req_i", width: "NUM_REQ", direction: "input", description: "Request inputs (active high, one per requestor)" }
+    - name: "grant_outputs"
+      type: "custom"
+      clock_domain: "pclk"
+      reset_domain: "presetn"
+      description: "N-bit one-hot grant vector and index"
+      protocol:
+        assertion: "At most one gnt_o bit is high per cycle; gnt_o is registered (1-cycle latency from req_i)."
+        deassertion: "gnt_o clears when no requests or when arbiter is disabled."
+        one_hot: "gnt_o is one-hot encoded; gnt_idx_o is the binary index of the granted requestor."
+      ports:
+        - { name: "gnt_o", width: "NUM_REQ", direction: "output", description: "Grant outputs (one-hot, registered)" }
+        - { name: "gnt_valid_o", width: 1, direction: "output", description: "Grant valid flag (registered)" }
+        - { name: "gnt_idx_o", width: "IDX_WIDTH", direction: "output", description: "Binary index of granted requestor (registered)" }
+
+# =============================================================================
+# SECTION 4: Main Features
+# =============================================================================
 features:
-  - name: "Round-robin arbitration"
-    trigger: "One or more REQ inputs asserted"
-    datapath: "REQ sampled -> mask generation -> priority encode -> grant assert"
-    control: "Grant is combinational from current state (1-cycle latency)"
-    output: "One-hot GNT for highest-priority requesting input after last granted"
-  - name: "APB-lite CSR access"
-    trigger: "PSEL=1 && PENABLE=1"
-    datapath: "PADDR decode -> register read/write -> PRDATA/PREADY response"
-    control: "Zero-wait-state APB-lite decode"
-    output: "Register value or status on PRDATA; PSLVERR on illegal access"
+  - name: "Round-Robin Arbitration"
+    trigger: "At least one unmasked request is active (req_i & mask) != 0 while arbiter is enabled"
+    datapath: "req_i sampled → masked by REQ_MASK → priority-rotate starting from last_winner+1 → highest-priority active request selected → grant registered"
+    control: "IDLE → EVAL → GRANT (1-cycle pipeline)"
+    output: "gnt_o (one-hot), gnt_valid_o, gnt_idx_o (binary index)"
+  - name: "Request Masking"
+    trigger: "Software writes REQ_MASK register via APB"
+    datapath: "REQ_MASK[N-1:0] gates req_i before priority encoder; masked requests are invisible to arbiter"
+    control: "Combinational masking before arbitration logic"
+    output: "Only unmasked requests participate in arbitration"
+  - name: "Enable/Disable"
+    trigger: "Software writes CTRL.enable via APB"
+    datapath: "When disabled, gnt_o=0 and gnt_valid_o=0 regardless of req_i"
+    control: "CTRL.enable=0 forces outputs to zero and freezes last_winner"
+    output: "All grants deasserted when disabled"
+
+# =============================================================================
+# SECTION 5: Data Flow
+# =============================================================================
 dataflow:
-  arbitration_path:
-    source: "REQ[NUM_REQ-1:0] inputs"
-    sequence: "REQ -> round-robin priority logic -> GNT (one-hot)"
-    control: "Next grant is based on prior_grant_mask, updated each cycle a grant is given"
-  csr_path:
-    source: "APB PADDR/PWDATA"
-    sequence: "APB setup/access -> addr decode -> register read/write -> PRDATA/PREADY"
-function_model: TBD
-cycle_model: TBD
-clock_reset_domains: TBD
-cdc_requirements: TBD
-rdc_requirements: TBD
-registers: TBD
-memory: TBD
-interrupts: TBD
-fsm: TBD
-rtl_contract: TBD
-timing: TBD
-power: TBD
-security: TBD
-error_handling: TBD
-debug_observability: TBD
-integration: TBD
-dft: TBD
-synthesis: TBD
-pnr: TBD
-coding_rules: TBD
-reuse_modules: TBD
+  request_path:
+    source: "req_i[NUM_REQ-1:0] from external requestors"
+    masking: "req_masked = req_i & REQ_MASK (combinational)"
+    priority_rotation: "last_winner + 1 becomes highest-priority index; circular scan selects first active masked request"
+    output: "gnt_o (one-hot registered grant), gnt_idx_o (binary index), gnt_valid_o"
+  sequence: "req_i → mask → priority_rotate → encode → register → gnt_o / gnt_idx_o / gnt_valid_o"
+  control_flow:
+    enable: "CTRL.enable gates all grant outputs"
+    state_update: "last_winner updated to current gnt_idx_o each cycle a grant is asserted"
+
+# =============================================================================
+# SECTION 6: Function Model
+# =============================================================================
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the arbiter computes independent of cycle timing."
+  state_variables:
+    - { name: "last_winner", source: "registers.STATUS.winner", reset: 0, description: "Index of the last granted requestor; used as priority rotation base" }
+    - { name: "arb_enabled", source: "registers.CTRL.enable", reset: 1, description: "Global arbiter enable from CSR" }
+    - { name: "req_mask", source: "registers.REQ_MASK", reset: "all-ones", description: "Per-request enable mask (1=enabled, 0=masked)" }
+  transactions:
+    - id: "FM1"
+      name: "arbitrate_grant"
+      preconditions:
+        - "arb_enabled == 1"
+        - "(req_i & req_mask) != 0 (at least one unmasked active request)"
+      inputs:
+        - "req_i: N-bit request vector"
+        - "req_mask: N-bit mask from CSR"
+        - "last_winner: priority rotation base index"
+      output_rules:
+        - { name: "grant", expr: "one_hot(selected_index)", width: "NUM_REQ", port: "gnt_o", description: "One-hot grant to selected requestor" }
+        - { name: "grant_valid", expr: "arb_enabled && ((req_i & req_mask) != 0)", width: 1, port: "gnt_valid_o", description: "Indicates a valid grant is being asserted" }
+        - { name: "grant_index", expr: "selected_index where selected_index is first active request in circular scan starting from (last_winner+1)%NUM_REQ", width: "IDX_WIDTH", port: "gnt_idx_o", description: "Binary index of the granted requestor" }
+      state_updates:
+        - { name: "last_winner", reset: 0, expr: "selected_index (binary index of current grant winner)" }
+      side_effects:
+        - "last_winner rotates to current winner so it gets lowest priority next cycle"
+        - "Only one requestor is granted per cycle (one-hot invariant)"
+      error_cases: []
+    - id: "FM2"
+      name: "no_grant_idle"
+      preconditions:
+        - "arb_enabled == 0 OR (req_i & req_mask) == 0"
+      inputs:
+        - "req_i: N-bit request vector"
+        - "req_mask: N-bit mask"
+      output_rules:
+        - { name: "grant", expr: "0", width: "NUM_REQ", port: "gnt_o", description: "No grant asserted" }
+        - { name: "grant_valid", expr: "0", width: 1, port: "gnt_valid_o", description: "No valid grant" }
+        - { name: "grant_index", expr: "0", width: "IDX_WIDTH", port: "gnt_idx_o", description: "Index zero (meaningless when grant_valid=0)" }
+      state_updates:
+        - { name: "last_winner", reset: 0, expr: "last_winner (unchanged)" }
+      side_effects: []
+      error_cases: []
+  invariants:
+    - "At most one bit in gnt_o is asserted per cycle (one-hot invariant)."
+    - "gnt_valid_o == 0 implies gnt_o == 0."
+    - "gnt_valid_o == 1 implies exactly one bit in gnt_o is set and gnt_idx_o equals the index of that bit."
+    - "Masked requests never receive a grant regardless of req_i state."
+    - "When arb_enabled == 0, all outputs are zero and last_winner is frozen."
+    - "Round-robin fairness: a requestor that was granted in the previous cycle has the lowest priority in the current cycle."
+  reference_model_hint: "tb-gen should implement a Python reference model that replicates the circular priority scan and compare expected/got gnt_o, gnt_valid_o, gnt_idx_o for every scenario."
+
+# =============================================================================
+# SECTION 7: Cycle Model
+# =============================================================================
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen; describes when arbitration outputs and state may change."
+  executable: "pymtl3"
+  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears all architectural state (last_winner=0, gnt_o=0, gnt_valid_o=0, gnt_idx_o=0)"
+    deassertion: "State is usable on the first rising edge after synchronized deassertion"
+  latency:
+    arbitration: { min_cycles: 1, max_cycles: 1, description: "Request sampled on cycle N produces registered grant on cycle N+1" }
+    register_read: { min_cycles: 0, max_cycles: 1, description: "APB read data and PREADY timing" }
+    register_write: { min_cycles: 0, max_cycles: 1, description: "APB write acceptance timing" }
+  handshake_rules:
+    - { signal: "req_i", rule: "Sampled on rising PCLK; requesters must hold req_i stable until corresponding gnt_o is seen." }
+    - { signal: "gnt_o", rule: "Registered output — reflects arbitration decision from the previous cycle. At most one bit high." }
+    - { signal: "gnt_valid_o", rule: "Registered — high when a valid grant is being asserted this cycle." }
+    - { signal: "gnt_idx_o", rule: "Registered — valid binary index when gnt_valid_o is high; zero otherwise." }
+  pipeline:
+    - { stage: "S0_SAMPLE_REQ", cycle: 0, action: "Latch req_i, apply mask (req_i & req_mask), read last_winner" }
+    - { stage: "S1_GRANT", cycle: 1, action: "Priority encoder evaluates; gnt_o, gnt_idx_o, gnt_valid_o registered and driven to outputs; last_winner updated" }
+  ordering:
+    - "Grant outputs reflect the arbitration decision from the previous cycle (1-stage pipeline)."
+    - "last_winner update occurs on the same rising edge as the grant output registration."
+    - "CSR writes to REQ_MASK or CTRL take effect on the next arbitration cycle (registered config)."
+  backpressure:
+    - "No backpressure mechanism — the arbiter produces a grant every cycle when enabled and requests are present. Requesters must accept the grant immediately."
+  performance:
+    frequency_mhz: 50
+    throughput: { grants_per_cycle: 1, condition: "At least one unmasked request active and arbiter enabled" }
+    outstanding: { read_max: 0, write_max: 0, description: "No outstanding AXI-style transactions — simple combinatorial arbiter" }
+    depth: { pipeline_stages: 1, queue_depth: 0, description: "Single-stage registered output pipeline" }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+
+# =============================================================================
+# SECTION 8: Clock & Reset Domain
+# =============================================================================
+clock_reset_domains:
+  domains:
+    - { name: "pclk", frequency_mhz: 50, description: "Single system clock" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+# =============================================================================
+# SECTION 9: CDC Requirements
+# =============================================================================
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC required"
+
+# =============================================================================
+# SECTION 10: RDC Requirements
+# =============================================================================
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain — no RDC required"
+
+# =============================================================================
+# SECTION 11: Registers
+# =============================================================================
+registers:
+  config:
+    register_width: 32
+    addr_width: 8
+    byte_addressable: true
+    num_channels: 1
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+  register_list:
+    - name: "CTRL"
+      offset: 0x00
+      width: 32
+      access: "rw"
+      reset: 0x00000001
+      category: "control"
+      description: "Arbiter control register"
+      write_side_effects:
+        - "enable=0 freezes last_winner and forces all grant outputs to zero."
+        - "enable=1 resumes normal arbitration."
+      fields:
+        - { name: "enable", bits: [0, 0], access: "rw", reset: 0x1, write_effect: "0=disable arbiter, 1=enable arbiter", description: "Global arbiter enable" }
+        - { name: "reserved_31_1", bits: [31, 1], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "REQ_MASK"
+      offset: 0x04
+      width: 32
+      access: "rw"
+      reset: 0x0000000F
+      category: "control"
+      description: "Per-request enable mask (bit i=1 enables requestor i)"
+      write_side_effects:
+        - "Masked requests (bit=0) are excluded from arbitration on the next cycle."
+      fields:
+        - { name: "mask", bits: [3, 0], access: "rw", reset: 0xF, write_effect: "Update request mask; only lower NUM_REQ bits are active", description: "Request enable mask (default all enabled)" }
+        - { name: "reserved_31_4", bits: [31, 4], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "STATUS"
+      offset: 0x08
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Arbiter status (read-only)"
+      fields:
+        - { name: "winner", bits: [3, 0], access: "ro", reset: 0x0, description: "Last granted requestor index (one-hot representation of last_winner)" }
+        - { name: "active_req", bits: [7, 4], access: "ro", reset: 0x0, description: "Current unmasked active requests snapshot (req_i & mask)" }
+        - { name: "reserved_31_8", bits: [31, 8], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+# =============================================================================
+# SECTION 12: Memory Requirements
+# =============================================================================
+memory:
+  instances: []
+  note: "No internal memory or FIFO — purely combinational + registered arbitration logic."
+
+# =============================================================================
+# SECTION 13: Interrupt
+# =============================================================================
+interrupts:
+  sources: []
+  output: null
+  note: "No interrupt outputs — arbiter is a purely combinatorial decision block. Status is polled via APB CSR."
+
+# =============================================================================
+# SECTION 14: FSM
+# =============================================================================
+fsm:
+  arb_fsm:
+    states:
+      - "IDLE"
+      - "EVAL"
+      - "GRANT"
+    transitions:
+      - { from: "IDLE", to: "EVAL", condition: "arb_enabled==1 && (req_i & mask) != 0" }
+      - { from: "EVAL", to: "GRANT", condition: "always (1-cycle combinational eval)" }
+      - { from: "GRANT", to: "IDLE", condition: "next cycle: re-evaluate with updated last_winner" }
+      - { from: "IDLE", to: "IDLE", condition: "arb_enabled==0 || (req_i & mask) == 0" }
+    note: "Conceptual FSM — the actual RTL uses a 1-stage registered pipeline (sample req, register grant) rather than an explicit multi-state FSM. IDLE/EVAL/GRANT map to cycle_model pipeline stages S0_SAMPLE_REQ and S1_GRANT."
+
+# =============================================================================
+# SECTION 15: RTL Contract
+# =============================================================================
+rtl_contract:
+  transaction: "FM1"
+  sample_condition: "Rising PCLK edge when PRESETn is high"
+  input_map:
+    requests: "req_i[NUM_REQ-1:0]"
+    mask: "registers.REQ_MASK.mask"
+    enable: "registers.CTRL.enable"
+  output_map:
+    grant: "gnt_o[NUM_REQ-1:0]"
+    grant_valid: "gnt_valid_o"
+    grant_index: "gnt_idx_o[IDX_WIDTH-1:0]"
+  output_rules:
+    - { name: "grant", expr: "one_hot(selected_index)", width: "NUM_REQ", port: "gnt_o" }
+    - { name: "grant_valid", expr: "enable && (masked_reqs != 0)", width: 1, port: "gnt_valid_o" }
+    - { name: "grant_index", expr: "selected_index", width: "IDX_WIDTH", port: "gnt_idx_o" }
+  state_updates:
+    - { name: "last_winner", reset: 0, expr: "grant_valid ? grant_index : last_winner" }
+    - { name: "arb_enabled", reset: 1, expr: "CTRL.enable (from APB write)" }
+    - { name: "req_mask", reset: "all-ones", expr: "REQ_MASK.mask (from APB write)" }
+
+# =============================================================================
+# SECTION 16: Timing & Performance
+# =============================================================================
+timing:
+  target_clocks:
+    - { name: "pclk", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.5 }
+  latency_budget:
+    arbitration_latency_cycles: { min: 1, max: 1, measured_from: "req_i stable", measured_to: "gnt_o registered output" }
+    register_access_cycles: { min: 1, max: 2, measured_from: "PSEL && PENABLE", measured_to: "PREADY" }
+  throughput:
+    grants_per_cycle: 1
+    conditions: "At least one unmasked request active and arbiter enabled"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "req_i, PADDR, PSEL, PENABLE, PWRITE, PWDATA", clock: "pclk", delay_ns: 4.0, source: "50MHz half-period budget" }
+    outputs:
+      - { ports: "gnt_o, gnt_valid_o, gnt_idx_o, PRDATA, PREADY, PSLVERR", clock: "pclk", delay_ns: 4.0, source: "50MHz half-period budget" }
+  false_paths:
+    - { from: "PRESETn", to: "all_registers", reason: "async reset assertion" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+
+# =============================================================================
+# SECTION 17: Power Intent
+# =============================================================================
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["pclk"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "No explicit low-power mode in this IP revision"
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers and function_model state_variables"
+  power_states:
+    - { name: "ON", entry: "PRESETn deasserted", exit: "PRESETn asserted", guarantees: ["All arbitration behavior active"] }
+  upf_required: false
+
+# =============================================================================
+# SECTION 18: Security & Safety
+# =============================================================================
+security:
+  classification: "non_secure_control_ip"
+  assets:
+    - { name: "register_map", protection: "APB access control is external to this IP" }
+    - { name: "arbitration_decision", protection: "Grant outputs are not integrity-protected; security is assumed from SoC fabric" }
+  threat_model:
+    - { threat: "unauthorized mask modification", mitigation: "APB bus fabric is responsible for access protection; this IP trusts bus transactions" }
+    - { threat: "starvation via masking", mitigation: "Software is responsible for fair mask configuration; no hardware fairness guarantee on masked-out requestors" }
+  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
+  safety_goals:
+    - "No silent data corruption on AXI error response"
+    - "One-hot grant invariant must never be violated (at most one grant per cycle)"
+    - "No grant when arbiter is disabled"
+
+# =============================================================================
+# SECTION 19: Error Handling
+# =============================================================================
+error_handling:
+  error_sources:
+    - { id: "ERR_APB_ILLEGAL", condition: "APB access to undefined register offset", architectural_effect: "PSLVERR=1 for that transfer, PRDATA=0" }
+  propagation:
+    - "PSLVERR is asserted only within the offending APB transfer cycle."
+  recovery:
+    - { action: "none_required", clears: [], preserves: ["all state — no sticky error for arbiter"] }
+
+# =============================================================================
+# SECTION 20: Debug & Observability
+# =============================================================================
+debug_observability:
+  waveform_must_probe:
+    - "req_i"
+    - "gnt_o"
+    - "gnt_valid_o"
+    - "gnt_idx_o"
+    - "last_winner (internal)"
+    - "req_masked (internal: req_i & mask)"
+  status_outputs:
+    - "STATUS.winner (last granted requestor, one-hot)"
+    - "STATUS.active_req (current masked requests snapshot)"
+  trace_events:
+    - { name: "grant_issued", trigger: "gnt_valid_o rising edge" }
+    - { name: "arb_disabled", trigger: "CTRL.enable transitions 1→0" }
+  debug_registers:
+    - "STATUS"
+
+# =============================================================================
+# SECTION 21: Integration Contract
+# =============================================================================
+integration:
+  bus_attachment:
+    control: "APB-lite slave"
+  connections:
+    - { module: "arbiter_rr_regs", port: "PCLK", signal: "PCLK" }
+    - { module: "arbiter_rr_regs", port: "PRESETn", signal: "PRESETn" }
+    - { module: "arbiter_rr_regs", port: "PADDR", signal: "PADDR" }
+    - { module: "arbiter_rr_regs", port: "PSEL", signal: "PSEL" }
+    - { module: "arbiter_rr_regs", port: "PENABLE", signal: "PENABLE" }
+    - { module: "arbiter_rr_regs", port: "PWRITE", signal: "PWRITE" }
+    - { module: "arbiter_rr_regs", port: "PWDATA", signal: "PWDATA" }
+    - { module: "arbiter_rr_regs", port: "PRDATA", signal: "PRDATA" }
+    - { module: "arbiter_rr_regs", port: "PREADY", signal: "PREADY" }
+    - { module: "arbiter_rr_regs", port: "PSLVERR", signal: "PSLVERR" }
+    - { module: "arbiter_rr_regs", port: "enable_o", signal: "arb_enable" }
+    - { module: "arbiter_rr_regs", port: "mask_o", signal: "req_mask" }
+    - { module: "arbiter_rr_core", port: "clk_i", signal: "PCLK" }
+    - { module: "arbiter_rr_core", port: "rst_ni", signal: "PRESETn" }
+    - { module: "arbiter_rr_core", port: "req_i", signal: "req_i" }
+    - { module: "arbiter_rr_core", port: "mask_i", signal: "req_mask" }
+    - { module: "arbiter_rr_core", port: "enable_i", signal: "arb_enable" }
+    - { module: "arbiter_rr_core", port: "gnt_o", signal: "gnt_o" }
+    - { module: "arbiter_rr_core", port: "gnt_valid_o", signal: "gnt_valid_o" }
+    - { module: "arbiter_rr_core", port: "gnt_idx_o", signal: "gnt_idx_o" }
+    - { module: "arbiter_rr_core", port: "winner_oh_o", signal: "status_winner" }
+    - { module: "arbiter_rr_core", port: "active_req_o", signal: "status_active_req" }
+    - { module: "arbiter_rr_regs", port: "winner_oh_i", signal: "status_winner" }
+    - { module: "arbiter_rr_regs", port: "active_req_i", signal: "status_active_req" }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "SoC interconnect"
+    illegal_access_response: "PSLVERR=1 for undefined register offsets"
+  dependencies:
+    external_modules: []
+    external_clocks: ["PCLK"]
+    external_resets: ["PRESETn"]
+  integration_notes:
+    - "SoC interconnect must provide APB-lite compliant signaling."
+    - "Requesters must hold req_i stable until gnt_o is observed."
+    - "gnt_o is a single-cycle registered output; re-grant occurs in subsequent cycle if req_i remains asserted."
+
+# =============================================================================
+# SECTION 22: DFT / DFD
+# =============================================================================
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "PRESETn must be controllable in test mode"
+    clocks: ["pclk"]
+  observability:
+    required_internal_points: ["last_winner", "req_masked"]
+  mbist_required: false
+  notes: "No SRAM macro — no MBIST required."
+
+# =============================================================================
+# SECTION 23: Synthesis / Implementation Constraints
+# =============================================================================
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "arbiter_rr"
+  technology:
+    pdk: "generic"
+    standard_cell_library: "generic"
+    liberty_corner: "typical"
+  constraints:
+    - "No inferred latches"
+    - "All flops reset according to clock_reset_domains.reset_scheme"
+    - "No package/interface/modport/function/task/for/while constructs"
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 50
+  required_outputs:
+    - "syn/out/arbiter_rr.json or syn/out/arbiter_rr.v"
+    - "syn/out/area.rpt"
+    - "syn/out/timing_summary.rpt"
+
+# =============================================================================
+# SECTION 24: Coding Rules
+# =============================================================================
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/arbiter_rr_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge clk …)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs (use a default)"
+    - "Active-low async reset: always @(posedge clk or negedge rst_n) with if (!rst_n)"
+    - "Parameterize widths (no hardcoded numbers beyond default parameter values)"
+    - "Use rtl/arbiter_rr_param.vh for shared parameter declarations; include it inside consuming modules"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "Use localparam state encoding with logic state/next_state signals when FSM is used"
+  lint_waivers:
+    - "UNUSEDSIGNAL: explicit approved tie-offs only"
+    - "WIDTHEXPAND: grant index zero-extension when grant_valid=0"
+
+# =============================================================================
+# SECTION 25: Reuse Modules
+# =============================================================================
+reuse_modules: []
+
+# =============================================================================
+# SECTION 26: Custom Extensions
+# =============================================================================
 custom:
-  assumptions: []
-dir_structure: TBD
-filelist: TBD
-test_requirements: TBD
-quality_gates: TBD
-traceability: TBD
-workflow_todos: TBD
-generation_flow: TBD
+  assumptions:
+    - { id: "ASM-001", description: "NUM_REQ is a power of 2 for IDX_WIDTH=clog2(NUM_REQ) to produce clean binary encoding. Non-power-of-2 requires additional bounds checking (not modeled here).", section: "parameters" }
+    - { id: "ASM-002", description: "Requesters hold req_i stable until they observe their gnt_o bit asserted. The arbiter does not implement req/gnt handshaking — it grants based on the sampled req_i each cycle.", section: "io_list" }
+    - { id: "ASM-003", description: "gnt_o is a single-cycle registered output. If a requester needs sustained access, it must keep req_i asserted and may be re-granted in subsequent cycles.", section: "cycle_model" }
+    - { id: "ASM-004", description: "APB-lite CSR is always accessible regardless of arbiter enable state. CTRL, REQ_MASK, STATUS registers are readable/writable at any time.", section: "registers" }
+    - { id: "ASM-005", description: "No interrupt output for this IP revision. Status is polled via APB STATUS register. Interrupt support may be added in a future revision.", section: "interrupts" }
+    - { id: "ASM-006", description: "No latch mode or sticky-grant behavior. The arbiter re-evaluates every cycle. A requester is not guaranteed to retain the grant even if req_i stays high — another higher-priority (post-rotation) request may win.", section: "function_model" }
+    - { id: "ASM-007", description: "IO delays (4ns) are half-period estimates at 50MHz (10ns period). Final values come from SoC-level timing budget.", section: "timing" }
+  note: "Pipeline mode — assumptions recorded without blocking on ask_user. Review and adjust before production signoff."
+
+# =============================================================================
+# SECTION 27: Dir Structure
+# =============================================================================
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+# =============================================================================
+# SECTION 28: Filelist
+# =============================================================================
+filelist:
+  headers:
+    - "rtl/arbiter_rr_param.vh"
+  rtl:
+    - "rtl/arbiter_rr_regs.sv"
+    - "rtl/arbiter_rr_core.sv"
+    - "rtl/arbiter_rr.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/arbiter_rr_model.sv"
+  firmware:
+    - "firmware/arbiter_rr_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/README.md"
+
+# =============================================================================
+# SECTION 29: Test Requirements / DV Plan
+# =============================================================================
+test_requirements:
+  scenarios:
+    - id: "SC1"
+      name: "Single requestor grant"
+      stimulus: "Assert req_i[2] only, all others low, arbiter enabled, mask=all-enabled"
+      expected: "gnt_o[2] asserted on next cycle, gnt_valid_o=1, gnt_idx_o=2"
+      checker: "Scoreboard checks gnt_o is one-hot, index matches, valid asserted"
+      coverage: ["FM1", "S0_SAMPLE_REQ", "S1_GRANT"]
+    - id: "SC2"
+      name: "Round-robin fairness"
+      stimulus: "Assert all 4 requests simultaneously for 4 consecutive cycles"
+      expected: "Each requestor is granted exactly once in 4 cycles in rotation order starting from (last_winner+1)"
+      checker: "Scoreboard verifies no requestor gets two grants before all others get one"
+      coverage: ["FM1", "round_robin_rotation"]
+    - id: "SC3"
+      name: "Request masking"
+      stimulus: "Set REQ_MASK=0b0101, assert all requests"
+      expected: "Only requestors 0 and 2 participate; grants alternate between them"
+      checker: "Scoreboard checks masked requestors never receive grant"
+      coverage: ["FM1", "REQ_MASK"]
+    - id: "SC4"
+      name: "Enable/disable"
+      stimulus: "Assert requests, then write CTRL.enable=0 via APB, then re-enable"
+      expected: "Grants stop when disabled, resume when re-enabled; last_winner is preserved across disable period"
+      checker: "Scoreboard checks gnt_o=0 during disabled, correct priority after re-enable"
+      coverage: ["FM2", "CTRL.enable"]
+    - id: "SC5"
+      name: "No requests idle"
+      stimulus: "Deassert all requests, arbiter enabled"
+      expected: "gnt_o=0, gnt_valid_o=0 on all cycles"
+      checker: "Monitor checks outputs are zero"
+      coverage: ["FM2"]
+    - id: "SC6"
+      name: "Last winner persistence across disable"
+      stimulus: "Grant to requestor 3, then disable, then re-enable with all requests"
+      expected: "Priority rotation resumes from (3+1)%4 = 0 after re-enable"
+      checker: "Scoreboard checks first grant after re-enable goes to requestor 0"
+      coverage: ["FM1", "FM2", "last_winner_freeze"]
+    - id: "SC7"
+      name: "APB CSR read/write"
+      stimulus: "Write CTRL, REQ_MASK via APB; read back STATUS"
+      expected: "Written values readable; STATUS reflects internal arbiter state"
+      checker: "Scoreboard checks APB read-back matches written values"
+      coverage: ["APB_CSR"]
+    - id: "SC8"
+      name: "APB illegal offset"
+      stimulus: "APB access to undefined offset (e.g. 0x0C)"
+      expected: "PSLVERR=1, PRDATA=0"
+      checker: "Monitor checks PSLVERR assertion"
+      coverage: ["ERR_APB_ILLEGAL"]
+    - id: "SC9"
+      name: "One-hot grant invariant under all input combinations"
+      stimulus: "Exhaustive walk of all 16 request vectors with all mask combinations"
+      expected: "gnt_o is always one-hot or zero; never multi-bit or invalid"
+      checker: "Assertion check on gnt_o one-hot property every cycle"
+      coverage: ["FM1", "FM2", "one_hot_invariant"]
+    - id: "SC10"
+      name: "Reset behavior"
+      stimulus: "Assert PRESETn low while requests are active, then release"
+      expected: "All outputs zero during reset; arbitration resumes from last_winner=0 after deassertion"
+      checker: "Monitor checks outputs zero during reset; scoreboard checks first grant priority after reset"
+      coverage: ["reset"]
+  scoreboard_checks: 20
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for arbitration correctness, masking, enable/disable."
+      bins:
+        - { id: "FCOV_GRANT_SINGLE", source_ref: "function_model.transactions.FM1", class: "transaction", description: "Single requestor grant observed" }
+        - { id: "FCOV_GRANT_ALL_ROTATION", source_ref: "function_model.transactions.FM1", class: "transaction", description: "All 4 requestors granted in round-robin rotation" }
+        - { id: "FCOV_MASK_EACH_BIT", source_ref: "registers.REQ_MASK", class: "register_field", description: "Each mask bit exercised enabled and disabled" }
+        - { id: "FCOV_ENABLE_TOGGLE", source_ref: "registers.CTRL.enable", class: "register_field", description: "Enable toggled 1→0 and 0→1" }
+        - { id: "FCOV_NO_GRANT_IDLE", source_ref: "function_model.transactions.FM2", class: "transaction", description: "No-grant idle path observed" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/latency coverage for 1-cycle pipeline behavior."
+      bins:
+        - { id: "CCOV_SAMPLE_STAGE", source_ref: "cycle_model.pipeline.S0_SAMPLE_REQ", class: "pipeline_stage", description: "Request sample stage observed" }
+        - { id: "CCOV_GRANT_STAGE", source_ref: "cycle_model.pipeline.S1_GRANT", class: "pipeline_stage", description: "Grant output stage observed" }
+        - { id: "CCOV_1CYCLE_LATENCY", source_ref: "cycle_model.latency.arbitration", class: "latency", description: "1-cycle arbitration latency measured and confirmed" }
+        - { id: "CCOV_REQ_STABILITY", source_ref: "cycle_model.handshake_rules.req_i", class: "handshake", description: "Request stability rule exercised" }
+        - { id: "CCOV_GNT_ONEHOT_ASSERTION", source_ref: "function_model.invariants", class: "assertion", description: "One-hot grant invariant assertion triggered" }
+        - { id: "CCOV_RESET_CLEAN", source_ref: "cycle_model.reset", class: "reset", description: "Reset clears all outputs and state" }
+    functional: "Legacy alias: function + cycle coverage must both close."
+    line: ">= 95% instrumented line coverage"
+    branch: ">= 90% instrumented branch coverage"
+    assertions: "All one-hot/validity/protocol assertions pass"
+
+# =============================================================================
+# SECTION 30: Quality Gates / Pass Criteria
+# =============================================================================
+quality_gates:
+  ssot:
+    pass: "All canonical sections present, substantive, internally consistent, no live TBD placeholders."
+    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+  rtl_gen:
+    profile: "production"
+    target_scale:
+      basis: "small bus/arbitration IP — minimal structural depth"
+      source_files_min: 3
+      modules_min: 3
+      procedural_blocks_min: 4
+      state_updates_min: 3
+      depth_score_min: 0
+      logic_modules_min: 1
+      behavior_owner_logic_modules_min: 1
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches locked FL/CL authority."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "sim/fl_rtl_goal_audit.json"]
+  rtl:
+    pass: "RTL compiles without errors, lints without new warnings, function_model transactions produce correct outputs."
+    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+  coverage:
+    pass: "SSOT-declared function/cycle/assertion coverage goals pass or have approved SSOT waivers."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis and STA meet 50MHz timing target."
+    evidence: ["syn report", "sta reports"]
+
+# =============================================================================
+# SECTION 31: Traceability
+# =============================================================================
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "rtl/arbiter_rr_param.vh (shared parameter include)" }
+    - { yaml: "io_list.interfaces", output: "rtl/arbiter_rr.sv (port list)" }
+    - { yaml: "registers.register_list", output: "rtl/arbiter_rr_regs.sv + firmware/arbiter_rr_regs.h + docs/register_map.md" }
+    - { yaml: "function_model", output: "rtl/arbiter_rr_core.sv + sim/arbiter_rr_model.sv (reference model)" }
+    - { yaml: "cycle_model", output: "rtl/arbiter_rr_core.sv (pipeline logic) + waveform checks" }
+    - { yaml: "timing", output: "sdc/arbiter_rr.sdc and STA constraints" }
+    - { yaml: "error_handling", output: "rtl/arbiter_rr_regs.sv (PSLVERR logic)" }
+    - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
+    - { yaml: "fsm", output: "rtl/arbiter_rr_core.sv (arbitration pipeline)" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv + tc/arbiter_rr_scenarios.py" }
+    - { yaml: "custom.assumptions", output: "docs/README.md (assumptions section)" }
+
+# =============================================================================
+# SECTION 32: Workflow TODOs / Downstream Task Contract
+# =============================================================================
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_TODO_CORE_ARB"
+      content: "Implement round-robin arbitration core with priority rotation"
+      detail: "Translate function_model.FM1 output_rules (grant one-hot, grant_valid, grant_index) and state_updates (last_winner rotation) into arbiter_rr_core.sv. Implement circular priority scan starting from (last_winner+1)%NUM_REQ over masked requests. Register outputs for 1-cycle latency per cycle_model.pipeline."
+      criteria:
+        - "gnt_o is one-hot or all-zero every cycle"
+        - "gnt_valid_o is 1 iff a valid grant is asserted"
+        - "gnt_idx_o equals index of the asserted gnt_o bit when gnt_valid_o=1"
+        - "last_winner updates to current grant_index when gnt_valid_o=1"
+        - "Priority rotates so last winner has lowest priority next cycle"
+        - "All outputs zero when CTRL.enable=0 or no unmasked requests"
+      source_refs: ["function_model.transactions.FM1", "function_model.transactions.FM2", "cycle_model.pipeline", "cycle_model.latency.arbitration"]
+      owner_module: "arbiter_rr_core"
+      owner_file: "rtl/arbiter_rr_core.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_REGS_APB"
+      content: "Implement APB-lite register decode for CTRL, REQ_MASK, STATUS"
+      detail: "Implement APB-lite slave interface with setup/access phase protocol. Decode PADDR for CTRL (0x00 rw), REQ_MASK (0x04 rw), STATUS (0x08 ro). Drive PSLVERR for undefined offsets. Export enable_o and mask_o to arbiter core. Import winner_oh_i and active_req_i from core for STATUS register."
+      criteria:
+        - "APB-lite protocol timing matches cycle_model.latency.register_read/write"
+        - "PSLVERR asserted for undefined offsets"
+        - "CTRL.enable and REQ_MASK.mask readable and writable"
+        - "STATUS register reflects live arbiter state (read-only)"
+      source_refs: ["registers.register_list", "io_list.interfaces.apb_slave", "error_handling.error_sources"]
+      owner_module: "arbiter_rr_regs"
+      owner_file: "rtl/arbiter_rr_regs.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_TOP_WIRING"
+      content: "Implement top-level arbiter_rr.sv with sub-module instantiation and port wiring"
+      detail: "Instantiate arbiter_rr_regs and arbiter_rr_core. Wire top-level ports to sub-module ports per integration.connections. Include arbiter_rr_param.vh. No behavioral logic in top — wiring only."
+      criteria:
+        - "All top-level io_list ports connected to correct sub-module ports"
+        - "Integration connections match SSOT integration.connections list"
+        - "No behavioral logic in top module (wiring only)"
+      source_refs: ["io_list.interfaces", "integration.connections", "sub_modules"]
+      owner_module: "arbiter_rr"
+      owner_file: "rtl/arbiter_rr.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+# =============================================================================
+# SECTION 33: Generation Flow
+# =============================================================================
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh arbiter_rr", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model arbiter_rr", description: "FunctionalModel, decomposition, coverage plan from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl arbiter_rr", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb arbiter_rr", description: "Downstream pyuvm/cocotb verification from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform, failure, and coverage inspection" }
+    - { name: "handoff_coverage", command: "/coverage arbiter_rr", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn arbiter_rr && /sta arbiter_rr", description: "Synthesis and STA evidence for 50MHz target" }

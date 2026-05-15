@@ -190,8 +190,7 @@ function_model:
         - "irq_pending is set on rising edge of valid_out when irq_enabled=1"
         - "irq_pending is cleared only by W1C write to IRQ_STATUS.pending"
       error_cases:
-        - { condition: "APB write to unsupported address", result: "pslverr=1, no register update" }
-        - { condition: "APB write with pstrb partially masking register bytes", result: "Full 32-bit write assumed; pstrb is ignored for simplicity" }
+        - { condition: "All inputs masked (req_mask == 0) while req_i has active bits", result: "valid_o = 0, enc_o = 0 (reset value); no interrupt generated" }
     - id: "APB_READ"
       name: "apb_register_read"
       preconditions:
