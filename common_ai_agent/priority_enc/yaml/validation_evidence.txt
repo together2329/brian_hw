@@ -1,0 +1,6 @@
+priority_enc SSOT validation evidence
+=====================================
+Date: 2025-05-15
+Command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh priority_enc
+Result: PASS — 55768B, 36 sections, 0 TBDs
+Note: adder_kogge_stone rejection in context is from a different IP session.
