@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "clkdiv",
+  "source": "model/cycle_model.py",
+  "backend": "pymtl3",
+  "pymtl3_available": true,
+  "timestamp": "2026-05-15T02:21:42Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "pymtl3",
+    "pymtl3_available": true,
+    "transactions": 1,
+    "results_observed": 1,
+    "coverage_bins": 9,
+    "coverage_hit": 9,
+    "performance_targets": {
+      "frequency_mhz": 100,
+      "throughput": {
+        "sustained_register_accesses_per_cycle": 0.5,
+        "condition": "APB requires setup and access phases"
+      },
+      "outstanding": null,
+      "pipeline_stages": null,
+      "queue_depth": null
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 100,
+    "throughput": {
+      "sustained_register_accesses_per_cycle": 0.5,
+      "condition": "APB requires setup and access phases"
+    },
+    "outstanding": null,
+    "pipeline_stages": null,
+    "queue_depth": null
+  },
+  "decomposition_units": 2,
+  "fcov_bins": 9
+}
