@@ -49,7 +49,7 @@
       {
         "gate_kind": "dut_compile",
         "owner_module": "arm_m0_min",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "DUT compile artifact is not clean.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dut_compile",
         "status": "open",
@@ -169,7 +169,7 @@
         "prerequisites": [
           "arm_m0_min/list/arm_m0_min.f covers the current DUT RTL sources."
         ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "DUT compile artifact is not clean.",
         "source_ref": "quality_gates.rtl_gen.dut_compile",
         "stage_sequence": [
           "ssot-rtl",
@@ -660,7 +660,7 @@
           {
             "gate_kind": "dut_compile",
             "owner_module": "arm_m0_min",
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+            "reason": "DUT compile artifact is not clean.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dut_compile",
             "status": "open",
@@ -767,7 +767,7 @@
             "prerequisites": [
               "arm_m0_min/list/arm_m0_min.f covers the current DUT RTL sources."
             ],
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+            "reason": "DUT compile artifact is not clean.",
             "source_ref": "quality_gates.rtl_gen.dut_compile",
             "stage_sequence": [
               "ssot-rtl",

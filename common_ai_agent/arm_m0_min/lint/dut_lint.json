@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "type": "dut_lint",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "pyslang+verilator",
+  "command": "pyslang rtl/arm_m0_min_if.sv rtl/arm_m0_min_id.sv rtl/arm_m0_min_alu.sv rtl/arm_m0_min_branch.sv rtl/arm_m0_min_mem_if.sv rtl/arm_m0_min_ex.sv rtl/arm_m0_min_rf.sv rtl/arm_m0_min.sv && verilator --lint-only -Wall -Irtl -f list/arm_m0_min.f --top-module arm_m0_min",
+  "cwd": "arm_m0_min",
+  "top": "arm_m0_min",
+  "filelist": "arm_m0_min/list/arm_m0_min.f",
+  "rtl_files": [
+    "rtl/arm_m0_min_if.sv",
+    "rtl/arm_m0_min_id.sv",
+    "rtl/arm_m0_min_alu.sv",
+    "rtl/arm_m0_min_branch.sv",
+    "rtl/arm_m0_min_mem_if.sv",
+    "rtl/arm_m0_min_ex.sv",
+    "rtl/arm_m0_min_rf.sv",
+    "rtl/arm_m0_min.sv"
+  ],
+  "timestamp": "2026-05-15T09:54:02.967124+00:00",
+  "returncode": 1,
+  "errors": 0,
+  "warnings": 7,
+  "waived_warnings": 0,
+  "tool_results": [
+    {
+      "tool": "pyslang",
+      "available": true,
+      "command": "pyslang rtl/arm_m0_min_if.sv rtl/arm_m0_min_id.sv rtl/arm_m0_min_alu.sv rtl/arm_m0_min_branch.sv rtl/arm_m0_min_mem_if.sv rtl/arm_m0_min_ex.sv rtl/arm_m0_min_rf.sv rtl/arm_m0_min.sv",
+      "returncode": 0,
+      "errors": 0,
+      "warnings": 1,
+      "diagnostics": [
+        {
+          "severity": "warning",
+          "file": "arm_m0_min/rtl/arm_m0_min_alu.sv",
+          "line": 36,
+          "message": "implicit conversion changes signedness from 'logic signed[31:0]' to 'logic[31:0]'"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "tool": "verilator",
+      "available": true,
+      "command": "verilator --lint-only -Wall -Irtl -f list/arm_m0_min.f --top-module arm_m0_min",
+      "returncode": 1,
+      "errors": 0,
+      "warnings": 6,
+      "diagnostics": [
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/arm_m0_min_if.sv",
+          "line": 23,
+          "column": 30,
+          "message": "Signal is not used: 'i_hresp'",
+          "source": "    input  logic             i_hresp"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/arm_m0_min_id.sv",
+          "line": 4,
+          "column": 30,
+          "message": "Signal is not used: 'clk'",
+          "source": "    input  logic             clk,"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/arm_m0_min_id.sv",
+          "line": 5,
+          "column": 30,
+          "message": "Signal is not used: 'rst'",
+          "source": "    input  logic             rst,"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/arm_m0_min_id.sv",
+          "line": 8,
+          "column": 30,
+          "message": "Bits of signal are not used: 'if_instr'[31:16]",
+          "source": "    input  logic [31:0]      if_instr,"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/arm_m0_min_id.sv",
+          "line": 9,
+          "column": 30,
+          "message": "Signal is not used: 'pc_in'",
+          "source": "    input  logic [XLEN-1:0]  pc_in,"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/arm_m0_min_id.sv",
+          "line": 10,
+          "column": 30,
+          "message": "Bits of signal are not used: 'nzcv'[3,1:0]",
+          "source": "    input  logic [3:0]       nzcv,"
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "suppression_violation_count": 0,
+  "suppression_violations": [],
+  "style_violation_count": 0,
+  "style_violations": [],
+  "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
+  "passed": false
+}

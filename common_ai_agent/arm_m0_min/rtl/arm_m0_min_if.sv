@@ -33,7 +33,7 @@ module arm_m0_min_if #(
 
     always @(posedge clk) begin
         if (rst) begin
-            pc_reg   <= RESET_PC[XLEN-1:0];
+            pc_reg   <= reset_pc_w;
             if_instr <= 32'h00000000;
             if_valid <= 1'b0;
         end else if (!fault_halt) begin

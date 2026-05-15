@@ -229,7 +229,7 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
 - Detail: Production-profile RTL cannot be a shallow shell that merely satisfies names, ports, or compile checks. The RTL must contain aggregate implementation structure scaled from the current SSOT task count, behavior-owner modules, and manifest hierarchy.
 SSOT ref: quality_gates.rtl_gen.rtl_implementation_depth_evidence.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=230, required=66).
+- Current reason: Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=232, required=66).
 - Criteria:
   - Implementation depth thresholds are derived from SSOT owner/task complexity, not a fixed IP template
   - Listed DUT RTL sources contain enough nonconstant logic, procedural/state/control structure, and child instances for the SSOT profile
