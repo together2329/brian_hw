@@ -219,6 +219,9 @@ function_model:
       inputs:
         - "paddr[APB_ADDR_WIDTH-1:0]"
         - "pwdata[APB_DATA_WIDTH-1:0]"
+      outputs:
+        - "pready = 1 (always)"
+        - "pslverr = 0 if writable valid addr, else 1"
       output_rules:
         - { name: "pready",  expr: "1",   width: 1, port: "pready",  description: "Always ready" }
         - { name: "pslverr", expr: "(writable && valid_addr) ? 0 : 1", width: 1, port: "pslverr", description: "Error for RO or unmapped register" }

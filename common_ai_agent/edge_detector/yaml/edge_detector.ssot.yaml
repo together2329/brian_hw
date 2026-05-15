@@ -3,10 +3,47 @@
 # =============================================================================
 ip: edge_detector
 version: "1.0"
-top_module: TBD
+top_module:
+  name: "edge_detector"
+  file: "rtl/edge_detector.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "Parameterized edge detector with synchronization, APB-lite CSR interface, single PCLK domain."
+  reference_spec: "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
 sub_modules: TBD
 decomposition: TBD
-parameters: TBD
+parameters:
+  - name: "SYNC_STAGES"
+    default: 2
+    type: int
+    description: "Number of synchronizer flip-flop stages for input metastability protection"
+    drives: ["edge_detector.sv"]
+  - name: "EDGE_MODE"
+    default: "both"
+    type: enum
+    values: ["rising", "falling", "both"]
+    description: "Detectable edge polarity"
+    drives: ["edge_detector.sv"]
+  - name: "WIDTH"
+    default: 1
+    type: int
+    description: "Input signal vector width"
+    drives: ["edge_detector.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 50
+    type: int
+    description: "Target clock frequency in MHz"
+    drives: ["tb_top.sv", "docs/README.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    drives: ["ALL .sv files"]
 io_list: TBD
 features: TBD
 dataflow: TBD
