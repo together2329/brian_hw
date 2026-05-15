@@ -1,10 +1,6 @@
 // spi_shift.sv — frame launch/shift/sample engine from SSOT function_model/fsm/cycle_model
 module spi_shift #(
-    parameter integer DATA_WIDTH = 8,
-    parameter integer NUM_CS = 4,
-    parameter integer CPOL_RESET = 0,
-    parameter integer CPHA_RESET = 0,
-    parameter integer LSB_FIRST_RESET = 0
+    parameter integer NUM_CS = 4
 ) (
     input  logic        PCLK,
     input  logic        PRESETn,

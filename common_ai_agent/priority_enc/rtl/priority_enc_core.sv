@@ -20,6 +20,7 @@ module priority_enc_core #(
     logic                   priority_valid_comb;
     logic                   apb_csr_bad_addr_seen;
     logic                   STATUS_write_seen;
+    logic                   apb_status_error_shadow;
 
     assign masked_data = data_in & ~mask_i;
     assign priority_valid_comb = |masked_data;
