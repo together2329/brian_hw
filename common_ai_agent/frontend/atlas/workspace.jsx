@@ -1482,8 +1482,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     const entryIp = String(entry?.ip || '').trim();
     const scopeSession = qaHistoryScope.session;
     const scopeIp = qaHistoryScope.ip;
+    const hasEntryScope = !!entrySession || !!entryIp;
     if (entrySession && scopeSession && entrySession !== scopeSession) return false;
     if (entryIp && scopeIp && entryIp !== scopeIp) return false;
+    if (!hasEntryScope && (scopeSession || (scopeIp && scopeIp !== 'default'))) return false;
     return true;
   }, [qaHistoryScope.ip, qaHistoryScope.session]);
 
