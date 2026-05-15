@@ -56,7 +56,14 @@ def create_admin_app(project_root: Path):
     from starlette.staticfiles import StaticFiles
 
     from core.atlas_db import AtlasDB
-    from core.atlas_auth import GuestAuth, AuthMiddleware, create_auth_endpoints
+    from core.atlas_auth import (
+        GuestAuth,
+        AuthMiddleware,
+        admin_auth_status,
+        create_auth_endpoints,
+        is_admin_user,
+        is_local_admin_mode,
+    )
 
     app = FastAPI(title="ATLAS Admin")
 
@@ -69,12 +76,18 @@ def create_admin_app(project_root: Path):
 
     def _admin_required(request: Request):
         user = request.scope.get("user") or {}
-        # Standalone local admin is intentionally open in desktop mode.
-        return {
-            "id": user.get("id") or "local-admin",
-            "username": user.get("username") or "local-admin",
-            "role": "admin",
-        }
+        if is_local_admin_mode():
+            return {
+                "id": user.get("id") or "local-admin",
+                "username": user.get("username") or "local-admin",
+                "role": "admin",
+            }
+        return user if is_admin_user(user) else None
+
+    def _admin_denied(request: Request):
+        if request.scope.get("user"):
+            return JSONResponse({"error": "Admin role required"}, status_code=403)
+        return JSONResponse({"error": "Admin login required"}, status_code=401)
 
     @app.get("/admin")
     async def admin_page(request: Request):
@@ -111,10 +124,15 @@ def create_admin_app(project_root: Path):
     async def healthz():
         return JSONResponse({"ok": True, "role": "admin", "started": time.time()})
 
+    @app.get("/api/admin/auth/status")
+    async def api_admin_auth_status(request: Request):
+        with AtlasDB() as db:
+            return JSONResponse(admin_auth_status(db, request.scope.get("user")))
+
     @app.get("/api/admin/users")
     async def api_admin_users(request: Request):
         if _admin_required(request) is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         with AtlasDB() as db:
             users = db.list_all_users()
             counts = db.count_sessions_by_user()
@@ -125,14 +143,14 @@ def create_admin_app(project_root: Path):
     @app.get("/api/admin/sessions")
     async def api_admin_sessions(request: Request):
         if _admin_required(request) is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         with AtlasDB() as db:
             return JSONResponse({"sessions": db.list_all_sessions()})
 
     @app.delete("/api/admin/sessions/{session_id}")
     async def api_admin_delete_session(session_id: str, request: Request):
         if _admin_required(request) is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         with AtlasDB() as db:
             if db.get_session(session_id) is None:
                 return JSONResponse({"error": "session not found"}, status_code=404)
@@ -142,7 +160,7 @@ def create_admin_app(project_root: Path):
     @app.get("/api/admin/usage")
     async def api_admin_usage(request: Request):
         if _admin_required(request) is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         with AtlasDB() as db:
             from core.atlas_admin_usage import build_admin_usage_payload
             return JSONResponse(build_admin_usage_payload(db))
@@ -150,7 +168,7 @@ def create_admin_app(project_root: Path):
     @app.get("/api/admin/feedback")
     async def api_admin_feedback(request: Request):
         if _admin_required(request) is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         with AtlasDB() as db:
             rows = db._fetchall(
                 "SELECT f.id, f.user_id, u.username, f.content, f.status, "
@@ -165,7 +183,7 @@ def create_admin_app(project_root: Path):
     async def api_admin_feedback_resolve(fid: str, request: Request):
         admin = _admin_required(request)
         if admin is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         try:
             body = await request.json()
         except Exception:

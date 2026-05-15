@@ -92,6 +92,9 @@ io_list:
       clock_domain: "PCLK"
       reset_domain: "PRESETn"
       description: "Edge detection interrupt output"
+      protocol:
+        timing: "irq_o asserts on the same PCLK rising edge as edge_o when irq_enable is set; remains high until sticky status is cleared."
+        backpressure: "None; interrupt controller is expected to sample irq_o as level-sensitive."
       ports:
         - { name: "irq_o", width: 1, direction: "output", description: "Interrupt output, active-high level" }
     - name: "apb_csr"
