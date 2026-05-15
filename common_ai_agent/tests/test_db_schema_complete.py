@@ -51,7 +51,8 @@ _EXPECTED_TABLES = {
     "users", "sessions", "messages", "parts", "ws_connections",
     "feedback", "session_queue",
     "workspaces", "ip_blocks", "ip_permissions",
-    "workflow_runs", "workflow_stages", "workflow_events",
+    "artifact_versions", "artifact_version_edges", "run_artifact_versions",
+    "rtl_versions", "workflow_runs", "workflow_stages", "workflow_events",
     "workflow_todos", "todo_events",
     "trace_events", "llm_calls", "artifacts",
 }
@@ -64,14 +65,20 @@ _EXPECTED_INDEXES = {
     "idx_queue_session_direction", "idx_queue_created",
     "idx_workspaces_owner", "idx_ip_blocks_workspace",
     "idx_ip_permissions_user", "idx_ip_permissions_ip",
+    "idx_artifact_versions_ip_type", "idx_artifact_versions_workspace",
+    "idx_artifact_version_edges_parent", "idx_artifact_version_edges_child",
+    "idx_run_artifact_versions_run", "idx_run_artifact_versions_version",
+    "idx_rtl_versions_ip", "idx_rtl_versions_workspace",
     "idx_workflow_runs_session", "idx_workflow_runs_context",
-    "idx_workflow_stages_run", "idx_workflow_events_run",
+    "idx_workflow_runs_rtl_version",
+    "idx_workflow_stages_run", "idx_workflow_stages_rtl_version",
+    "idx_workflow_events_run",
     "idx_workflow_todos_run", "idx_todo_events_todo",
     "idx_trace_events_context", "idx_trace_events_run",
     "idx_trace_events_correlation", "idx_trace_events_session",
     "idx_trace_events_chat_room",        # added 2026-05-15
     "idx_llm_calls_context", "idx_llm_calls_session", "idx_llm_calls_todo",
-    "idx_artifacts_run",
+    "idx_artifacts_run", "idx_artifacts_rtl_version",
 }
 
 
@@ -104,6 +111,37 @@ def test_all_expected_tables_present(db):
         f"missing: {_EXPECTED_TABLES - tables}"
 
 
+def test_legacy_user_schema_migrates_before_email_indexes(tmp_path: Path) -> None:
+    db_path = tmp_path / "legacy.db"
+    conn = sqlite3.connect(db_path)
+    try:
+        conn.execute(
+            """
+            CREATE TABLE users (
+                id TEXT PRIMARY KEY,
+                username TEXT UNIQUE,
+                display_name TEXT,
+                password_hash TEXT,
+                role TEXT DEFAULT 'user',
+                created_at REAL,
+                last_login_at REAL
+            )
+            """
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    with AtlasDB(str(db_path)) as db:
+        columns = _table_columns(db, "users")
+        indexes = _all_indexes(db)
+
+    assert "email" in columns
+    assert "password_reset_token_hash" in columns
+    assert "idx_users_email" in indexes
+    assert "idx_users_password_reset_token" in indexes
+
+
 def test_all_expected_indexes_present(db):
     have = _all_indexes(db)
     missing = _EXPECTED_INDEXES - have
@@ -128,9 +166,25 @@ def test_all_expected_indexes_present(db):
                         "ssot_path", "status"}),
     ("ip_permissions", {"id", "ip_id", "grantee_user_id", "permission",
                         "granted_by_user_id", "expires_at"}),
+    ("artifact_versions", {"id", "workspace_id", "ip_id", "artifact_type",
+                        "version", "label", "root_path", "primary_path",
+                        "manifest", "sha256_tree", "git_commit", "git_tag",
+                        "status", "source_run_id", "source_stage_id",
+                        "metadata", "created_at"}),
+    ("artifact_version_edges", {"id", "parent_version_id", "child_version_id",
+                        "relation", "metadata", "created_at"}),
+    ("run_artifact_versions", {"id", "run_id", "stage_id", "artifact_version_id",
+                        "role", "required", "metadata", "created_at"}),
+    ("rtl_versions",   {"id", "artifact_version_id", "ip_id", "workspace_id", "source_run_id",
+                        "source_stage_id", "version", "label", "rtl_root",
+                        "filelist_path", "top_module", "artifact_manifest",
+                        "sha256_tree", "git_commit", "git_tag", "status",
+                        "metadata", "created_at"}),
     ("workflow_runs",  {"id", "session_id", "workspace_id", "ip_id",
-                        "workflow", "mode", "model_profile", "status"}),
-    ("workflow_stages",{"id", "run_id", "stage_name", "status", "attempt"}),
+                        "rtl_version_id", "workflow", "mode",
+                        "model_profile", "status"}),
+    ("workflow_stages",{"id", "run_id", "rtl_version_id", "stage_name",
+                        "status", "attempt"}),
     ("workflow_events",{"id", "run_id", "stage_id", "event_type", "payload"}),
     ("workflow_todos", {"id", "run_id", "source", "title", "detail",
                         "criteria", "notes", "status", "owner_file",
@@ -147,7 +201,7 @@ def test_all_expected_indexes_present(db):
                         "cache_read_tokens", "cache_write_tokens",
                         "cost_usd", "latency_ms", "status", "error_type"}),
     ("artifacts",      {"id", "run_id", "stage_id", "ip_id", "workflow",
-                        "kind", "path", "storage_backend",
+                        "rtl_version_id", "kind", "path", "storage_backend",
                         "sha256", "size_bytes", "git_commit"}),
 ])
 def test_table_has_required_columns(db, table, must_have):

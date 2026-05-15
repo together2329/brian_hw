@@ -31,6 +31,36 @@ Read `sub_modules[].ownership` before writing any RTL:
 The SoC-level `soc.ssot.yaml` remains top-instance-only. Internal
 implementation hierarchy belongs to leaf IP YAML files.
 
+## Contract-First Rule
+
+`rtl-gen` must treat the canonical SSOT as a binding implementation contract.
+Before any DONE claim, the generated RTL must agree with the SSOT on observable
+shape and behavior:
+
+- top module name and public port list
+- clock/reset domains and reset polarity/synchronization policy
+- bus/protocol ports, interrupts, inout pins, and debug/status outputs
+- `sub_modules[].name` and `sub_modules[].file` for every manifest-owned RTL
+  module
+- `<ip>/list/<ip>.f` contents and compile order
+- register offsets, bitfields, access types, reset values, and side effects
+- FSM states/transitions/actions when present
+- function_model and cycle_model observable behavior
+- timing, synthesis, lint waiver, DFT, and quality-gate constraints
+- `workflow_todos.rtl-gen[]` content/detail/criteria/source refs
+
+The active RTL ledger is derived from these fields. Existing RTL artifacts are
+evidence only; they cannot override SSOT. If an existing file has generic
+ports, a different top, missing manifest files, stale filelist entries, or a
+template-like valid/data/result interface, the correct action is RTL repair or
+rewrite inside rtl-gen. Downstream stages must not run on that artifact as if it
+were approved.
+
+SSOT escalation is only valid when the SSOT itself lacks the exact information
+needed for RTL. The escalation must cite the YAML path. A mismatch between SSOT
+and current RTL is an RTL-owner issue unless the user/human review decides to
+change the SSOT contract.
+
 ## SSOT Section Processing Order
 
 1. `top_module` → module name for all files

@@ -435,10 +435,16 @@ Parallelism is allowed when write scopes are disjoint:
 ```text
 FL model agent and CL model agent can run after SSOT approval.
 RTL and TB can draft in parallel only when TB consumes locked SSOT/FL APIs.
-Lint can run after RTL snapshots.
+After RTL is generated, lint, TB generation, and synthesis can run in parallel
+against the same RTL snapshot.
 Coverage can start with SSOT goals, but closure requires sim evidence.
-EDA can start after RTL compile/lint is stable.
+Pre-route STA and PnR can fan out after synthesis; post-route STA waits for PnR.
 ```
+
+The default UI pipeline schedule is `auto`: one resolved worker URL runs serial,
+while multiple resolved worker URLs use the dependency DAG. Explicit
+`schedule: "serial"` and `schedule: "dag"` remain available for compatibility,
+debug, and benchmark runs.
 
 Parallel agents must write separate logs and session paths:
 
@@ -556,6 +562,12 @@ Run downstream stages through their workflow commands:
 /ssot-coverage <ip>
 ```
 
+RTL-gen must follow the current SSOT as a binding contract. If RTL has generic
+fixture ports, missing SSOT-declared submodule files, a stale filelist, or a
+different observable interface, the owner is rtl-gen repair unless the SSOT is
+explicitly changed by ssot-gen/human review. Do not run downstream signoff on
+known SSOT/RTL mismatch.
+
 For headless TDD:
 
 ```bash
@@ -625,6 +637,9 @@ Fresh logs prove the current artifacts.
 
 - `workflow/rtl-gen/RTL_GEN_FLOW.md`
   - RTL-specific implementation of the golden todo pattern.
+
+- `doc/wiki/rtl-gen-ssot-contract.md`
+  - Short rule page for SSOT/RTL mismatch ownership.
 
 - `workflow/fl-model-gen/flow_guide.md`
   - FL model generation details.

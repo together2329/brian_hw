@@ -1,0 +1,999 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "gray_counter",
+  "source": "gray_counter/yaml/gray_counter.ssot.yaml",
+  "units": [
+    {
+      "name": "gray_counter_core",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "error_handling",
+        "features",
+        "fsm",
+        "function_model",
+        "parameters",
+        "test_requirements"
+      ],
+      "rtl_candidates": [
+        "gray_counter_core"
+      ],
+      "rtl_file": "rtl/gray_counter_core.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.clear",
+        "cycle_model.handshake_rules.enable",
+        "cycle_model.handshake_rules.rst_n",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s0_sample",
+        "cycle_model.pipeline.s1_compute",
+        "cycle_model.pipeline.s2_commit",
+        "cycle_model.pipeline.s3_observe",
+        "cycle_model.reset",
+        "dataflow",
+        "decomposition",
+        "error_handling",
+        "features",
+        "features.deterministic_clear_reset",
+        "features.gray_increment_progression",
+        "features.wrap_pulse_generation",
+        "fsm",
+        "fsm.control",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables",
+        "function_model.state_variables.bin_state",
+        "function_model.state_variables.done_state",
+        "function_model.state_variables.gray_state",
+        "function_model.transactions.GC_TXN_ADVANCE",
+        "function_model.transactions.GC_TXN_CLEAR",
+        "function_model.transactions.GC_TXN_HOLD",
+        "function_model.transactions.GC_TXN_RESET",
+        "function_model.transactions.gc_txn_advance",
+        "function_model.transactions.gc_txn_advance.error_cases.error_case_0",
+        "function_model.transactions.gc_txn_advance.inputs.input_0",
+        "function_model.transactions.gc_txn_advance.inputs.input_1",
+        "function_model.transactions.gc_txn_advance.output_rules.bin_observe",
+        "function_model.transactions.gc_txn_advance.output_rules.done_wrap",
+        "function_model.transactions.gc_txn_advance.output_rules.gray_advance",
+        "function_model.transactions.gc_txn_advance.outputs.output_0",
+        "function_model.transactions.gc_txn_advance.outputs.output_1",
+        "function_model.transactions.gc_txn_advance.outputs.output_2",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_2",
+        "function_model.transactions.gc_txn_advance.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_advance.side_effects.side_effect_1",
+        "function_model.transactions.gc_txn_clear",
+        "function_model.transactions.gc_txn_clear.inputs.input_0",
+        "function_model.transactions.gc_txn_clear.output_rules.bin_value_clear",
+        "function_model.transactions.gc_txn_clear.output_rules.done_clear",
+        "function_model.transactions.gc_txn_clear.output_rules.gray_value_clear",
+        "function_model.transactions.gc_txn_clear.outputs.output_0",
+        "function_model.transactions.gc_txn_clear.outputs.output_1",
+        "function_model.transactions.gc_txn_clear.outputs.output_2",
+        "function_model.transactions.gc_txn_clear.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_clear.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_clear.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_clear.side_effects.side_effect_1",
+        "function_model.transactions.gc_txn_hold",
+        "function_model.transactions.gc_txn_hold.inputs.input_0",
+        "function_model.transactions.gc_txn_hold.output_rules.bin_hold",
+        "function_model.transactions.gc_txn_hold.output_rules.done_hold",
+        "function_model.transactions.gc_txn_hold.output_rules.gray_hold",
+        "function_model.transactions.gc_txn_hold.outputs.output_0",
+        "function_model.transactions.gc_txn_hold.outputs.output_1",
+        "function_model.transactions.gc_txn_hold.outputs.output_2",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_2",
+        "function_model.transactions.gc_txn_hold.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_reset",
+        "function_model.transactions.gc_txn_reset.inputs.input_0",
+        "function_model.transactions.gc_txn_reset.output_rules.bin_value_reset",
+        "function_model.transactions.gc_txn_reset.output_rules.done_reset",
+        "function_model.transactions.gc_txn_reset.output_rules.gray_value_reset",
+        "function_model.transactions.gc_txn_reset.outputs.output_0",
+        "function_model.transactions.gc_txn_reset.outputs.output_1",
+        "function_model.transactions.gc_txn_reset.outputs.output_2",
+        "function_model.transactions.gc_txn_reset.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_reset.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_reset.side_effects.side_effect_1",
+        "parameters.width",
+        "test_requirements"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.bin_state",
+        "function_model.state_variables.done_state",
+        "function_model.state_variables.gray_state",
+        "function_model.transactions.gc_txn_advance",
+        "function_model.transactions.gc_txn_advance.error_cases.error_case_0",
+        "function_model.transactions.gc_txn_advance.inputs.input_0",
+        "function_model.transactions.gc_txn_advance.inputs.input_1",
+        "function_model.transactions.gc_txn_advance.output_rules.bin_observe",
+        "function_model.transactions.gc_txn_advance.output_rules.done_wrap",
+        "function_model.transactions.gc_txn_advance.output_rules.gray_advance",
+        "function_model.transactions.gc_txn_advance.outputs.output_0",
+        "function_model.transactions.gc_txn_advance.outputs.output_1",
+        "function_model.transactions.gc_txn_advance.outputs.output_2",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_2",
+        "function_model.transactions.gc_txn_advance.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_advance.side_effects.side_effect_1",
+        "function_model.transactions.gc_txn_clear",
+        "function_model.transactions.gc_txn_clear.inputs.input_0",
+        "function_model.transactions.gc_txn_clear.output_rules.bin_value_clear",
+        "function_model.transactions.gc_txn_clear.output_rules.done_clear",
+        "function_model.transactions.gc_txn_clear.output_rules.gray_value_clear",
+        "function_model.transactions.gc_txn_clear.outputs.output_0",
+        "function_model.transactions.gc_txn_clear.outputs.output_1",
+        "function_model.transactions.gc_txn_clear.outputs.output_2",
+        "function_model.transactions.gc_txn_clear.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_clear.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_clear.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_clear.side_effects.side_effect_1",
+        "function_model.transactions.gc_txn_hold",
+        "function_model.transactions.gc_txn_hold.inputs.input_0",
+        "function_model.transactions.gc_txn_hold.output_rules.bin_hold",
+        "function_model.transactions.gc_txn_hold.output_rules.done_hold",
+        "function_model.transactions.gc_txn_hold.output_rules.gray_hold",
+        "function_model.transactions.gc_txn_hold.outputs.output_0",
+        "function_model.transactions.gc_txn_hold.outputs.output_1",
+        "function_model.transactions.gc_txn_hold.outputs.output_2",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_2",
+        "function_model.transactions.gc_txn_hold.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_reset",
+        "function_model.transactions.gc_txn_reset.inputs.input_0",
+        "function_model.transactions.gc_txn_reset.output_rules.bin_value_reset",
+        "function_model.transactions.gc_txn_reset.output_rules.done_reset",
+        "function_model.transactions.gc_txn_reset.output_rules.gray_value_reset",
+        "function_model.transactions.gc_txn_reset.outputs.output_0",
+        "function_model.transactions.gc_txn_reset.outputs.output_1",
+        "function_model.transactions.gc_txn_reset.outputs.output_2",
+        "function_model.transactions.gc_txn_reset.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_reset.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_reset.side_effects.side_effect_1"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.clear",
+        "cycle_model.handshake_rules.enable",
+        "cycle_model.handshake_rules.rst_n",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s0_sample",
+        "cycle_model.pipeline.s1_compute",
+        "cycle_model.pipeline.s2_commit",
+        "cycle_model.pipeline.s3_observe",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.deterministic_clear_reset",
+        "features.gray_increment_progression",
+        "features.wrap_pulse_generation",
+        "parameters.width"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gray_counter_top",
+      "kind": "rtl_module",
+      "source_sections": [
+        "integration",
+        "io_list"
+      ],
+      "rtl_candidates": [
+        "gray_counter_top"
+      ],
+      "rtl_file": "rtl/gray_counter.sv",
+      "ssot_refs": [
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "io_list.interfaces.control",
+        "io_list.interfaces.status"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "io_list.interfaces.control",
+        "io_list.interfaces.status"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gray_counter",
+      "kind": "rtl_module",
+      "source_sections": [],
+      "rtl_candidates": [
+        "gray_counter"
+      ],
+      "rtl_file": "rtl/gray_counter.sv",
+      "ssot_refs": [],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": true,
+      "blocker": "module has no function_model, cycle_model, or structural SSOT ownership refs"
+    },
+    {
+      "name": "gray_counter_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "gray_counter_axi_slv",
+        "gray_counter_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "gray_counter_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "gray_counter_regs",
+        "gray_counter_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "gray_counter_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "gray_counter_core",
+        "gray_counter_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "gray_counter_fsm_model",
+      "kind": "fsm",
+      "source_sections": [
+        "fsm",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "gray_counter_core"
+      ],
+      "verification_impact": [
+        "state transition coverage",
+        "waveform debug"
+      ]
+    },
+    {
+      "name": "gray_counter_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "gray_counter_core",
+        "gray_counter_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    },
+    {
+      "name": "gray_counter_security_model",
+      "kind": "security",
+      "source_sections": [
+        "security",
+        "debug_observability"
+      ],
+      "rtl_candidates": [
+        "gray_counter_security",
+        "gray_counter_core"
+      ],
+      "verification_impact": [
+        "security bins",
+        "debug observability checks"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "gray_counter_core",
+      "kind": "rtl_module",
+      "rtl_module": "gray_counter_core",
+      "rtl_file": "rtl/gray_counter_core.sv",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "error_handling",
+        "features",
+        "fsm",
+        "function_model",
+        "parameters",
+        "test_requirements"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.clear",
+        "cycle_model.handshake_rules.enable",
+        "cycle_model.handshake_rules.rst_n",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s0_sample",
+        "cycle_model.pipeline.s1_compute",
+        "cycle_model.pipeline.s2_commit",
+        "cycle_model.pipeline.s3_observe",
+        "cycle_model.reset",
+        "dataflow",
+        "decomposition",
+        "error_handling",
+        "features",
+        "features.deterministic_clear_reset",
+        "features.gray_increment_progression",
+        "features.wrap_pulse_generation",
+        "fsm",
+        "fsm.control",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables",
+        "function_model.state_variables.bin_state",
+        "function_model.state_variables.done_state",
+        "function_model.state_variables.gray_state",
+        "function_model.transactions.GC_TXN_ADVANCE",
+        "function_model.transactions.GC_TXN_CLEAR",
+        "function_model.transactions.GC_TXN_HOLD",
+        "function_model.transactions.GC_TXN_RESET",
+        "function_model.transactions.gc_txn_advance",
+        "function_model.transactions.gc_txn_advance.error_cases.error_case_0",
+        "function_model.transactions.gc_txn_advance.inputs.input_0",
+        "function_model.transactions.gc_txn_advance.inputs.input_1",
+        "function_model.transactions.gc_txn_advance.output_rules.bin_observe",
+        "function_model.transactions.gc_txn_advance.output_rules.done_wrap",
+        "function_model.transactions.gc_txn_advance.output_rules.gray_advance",
+        "function_model.transactions.gc_txn_advance.outputs.output_0",
+        "function_model.transactions.gc_txn_advance.outputs.output_1",
+        "function_model.transactions.gc_txn_advance.outputs.output_2",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_2",
+        "function_model.transactions.gc_txn_advance.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_advance.side_effects.side_effect_1",
+        "function_model.transactions.gc_txn_clear",
+        "function_model.transactions.gc_txn_clear.inputs.input_0",
+        "function_model.transactions.gc_txn_clear.output_rules.bin_value_clear",
+        "function_model.transactions.gc_txn_clear.output_rules.done_clear",
+        "function_model.transactions.gc_txn_clear.output_rules.gray_value_clear",
+        "function_model.transactions.gc_txn_clear.outputs.output_0",
+        "function_model.transactions.gc_txn_clear.outputs.output_1",
+        "function_model.transactions.gc_txn_clear.outputs.output_2",
+        "function_model.transactions.gc_txn_clear.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_clear.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_clear.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_clear.side_effects.side_effect_1",
+        "function_model.transactions.gc_txn_hold",
+        "function_model.transactions.gc_txn_hold.inputs.input_0",
+        "function_model.transactions.gc_txn_hold.output_rules.bin_hold",
+        "function_model.transactions.gc_txn_hold.output_rules.done_hold",
+        "function_model.transactions.gc_txn_hold.output_rules.gray_hold",
+        "function_model.transactions.gc_txn_hold.outputs.output_0",
+        "function_model.transactions.gc_txn_hold.outputs.output_1",
+        "function_model.transactions.gc_txn_hold.outputs.output_2",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_2",
+        "function_model.transactions.gc_txn_hold.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_reset",
+        "function_model.transactions.gc_txn_reset.inputs.input_0",
+        "function_model.transactions.gc_txn_reset.output_rules.bin_value_reset",
+        "function_model.transactions.gc_txn_reset.output_rules.done_reset",
+        "function_model.transactions.gc_txn_reset.output_rules.gray_value_reset",
+        "function_model.transactions.gc_txn_reset.outputs.output_0",
+        "function_model.transactions.gc_txn_reset.outputs.output_1",
+        "function_model.transactions.gc_txn_reset.outputs.output_2",
+        "function_model.transactions.gc_txn_reset.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_reset.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_reset.side_effects.side_effect_1",
+        "parameters.width",
+        "test_requirements"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.bin_state",
+        "function_model.state_variables.done_state",
+        "function_model.state_variables.gray_state",
+        "function_model.transactions.gc_txn_advance",
+        "function_model.transactions.gc_txn_advance.error_cases.error_case_0",
+        "function_model.transactions.gc_txn_advance.inputs.input_0",
+        "function_model.transactions.gc_txn_advance.inputs.input_1",
+        "function_model.transactions.gc_txn_advance.output_rules.bin_observe",
+        "function_model.transactions.gc_txn_advance.output_rules.done_wrap",
+        "function_model.transactions.gc_txn_advance.output_rules.gray_advance",
+        "function_model.transactions.gc_txn_advance.outputs.output_0",
+        "function_model.transactions.gc_txn_advance.outputs.output_1",
+        "function_model.transactions.gc_txn_advance.outputs.output_2",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_advance.preconditions.precondition_2",
+        "function_model.transactions.gc_txn_advance.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_advance.side_effects.side_effect_1",
+        "function_model.transactions.gc_txn_clear",
+        "function_model.transactions.gc_txn_clear.inputs.input_0",
+        "function_model.transactions.gc_txn_clear.output_rules.bin_value_clear",
+        "function_model.transactions.gc_txn_clear.output_rules.done_clear",
+        "function_model.transactions.gc_txn_clear.output_rules.gray_value_clear",
+        "function_model.transactions.gc_txn_clear.outputs.output_0",
+        "function_model.transactions.gc_txn_clear.outputs.output_1",
+        "function_model.transactions.gc_txn_clear.outputs.output_2",
+        "function_model.transactions.gc_txn_clear.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_clear.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_clear.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_clear.side_effects.side_effect_1",
+        "function_model.transactions.gc_txn_hold",
+        "function_model.transactions.gc_txn_hold.inputs.input_0",
+        "function_model.transactions.gc_txn_hold.output_rules.bin_hold",
+        "function_model.transactions.gc_txn_hold.output_rules.done_hold",
+        "function_model.transactions.gc_txn_hold.output_rules.gray_hold",
+        "function_model.transactions.gc_txn_hold.outputs.output_0",
+        "function_model.transactions.gc_txn_hold.outputs.output_1",
+        "function_model.transactions.gc_txn_hold.outputs.output_2",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_1",
+        "function_model.transactions.gc_txn_hold.preconditions.precondition_2",
+        "function_model.transactions.gc_txn_hold.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_reset",
+        "function_model.transactions.gc_txn_reset.inputs.input_0",
+        "function_model.transactions.gc_txn_reset.output_rules.bin_value_reset",
+        "function_model.transactions.gc_txn_reset.output_rules.done_reset",
+        "function_model.transactions.gc_txn_reset.output_rules.gray_value_reset",
+        "function_model.transactions.gc_txn_reset.outputs.output_0",
+        "function_model.transactions.gc_txn_reset.outputs.output_1",
+        "function_model.transactions.gc_txn_reset.outputs.output_2",
+        "function_model.transactions.gc_txn_reset.preconditions.precondition_0",
+        "function_model.transactions.gc_txn_reset.side_effects.side_effect_0",
+        "function_model.transactions.gc_txn_reset.side_effects.side_effect_1"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.clear",
+        "cycle_model.handshake_rules.enable",
+        "cycle_model.handshake_rules.rst_n",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s0_sample",
+        "cycle_model.pipeline.s1_compute",
+        "cycle_model.pipeline.s2_commit",
+        "cycle_model.pipeline.s3_observe",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.deterministic_clear_reset",
+        "features.gray_increment_progression",
+        "features.wrap_pulse_generation",
+        "parameters.width"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.gray_state",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.bin_state",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.done_state",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_reset",
+          "matched_ref": "function_model.transactions.GC_TXN_RESET"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_reset.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.GC_TXN_RESET"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_reset.inputs.input_0",
+          "matched_ref": "function_model.transactions.GC_TXN_RESET"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_reset.outputs.output_0",
+          "matched_ref": "function_model.transactions.GC_TXN_RESET"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_reset.outputs.output_1",
+          "matched_ref": "function_model.transactions.GC_TXN_RESET"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_reset.outputs.output_2",
+          "matched_ref": "function_model.transactions.GC_TXN_RESET"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_reset.output_rules.gray_value_reset",
+          "matched_ref": "function_model.transactions.GC_TXN_RESET"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_reset.output_rules.bin_value_reset",
+          "matched_ref": "function_model.transactions.GC_TXN_RESET"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_reset.output_rules.done_reset",
+          "matched_ref": "function_model.transactions.GC_TXN_RESET"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_reset.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.GC_TXN_RESET"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_reset.side_effects.side_effect_1",
+          "matched_ref": "function_model.transactions.GC_TXN_RESET"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear.preconditions.precondition_1",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear.inputs.input_0",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear.outputs.output_0",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear.outputs.output_1",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear.outputs.output_2",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear.output_rules.gray_value_clear",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear.output_rules.bin_value_clear",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear.output_rules.done_clear",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_clear.side_effects.side_effect_1",
+          "matched_ref": "function_model.transactions.GC_TXN_CLEAR"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.preconditions.precondition_1",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.preconditions.precondition_2",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.inputs.input_0",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.inputs.input_1",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.outputs.output_0",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.outputs.output_1",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.outputs.output_2",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.output_rules.gray_advance",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.output_rules.bin_observe",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.output_rules.done_wrap",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.side_effects.side_effect_1",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_advance.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.GC_TXN_ADVANCE"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold.preconditions.precondition_1",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold.preconditions.precondition_2",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold.inputs.input_0",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold.outputs.output_0",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold.outputs.output_1",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold.outputs.output_2",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold.output_rules.gray_hold",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold.output_rules.bin_hold",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold.output_rules.done_hold",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.gc_txn_hold.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.GC_TXN_HOLD"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_4",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "cycle_model.latency"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.enable",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.clear",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.rst_n",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.s0_sample",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.pipeline.s1_compute",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.pipeline.s2_commit",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.pipeline.s3_observe",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_1",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_2",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_0",
+          "matched_ref": "cycle_model"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.width",
+          "matched_ref": "semantic_terms:core,gray_counter_core"
+        },
+        {
+          "ref": "features.gray_increment_progression",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.wrap_pulse_generation",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.deterministic_clear_reset",
+          "matched_ref": "features"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gray_counter_top",
+      "kind": "rtl_module",
+      "rtl_module": "gray_counter_top",
+      "rtl_file": "rtl/gray_counter.sv",
+      "source_sections": [
+        "integration",
+        "io_list"
+      ],
+      "ssot_refs": [
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "io_list.interfaces.control",
+        "io_list.interfaces.status"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "io_list.interfaces.control",
+        "io_list.interfaces.status"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gray_counter",
+      "kind": "rtl_module",
+      "rtl_module": "gray_counter",
+      "rtl_file": "rtl/gray_counter.sv",
+      "source_sections": [],
+      "ssot_refs": [],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": true,
+      "blocker": "module has no function_model, cycle_model, or structural SSOT ownership refs"
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 73,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "gray_counter/req/",
+      "gray_counter/yaml/gray_counter.ssot.yaml",
+      "gray_counter/model/functional_model.py",
+      "gray_counter/cov/fcov_plan.json",
+      "gray_counter/yaml/gray_counter.ssot.yaml#io_list",
+      "gray_counter/yaml/gray_counter.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "gray_counter/rtl/",
+      "gray_counter/tb/",
+      "gray_counter/sim/",
+      "gray_counter/vectors/",
+      "gray_counter/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": false
+}

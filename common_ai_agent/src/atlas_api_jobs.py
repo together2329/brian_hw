@@ -19,6 +19,8 @@ import json
 import os
 import re
 import shlex
+import hashlib
+import subprocess
 import threading
 import time
 import uuid
@@ -56,6 +58,107 @@ _PIPELINE_BY_WORKFLOW: dict[str, dict[str, str]] = {}
 for _stage in _PIPELINE_STAGES:
     _PIPELINE_BY_WORKFLOW.setdefault(_stage["workflow"], _stage)
 
+_PIPELINE_STAGE_ORDER = {stage["id"]: idx for idx, stage in enumerate(_PIPELINE_STAGES)}
+_PIPELINE_STAGE_DEPS: dict[str, tuple[str, ...]] = {
+    "ssot": (),
+    "fl-model": ("ssot",),
+    "cl-model": ("ssot",),
+    "equivalence": ("fl-model", "cl-model"),
+    "rtl": ("equivalence",),
+    "lint": ("rtl",),
+    "tb": ("rtl",),
+    "syn": ("rtl",),
+    "sim": ("tb",),
+    "coverage": ("sim",),
+    "sim-debug": ("sim",),
+    "sta": ("syn",),
+    "pnr": ("syn",),
+    "sta-post": ("pnr",),
+}
+_RTL_VERSION_DOWNSTREAM_STAGES = {
+    "lint", "tb", "sim", "coverage", "sim-debug",
+    "syn", "sta", "pnr", "sta-post", "goal-audit",
+}
+_STAGE_ARTIFACT_TYPES = {
+    "ssot": "ssot",
+    "rtl": "rtl",
+    "tb": "tb",
+}
+
+
+def _job_dependency_ids(job: dict[str, Any]) -> list[str]:
+    deps = job.get("depends_on")
+    if isinstance(deps, list):
+        return [str(dep) for dep in deps if str(dep)]
+    if isinstance(deps, str) and deps:
+        return [deps]
+    return []
+
+
+def _pipeline_stage_dependencies(
+    stage_id: str,
+    selected_stage_ids: list[str],
+    *,
+    schedule: str = "dag",
+) -> list[str]:
+    if schedule == "serial":
+        idx = selected_stage_ids.index(stage_id)
+        return [selected_stage_ids[idx - 1]] if idx > 0 else []
+    selected = set(selected_stage_ids)
+    if stage_id == "goal-audit":
+        return [sid for sid in selected_stage_ids if sid != stage_id]
+
+    def nearest_selected_upstream(current: str, seen: set[str]) -> list[str]:
+        deps: list[str] = []
+        for dep in _PIPELINE_STAGE_DEPS.get(current, ()):
+            if dep in seen:
+                continue
+            seen.add(dep)
+            if dep in selected:
+                deps.append(dep)
+            else:
+                deps.extend(nearest_selected_upstream(dep, seen))
+        return deps
+
+    ordered: list[str] = []
+    for dep in nearest_selected_upstream(stage_id, set()):
+        if dep not in ordered:
+            ordered.append(dep)
+    return ordered
+
+
+def _resolve_pipeline_schedule(requested_schedule: str, stages: list[dict[str, str]]) -> str:
+    if requested_schedule in {"dag", "serial"}:
+        return requested_schedule
+    worker_urls = {
+        _resolve_worker_url(str(stage.get("workflow") or ""))
+        for stage in stages
+    }
+    return "dag" if len(worker_urls) > 1 else "serial"
+
+
+def _ordered_pipeline_stages(stages: list[dict[str, str]]) -> list[dict[str, str]]:
+    return sorted(stages, key=lambda stage: _PIPELINE_STAGE_ORDER.get(stage["id"], 999))
+
+
+def _mark_downstream_blocked_locked(pipeline_id: str, failed_job_id: str, reason: str) -> None:
+    blocked_ids = {failed_job_id}
+    changed = True
+    while changed:
+        changed = False
+        for queued in _jobs.values():
+            if queued.get("pipeline_id") != pipeline_id:
+                continue
+            if queued.get("status") not in {"queued", "pending"}:
+                continue
+            if not any(dep in blocked_ids for dep in _job_dependency_ids(queued)):
+                continue
+            queued["status"] = "blocked"
+            queued["error"] = reason
+            queued["finished_at"] = time.time()
+            blocked_ids.add(queued.get("job_id", ""))
+            changed = True
+
 
 def get_jobs_state() -> tuple[dict[str, dict[str, Any]], threading.Lock]:
     """Return (_jobs, _jobs_lock) for callers in atlas_ui.py that need
@@ -64,6 +167,394 @@ def get_jobs_state() -> tuple[dict[str, dict[str, Any]], threading.Lock]:
 
 
 # ── Internal helpers ────────────────────────────────────────────────
+
+def _truthy_env(name: str) -> bool:
+    return str(os.environ.get(name, "")).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _safe_git_commit(project_root: Path) -> str:
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(project_root), "rev-parse", "HEAD"],
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=2,
+        )
+    except Exception:
+        return ""
+    return proc.stdout.strip() if proc.returncode == 0 else ""
+
+
+def _git_tag_exists(project_root: Path, tag: str) -> bool:
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(project_root), "rev-parse", "-q", "--verify", f"refs/tags/{tag}"],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=2,
+        )
+    except Exception:
+        return False
+    return proc.returncode == 0
+
+
+def _maybe_create_git_tag(project_root: Path, tag: str) -> str:
+    if not tag or not _safe_git_commit(project_root):
+        return ""
+    if _git_tag_exists(project_root, tag):
+        return tag
+    if not _truthy_env("ATLAS_RTL_VERSION_CREATE_GIT_TAG"):
+        return ""
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(project_root), "tag", tag],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=5,
+        )
+    except Exception:
+        return ""
+    return tag if proc.returncode == 0 or _git_tag_exists(project_root, tag) else ""
+
+
+def _file_tree_manifest(
+    project_root: Path,
+    roots: list[Path],
+    patterns: tuple[str, ...],
+    primary_candidates: tuple[Path, ...] = (),
+) -> tuple[list[dict[str, Any]], str, str]:
+    files: list[Path] = []
+    if not any(root.is_dir() for root in roots):
+        return [], "", ""
+    for root in roots:
+        if root.is_file():
+            files.append(root)
+            continue
+        if not root.is_dir():
+            continue
+        for pattern in patterns:
+            files.extend(root.rglob(pattern))
+    for candidate in primary_candidates:
+        if candidate.is_file():
+            files.append(candidate)
+    manifest: list[dict[str, Any]] = []
+    tree_hasher = hashlib.sha256()
+    for path in sorted({p.resolve() for p in files}):
+        if not path.is_file():
+            continue
+        try:
+            data = path.read_bytes()
+        except OSError:
+            continue
+        rel = path.relative_to(project_root).as_posix()
+        digest = hashlib.sha256(data).hexdigest()
+        size = len(data)
+        manifest.append({"path": rel, "sha256": digest, "size_bytes": size})
+        tree_hasher.update(rel.encode("utf-8"))
+        tree_hasher.update(b"\0")
+        tree_hasher.update(digest.encode("ascii"))
+        tree_hasher.update(b"\0")
+        tree_hasher.update(str(size).encode("ascii"))
+        tree_hasher.update(b"\n")
+    if not manifest:
+        return [], "", ""
+    primary_path = ""
+    for candidate in primary_candidates:
+        if candidate.is_file():
+            primary_path = candidate.relative_to(project_root).as_posix()
+            break
+    return manifest, tree_hasher.hexdigest(), primary_path
+
+
+def _rtl_artifact_manifest(project_root: Path, ip: str) -> tuple[list[dict[str, Any]], str, str]:
+    rtl_root = project_root / ip / "rtl"
+    filelist = project_root / ip / "list" / f"{ip}.f"
+    return _file_tree_manifest(
+        project_root,
+        [rtl_root],
+        ("*.sv", "*.svh", "*.v", "*.vh"),
+        (filelist,),
+    )
+
+
+def _stage_artifact_manifest(
+    project_root: Path,
+    ip: str,
+    artifact_type: str,
+) -> tuple[list[dict[str, Any]], str, str, str]:
+    if artifact_type == "ssot":
+        root = project_root / ip / "yaml"
+        primary = (
+            root / f"{ip}.ssot.yaml",
+            root / f"{ip}.ssot.yml",
+            root / f"{ip}.yaml",
+            root / f"{ip}.yml",
+        )
+        manifest, digest, primary_path = _file_tree_manifest(
+            project_root,
+            [root],
+            ("*.yaml", "*.yml", "*.json", "*.md"),
+            primary,
+        )
+        return manifest, digest, primary_path, f"{ip}/yaml"
+    if artifact_type == "tb":
+        root = project_root / ip / "tb"
+        primary = (
+            root / "run_tests.py",
+            root / "cocotb" / "run_tests.py",
+            root / f"{ip}_tb.sv",
+            root / "tb_top.sv",
+        )
+        manifest, digest, primary_path = _file_tree_manifest(
+            project_root,
+            [root],
+            ("*.py", "*.sv", "*.svh", "*.v", "*.vh", "*.yaml", "*.yml", "*.json", "*.md"),
+            primary,
+        )
+        return manifest, digest, primary_path, f"{ip}/tb"
+    return [], "", "", ""
+
+
+def _next_rtl_version_name(existing: list[dict[str, Any]]) -> str:
+    max_seen = 0
+    for row in existing:
+        match = re.fullmatch(r"rtl-v(\d+)", str(row.get("version") or ""))
+        if match:
+            max_seen = max(max_seen, int(match.group(1)))
+    return f"rtl-v{max_seen + 1:03d}"
+
+
+def _next_artifact_version_name(existing: list[dict[str, Any]], artifact_type: str) -> str:
+    prefix = str(artifact_type or "artifact").replace("_", "-")
+    max_seen = 0
+    for row in existing:
+        match = re.fullmatch(rf"{re.escape(prefix)}-v(\d+)", str(row.get("version") or ""))
+        if match:
+            max_seen = max(max_seen, int(match.group(1)))
+    return f"{prefix}-v{max_seen + 1:03d}"
+
+
+def _artifact_version_summary(row: dict[str, Any]) -> dict[str, Any]:
+    artifact_type = row.get("artifact_type") or row.get("type") or ""
+    return {
+        "id": row.get("id") or row.get("artifact_version_id") or "",
+        "artifact_type": artifact_type,
+        "type": artifact_type,
+        "version": row.get("version") or "",
+        "label": row.get("label") or "",
+        "sha256_tree": row.get("sha256_tree") or "",
+        "git_commit": row.get("git_commit") or "",
+        "git_tag": row.get("git_tag") or "",
+        "root_path": row.get("root_path") or row.get("rtl_root") or "",
+        "primary_path": row.get("primary_path") or row.get("filelist_path") or "",
+        "status": row.get("status") or "",
+        "role": row.get("role") or "input",
+    }
+
+
+def _artifact_versions_map(job: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    existing = job.get("artifact_versions") or {}
+    result: dict[str, dict[str, Any]] = {}
+    if isinstance(existing, dict):
+        iterable = existing.values()
+    elif isinstance(existing, list):
+        iterable = existing
+    else:
+        iterable = []
+    for item in iterable:
+        if not isinstance(item, dict):
+            continue
+        summary = _artifact_version_summary(item)
+        artifact_type = summary.get("artifact_type") or ""
+        if summary.get("id") and artifact_type:
+            result[artifact_type] = summary
+    return result
+
+
+def _set_artifact_version_context(job: dict[str, Any], row: dict[str, Any]) -> None:
+    summary = _artifact_version_summary(row)
+    artifact_type = summary.get("artifact_type") or ""
+    if not artifact_type or not summary.get("id"):
+        return
+    versions = _artifact_versions_map(job)
+    versions[artifact_type] = summary
+    job["artifact_versions"] = versions
+
+
+def _ensure_rtl_version_for_job(job: dict[str, Any], project_root: Path) -> dict[str, Any] | None:
+    if job.get("rtl_version_id") or job.get("stage_id") != "rtl":
+        return None
+    ip = str(job.get("ip") or "").strip()
+    if not ip or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+        return None
+    manifest, sha256_tree, filelist_path = _rtl_artifact_manifest(project_root, ip)
+    if not manifest or not sha256_tree:
+        return None
+    try:
+        from core.atlas_db import AtlasDB
+
+        db_path = os.environ.get("ATLAS_TRACE_DB_PATH") or os.environ.get("ATLAS_DB_PATH")
+        with (AtlasDB(db_path) if db_path else AtlasDB()) as db:
+            workspace = db.upsert_workspace(
+                project_root.name or "default",
+                local_path=str(project_root),
+            )
+            ip_row = db.upsert_ip_block(workspace["id"], ip)
+            version = _next_rtl_version_name(db.list_rtl_versions(ip_id=ip_row["id"]))
+            git_commit = _safe_git_commit(project_root)
+            git_tag = _maybe_create_git_tag(project_root, f"atlas/{ip}/{version}") if git_commit else ""
+            rtl_version = db.register_rtl_version(
+                ip_id=ip_row["id"],
+                workspace_id=workspace["id"],
+                source_run_id=str(job.get("run_id") or ""),
+                source_stage_id=str(job.get("job_id") or ""),
+                version=version,
+                label=f"{ip} {version}",
+                rtl_root=f"{ip}/rtl",
+                filelist_path=filelist_path,
+                top_module=ip,
+                artifact_manifest=manifest,
+                sha256_tree=sha256_tree,
+                git_commit=git_commit,
+                git_tag=git_tag,
+                status="generated",
+                metadata={
+                    "job_id": job.get("job_id") or "",
+                    "pipeline_id": job.get("pipeline_id") or "",
+                    "stage_id": job.get("stage_id") or "",
+                    "workflow": job.get("workflow") or "",
+                    "worker_run_id": job.get("run_id") or "",
+                },
+            )
+            inputs = _artifact_versions_map(job)
+            ssot_input = inputs.get("ssot")
+            if ssot_input and ssot_input.get("id") and rtl_version.get("artifact_version_id"):
+                db.link_artifact_versions(
+                    ssot_input["id"],
+                    rtl_version["artifact_version_id"],
+                    "generated_from",
+                    metadata={"stage_id": job.get("stage_id") or "", "job_id": job.get("job_id") or ""},
+                )
+    except Exception as exc:
+        job["rtl_version_error"] = str(exc)
+        return None
+    job["rtl_version_id"] = rtl_version.get("id") or ""
+    job["rtl_version"] = rtl_version.get("version") or version
+    job["rtl_sha256_tree"] = rtl_version.get("sha256_tree") or sha256_tree
+    job["rtl_git_commit"] = rtl_version.get("git_commit") or git_commit
+    job["rtl_git_tag"] = rtl_version.get("git_tag") or git_tag
+    job["rtl_filelist_path"] = rtl_version.get("filelist_path") or filelist_path
+    job["rtl_top_module"] = rtl_version.get("top_module") or ip
+    if rtl_version.get("artifact_version_id"):
+        _set_artifact_version_context(job, {
+            "id": rtl_version["artifact_version_id"],
+            "artifact_type": "rtl",
+            "version": rtl_version.get("version") or version,
+            "label": rtl_version.get("label") or "",
+            "root_path": rtl_version.get("rtl_root") or f"{ip}/rtl",
+            "primary_path": rtl_version.get("filelist_path") or filelist_path,
+            "sha256_tree": rtl_version.get("sha256_tree") or sha256_tree,
+            "git_commit": rtl_version.get("git_commit") or git_commit,
+            "git_tag": rtl_version.get("git_tag") or git_tag,
+            "status": rtl_version.get("status") or "generated",
+        })
+    return rtl_version
+
+
+def _copy_rtl_version_context(dst: dict[str, Any], src: dict[str, Any]) -> None:
+    for key in (
+        "rtl_version_id", "rtl_version", "rtl_sha256_tree", "rtl_git_commit",
+        "rtl_git_tag", "rtl_filelist_path", "rtl_top_module",
+    ):
+        if src.get(key) and not dst.get(key):
+            dst[key] = src[key]
+
+
+def _copy_artifact_version_context(dst: dict[str, Any], src: dict[str, Any]) -> None:
+    merged = _artifact_versions_map(dst)
+    for artifact_type, summary in _artifact_versions_map(src).items():
+        merged.setdefault(artifact_type, summary)
+    if merged:
+        dst["artifact_versions"] = merged
+    _copy_rtl_version_context(dst, src)
+
+
+def _ensure_stage_artifact_version_for_job(
+    job: dict[str, Any],
+    project_root: Path,
+) -> dict[str, Any] | None:
+    stage_id = str(job.get("stage_id") or "").strip()
+    artifact_type = _STAGE_ARTIFACT_TYPES.get(stage_id)
+    if not artifact_type:
+        return None
+    if artifact_type == "rtl":
+        return _ensure_rtl_version_for_job(job, project_root)
+    if _artifact_versions_map(job).get(artifact_type):
+        return None
+    ip = str(job.get("ip") or "").strip()
+    if not ip or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+        return None
+    manifest, sha256_tree, primary_path, root_path = _stage_artifact_manifest(
+        project_root, ip, artifact_type,
+    )
+    if not manifest or not sha256_tree:
+        return None
+    try:
+        from core.atlas_db import AtlasDB
+
+        db_path = os.environ.get("ATLAS_TRACE_DB_PATH") or os.environ.get("ATLAS_DB_PATH")
+        with (AtlasDB(db_path) if db_path else AtlasDB()) as db:
+            workspace = db.upsert_workspace(
+                project_root.name or "default",
+                local_path=str(project_root),
+            )
+            ip_row = db.upsert_ip_block(workspace["id"], ip)
+            existing = db.list_artifact_versions(ip_id=ip_row["id"], artifact_type=artifact_type)
+            version = _next_artifact_version_name(existing, artifact_type)
+            git_commit = _safe_git_commit(project_root)
+            git_tag = _maybe_create_git_tag(project_root, f"atlas/{ip}/{version}") if git_commit else ""
+            artifact = db.register_artifact_version(
+                ip_id=ip_row["id"],
+                workspace_id=workspace["id"],
+                source_run_id=str(job.get("run_id") or ""),
+                source_stage_id=str(job.get("job_id") or ""),
+                artifact_type=artifact_type,
+                version=version,
+                label=f"{ip} {version}",
+                root_path=root_path,
+                primary_path=primary_path,
+                manifest=manifest,
+                sha256_tree=sha256_tree,
+                git_commit=git_commit,
+                git_tag=git_tag,
+                status="generated",
+                metadata={
+                    "job_id": job.get("job_id") or "",
+                    "pipeline_id": job.get("pipeline_id") or "",
+                    "stage_id": stage_id,
+                    "workflow": job.get("workflow") or "",
+                    "worker_run_id": job.get("run_id") or "",
+                },
+            )
+            inputs = _artifact_versions_map(job)
+            if artifact_type == "tb":
+                for parent_type, relation in (("ssot", "generated_from"), ("rtl", "verified_against")):
+                    parent = inputs.get(parent_type)
+                    if parent and parent.get("id"):
+                        db.link_artifact_versions(
+                            parent["id"], artifact["id"], relation,
+                            metadata={"stage_id": stage_id, "job_id": job.get("job_id") or ""},
+                        )
+    except Exception as exc:
+        job[f"{artifact_type}_version_error"] = str(exc)
+        return None
+    _set_artifact_version_context(job, artifact)
+    return artifact
+
 
 def _resolve_worker_url(workflow: str) -> str:
     """Same precedence as core.delegate_runner.HTTPWorkerDelegate."""
@@ -186,12 +677,35 @@ def _default_todo_template_for_job(workflow: str, stage_id: str, ip: str) -> str
 def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
     try:
         import urllib.request as _u
+        context = job["prompt"].split("\n\n", 1)[0]
+        if job.get("rtl_version_id"):
+            context += (
+                "\n[RTL VERSION CONTEXT]\n"
+                f"- rtl_version_id: {job.get('rtl_version_id')}\n"
+                f"- rtl_version: {job.get('rtl_version') or '(external)'}\n"
+                f"- rtl_sha256_tree: {job.get('rtl_sha256_tree') or ''}\n"
+                f"- rtl_git_tag: {job.get('rtl_git_tag') or ''}\n"
+            )
+        artifact_versions = _artifact_versions_map(job)
+        if artifact_versions:
+            context += "\n[ARTIFACT VERSION CONTEXT]\n"
+            for artifact_type in sorted(artifact_versions):
+                item = artifact_versions[artifact_type]
+                context += (
+                    f"- {artifact_type}: {item.get('version') or ''} "
+                    f"({item.get('id') or ''})"
+                )
+                if item.get("git_tag"):
+                    context += f" tag={item['git_tag']}"
+                if item.get("sha256_tree"):
+                    context += f" tree={item['sha256_tree']}"
+                context += "\n"
         body = {
             "task":     job["prompt"],
             "workflow": job["workflow"],
             "session":  job.get("session", ""),
             "model":    job.get("model", ""),
-            "context":  job["prompt"].split("\n\n", 1)[0],
+            "context":  context,
             "project_root": job.get("project_root", ""),
             "source_root": job.get("source_root", ""),
             "sync":     False,
@@ -200,6 +714,10 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
             body["template"] = job["template"]
         if job.get("ip"):
             body["ip"] = job["ip"]
+        if job.get("rtl_version_id"):
+            body["rtl_version_id"] = job["rtl_version_id"]
+        if artifact_versions:
+            body["artifact_versions"] = list(artifact_versions.values())
         payload = json.dumps(body).encode("utf-8")
         req = _u.Request(
             f"{job['worker'].rstrip('/')}/run",
@@ -229,26 +747,46 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
     pipeline_id = job.get("pipeline_id") or ""
     if not pipeline_id:
         return
-    if job.get("status") in ("error", "cancelled"):
+    if job.get("status") in ("error", "cancelled", "blocked"):
+        reason = f"blocked by {job.get('workflow')} {job.get('status')}"
         with _jobs_lock:
-            for queued in _jobs.values():
-                if queued.get("pipeline_id") == pipeline_id and queued.get("status") == "queued":
-                    queued["status"]      = "blocked"
-                    queued["error"]       = f"blocked by {job.get('workflow')} {job.get('status')}"
-                    queued["finished_at"] = time.time()
+            _mark_downstream_blocked_locked(pipeline_id, job.get("job_id", ""), reason)
         return
     if job.get("status") != "completed":
         return
-    next_job = None
+    _ensure_stage_artifact_version_for_job(job, Path(job.get("project_root") or ".").resolve())
+    ready_jobs: list[dict[str, Any]] = []
     with _jobs_lock:
-        candidates = [j for j in _jobs.values()
-                      if j.get("pipeline_id") == pipeline_id and j.get("status") == "queued"]
+        jobs_by_id = {
+            str(j.get("job_id")): j
+            for j in _jobs.values()
+            if j.get("pipeline_id") == pipeline_id
+        }
+        candidates = [j for j in jobs_by_id.values() if j.get("status") == "queued"]
         candidates.sort(key=lambda j: j.get("pipeline_index", 0))
-        if candidates and candidates[0].get("depends_on") == job.get("job_id"):
-            next_job = candidates[0]
-            next_job["status"] = "pending"
-    if next_job:
-        _dispatch_job_to_worker(next_job)
+        for candidate in candidates:
+            deps = _job_dependency_ids(candidate)
+            dep_statuses = [jobs_by_id.get(dep, {}).get("status", "") for dep in deps]
+            if any(status in {"error", "cancelled", "blocked"} for status in dep_statuses):
+                candidate["status"] = "blocked"
+                candidate["error"] = "blocked by failed dependency"
+                candidate["finished_at"] = time.time()
+                continue
+            if all(status == "completed" for status in dep_statuses):
+                for dep in deps:
+                    upstream = jobs_by_id.get(dep, {})
+                    if upstream:
+                        _copy_artifact_version_context(candidate, upstream)
+                if candidate.get("stage_id") in _RTL_VERSION_DOWNSTREAM_STAGES:
+                    for dep in deps:
+                        upstream = jobs_by_id.get(dep, {})
+                        if upstream.get("rtl_version_id"):
+                            _copy_rtl_version_context(candidate, upstream)
+                            break
+                candidate["status"] = "pending"
+                ready_jobs.append(candidate)
+    for ready_job in ready_jobs:
+        _dispatch_job_to_worker(ready_job)
 
 
 def _public_job(job: dict[str, Any]) -> dict[str, Any]:
@@ -372,8 +910,9 @@ def register_jobs_routes(
     def _make_job_record(
         *, workflow: str, ip: str, prompt: str, model: str = "",
         session_name: str = "", stage_id: str = "", pipeline_id: str = "",
-        pipeline_index: int = 0, depends_on: str = "",
+        pipeline_index: int = 0, depends_on: str | list[str] = "",
         worker_override: str = "", auto_start: bool = True, template: str = "",
+        pipeline_schedule: str = "", rtl_version_id: str = "",
     ) -> dict[str, Any]:
         pr = project_root()
         stage_id    = stage_id or (_PIPELINE_BY_WORKFLOW.get(workflow, {}).get("id") or workflow)
@@ -432,6 +971,8 @@ def register_jobs_routes(
             "pipeline_id":    pipeline_id,
             "pipeline_index": pipeline_index,
             "depends_on":     depends_on,
+            "pipeline_schedule": pipeline_schedule,
+            "rtl_version_id":  rtl_version_id,
             "_last_polled":   0.0,
         }
         with _jobs_lock:
@@ -466,6 +1007,7 @@ def register_jobs_routes(
         prompt          = (body.get("prompt")   or "").strip()
         model           = (body.get("model")    or "").strip()
         template        = (body.get("template") or "").strip()
+        rtl_version_id  = (body.get("rtl_version_id") or "").strip()
         stage_raw       = (body.get("stage_id") or body.get("stage") or "").strip()
         session_raw     = (body.get("session")  or "").strip()
         session_name    = normalize_session_name(session_raw)
@@ -482,6 +1024,8 @@ def register_jobs_routes(
             return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
         if model and not re.match(r"^[A-Za-z0-9_.:/@+\-]+$", model):
             return JSONResponse({"error": f"invalid model {model!r}"}, status_code=400)
+        if rtl_version_id and not re.match(r"^[A-Za-z0-9_.:\-]+$", rtl_version_id):
+            return JSONResponse({"error": f"invalid rtl_version_id {rtl_version_id!r}"}, status_code=400)
         if session_raw and not session_name:
             return JSONResponse({"error": f"invalid session {session_raw!r}"}, status_code=400)
         if worker_override and not re.match(r"^https?://[A-Za-z0-9_.:\-/]+$", worker_override):
@@ -492,6 +1036,7 @@ def register_jobs_routes(
             workflow=workflow, ip=ip, prompt=prompt, model=model,
             session_name=session_name, stage_id=stage_id,
             worker_override=worker_override, auto_start=True, template=template,
+            rtl_version_id=rtl_version_id,
         )
         if job.get("status") == "error":
             return JSONResponse({"error": job.get("error"), "worker": job.get("worker")}, status_code=502)
@@ -544,6 +1089,7 @@ def register_jobs_routes(
             prompt          = (item.get("prompt")   or "").strip()
             model           = (item.get("model")    or "").strip()
             template        = (item.get("template") or "").strip()
+            rtl_version_id  = (item.get("rtl_version_id") or "").strip()
             stage_raw       = (item.get("stage_id") or item.get("stage") or "").strip()
             session_raw     = (item.get("session")  or "").strip()
             session_name    = normalize_session_name(session_raw)
@@ -564,6 +1110,9 @@ def register_jobs_routes(
             if model and not re.match(r"^[A-Za-z0-9_.:/@+\-]+$", model):
                 errors.append({"index": idx, "error": f"invalid model {model!r}"})
                 continue
+            if rtl_version_id and not re.match(r"^[A-Za-z0-9_.:\-]+$", rtl_version_id):
+                errors.append({"index": idx, "error": f"invalid rtl_version_id {rtl_version_id!r}"})
+                continue
             if session_raw and not session_name:
                 errors.append({"index": idx, "error": f"invalid session {session_raw!r}"})
                 continue
@@ -576,6 +1125,7 @@ def register_jobs_routes(
                 workflow=workflow, ip=ip, prompt=prompt, model=model,
                 session_name=session_name, stage_id=stage_id,
                 worker_override=worker_override, auto_start=True, template=template,
+                rtl_version_id=rtl_version_id,
             )
             created.append(_public_job(job))
 
@@ -603,9 +1153,15 @@ def register_jobs_routes(
             return JSONResponse({"error": "expected JSON object"}, status_code=400)
         ip         = (body.get("ip")     or "").strip()
         model      = (body.get("model")  or "").strip()
+        rtl_version_id = (body.get("rtl_version_id") or "").strip()
         user_prompt = (body.get("prompt") or "").strip()
+        requested_schedule = (body.get("schedule") or "auto").strip().lower()
         if ip and not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
+        if requested_schedule not in {"auto", "dag", "serial"}:
+            return JSONResponse({"error": "schedule must be 'auto', 'dag', or 'serial'"}, status_code=400)
+        if rtl_version_id and not re.match(r"^[A-Za-z0-9_.:\-]+$", rtl_version_id):
+            return JSONResponse({"error": f"invalid rtl_version_id {rtl_version_id!r}"}, status_code=400)
         requested = body.get("stages") or [s["id"] for s in _PIPELINE_STAGES]
         if not isinstance(requested, list) or not requested:
             return JSONResponse({"error": "stages must be a non-empty list"}, status_code=400)
@@ -617,26 +1173,38 @@ def register_jobs_routes(
                 return JSONResponse({"error": f"unknown pipeline stage {key!r}"}, status_code=400)
             if not any(s["id"] == stage["id"] for s in resolved):
                 resolved.append(stage)
+        schedule = _resolve_pipeline_schedule(requested_schedule, resolved)
+        resolved = _ordered_pipeline_stages(resolved)
         pipeline_id      = uuid.uuid4().hex[:12]
         jobs: list       = []
-        previous_job_id  = ""
+        stage_job_ids: dict[str, str] = {}
+        selected_stage_ids = [stage["id"] for stage in resolved]
         for idx, stage in enumerate(resolved):
             workflow     = stage["workflow"]
             stage_prompt = _default_workflow_prompt(workflow, ip, stage["id"])
             if user_prompt:
                 stage_prompt += f"\n\n[User pipeline goal]\n{user_prompt}"
             session = f"{ip or 'soc'}/pipeline/{pipeline_id}/{idx + 1:02d}-{workflow}"
+            dep_stage_ids = _pipeline_stage_dependencies(
+                stage["id"], selected_stage_ids, schedule=schedule,
+            )
+            dep_job_ids = [stage_job_ids[dep] for dep in dep_stage_ids if dep in stage_job_ids]
+            depends_on: str | list[str]
+            depends_on = dep_job_ids[0] if schedule == "serial" and dep_job_ids else dep_job_ids
             job = _make_job_record(
                 workflow=workflow, ip=ip, prompt=stage_prompt, model=model,
                 session_name=session, stage_id=stage["id"], pipeline_id=pipeline_id,
-                pipeline_index=idx, depends_on=previous_job_id,
-                auto_start=(idx == 0),
+                pipeline_index=idx, depends_on=depends_on,
+                auto_start=(not dep_job_ids), pipeline_schedule=schedule,
+                rtl_version_id=rtl_version_id if stage["id"] in _RTL_VERSION_DOWNSTREAM_STAGES else "",
             )
-            previous_job_id = job["job_id"]
+            stage_job_ids[stage["id"]] = job["job_id"]
             jobs.append(_public_job(job))
         return JSONResponse({
             "ok":         True,
             "pipeline_id": pipeline_id,
+            "schedule":    schedule,
+            "requested_schedule": requested_schedule,
             "ip":          ip,
             "stages":      resolved,
             "jobs":        jobs,

@@ -65,5 +65,39 @@ surface. The authoritative work breakdown is the derived dynamic tracker, so a
 fresh run starts dynamic tracker tasks as `pending`; current audit pass/fail
 state is preserved in each task detail/criteria, not pre-approved.
 
+## SSOT Contract Enforcement
+
+RTL-gen is the `SSOT -> RTL` workflow. It must read the current SSOT as the
+mandatory reference and translate that contract into RTL. At the start of a run
+it should create an internal ledger from:
+
+- `top_module`
+- `io_list.interfaces`
+- `io_list.clock_domains`
+- `sub_modules`
+- `filelist.rtl`
+- `registers`
+- `function_model`
+- `cycle_model`
+- `fsm`
+- timing/synthesis/lint/DFT/quality-gate sections
+- `workflow_todos.rtl-gen[]`
+
+Every generated RTL file and every TODO closure must trace back to that ledger.
+Existing RTL may be reused only when it already matches the ledger. If the
+artifact has missing manifest files, mismatched top ports, stale filelist
+entries, or a generic fixture interface such as `valid/data_in/result`, it is
+not a downstream-ready RTL result. The correct loop is:
+
+1. Keep SSOT locked.
+2. Mark the mismatch as rtl-gen-owned.
+3. Repair or rewrite RTL through the rtl-gen workflow.
+4. Regenerate `<ip>/list/<ip>.f`.
+5. Rerun compile, DUT-only lint, and `derive_rtl_todos.py --audit-rtl`.
+6. Continue downstream only after required RTL TODOs pass by evidence.
+
+Route to ssot-gen only when the missing fact is actually absent or
+contradictory in SSOT, and cite the exact YAML path in `[SSOT TBD REPORT]`.
+
 See `workflow/COMMON_ENGINE_FLOW.md` for the full req -> SSOT -> FL -> RTL ->
 TB -> sim -> sim-debug -> goal-audit flow.

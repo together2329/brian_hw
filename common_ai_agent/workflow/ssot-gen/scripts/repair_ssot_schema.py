@@ -937,6 +937,88 @@ def _ensure_ready_constant_policy(doc: dict[str, Any]) -> None:
             port.setdefault("constant_value", "1'b1")
 
 
+def _state_name_for_internal_output_rule(rule: dict[str, Any], state_names: set[str]) -> str:
+    raw_values = [
+        str(rule.get("port") or "").strip(),
+        str(rule.get("name") or "").strip(),
+    ]
+    candidates: list[str] = []
+    for raw in raw_values:
+        if not raw:
+            continue
+        pieces = [part for part in re.split(r"[^A-Za-z0-9_]+", raw) if part]
+        for value in [raw, *reversed(pieces)]:
+            if value and value not in candidates:
+                candidates.append(value)
+            if value.endswith("_next"):
+                base = value[: -len("_next")]
+                for item in (f"{base}_q", base):
+                    if item and item not in candidates:
+                        candidates.append(item)
+            if value.endswith("_d"):
+                base = value[: -len("_d")]
+                for item in (f"{base}_q", base):
+                    if item and item not in candidates:
+                        candidates.append(item)
+    for candidate in candidates:
+        if candidate in state_names:
+            return candidate
+    return candidates[0] if candidates else ""
+
+
+def _move_internal_output_rules_to_state_updates(
+    txs: list[dict[str, Any]],
+    *,
+    output_ports: set[str],
+    output_map: dict[str, Any],
+    state_names: set[str],
+) -> None:
+    if not output_ports:
+        return
+    for tx in txs:
+        rules = tx.get("output_rules") if isinstance(tx.get("output_rules"), list) else []
+        if not rules:
+            continue
+        kept_rules: list[Any] = []
+        updates = tx.get("state_updates") if isinstance(tx.get("state_updates"), list) else []
+        existing_updates = {
+            str(item.get("name") or item.get("state") or "").strip()
+            for item in updates
+            if isinstance(item, dict)
+        }
+        for rule in rules:
+            if not isinstance(rule, dict):
+                kept_rules.append(rule)
+                continue
+            name = str(rule.get("name") or "").strip()
+            raw_port = rule.get("port") or rule.get("output_port")
+            if (raw_port is None or str(raw_port).strip() == "") and name:
+                raw_port = output_map.get(name)
+            port = _concrete_port_ref(raw_port or name, output_ports)
+            if port in output_ports:
+                rule["port"] = port
+                kept_rules.append(rule)
+                continue
+
+            state_name = _state_name_for_internal_output_rule(rule, state_names)
+            if not state_name:
+                continue
+            if state_name not in existing_updates:
+                updates.append(
+                    {
+                        "name": state_name,
+                        "expr": _normalize_rule_expr(rule.get("expr", rule.get("expression", rule.get("value", 0)))),
+                        "width": rule.get("width", rule.get("bit_width", 1)),
+                        "description": rule.get("description")
+                        or "Moved from output_rules because this rule updates internal architectural state, not a declared output port.",
+                    }
+                )
+                existing_updates.add(state_name)
+        tx["output_rules"] = kept_rules
+        if updates:
+            tx["state_updates"] = updates
+
+
 def _ensure_function_model_machine_rules(doc: dict[str, Any]) -> None:
     fm = doc.get("function_model")
     if not isinstance(fm, dict):
@@ -1007,6 +1089,17 @@ def _ensure_function_model_machine_rules(doc: dict[str, Any]) -> None:
     if not output_ports:
         return
     output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
+    state_names = {
+        str(state.get("name") or "").strip()
+        for state in fm.get("state_variables") or []
+        if isinstance(state, dict) and str(state.get("name") or "").strip()
+    }
+    _move_internal_output_rules_to_state_updates(
+        txs,
+        output_ports=output_ports,
+        output_map=output_map,
+        state_names=state_names,
+    )
     contract_rules = contract.get("output_rules") if isinstance(contract.get("output_rules"), list) else []
     contract_rule_ports = {
         _concrete_port_ref(rule.get("port") or rule.get("name"), output_ports)
@@ -1222,12 +1315,55 @@ def _ensure_registers(doc: dict[str, Any]) -> dict[str, Any]:
         if not promoted.get("register_list"):
             promoted.setdefault("no_registers", True)
             promoted.setdefault("policy", "No firmware-visible registers are declared; add register_list before CSR behavior is implemented.")
+        _ensure_register_write_effects(promoted)
         return promoted
-    return {
+    out = {
         "no_registers": True,
         "policy": "No firmware-visible registers are implied by repair; add explicit register_list entries before rtl-gen implements CSR behavior.",
         "register_list": [],
     }
+    _ensure_register_write_effects(out)
+    return out
+
+
+def _ensure_register_write_effects(regs: dict[str, Any]) -> None:
+    for reg in regs.get("register_list") or []:
+        if not isinstance(reg, dict):
+            continue
+        reg_write_effect = (
+            reg.get("write_effect")
+            or reg.get("write_behavior")
+            or reg.get("write_side_effects")
+            or reg.get("write_side_effect")
+            or reg.get("side_effects")
+        )
+        for field in reg.get("fields") or []:
+            if not isinstance(field, dict):
+                continue
+            access = str(field.get("access") or reg.get("access") or "").lower()
+            if access == "reserved":
+                field.setdefault("read_value", 0)
+                field.setdefault("write_effect", "Writes are ignored and the field remains at its reserved read value.")
+                continue
+            if "w" not in access:
+                continue
+            field_effect = (
+                field.get("write_effect")
+                or field.get("write_behavior")
+                or field.get("write_side_effects")
+                or field.get("write_side_effect")
+                or field.get("side_effects")
+                or reg_write_effect
+            )
+            if field_effect:
+                field["write_effect"] = field_effect
+                continue
+            if "w1c" in access:
+                field["write_effect"] = "Writing 1 clears the corresponding status bit; writing 0 leaves it unchanged."
+            elif "w1s" in access:
+                field["write_effect"] = "Writing 1 sets the corresponding status bit; writing 0 leaves it unchanged."
+            elif access in {"rw", "wr", "write", "wo"} or "w" in access:
+                field["write_effect"] = "APB write data updates this field value according to its bit mask."
 
 
 def _promote_register_note_entries(regs: dict[str, Any]) -> dict[str, Any]:

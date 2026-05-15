@@ -11,6 +11,37 @@ For production ATLAS flows, `<ip>/yaml/<ip>.ssot.yaml` is the only semantic auth
 - If a needed behavior is missing, leave it `TBD (missing in SSOT)` and emit `[SSOT TBD REPORT] -> ssot-gen`.
 - A DONE result must include `SSOT TBD REPORT: none`.
 
+## SSOT -> RTL Contract-First Implementation
+
+RTL-gen is an SSOT-to-RTL translation workflow. Before writing or repairing
+RTL, read the current canonical SSOT as the mandatory reference and build a
+short contract ledger from it. This ledger is the implementation checklist, not
+optional background context. It must name:
+
+- canonical SSOT path and top module name
+- public ports from `io_list.interfaces`, including clocks, resets, buses,
+  interrupts, inout pins, widths, directions, and clock domains
+- every `sub_modules[]` entry with its exact module name, `file`, ownership,
+  and whether rtl-gen must write or instantiate it
+- `filelist.rtl` expectations and the exact `<ip>/list/<ip>.f` entries to
+  produce
+- registers, bitfields, reset values, access rules, side effects, and interrupt
+  clear/set behavior
+- `function_model`, `cycle_model`, `fsm`, dataflow, error, debug, DFT,
+  synthesis/timing, and quality-gate refs that must be implemented or traced
+- all `workflow_todos.rtl-gen[]` items with content/detail/criteria/source refs
+
+Then implement against that ledger. Existing RTL files, copied examples, fixed
+IP-kind templates, previous run artifacts, and generic valid/data/result
+fixtures are not authority. If existing RTL disagrees with SSOT ports, module
+names, filenames, hierarchy ownership, or filelist entries, treat the RTL as
+stale/incomplete and repair or rewrite it. Do not continue downstream with a
+known mismatch.
+
+Only emit `[SSOT TBD REPORT] -> ssot-gen` when a specific required fact is
+absent, contradictory, or placeholder-only in SSOT. Do not blame SSOT merely
+because the current RTL artifact has a different hierarchy or generic ports.
+
 **RTL syntax policy: synthesizable SystemVerilog subset in `.sv` files** — module ANSI ports default to `input logic` / `output logic` / `inout wire`, internal single-driver RTL signals use `logic`, and clocked/combinational behavior still uses portable `always @(posedge clk ...)` / `always @(*)` blocks. Shared parameters, when needed, live in `rtl/<ip>_param.vh` and are included inside consuming modules. **`typedef`, `enum`, `always_ff`, `always_comb`, `always_latch`, `package`, `endpackage`, `import …::*`, `interface`, `modport`, `function`, `endfunction`, `task`, `endtask`, `for`, and `while` are FORBIDDEN in generated RTL.**
 
 ## ABSOLUTE RULES — anti-hallucination

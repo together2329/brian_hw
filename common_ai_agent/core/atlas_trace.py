@@ -9,6 +9,8 @@ for UI/admin queries.
 from __future__ import annotations
 
 import os
+import json
+import threading
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -18,10 +20,44 @@ from core.atlas_db import AtlasDB
 
 
 _TRUE_VALUES = {"1", "true", "yes", "on"}
+_TRACE_RUNTIME = threading.local()
+
+
+def push_trace_runtime(**fields: Any) -> dict[str, Any]:
+    """Install per-thread trace fields for worker runs.
+
+    HTTP workers may process multiple jobs in one process, so trace identity
+    cannot rely only on process-wide environment variables. Env remains the
+    fallback for CLI/headless runs.
+    """
+    previous = dict(getattr(_TRACE_RUNTIME, "fields", {}) or {})
+    cleaned = {}
+    for k, v in fields.items():
+        if v is None:
+            continue
+        if isinstance(v, (dict, list, tuple)):
+            cleaned[str(k)] = json.dumps(v, ensure_ascii=False)
+        else:
+            cleaned[str(k)] = str(v or "")
+    merged = dict(previous)
+    merged.update(cleaned)
+    _TRACE_RUNTIME.fields = merged
+    return previous
+
+
+def pop_trace_runtime(previous: dict[str, Any] | None) -> None:
+    _TRACE_RUNTIME.fields = dict(previous or {})
+
+
+def _trace_value(name: str, default: str = "") -> str:
+    fields = getattr(_TRACE_RUNTIME, "fields", {}) or {}
+    if name in fields:
+        return str(fields.get(name) or "")
+    return str(os.environ.get(name) or default)
 
 
 def _enabled_from_env() -> bool:
-    return str(os.environ.get("ATLAS_TRACE_ENABLE", "")).strip().lower() in _TRUE_VALUES
+    return _trace_value("ATLAS_TRACE_ENABLE").strip().lower() in _TRUE_VALUES
 
 
 def _as_notes(value: Any) -> list[Any]:
@@ -44,6 +80,41 @@ def _item_value(item: Any, attr: str, default: Any = "") -> Any:
     return default
 
 
+def _runtime_artifact_versions() -> list[dict[str, Any]]:
+    raw = _trace_value("ATLAS_ACTIVE_ARTIFACT_VERSIONS")
+    if not raw:
+        return []
+    try:
+        parsed = json.loads(raw)
+    except (TypeError, json.JSONDecodeError):
+        return []
+    items: list[Any]
+    if isinstance(parsed, dict):
+        items = list(parsed.values())
+    elif isinstance(parsed, list):
+        items = parsed
+    else:
+        return []
+    result: list[dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        version_id = str(item.get("id") or item.get("artifact_version_id") or "").strip()
+        if not version_id:
+            continue
+        result.append({
+            "artifact_version_id": version_id,
+            "role": str(item.get("role") or "input"),
+            "required": bool(item.get("required", True)),
+            "metadata": {
+                "artifact_type": item.get("artifact_type") or item.get("type") or "",
+                "version": item.get("version") or "",
+                "source": "trace_runtime",
+            },
+        })
+    return result
+
+
 class TraceRecorder:
     """Write canonical workflow trace events for one explicit context."""
 
@@ -51,26 +122,40 @@ class TraceRecorder:
         self.db = db
         self.context = context
 
+    def _attach_runtime_artifact_versions(self, run_id: str) -> None:
+        for item in _runtime_artifact_versions():
+            try:
+                self.db.attach_run_artifact_version(
+                    run_id,
+                    item["artifact_version_id"],
+                    stage_id=self.context.stage_id,
+                    role=item["role"],
+                    required=item["required"],
+                    metadata=item["metadata"],
+                )
+            except Exception:
+                continue
+
     @classmethod
     def from_env(cls) -> "TraceRecorder | None":
         if not _enabled_from_env():
             return None
 
-        project_root = Path(os.environ.get("ATLAS_PROJECT_ROOT") or Path.cwd()).resolve()
-        db_path = os.environ.get("ATLAS_TRACE_DB_PATH") or os.environ.get("ATLAS_DB_PATH")
+        project_root = Path(_trace_value("ATLAS_PROJECT_ROOT") or Path.cwd()).resolve()
+        db_path = _trace_value("ATLAS_TRACE_DB_PATH") or _trace_value("ATLAS_DB_PATH")
         db = AtlasDB(db_path) if db_path else AtlasDB()
 
         session_key = (
-            os.environ.get("ATLAS_ACTIVE_SESSION")
-            or f"{os.environ.get('ATLAS_DEFAULT_SESSION_ID') or 'default'}/"
-            f"{os.environ.get('ATLAS_ACTIVE_IP') or 'default'}/"
-            f"{os.environ.get('ATLAS_DEFAULT_WORKFLOW') or 'default'}"
+            _trace_value("ATLAS_ACTIVE_SESSION")
+            or f"{_trace_value('ATLAS_DEFAULT_SESSION_ID', 'default')}/"
+            f"{_trace_value('ATLAS_ACTIVE_IP', 'default')}/"
+            f"{_trace_value('ATLAS_DEFAULT_WORKFLOW', 'default')}"
         )
         ctx = SessionContext.from_session_key(
             session_key,
-            session_id=os.environ.get("ATLAS_DB_SESSION_ID") or session_key,
+            session_id=_trace_value("ATLAS_DB_SESSION_ID") or session_key,
             project_root=project_root,
-            correlation_id=os.environ.get("ATLAS_TRACE_CORRELATION_ID") or "",
+            correlation_id=_trace_value("ATLAS_TRACE_CORRELATION_ID") or "",
         )
 
         workspace = db.upsert_workspace(
@@ -78,17 +163,18 @@ class TraceRecorder:
             owner_user_id=ctx.owner,
             local_path=str(project_root),
         )
-        ip = db.upsert_ip_block(workspace["id"], os.environ.get("ATLAS_ACTIVE_IP") or ctx.ip_name)
+        ip = db.upsert_ip_block(workspace["id"], _trace_value("ATLAS_ACTIVE_IP") or ctx.ip_name)
         ctx = replace(
             ctx,
             workspace_id=workspace["id"],
             workspace_name=workspace["name"],
             ip_id=ip["id"],
             ip_name=ip["ip_name"],
-            workflow=os.environ.get("ATLAS_DEFAULT_WORKFLOW") or ctx.workflow,
+            workflow=_trace_value("ATLAS_DEFAULT_WORKFLOW") or ctx.workflow,
+            rtl_version_id=_trace_value("ATLAS_ACTIVE_RTL_VERSION_ID"),
         )
 
-        run_id = os.environ.get("ATLAS_ACTIVE_RUN_ID") or ""
+        run_id = _trace_value("ATLAS_ACTIVE_RUN_ID")
         if run_id:
             ctx = ctx.with_run(run_id)
         else:
@@ -96,21 +182,32 @@ class TraceRecorder:
                 session_id=ctx.session_id or ctx.session_key,
                 workspace_id=ctx.workspace_id,
                 ip_id=ctx.ip_id,
+                rtl_version_id=ctx.rtl_version_id,
                 workflow=ctx.workflow,
-                mode=os.environ.get("ATLAS_TRACE_MODE") or "interactive",
-                model_profile=os.environ.get("ATLAS_MODEL_PROFILE") or "",
-                reasoning_effort=os.environ.get("ATLAS_REASONING_EFFORT") or "",
-                trigger=os.environ.get("ATLAS_TRACE_TRIGGER") or "todo_tool",
-                input_summary=os.environ.get("ATLAS_TRACE_INPUT_SUMMARY") or "",
+                mode=_trace_value("ATLAS_TRACE_MODE") or "interactive",
+                model_profile=_trace_value("ATLAS_MODEL_PROFILE") or "",
+                reasoning_effort=_trace_value("ATLAS_REASONING_EFFORT") or "",
+                trigger=_trace_value("ATLAS_TRACE_TRIGGER") or "todo_tool",
+                input_summary=_trace_value("ATLAS_TRACE_INPUT_SUMMARY") or "",
             )
-            os.environ["ATLAS_ACTIVE_RUN_ID"] = run["id"]
+            runtime_fields = dict(getattr(_TRACE_RUNTIME, "fields", {}) or {})
+            if runtime_fields:
+                runtime_fields["ATLAS_ACTIVE_RUN_ID"] = run["id"]
+                _TRACE_RUNTIME.fields = runtime_fields
+            else:
+                os.environ["ATLAS_ACTIVE_RUN_ID"] = run["id"]
             ctx = ctx.with_run(run["id"])
-            cls(db, ctx)._record_event(
+            recorder = cls(db, ctx)
+            recorder._attach_runtime_artifact_versions(run["id"])
+            recorder._record_event(
                 "workflow_run.started",
                 payload={"trigger": "todo_tool", "source": "env"},
                 idempotency_key=f"run-start:{run['id']}",
             )
-        return cls(db, ctx)
+        recorder = cls(db, ctx)
+        if run_id:
+            recorder._attach_runtime_artifact_versions(run_id)
+        return recorder
 
     def _existing_event(self, idempotency_key: str) -> dict[str, Any] | None:
         if not idempotency_key:
@@ -170,6 +267,7 @@ class TraceRecorder:
             session_id=self.context.session_id or self.context.session_key,
             workspace_id=self.context.workspace_id,
             ip_id=self.context.ip_id,
+            rtl_version_id=self.context.rtl_version_id,
             workflow=self.context.workflow,
             mode=mode,
             model_profile=model_profile,
@@ -179,6 +277,7 @@ class TraceRecorder:
             status=status,
         )
         self.context = self.context.with_run(run["id"])
+        self._attach_runtime_artifact_versions(run["id"])
         self._record_event(
             "workflow_run.started",
             payload={
@@ -368,6 +467,7 @@ class TraceRecorder:
             run_id=self.context.run_id,
             stage_id=self.context.stage_id,
             ip_id=self.context.ip_id,
+            rtl_version_id=self.context.rtl_version_id,
             workflow=self.context.workflow,
             kind=kind,
             path=path,

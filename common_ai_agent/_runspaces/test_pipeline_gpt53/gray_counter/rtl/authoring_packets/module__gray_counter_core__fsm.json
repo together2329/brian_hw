@@ -1,0 +1,947 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 21,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 4,
+      "key": "fsm",
+      "module_task_count": 102,
+      "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/gray_counter_core.sv",
+      "name": "gray_counter_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.latency",
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "dataflow",
+        "decomposition",
+        "error_handling",
+        "features",
+        "fsm",
+        "fsm.control",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.GC_TXN_ADVANCE",
+        "function_model.transactions.GC_TXN_CLEAR",
+        "function_model.transactions.GC_TXN_HOLD",
+        "function_model.transactions.GC_TXN_RESET",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/gray_counter_core.sv",
+        "name": "gray_counter_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gray_counter.sv",
+        "name": "gray_counter_top",
+        "wiring_only": true
+      },
+      {
+        "file": "rtl/gray_counter.sv",
+        "name": "gray_counter",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "sub_modules[0].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "sub_modules[0].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "enable",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "sub_modules[0].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "clear",
+        "signal": "clear",
+        "signal_terms": [],
+        "source_ref": "sub_modules[0].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "gray_value",
+        "signal": "gray_value",
+        "signal_terms": [
+          "gray_value"
+        ],
+        "source_ref": "sub_modules[0].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "bin_value",
+        "signal": "bin_value",
+        "signal_terms": [
+          "bin_value"
+        ],
+        "source_ref": "sub_modules[0].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "done",
+        "signal": "done",
+        "signal_terms": [
+          "done"
+        ],
+        "source_ref": "sub_modules[0].connections[6]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 13,
+    "open_required_count": 13,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "gray_counter",
+  "kind": "module",
+  "owner_file": "rtl/gray_counter_core.sv",
+  "owner_module": "gray_counter_core",
+  "packet_id": "module__gray_counter_core__fsm",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "fsm.state": 5,
+      "fsm.transition": 8
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 4,
+      "key": "fsm",
+      "module_task_count": 102,
+      "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 13,
+    "required_count": 13,
+    "source_refs": [
+      "fsm.control.states.state_0",
+      "fsm.control.states.state_1",
+      "fsm.control.states.state_2",
+      "fsm.control.states.state_3",
+      "fsm.control.states.state_4",
+      "fsm.control.transitions.transition_0",
+      "fsm.control.transitions.transition_1",
+      "fsm.control.transitions.transition_2",
+      "fsm.control.transitions.transition_3",
+      "fsm.control.transitions.transition_4",
+      "fsm.control.transitions.transition_5",
+      "fsm.control.transitions.transition_6",
+      "fsm.control.transitions.transition_7"
+    ],
+    "status_counts": {
+      "open": 13
+    },
+    "task_count": 13
+  },
+  "tasks": [
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_0",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_0.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0103",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_1",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_1.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: value=RUN.",
+      "evidence_terms": [
+        "RUN"
+      ],
+      "id": "RTL-0104",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_1",
+      "ssot_context": {
+        "value": "RUN"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RUN"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_2",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_2.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: value=WRAP_PULSE.",
+      "evidence_terms": [
+        "WRAP_PULSE"
+      ],
+      "id": "RTL-0105",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_2",
+      "ssot_context": {
+        "value": "WRAP_PULSE"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "WRAP_PULSE"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_3",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_3",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_3.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: value=CLEARED.",
+      "evidence_terms": [
+        "CLEARED"
+      ],
+      "id": "RTL-0106",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_3",
+      "ssot_context": {
+        "value": "CLEARED"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CLEARED"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_4",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_4",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_4.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: value=RESET.",
+      "evidence_terms": [
+        "RESET"
+      ],
+      "id": "RTL-0107",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_4",
+      "ssot_context": {
+        "value": "RESET"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RESET"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_0",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv",
+        "fsm.control.transitions.transition_0 condition is implemented as RTL control logic: rst_n deasserted and first rising edge observed",
+        "fsm.control.transitions.transition_0 transition path RESET -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_0.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: from=RESET; to=IDLE; condition=rst_n deasserted and first rising edge observed.",
+      "evidence_terms": [
+        "IDLE",
+        "RESET",
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0108",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_0",
+      "ssot_context": {
+        "condition": "rst_n deasserted and first rising edge observed",
+        "from": "RESET",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RESET",
+          "rst",
+          "rst_n"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_1",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv",
+        "fsm.control.transitions.transition_1 condition is implemented as RTL control logic: clear sampled high",
+        "fsm.control.transitions.transition_1 transition path IDLE -> CLEARED is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_1.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: from=IDLE; to=CLEARED; condition=clear sampled high.",
+      "evidence_terms": [
+        "CLEARED",
+        "IDLE"
+      ],
+      "id": "RTL-0109",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_1",
+      "ssot_context": {
+        "condition": "clear sampled high",
+        "from": "IDLE",
+        "to": "CLEARED"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CLEARED",
+          "IDLE"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_2",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv",
+        "fsm.control.transitions.transition_2 condition is implemented as RTL control logic: enable sampled high and clear low",
+        "fsm.control.transitions.transition_2 transition path IDLE -> RUN is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_2.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: from=IDLE; to=RUN; condition=enable sampled high and clear low.",
+      "evidence_terms": [
+        "IDLE",
+        "RUN"
+      ],
+      "id": "RTL-0110",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_2",
+      "ssot_context": {
+        "condition": "enable sampled high and clear low",
+        "from": "IDLE",
+        "to": "RUN"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RUN"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_3",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv",
+        "fsm.control.transitions.transition_3 condition is implemented as RTL control logic: advance event causes max->0 wrap",
+        "fsm.control.transitions.transition_3 transition path RUN -> WRAP_PULSE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_3.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: from=RUN; to=WRAP_PULSE; condition=advance event causes max->0 wrap.",
+      "evidence_terms": [
+        "RUN",
+        "WRAP_PULSE"
+      ],
+      "id": "RTL-0111",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_3",
+      "ssot_context": {
+        "condition": "advance event causes max->0 wrap",
+        "from": "RUN",
+        "to": "WRAP_PULSE"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUN",
+          "WRAP_PULSE"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_4",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv",
+        "fsm.control.transitions.transition_4 condition is implemented as RTL control logic: enable sampled low and clear low",
+        "fsm.control.transitions.transition_4 transition path RUN -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_4.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: from=RUN; to=IDLE; condition=enable sampled low and clear low.",
+      "evidence_terms": [
+        "IDLE",
+        "RUN"
+      ],
+      "id": "RTL-0112",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_4",
+      "ssot_context": {
+        "condition": "enable sampled low and clear low",
+        "from": "RUN",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RUN"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_5",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_5",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv",
+        "fsm.control.transitions.transition_5 condition is implemented as RTL control logic: enable remains high after one pulse cycle",
+        "fsm.control.transitions.transition_5 transition path WRAP_PULSE -> RUN is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_5.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: from=WRAP_PULSE; to=RUN; condition=enable remains high after one pulse cycle.",
+      "evidence_terms": [
+        "RUN",
+        "WRAP_PULSE"
+      ],
+      "id": "RTL-0113",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_5",
+      "ssot_context": {
+        "condition": "enable remains high after one pulse cycle",
+        "from": "WRAP_PULSE",
+        "to": "RUN"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_5"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUN",
+          "WRAP_PULSE"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_6",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_6",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv",
+        "fsm.control.transitions.transition_6 condition is implemented as RTL control logic: enable low after pulse",
+        "fsm.control.transitions.transition_6 transition path WRAP_PULSE -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_6.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: from=WRAP_PULSE; to=IDLE; condition=enable low after pulse.",
+      "evidence_terms": [
+        "IDLE",
+        "WRAP_PULSE"
+      ],
+      "id": "RTL-0114",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_6",
+      "ssot_context": {
+        "condition": "enable low after pulse",
+        "from": "WRAP_PULSE",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_6"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "WRAP_PULSE"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_7",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_7",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv",
+        "fsm.control.transitions.transition_7 condition is implemented as RTL control logic: clear low on next edge",
+        "fsm.control.transitions.transition_7 transition path CLEARED -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_7.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via fsm.control.\nSSOT item context: from=CLEARED; to=IDLE; condition=clear low on next edge.",
+      "evidence_terms": [
+        "CLEARED",
+        "IDLE"
+      ],
+      "id": "RTL-0115",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_7",
+      "ssot_context": {
+        "condition": "clear low on next edge",
+        "from": "CLEARED",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_7"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CLEARED",
+          "IDLE"
+        ],
+        "source_scope": "rtl/gray_counter_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "d473b2610c40c79069346972679ffe8377525380178163598257ddce80b959b1",
+  "top": "gray_counter",
+  "type": "rtl_authoring_packet"
+}

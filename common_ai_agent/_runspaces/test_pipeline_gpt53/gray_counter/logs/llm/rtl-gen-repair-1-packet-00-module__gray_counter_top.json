@@ -1,0 +1,47 @@
+{
+  "error": "",
+  "finish_reason": "",
+  "finished_at": "2026-05-15T09:03:10Z",
+  "input_hash": "847f5d81765aa99a43846308670a0dcf3705c01d58ded3a4d42ba0b016d779af",
+  "model": "gpt-5.3-codex",
+  "output_hash": "ca5decdab500056a1950d825cab5120291d6ebeb9a7372a6bff79af9cdcdbcd1",
+  "parsed_artifacts": [
+    {
+      "content": "module gray_counter #(\n    parameter integer WIDTH = 4,\n    parameter integer CLOCK_FREQ_MHZ = 200\n) (\n    input  logic             clk,\n    input  logic             rst_n,\n    input  logic             enable,\n    input  logic             clear,\n    output logic [WIDTH-1:0] gray_value,\n    output logic [WIDTH-1:0] bin_value,\n    output logic             done\n);\n\n    // Top-level SSOT integration shell:\n    // - exposes canonical DUT ports\n    // - forwards control/reset/clock to the owned core\n    // - returns core-computed observability signals\n    gray_counter_core #(\n        .WIDTH(WIDTH),\n        .CLOCK_FREQ_MHZ(CLOCK_FREQ_MHZ)\n    ) u_gray_counter_core (\n        .clk       (clk),\n        .rst_n     (rst_n),\n        .enable    (enable),\n        .clear     (clear),\n        .gray_value(gray_value),\n        .bin_value (bin_value),\n        .done      (done)\n    );\n\nendmodule\n",
+      "kind": "rtl",
+      "path": "gray_counter/rtl/gray_counter.sv"
+    },
+    {
+      "content": "gray_counter/rtl/gray_counter.sv\ngray_counter/rtl/gray_counter_core.sv\n",
+      "kind": "filelist",
+      "path": "gray_counter/list/gray_counter.f"
+    },
+    {
+      "content": "{\n  \"ip\": \"gray_counter\",\n  \"todo_plan_sha256\": \"d473b2610c40c79069346972679ffe8377525380178163598257ddce80b959b1\",\n  \"packet\": \"module__gray_counter_top\",\n  \"top_module\": \"gray_counter\",\n  \"owner_module\": \"gray_counter_top\",\n  \"owner_file\": \"rtl/gray_counter.sv\",\n  \"implemented\": {\n    \"parameters\": [\n      {\"name\": \"WIDTH\", \"default\": 4},\n      {\"name\": \"CLOCK_FREQ_MHZ\", \"default\": 200}\n    ],\n    \"ports\": [\n      {\"name\": \"clk\", \"dir\": \"input\", \"width\": 1},\n      {\"name\": \"rst_n\", \"dir\": \"input\", \"width\": 1},\n      {\"name\": \"enable\", \"dir\": \"input\", \"width\": 1},\n      {\"name\": \"clear\", \"dir\": \"input\", \"width\": 1},\n      {\"name\": \"gray_value\", \"dir\": \"output\", \"width\": \"WIDTH\"},\n      {\"name\": \"bin_value\", \"dir\": \"output\", \"width\": \"WIDTH\"},\n      {\"name\": \"done\", \"dir\": \"output\", \"width\": 1}\n    ],\n    \"integration\": {\n      \"child_instance\": \"u_gray_counter_core\",\n      \"child_module\": \"gray_counter_core\",\n      \"parameter_map\": [\"WIDTH\", \"CLOCK_FREQ_MHZ\"],\n      \"port_map\": [\"clk\", \"rst_n\", \"enable\", \"clear\", \"gray_value\", \"bin_value\", \"done\"]\n    }\n  },\n  \"notes\": [\n    \"Top file is wiring-only per SSOT sub_modules.gray_counter_top.wiring_only=true.\",\n    \"Latency/transaction semantics remain owned by gray_counter_core and are surfaced unchanged at top ports.\"\n  ]\n}\n",
+      "kind": "rtl_contract",
+      "path": "gray_counter/rtl/rtl_contract.json"
+    }
+  ],
+  "prompt_hash": "68f6d8e2d0351492f531fae0a90e54dd1b4209bc01c8f99f35fbb8bd467de5cb",
+  "raw_response": "{\n  \"files\": [\n    {\n      \"path\": \"gray_counter/rtl/gray_counter.sv\",\n      \"kind\": \"rtl\",\n      \"content\": \"module gray_counter #(\\n    parameter integer WIDTH = 4,\\n    parameter integer CLOCK_FREQ_MHZ = 200\\n) (\\n    input  logic             clk,\\n    input  logic             rst_n,\\n    input  logic             enable,\\n    input  logic             clear,\\n    output logic [WIDTH-1:0] gray_value,\\n    output logic [WIDTH-1:0] bin_value,\\n    output logic             done\\n);\\n\\n    // Top-level SSOT integration shell:\\n    // - exposes canonical DUT ports\\n    // - forwards control/reset/clock to the owned core\\n    // - returns core-computed observability signals\\n    gray_counter_core #(\\n        .WIDTH(WIDTH),\\n        .CLOCK_FREQ_MHZ(CLOCK_FREQ_MHZ)\\n    ) u_gray_counter_core (\\n        .clk       (clk),\\n        .rst_n     (rst_n),\\n        .enable    (enable),\\n        .clear     (clear),\\n        .gray_value(gray_value),\\n        .bin_value (bin_value),\\n        .done      (done)\\n    );\\n\\nendmodule\\n\"\n    },\n    {\n      \"path\": \"gray_counter/list/gray_counter.f\",\n      \"kind\": \"filelist\",\n      \"content\": \"gray_counter/rtl/gray_counter.sv\\ngray_counter/rtl/gray_counter_core.sv\\n\"\n    },\n    {\n      \"path\": \"gray_counter/rtl/rtl_contract.json\",\n      \"kind\": \"rtl_contract\",\n      \"content\": \"{\\n  \\\"ip\\\": \\\"gray_counter\\\",\\n  \\\"todo_plan_sha256\\\": \\\"d473b2610c40c79069346972679ffe8377525380178163598257ddce80b959b1\\\",\\n  \\\"packet\\\": \\\"module__gray_counter_top\\\",\\n  \\\"top_module\\\": \\\"gray_counter\\\",\\n  \\\"owner_module\\\": \\\"gray_counter_top\\\",\\n  \\\"owner_file\\\": \\\"rtl/gray_counter.sv\\\",\\n  \\\"implemented\\\": {\\n    \\\"parameters\\\": [\\n      {\\\"name\\\": \\\"WIDTH\\\", \\\"default\\\": 4},\\n      {\\\"name\\\": \\\"CLOCK_FREQ_MHZ\\\", \\\"default\\\": 200}\\n    ],\\n    \\\"ports\\\": [\\n      {\\\"name\\\": \\\"clk\\\", \\\"dir\\\": \\\"input\\\", \\\"width\\\": 1},\\n      {\\\"name\\\": \\\"rst_n\\\", \\\"dir\\\": \\\"input\\\", \\\"width\\\": 1},\\n      {\\\"name\\\": \\\"enable\\\", \\\"dir\\\": \\\"input\\\", \\\"width\\\": 1},\\n      {\\\"name\\\": \\\"clear\\\", \\\"dir\\\": \\\"input\\\", \\\"width\\\": 1},\\n      {\\\"name\\\": \\\"gray_value\\\", \\\"dir\\\": \\\"output\\\", \\\"width\\\": \\\"WIDTH\\\"},\\n      {\\\"name\\\": \\\"bin_value\\\", \\\"dir\\\": \\\"output\\\", \\\"width\\\": \\\"WIDTH\\\"},\\n      {\\\"name\\\": \\\"done\\\", \\\"dir\\\": \\\"output\\\", \\\"width\\\": 1}\\n    ],\\n    \\\"integration\\\": {\\n      \\\"child_instance\\\": \\\"u_gray_counter_core\\\",\\n      \\\"child_module\\\": \\\"gray_counter_core\\\",\\n      \\\"parameter_map\\\": [\\\"WIDTH\\\", \\\"CLOCK_FREQ_MHZ\\\"],\\n      \\\"port_map\\\": [\\\"clk\\\", \\\"rst_n\\\", \\\"enable\\\", \\\"clear\\\", \\\"gray_value\\\", \\\"bin_value\\\", \\\"done\\\"]\\n    }\\n  },\\n  \\\"notes\\\": [\\n    \\\"Top file is wiring-only per SSOT sub_modules.gray_counter_top.wiring_only=true.\\\",\\n    \\\"Latency/transaction semantics remain owned by gray_counter_core and are surfaced unchanged at top ports.\\\"\\n  ]\\n}\\n\"\n    }\n  ]\n}",
+  "stage": "rtl-gen",
+  "started_at": "2026-05-15T09:02:45Z",
+  "status": "pass",
+  "usage": {
+    "cache_created": 0,
+    "cache_read": 12544,
+    "cost": {
+      "pricing_per_1m": {
+        "cache": 0.26,
+        "input": 1.4,
+        "output": 4.4
+      },
+      "usd": 0.05157664
+    },
+    "input": 42966,
+    "output": 1301,
+    "total": 44267,
+    "total_cache_created": 0,
+    "total_cache_read": 12544
+  }
+}

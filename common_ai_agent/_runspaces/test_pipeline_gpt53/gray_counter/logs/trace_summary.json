@@ -1,0 +1,73 @@
+{
+  "blocked_at_stage": "rtl-gen",
+  "ip": "gray_counter",
+  "llm": {
+    "by_stage": {
+      "rtl-gen": {
+        "cache_read_tokens": 102912,
+        "calls": 10,
+        "cost_usd": 0.52909672,
+        "input_tokens": 410202,
+        "models": [
+          "gpt-5.3-codex"
+        ],
+        "output_tokens": 16394,
+        "repair_calls": 6,
+        "repair_rate": 0.6,
+        "total_tokens": 426596
+      },
+      "ssot-gen": {
+        "cache_read_tokens": 42240,
+        "calls": 3,
+        "cost_usd": 0.1492704,
+        "input_tokens": 61220,
+        "models": [
+          "gpt-5.3-codex"
+        ],
+        "output_tokens": 25390,
+        "repair_calls": 3,
+        "repair_rate": 1.0,
+        "total_tokens": 86610
+      }
+    },
+    "totals": {
+      "cache_read_tokens": 145152,
+      "calls": 13,
+      "cost_usd": 0.67836712,
+      "input_tokens": 471422,
+      "output_tokens": 41784,
+      "repair_calls": 9,
+      "repair_rate": 0.6923076923076923,
+      "total_tokens": 513206
+    }
+  },
+  "llm_log_files": 13,
+  "run_status": "fail",
+  "stage_engine_order": [
+    {
+      "created_at": "2026-05-15T09:00:12Z",
+      "stage_engine": "ssot-cycle-model",
+      "status": "pass"
+    },
+    {
+      "created_at": "2026-05-15T09:00:12Z",
+      "stage_engine": "ssot-dual-fcov",
+      "status": "pass"
+    },
+    {
+      "created_at": "2026-05-15T09:00:13Z",
+      "stage_engine": "ssot-equiv-goals",
+      "status": "pass"
+    },
+    {
+      "created_at": "2026-05-15T08:56:23Z",
+      "stage_engine": "ssot-fl-model",
+      "status": "fail"
+    },
+    {
+      "created_at": "2026-05-15T09:05:47Z",
+      "stage_engine": "ssot-rtl",
+      "status": "fail"
+    }
+  ]
+}

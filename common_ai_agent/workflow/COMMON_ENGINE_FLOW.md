@@ -57,6 +57,7 @@ The cross-linked wiki entry point for LLM/agent navigation is
    - Engine stage: `ssot-rtl`.
    - Output: RTL, filelist, `rtl/rtl_todo_plan.json`, `rtl/rtl_traceability.json`, `rtl/rtl_contract.json`, `rtl/rtl_compile.json`, and `lint/dut_lint.json`.
    - Internal order: command handler `stage:ssot-rtl` runs `workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <project-root>`, writes `rtl/rtl_todo_plan.json`, `rtl/rtl_todo_tracker.json`, and `todo/rtl_todo_tracker.json`, then loads that dynamic tracker into the existing TodoTracker.
+   - RTL-gen must treat the current SSOT as a binding contract for top ports, submodule files, filelist, registers, function/cycle behavior, timing, synthesis, and quality gates. Existing RTL is reuse evidence only; stale/generic RTL is repaired by rtl-gen, not accepted downstream.
    - `rtl-gen` must derive its active TODOs from SSOT, including all `workflow_todos.rtl-gen[]` items, and continue generation/repair until every required TODO has `todo_completion.status=pass`.
    - DUT-only compile/lint evidence is mandatory. Sim/TB logs are not lint approval.
 

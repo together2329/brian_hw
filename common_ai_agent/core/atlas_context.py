@@ -44,6 +44,7 @@ class SessionContext:
     run_id: str = ""
     stage_id: str = ""
     todo_id: str = ""
+    rtl_version_id: str = ""
     project_root: Path | str = Path(".")
     correlation_id: str = ""
 
@@ -114,6 +115,9 @@ class SessionContext:
     def with_todo(self, todo_id: str) -> "SessionContext":
         return replace(self, todo_id=todo_id or "")
 
+    def with_rtl_version(self, rtl_version_id: str) -> "SessionContext":
+        return replace(self, rtl_version_id=rtl_version_id or "")
+
     def trace_fields(self) -> dict[str, Any]:
         return {
             "session_id": self.session_id,
@@ -123,6 +127,7 @@ class SessionContext:
             "run_id": self.run_id,
             "stage_id": self.stage_id,
             "todo_id": self.todo_id,
+            "rtl_version_id": self.rtl_version_id,
             "actor_user_id": self.user_id,
             "correlation_id": self.correlation_id,
         }

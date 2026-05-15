@@ -1,0 +1,255 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 21,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 8,
+      "key": "equivalence",
+      "module_task_count": 102,
+      "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "equivalence",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/gray_counter_core.sv",
+      "name": "gray_counter_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.latency",
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "dataflow",
+        "decomposition",
+        "error_handling",
+        "features",
+        "fsm",
+        "fsm.control",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.GC_TXN_ADVANCE",
+        "function_model.transactions.GC_TXN_CLEAR",
+        "function_model.transactions.GC_TXN_HOLD",
+        "function_model.transactions.GC_TXN_RESET",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/gray_counter_core.sv",
+        "name": "gray_counter_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/gray_counter.sv",
+        "name": "gray_counter_top",
+        "wiring_only": true
+      },
+      {
+        "file": "rtl/gray_counter.sv",
+        "name": "gray_counter",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "sub_modules[0].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "sub_modules[0].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "enable",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "sub_modules[0].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "clear",
+        "signal": "clear",
+        "signal_terms": [],
+        "source_ref": "sub_modules[0].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "gray_value",
+        "signal": "gray_value",
+        "signal_terms": [
+          "gray_value"
+        ],
+        "source_ref": "sub_modules[0].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "bin_value",
+        "signal": "bin_value",
+        "signal_terms": [
+          "bin_value"
+        ],
+        "source_ref": "sub_modules[0].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "gray_counter_core",
+        "port": "done",
+        "signal": "done",
+        "signal_terms": [
+          "done"
+        ],
+        "source_ref": "sub_modules[0].connections[6]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "gray_counter",
+  "kind": "module",
+  "owner_file": "rtl/gray_counter_core.sv",
+  "owner_module": "gray_counter_core",
+  "packet_id": "module__gray_counter_core__equivalence",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 8,
+      "key": "equivalence",
+      "module_task_count": 102,
+      "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "equivalence",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 1,
+    "required_count": 1,
+    "source_refs": [
+      "sub_modules.gray_counter_core.module_equivalence"
+    ],
+    "status_counts": {
+      "open": 1
+    },
+    "task_count": 1
+  },
+  "tasks": [
+    {
+      "category": "equivalence.module",
+      "content": "Prove module gray_counter_core is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.gray_counter_core.module_equivalence",
+        "Primary implementation evidence is in rtl/gray_counter_core.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.gray_counter_core.module_equivalence.\nOwner: gray_counter_core in rtl/gray_counter_core.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0137",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.gray_counter_core.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.gray_counter_core.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/gray_counter_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "d473b2610c40c79069346972679ffe8377525380178163598257ddce80b959b1",
+  "top": "gray_counter",
+  "type": "rtl_authoring_packet"
+}

@@ -415,6 +415,224 @@ def test_ip_permissions_allow_view_and_import_by_user(tmp_path: Path) -> None:
     assert accessible[0]["permission"] == "import"
 
 
+def test_rtl_versions_anchor_lint_and_sim_run_history(tmp_path: Path) -> None:
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.create_user("owner", "Owner")
+        session = db.create_session(user["id"], "GPIO pipeline", project_id="gpio")
+        workspace = db.upsert_workspace(
+            "soc",
+            owner_user_id=user["id"],
+            local_path="/repo/soc",
+            git_branch="main",
+            head_commit="abc123",
+        )
+        ip = db.upsert_ip_block(workspace["id"], "gpio", ip_type="peripheral")
+        rtl_run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="rtl-gen",
+            mode="pipeline",
+        )
+        rtl_stage = db.start_workflow_stage(rtl_run["id"], "rtl-gen")
+        version = db.register_rtl_version(
+            ip_id=ip["id"],
+            workspace_id=workspace["id"],
+            source_run_id=rtl_run["id"],
+            source_stage_id=rtl_stage["id"],
+            version="rtl-v001",
+            label="first generated RTL",
+            rtl_root="gpio/rtl",
+            filelist_path="gpio/list/gpio.f",
+            top_module="gpio",
+            artifact_manifest=[
+                {"path": "gpio/rtl/gpio.sv", "sha256": "top"},
+                {"path": "gpio/rtl/gpio_regs.sv", "sha256": "regs"},
+            ],
+            sha256_tree="tree-v1",
+            git_commit="abc123",
+            git_tag="atlas/gpio/rtl-v001",
+        )
+        lint_run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="lint",
+            mode="pipeline",
+            rtl_version_id=version["id"],
+        )
+        sim_run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="sim",
+            mode="pipeline",
+            rtl_version_id=version["id"],
+        )
+        lint_stage = db.start_workflow_stage(lint_run["id"], "dut-lint", rtl_version_id=version["id"])
+        artifact = db.register_artifact(
+            run_id=lint_run["id"],
+            stage_id=lint_stage["id"],
+            ip_id=ip["id"],
+            workflow="lint",
+            kind="lint_report",
+            path="gpio/lint/dut_lint.json",
+            sha256="lint-json",
+            rtl_version_id=version["id"],
+        )
+        db.finish_workflow_run(lint_run["id"], "failed", error_summary="width mismatch")
+        db.finish_workflow_run(sim_run["id"], "blocked", error_summary="lint failed first")
+
+        history = db.list_rtl_run_history(ip_id=ip["id"])
+        versions = db.list_rtl_versions(ip_id=ip["id"])
+        fetched_artifact = db.list_artifacts(run_id=lint_run["id"])[0]
+        fetched_run = db.get_workflow_run(lint_run["id"])
+        fetched_stage = db.get_workflow_stage(lint_stage["id"])
+
+    assert versions[0]["version"] == "rtl-v001"
+    assert versions[0]["artifact_version_id"]
+    assert versions[0]["artifact_manifest"][0]["path"] == "gpio/rtl/gpio.sv"
+    assert fetched_run["rtl_version"] == "rtl-v001"
+    assert fetched_run["rtl_sha256_tree"] == "tree-v1"
+    assert fetched_run["rtl_git_tag"] == "atlas/gpio/rtl-v001"
+    assert fetched_stage["rtl_version_id"] == version["id"]
+    assert fetched_artifact["id"] == artifact["id"]
+    assert fetched_artifact["rtl_version_id"] == version["id"]
+    assert [row["workflow"] for row in history] == ["sim", "lint"]
+    assert {row["status"] for row in history} == {"failed", "blocked"}
+    assert all(row["rtl_version"] == "rtl-v001" for row in history)
+    assert all(row["rtl_sha256_tree"] == "tree-v1" for row in history)
+    assert all(row["rtl_git_tag"] == "atlas/gpio/rtl-v001" for row in history)
+
+
+def test_artifact_version_graph_tracks_ssot_rtl_tb_and_sim_inputs(tmp_path: Path) -> None:
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.create_user("owner", "Owner")
+        session = db.create_session(user["id"], "GPIO pipeline", project_id="gpio")
+        workspace = db.upsert_workspace("soc", owner_user_id=user["id"], local_path="/repo/soc")
+        ip = db.upsert_ip_block(workspace["id"], "gpio", ip_type="peripheral")
+        ssot = db.register_artifact_version(
+            ip_id=ip["id"],
+            workspace_id=workspace["id"],
+            artifact_type="ssot",
+            version="ssot-v001",
+            root_path="gpio/yaml",
+            primary_path="gpio/yaml/gpio.ssot.yaml",
+            manifest=[{"path": "gpio/yaml/gpio.ssot.yaml", "sha256": "ssot"}],
+            sha256_tree="ssot-tree",
+            git_commit="abc123",
+            git_tag="atlas/gpio/ssot-v001",
+        )
+        rtl = db.register_rtl_version(
+            ip_id=ip["id"],
+            workspace_id=workspace["id"],
+            version="rtl-v001",
+            rtl_root="gpio/rtl",
+            filelist_path="gpio/list/gpio.f",
+            top_module="gpio",
+            artifact_manifest=[{"path": "gpio/rtl/gpio.sv", "sha256": "rtl"}],
+            sha256_tree="rtl-tree",
+        )
+        tb = db.register_artifact_version(
+            ip_id=ip["id"],
+            workspace_id=workspace["id"],
+            artifact_type="tb",
+            version="tb-v001",
+            root_path="gpio/tb",
+            primary_path="gpio/tb/run_tests.py",
+            manifest=[{"path": "gpio/tb/run_tests.py", "sha256": "tb"}],
+            sha256_tree="tb-tree",
+        )
+        db.link_artifact_versions(ssot["id"], rtl["artifact_version_id"], "generated_from")
+        db.link_artifact_versions(ssot["id"], tb["id"], "generated_from")
+        db.link_artifact_versions(rtl["artifact_version_id"], tb["id"], "verified_against")
+        run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="sim",
+            mode="pipeline",
+            rtl_version_id=rtl["id"],
+        )
+        db.attach_run_artifact_version(run["id"], ssot["id"], role="input")
+        db.attach_run_artifact_version(run["id"], rtl["artifact_version_id"], role="input")
+        db.attach_run_artifact_version(run["id"], tb["id"], role="input")
+
+        sets = db.list_run_artifact_version_sets(workflows=["sim"])
+        edges = db.list_artifact_version_edges(child_version_id=tb["id"])
+
+    assert sets[0]["workflow"] == "sim"
+    assert sets[0]["artifact_versions"]["ssot"][0]["version"] == "ssot-v001"
+    assert sets[0]["artifact_versions"]["rtl"][0]["version"] == "rtl-v001"
+    assert sets[0]["artifact_versions"]["tb"][0]["version"] == "tb-v001"
+    assert {edge["parent_type"] for edge in edges} == {"ssot", "rtl"}
+    assert {edge["relation"] for edge in edges} == {"generated_from", "verified_against"}
+
+
+def test_admin_usage_reports_rtl_version_run_history(tmp_path: Path) -> None:
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.create_user("owner", "Owner")
+        session = db.create_session(user["id"], "GPIO pipeline", project_id="gpio")
+        workspace = db.upsert_workspace("soc", owner_user_id=user["id"], local_path="/repo/soc")
+        ip = db.upsert_ip_block(workspace["id"], "gpio", ip_type="peripheral")
+        rtl_run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="rtl-gen",
+            mode="pipeline",
+        )
+        version = db.register_rtl_version(
+            ip_id=ip["id"],
+            workspace_id=workspace["id"],
+            source_run_id=rtl_run["id"],
+            version="rtl-v002",
+            label="after irq repair",
+            rtl_root="gpio/rtl",
+            filelist_path="gpio/list/gpio.f",
+            top_module="gpio",
+            artifact_manifest=[{"path": "gpio/rtl/gpio.sv", "sha256": "top-v2"}],
+            sha256_tree="tree-v2",
+            git_commit="def456",
+            git_tag="atlas/gpio/rtl-v002",
+        )
+        run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="sim",
+            mode="pipeline",
+            rtl_version_id=version["id"],
+        )
+        db.record_llm_call(
+            session_id=session["id"],
+            run_id=run["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="sim",
+            model="gpt-5.3-codex",
+            tokens_input=100,
+            tokens_output=40,
+            cost_usd=0.12,
+        )
+        db.finish_workflow_run(run["id"], "passed")
+
+        payload = build_admin_usage_payload(db)
+
+    history = payload["rtl_run_history"]
+    assert len(history) == 1
+    row = history[0]
+    assert row["ip"] == "gpio"
+    assert row["workspace"] == "soc"
+    assert row["workflow"] == "sim"
+    assert row["rtl_version"] == "rtl-v002"
+    assert row["rtl_git_tag"] == "atlas/gpio/rtl-v002"
+    assert row["rtl_sha256_tree"] == "tree-v2"
+    assert row["llm_calls"] == 1
+    assert row["tokens"] == 140
+    assert row["cost"] == 0.12
+
+
 # ---------------------------------------------------------------------------
 # Orchestrator chat (stored on trace_events; no separate chat_messages table)
 # ---------------------------------------------------------------------------

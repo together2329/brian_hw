@@ -15,6 +15,7 @@ import uuid
 from pathlib import Path
 
 import pytest
+import yaml
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -1636,6 +1637,140 @@ def test_structured_ssot_rules_drive_fl_model_equivalence_and_rtl_todo_handoff(t
 
     transaction_goal = next(goal for goal in goals_doc["goals"] if goal["goal_id"] == "EQ_TRANSACTION_FM_PRIMARY")
     assert "result" in transaction_goal["expected_contract"]["observables"]
+
+
+def test_fl_model_supports_register_read_mux_and_reduction_or_helpers(tmp_path: Path):
+    ip = _write_structured_rule_ssot(tmp_path)
+    ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+    doc = yaml.safe_load(ssot_path.read_text(encoding="utf-8"))
+    doc["registers"] = {
+        "register_list": [
+            {
+                "name": "DATA",
+                "offset": 0,
+                "width": 32,
+                "access": "ro",
+                "reset": 5,
+                "fields": [
+                    {"name": "data", "bits": [7, 0], "access": "ro", "reset": 5, "description": "read data"}
+                ],
+            }
+        ]
+    }
+    doc["function_model"]["state_variables"].extend(
+        [
+            {"name": "status_q", "width": 8, "reset": 0},
+            {"name": "enable_q", "width": 8, "reset": 0},
+        ]
+    )
+    tx = doc["function_model"]["transactions"][0]
+    tx["required_fields"] = ["paddr", "valid", "ready"]
+    tx["output_rules"] = [
+        {"name": "result", "port": "result", "expr": "read_mux(paddr)", "width": 9},
+        {"name": "result_valid", "port": "result_valid", "expr": "|((status_q) & (enable_q))", "width": 1},
+    ]
+    ssot_path.write_text(yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
+    fl_path = REPO / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py"
+
+    fl_run = subprocess.run(
+        [sys.executable, str(fl_path), ip, "--root", str(tmp_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+
+    assert fl_run.returncode == 0, fl_run.stdout
+    model_mod = _load_module(tmp_path / ip / "model" / "functional_model.py", "fl_helper_function_model")
+    model = model_mod.FunctionalModel()
+    result = model.apply({"kind": "FM_PRIMARY", "paddr": 0, "valid": 1, "ready": 1, "status_q": 2, "enable_q": 2})
+    assert result["resp"] == 0
+    assert result["result"] == 5
+    assert result["result_valid"] == 1
+
+
+def test_module_contract_uses_specific_transaction_ref_over_broad_function_model_ref(tmp_path: Path):
+    ip = "specific_ref_gpio"
+    ip_dir = tmp_path / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.write_text(
+        "\n".join(
+            [
+                "spec_version: '1.0'",
+                f"module_name: {ip}",
+                f"top_module: {ip}",
+                "io_list:",
+                "  ports:",
+                "    - {name: clk, direction: input, width: 1}",
+                "    - {name: rst_n, direction: input, width: 1}",
+                "    - {name: result, direction: output, width: 8}",
+                "    - {name: result_valid, direction: output, width: 1}",
+                "sub_modules:",
+                "  - name: gpio_regs",
+                "    file: rtl/gpio_regs.sv",
+                "    source_sections: [function_model]",
+                "    function_model_refs: [function_model.transactions.TR_WRITE]",
+                "  - name: gpio_sync",
+                "    file: rtl/gpio_sync.sv",
+                "    source_sections: [function_model, cycle_model]",
+                "    implements: [function_model.transactions.TR_SAMPLE_INPUT]",
+                "    function_model_refs: [function_model.transactions.TR_SAMPLE_INPUT]",
+                "    cycle_model_refs: [cycle_model.pipeline]",
+                "function_model:",
+                "  state_variables:",
+                "    - {name: data_q, width: 8, reset: 0}",
+                "    - {name: sync_q, width: 8, reset: 0}",
+                "  transactions:",
+                "    - id: TR_WRITE",
+                "      name: write_data",
+                "      required_fields: [kind]",
+                "      output_rules:",
+                "        - {name: result, port: result, expr: data_q, width: 8}",
+                "    - id: TR_SAMPLE_INPUT",
+                "      name: sample_input",
+                "      required_fields: [kind]",
+                "      output_rules:",
+                "        - {name: result, port: result, expr: sync_q, width: 8}",
+                "cycle_model:",
+                "  latency: 1",
+                "  pipeline:",
+                "    - {stage: sample, action: sample synchronized input}",
+                "test_requirements:",
+                "  scenarios:",
+                "    - {id: SC_SAMPLE, stimulus: sample input, expected: sampled input visible, checker: result scoreboard}",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    fl_path = REPO / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py"
+    equiv_path = REPO / "workflow" / "fl-model-gen" / "scripts" / "emit_equivalence_goals.py"
+
+    fl_run = subprocess.run(
+        [sys.executable, str(fl_path), ip, "--root", str(tmp_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    assert fl_run.returncode == 0, fl_run.stdout
+    decomp = json.loads((ip_dir / "model" / "decomposition.json").read_text(encoding="utf-8"))
+    by_name = {item["name"]: item for item in decomp["module_contracts"]}
+    assert "function_model.transactions.tr_sample_input" in by_name["gpio_sync"]["function_model_refs"]
+    assert "function_model.transactions.tr_sample_input.output_rules.result" in by_name["gpio_sync"]["function_model_refs"]
+    assert "function_model.transactions.tr_sample_input.output_rules.result" not in by_name["gpio_regs"]["function_model_refs"]
+
+    eq_run = subprocess.run(
+        [sys.executable, str(equiv_path), ip, "--root", str(tmp_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    assert eq_run.returncode == 0, eq_run.stdout
+    goals = json.loads((ip_dir / "verify" / "equivalence_goals.json").read_text(encoding="utf-8"))
+    assert goals["summary"]["blocked"] == 0
 
 
 def test_atlas_websocket_ssot_rtl_queues_llm_authored_rtl_handoff(tmp_path: Path, monkeypatch):

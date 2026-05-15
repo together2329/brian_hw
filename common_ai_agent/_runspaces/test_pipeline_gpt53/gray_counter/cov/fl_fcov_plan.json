@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "type": "fl_functional_coverage_plan",
+  "ip": "gray_counter",
+  "source": "gray_counter/yaml/gray_counter.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "fl",
+  "summary": {
+    "total_bins": 23,
+    "by_class": {
+      "scenario": 9,
+      "transaction_type": 4,
+      "state_transition": 8,
+      "error": 2
+    }
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "primary approved behavior"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "cycle handshake and backpressure"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "error and recovery policy"
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC05",
+      "description": "debug and trace observability"
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC06",
+      "description": "function_model transaction GC_TXN_RESET"
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC07",
+      "description": "function_model transaction GC_TXN_CLEAR"
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC08",
+      "description": "function_model transaction GC_TXN_ADVANCE"
+    },
+    {
+      "id": "SC09_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC09",
+      "description": "function_model transaction GC_TXN_HOLD"
+    },
+    {
+      "id": "function_asynchronous_reset_assert",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "asynchronous_reset_assert"
+    },
+    {
+      "id": "function_synchronous_clear",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "synchronous_clear"
+    },
+    {
+      "id": "function_advance_one_gray_step",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "advance_one_gray_step"
+    },
+    {
+      "id": "function_hold_state",
+      "class": "transaction_type",
+      "source": "function_model.transactions[3]",
+      "description": "hold_state"
+    },
+    {
+      "id": "fsm_control_reset_to_idle_0",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[0]",
+      "description": "rst_n deasserted and first rising edge observed"
+    },
+    {
+      "id": "fsm_control_idle_to_cleared_1",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[1]",
+      "description": "clear sampled high"
+    },
+    {
+      "id": "fsm_control_idle_to_run_2",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[2]",
+      "description": "enable sampled high and clear low"
+    },
+    {
+      "id": "fsm_control_run_to_wrap_pulse_3",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[3]",
+      "description": "advance event causes max->0 wrap"
+    },
+    {
+      "id": "fsm_control_run_to_idle_4",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[4]",
+      "description": "enable sampled low and clear low"
+    },
+    {
+      "id": "fsm_control_wrap_pulse_to_run_5",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[5]",
+      "description": "enable remains high after one pulse cycle"
+    },
+    {
+      "id": "fsm_control_wrap_pulse_to_idle_6",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[6]",
+      "description": "enable low after pulse"
+    },
+    {
+      "id": "fsm_control_cleared_to_idle_7",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[7]",
+      "description": "clear low on next edge"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_PARAM_WIDTH', 'condition': 'WIDTH < 2', 'architectural_effect': 'Build-time configuration error'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "source": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_PROTOCOL_RESET_GLITCH', 'condition': 'rst_n unknown or glitching', 'architectural_effect': 'DV protocol assertion failure'}"
+    }
+  ]
+}

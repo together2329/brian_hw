@@ -412,6 +412,9 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
          ORDER BY intervention_count DESC, last_intervention_at DESC
         """
     )]
+    rtl_history_rows = db.list_rtl_run_history()
+    artifact_version_rows = db.list_artifact_versions()
+    run_artifact_set_rows = db.list_run_artifact_version_sets()
 
     models_by_user: dict[str, list[dict[str, Any]]] = {}
     for row in models_rows:
@@ -581,6 +584,107 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
             "last_intervention_at": row.get("last_intervention_at"),
         })
 
+    rtl_run_history = []
+    for row in rtl_history_rows:
+        context = _cost_context(row)
+        tokens_input = int(row.get("tokens_input") or 0)
+        tokens_output = int(row.get("tokens_output") or 0)
+        rtl_run_history.append({
+            **context,
+            "run_id": row.get("run_id") or "",
+            "session_id": row.get("session_id") or "",
+            "workspace_id": row.get("workspace_id") or "",
+            "ip_id": row.get("ip_id") or "",
+            "rtl_version_id": row.get("rtl_version_id") or "",
+            "rtl_version": row.get("rtl_version") or "",
+            "rtl_label": row.get("rtl_label") or "",
+            "rtl_sha256_tree": row.get("rtl_sha256_tree") or "",
+            "rtl_git_commit": row.get("rtl_git_commit") or "",
+            "rtl_git_tag": row.get("rtl_git_tag") or "",
+            "rtl_filelist_path": row.get("rtl_filelist_path") or "",
+            "rtl_top_module": row.get("rtl_top_module") or "",
+            "workflow": row.get("workflow") or "",
+            "mode": row.get("mode") or "",
+            "model_profile": row.get("model_profile") or "",
+            "reasoning_effort": row.get("reasoning_effort") or "",
+            "status": row.get("status") or "",
+            "duration_ms": row.get("duration_ms") or 0,
+            "error_summary": row.get("error_summary") or "",
+            "started_at": row.get("started_at"),
+            "ended_at": row.get("ended_at"),
+            "llm_calls": row.get("llm_calls") or 0,
+            "tokens_input": tokens_input,
+            "tokens_output": tokens_output,
+            "tokens_reasoning": row.get("tokens_reasoning") or 0,
+            "tokens": tokens_input + tokens_output,
+            "cost": row.get("cost") or 0,
+        })
+
+    artifact_versions = []
+    for row in artifact_version_rows:
+        context = _cost_context(row)
+        artifact_versions.append({
+            **context,
+            "artifact_version_id": row.get("id") or "",
+            "workspace_id": row.get("workspace_id") or "",
+            "ip_id": row.get("ip_id") or "",
+            "artifact_type": row.get("artifact_type") or "",
+            "version": row.get("version") or "",
+            "label": row.get("label") or "",
+            "root_path": row.get("root_path") or "",
+            "primary_path": row.get("primary_path") or "",
+            "sha256_tree": row.get("sha256_tree") or "",
+            "git_commit": row.get("git_commit") or "",
+            "git_tag": row.get("git_tag") or "",
+            "status": row.get("status") or "",
+            "source_run_id": row.get("source_run_id") or "",
+            "source_stage_id": row.get("source_stage_id") or "",
+            "created_at": row.get("created_at"),
+        })
+
+    run_artifact_sets = []
+    for row in run_artifact_set_rows:
+        context = _cost_context(row)
+        grouped = {}
+        for artifact_type, versions in (row.get("artifact_versions") or {}).items():
+            grouped[artifact_type] = [{
+                "artifact_version_id": item.get("artifact_version_id") or "",
+                "version": item.get("version") or "",
+                "role": item.get("role") or "",
+                "required": bool(item.get("required", True)),
+                "sha256_tree": item.get("sha256_tree") or "",
+                "git_commit": item.get("git_commit") or "",
+                "git_tag": item.get("git_tag") or "",
+                "root_path": item.get("root_path") or "",
+                "primary_path": item.get("primary_path") or "",
+                "status": item.get("artifact_status") or "",
+            } for item in versions]
+        tokens_input = int(row.get("tokens_input") or 0)
+        tokens_output = int(row.get("tokens_output") or 0)
+        run_artifact_sets.append({
+            **context,
+            "run_id": row.get("run_id") or "",
+            "session_id": row.get("session_id") or "",
+            "workspace_id": row.get("workspace_id") or "",
+            "ip_id": row.get("ip_id") or "",
+            "workflow": row.get("workflow") or "",
+            "mode": row.get("mode") or "",
+            "model_profile": row.get("model_profile") or "",
+            "reasoning_effort": row.get("reasoning_effort") or "",
+            "status": row.get("status") or "",
+            "duration_ms": row.get("duration_ms") or 0,
+            "error_summary": row.get("error_summary") or "",
+            "started_at": row.get("started_at"),
+            "ended_at": row.get("ended_at"),
+            "llm_calls": row.get("llm_calls") or 0,
+            "tokens_input": tokens_input,
+            "tokens_output": tokens_output,
+            "tokens_reasoning": row.get("tokens_reasoning") or 0,
+            "tokens": tokens_input + tokens_output,
+            "cost": row.get("cost") or 0,
+            "artifact_versions": grouped,
+        })
+
     return {
         "users": totals,
         "cost_by_context": cost_by_context,
@@ -590,5 +694,8 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
         "trace_events": trace_events,
         "tool_usage": tool_usage,
         "interventions": interventions,
+        "rtl_run_history": rtl_run_history,
+        "artifact_versions": artifact_versions,
+        "run_artifact_sets": run_artifact_sets,
         "generated_at": time.time(),
     }

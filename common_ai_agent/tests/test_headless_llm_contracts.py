@@ -381,6 +381,94 @@ def test_repair_ssot_schema_infers_shift_output_rules_and_concrete_port_maps(tmp
     assert loaded["rtl_contract"]["output_map"]["result"] == "result"
 
 
+def test_repair_ssot_schema_moves_internal_output_rules_to_state_updates(tmp_path: Path):
+    ip = "repair_internal_output_rule_ip"
+    doc = _base_ssot_doc(ip)
+    fm = doc["function_model"]
+    fm["state_variables"].append({"name": "int_status_q", "reset": 0, "width": 8})
+    fm["transactions"].append(
+        {
+            "id": "FM_W1C_CLEAR",
+            "name": "w1c_clear_with_set_priority",
+            "preconditions": ["w1c write to interrupt status"],
+            "outputs": ["int_status_q is updated after clear and new event set priority"],
+            "side_effects": ["update interrupt status state"],
+            "output_rules": [
+                {
+                    "name": "int_status_next_rule",
+                    "expr": "(int_status_q & ~w1c_mask) | event_set",
+                    "width": 8,
+                    "port": "int_status_next",
+                }
+            ],
+        }
+    )
+    _write_ssot_doc(tmp_path, ip, doc)
+    assert _run_check_ssot(tmp_path, ip).returncode != 0
+
+    repaired = _run_repair_ssot(tmp_path, ip)
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    result = _run_check_ssot(tmp_path, ip)
+    assert result.returncode == 0, result.stdout + result.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    tx = next(item for item in loaded["function_model"]["transactions"] if item["id"] == "FM_W1C_CLEAR")
+    assert tx["output_rules"] == []
+    assert any(item["name"] == "int_status_q" for item in tx["state_updates"])
+
+
+def test_repair_ssot_schema_adds_register_write_effects(tmp_path: Path):
+    ip = "repair_register_write_effect_ip"
+    doc = _base_ssot_doc(ip)
+    doc["registers"] = {
+        "register_list": [
+            {
+                "name": "CTRL",
+                "offset": 0,
+                "width": 32,
+                "access": "rw",
+                "reset": 0,
+                "fields": [
+                    {"name": "enable", "bits": [0, 0], "access": "rw", "reset": 0, "description": "Enable control"}
+                ],
+            },
+            {
+                "name": "STATUS",
+                "offset": 4,
+                "width": 32,
+                "access": "rw",
+                "reset": 0,
+                "fields": [
+                    {
+                        "name": "done",
+                        "bits": [0, 0],
+                        "access": "w1c",
+                        "reset": 0,
+                        "description": "Done status",
+                        "write_side_effect": "clear done status",
+                    }
+                ],
+            },
+        ]
+    }
+    _write_ssot_doc(tmp_path, ip, doc)
+    assert _run_check_ssot(tmp_path, ip).returncode != 0
+
+    repaired = _run_repair_ssot(tmp_path, ip)
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    result = _run_check_ssot(tmp_path, ip)
+    assert result.returncode == 0, result.stdout + result.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    fields = {
+        field["name"]: field
+        for reg in loaded["registers"]["register_list"]
+        for field in reg["fields"]
+    }
+    assert fields["enable"]["write_effect"]
+    assert fields["done"]["write_effect"] == "clear done status"
+
+
 def test_repair_ssot_schema_normalizes_verilog_rule_expressions(tmp_path: Path):
     ip = "repair_verilog_expr_ip"
     doc = _base_ssot_doc(ip)

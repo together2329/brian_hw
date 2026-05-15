@@ -506,7 +506,9 @@ def _cancel_run(run_id: str) -> bool:
 
 def _run_react_task(entry: RunEntry, task: str, model: str = "",
                     todos: Optional[List[Any]] = None, context: str = "",
-                    workflow: str = "", session_name: str = "") -> None:
+                    workflow: str = "", session_name: str = "",
+                    ip: str = "", rtl_version_id: str = "",
+                    project_root: str = "", artifact_versions: Any = None) -> None:
     """
     Execute a full ReAct loop using run_react_agent_impl from core/react_loop.py.
 
@@ -521,6 +523,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
     entry.started_at = time.time()
     _on_status_change()
     entry.add_log("system", "ReAct loop starting (full run_react_agent_impl)...", role="system")
+    _trace_runtime_prev = None
 
     _ws_hook_registry = None  # populated by workspace activation if script_hooks defined
 
@@ -649,6 +652,20 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             entry.add_log("system", f"WARNING: workspace '{workflow}' load failed: {_we}", role="system")
 
     try:
+        try:
+            from core.atlas_trace import push_trace_runtime as _push_trace_runtime
+            _trace_runtime_prev = _push_trace_runtime(
+                ATLAS_ACTIVE_SESSION=normalize_session_name(session_name),
+                ATLAS_ACTIVE_IP=ip,
+                ATLAS_DEFAULT_WORKFLOW=workflow,
+                ATLAS_ACTIVE_RTL_VERSION_ID=rtl_version_id,
+                ATLAS_ACTIVE_ARTIFACT_VERSIONS=artifact_versions or [],
+                ATLAS_ACTIVE_RUN_ID="",
+                ATLAS_PROJECT_ROOT=project_root or os.environ.get("ATLAS_PROJECT_ROOT") or _project_root,
+            )
+        except Exception:
+            _trace_runtime_prev = None
+
         import config
         from core.react_loop import ReactLoopDeps, run_react_agent_impl
         from core.compressor import compress_history as _compress_history
@@ -1152,6 +1169,13 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         }
         _fire_callback(entry)
         _write_run_log(entry)
+    finally:
+        if _trace_runtime_prev is not None:
+            try:
+                from core.atlas_trace import pop_trace_runtime as _pop_trace_runtime
+                _pop_trace_runtime(_trace_runtime_prev)
+            except Exception:
+                pass
 
 
 # ─── FastAPI App ────────────────────────────────────────────────────────
@@ -1200,6 +1224,10 @@ def create_app():
             template: str = ""    # todo template name — loaded from workflow or CWD
             workflow: str = ""    # workflow name (e.g. "rtl-gen") — activates workspace
             session: str = ""     # per-run .session/<name> namespace
+            ip: str = ""          # IP name for trace/workflow context
+            project_root: str = ""
+            rtl_version_id: str = ""
+            artifact_versions: Any = None
             context: str = ""
             sync: bool = False
 
@@ -1396,6 +1424,9 @@ def create_app():
         if session_raw.strip() and not session_name:
             raise HTTPException(status_code=400, detail="invalid 'session'")
         template_ip = str(request.get("ip", "")).strip()
+        project_root = str(request.get("project_root", "")).strip()
+        rtl_version_id = str(request.get("rtl_version_id", "")).strip()
+        artifact_versions = request.get("artifact_versions") or []
         if not template_ip and session_name:
             parts = [p for p in session_name.split("/") if p]
             known = {
@@ -1415,7 +1446,10 @@ def create_app():
         entry = _create_run(task, model)
         entry.on_complete_url = str(request.get("on_complete_url", ""))
         if sync:
-            _run_react_task(entry, task, model, todos, context, workflow, session_name)
+            _run_react_task(
+                entry, task, model, todos, context, workflow, session_name,
+                template_ip, rtl_version_id, project_root, artifact_versions,
+            )
             return entry.result
         acquired = _concurrency_semaphore.acquire(blocking=False)
         if not acquired:
@@ -1426,7 +1460,10 @@ def create_app():
             )
         def _wrapped_run():
             try:
-                _run_react_task(entry, task, model, todos, context, workflow, session_name)
+                _run_react_task(
+                    entry, task, model, todos, context, workflow, session_name,
+                    template_ip, rtl_version_id, project_root, artifact_versions,
+                )
             finally:
                 _concurrency_semaphore.release()
         _executor.submit(_wrapped_run)

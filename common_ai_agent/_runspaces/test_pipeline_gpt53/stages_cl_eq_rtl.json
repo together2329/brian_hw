@@ -1,0 +1,62 @@
+{
+  "ip": "gray_counter",
+  "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53",
+  "run_log": "gray_counter/logs/headless_run.json",
+  "stages": [
+    {
+      "artifacts": [
+        "gray_counter/model/functional_model.py",
+        "gray_counter/model/cycle_model.py when executable CL is required",
+        "gray_counter/model/cl_model_check.json when executable CL is required"
+      ],
+      "blocker": "",
+      "message": "[ssot-cycle-model] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py\nmodule: gray_counter\nsource: gray_counter/yaml/gray_counter.ssot.yaml\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py gray_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/model/functional_model.py\n[emit_fl_model] decomposition_units=9 fcov_bins=49 passed=True\n- emit_cycle_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py gray_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53\n  stdout:\n[emit_cycle_model] trigger fired: cycle_model.handshake_rules is non-empty\n[emit_cycle_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/model/cycle_model.py\n[emit_cycle_model] CL self-check passed=True\n\nexpected artifacts:\n- gray_counter/model/functional_model.py\n- gray_counter/model/cycle_model.py when executable CL is required\n- gray_counter/model/cl_model_check.json when executable CL is required",
+      "returncode": 0,
+      "stage": "cl-model-gen",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "gray_counter/cov/fl_fcov_plan.json",
+        "gray_counter/cov/cl_fcov_plan.json when cycle_model requires CL bins",
+        "gray_counter/cov/fcov_plan.json"
+      ],
+      "blocker": "",
+      "message": "[ssot-dual-fcov] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_dual_fcov.py\nmodule: gray_counter\nsource: gray_counter/yaml/gray_counter.ssot.yaml\n\nruns:\n- emit_dual_fcov: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_dual_fcov.py gray_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53\n  stdout:\n[emit_dual_fcov] cl_fcov_plan.json written (14 bins)\n[emit_dual_fcov] ip=gray_counter fl=23 cl=14 union=37 cl_triggered=True\n\nexpected artifacts:\n- gray_counter/cov/fl_fcov_plan.json\n- gray_counter/cov/cl_fcov_plan.json when cycle_model requires CL bins\n- gray_counter/cov/fcov_plan.json",
+      "returncode": 0,
+      "stage": "dual-fcov",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "gray_counter/verify/equivalence_goals.json",
+        "gray_counter/model/functional_model.py",
+        "gray_counter/model/decomposition.json",
+        "gray_counter/cov/fcov_plan.json"
+      ],
+      "blocker": "",
+      "message": "[ssot-equiv-goals] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py\nmodule: gray_counter\nsource: gray_counter/yaml/gray_counter.ssot.yaml\ngoals: total=42 required=42 blocked=0 module=1/1\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py gray_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/model/functional_model.py\n[emit_fl_model] decomposition_units=9 fcov_bins=49 passed=True\n- emit_equivalence_goals: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py gray_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53\n  stdout:\n[emit_equivalence_goals] wrote gray_counter/verify/equivalence_goals.json\n[emit_equivalence_goals] total=42 required=42 blocked=0\n\nexpected artifacts:\n- gray_counter/verify/equivalence_goals.json\n- gray_counter/model/functional_model.py\n- gray_counter/model/decomposition.json\n- gray_counter/cov/fcov_plan.json",
+      "returncode": 0,
+      "stage": "equiv-goals",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "gray_counter/yaml/gray_counter.ssot.yaml",
+        "gray_counter/rtl/rtl_todo_plan.json",
+        "gray_counter/rtl/rtl_todo_tracker.json",
+        "gray_counter/rtl/rtl_traceability.json",
+        "gray_counter/list/gray_counter.f",
+        "gray_counter/rtl/rtl_compile.json",
+        "gray_counter/lint/dut_lint.json",
+        "gray_counter/rtl/rtl_blocked.json (only when SSOT decision is required)"
+      ],
+      "blocker": "",
+      "message": "[RTL RESULT] FAIL - LLM-authored RTL needs rtl-gen repair\nmodule: gray_counter\ntop: gray_counter\nsource: gray_counter/yaml/gray_counter.ssot.yaml\npreflight: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/ssot_to_rtl.py\ndynamic_todos: gray_counter/rtl/rtl_todo_plan.json\n\nruns:\n- derive_rtl_todos: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53\n  stdout:\n[derive_rtl_todos] gray_counter: tasks=146 blockers=0 orphans=0 gate=planned\n- rtl_preflight: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/ssot_to_rtl.py gray_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53\n  stdout:\n[ssot_to_rtl] preflight passed for LLM-authored RTL: gray_counter (2 manifest file(s))\n- dut_compile: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/rtl_compile_report.py gray_counter --top gray_counter --project-root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53\n  stdout:\n[rtl_compile_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/rtl/rtl_compile.json\n[rtl_compile_report] iverilog: errors=0 diagnostics=0 style_violations=0 returncode=0\n- dut_lint: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py gray_counter --top gray_counter\n  stdout:\n[dut_lint_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/lint/dut_lint.json\n[dut_lint_report] pyslang+verilator: errors=0 warnings=0 suppression_violations=0 style_violations=0 returncode=0\n[dut_lint_report]   pyslang: errors=0 warnings=0 returncode=0\n[dut_lint_report]   verilator: errors=0 warnings=0 returncode=0\n- audit_rtl_todos: exit 1\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53 --audit-rtl\n  stdout:\n[derive_rtl_todos] gray_counter: tasks=146 blockers=0 orphans=0 gate=fail\n\nrtl_dynamic_todos:\n- tasks: 146 required=146\n- ssot_workflow_todos: 1\n- rtl_gate_todos: 17\n- sections: cycle_model, equivalence, error_handling, features, fsm, function_model, integration, io_list, parameters, rtl_flow, rtl_gate, security\n- gate: fail\n- blockers: 0\n- orphans: 0\n- static_missing: 1\n- open_required_todos: 3\n- all_required_todos_pass: False\n- owner_logic_checked: 1\n- owner_logic_issues: 0\n- top_io_contracts: 7\n- top_io_issues: 0\n- port_connection_issues: 0\n- connection_contract_issues: 0\n- static_missing_details:\n  - RTL-0062: function_model.transactions.GC_TXN_ADVANCE.outputs.output_0 terms=['bin', 'bin_state']\n- open_required_details:\n  - RTL-0007: quality_gates.rtl_gen.static_rtl_evidence category=rtl_gate.rtl_gen reason=1 static-evidence-required task(s) still lack DUT RTL evidence.\n  - RTL-0019: quality_gates.rtl_gen.dynamic_todo_closure category=rtl_gate.rtl_gen reason=2 required non-closure TODO(s) remain open.\n  - RTL-0062: function_model.transactions.GC_TXN_ADVANCE.outputs.output_0 category=function_model.output reason=Required RTL static evidence is missing.\n\nrtl_manifest:\n- approved: 2/2\n- filelist: gray_counter/list/gray_counter.f\n- manifest_mismatches: 0\n- hierarchy_issues: 0\n- quality_issues: 0\n\nartifacts:\n- gray_counter/yaml/gray_counter.ssot.yaml\n- gray_counter/rtl/rtl_todo_plan.json\n- gray_counter/rtl/rtl_todo_tracker.json\n- gray_counter/rtl/rtl_traceability.json\n- gray_counter/list/gray_counter.f\n- gray_counter/rtl/rtl_compile.json\n- gray_counter/lint/dut_lint.json\n- gray_counter/rtl/rtl_blocked.json (only when SSOT decision is required)\n\nnext: queued rtl-gen repair with compile/lint/SSOT-manifest diagnostics as evidence.",
+      "returncode": 1,
+      "stage": "rtl-gen",
+      "status": "fail"
+    }
+  ],
+  "status": "fail"
+}

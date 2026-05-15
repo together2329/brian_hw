@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "gray_counter",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 5,
+    "failed": 0,
+    "transactions": 4,
+    "transaction_results": [
+      {
+        "id": "GC_TXN_RESET",
+        "name": "asynchronous_reset_assert",
+        "kind": "GC_TXN_RESET",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "GC_TXN_RESET",
+          "transaction_name": "asynchronous_reset_assert",
+          "sample_accepted": 1,
+          "gray_value_reset": 0,
+          "gray_value": 0,
+          "bin_value_reset": 0,
+          "bin_value": 0,
+          "done_reset": 0,
+          "done": 0
+        }
+      },
+      {
+        "id": "GC_TXN_CLEAR",
+        "name": "synchronous_clear",
+        "kind": "GC_TXN_CLEAR",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "GC_TXN_CLEAR",
+          "transaction_name": "synchronous_clear",
+          "sample_accepted": 1,
+          "gray_value_clear": 0,
+          "gray_value": 0,
+          "bin_value_clear": 0,
+          "bin_value": 0,
+          "done_clear": 0,
+          "done": 0
+        }
+      },
+      {
+        "id": "GC_TXN_ADVANCE",
+        "name": "advance_one_gray_step",
+        "kind": "GC_TXN_ADVANCE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "GC_TXN_ADVANCE",
+          "transaction_name": "advance_one_gray_step",
+          "sample_accepted": 1,
+          "gray_advance": 1,
+          "gray_value": 1,
+          "bin_observe": 1,
+          "bin_value": 1,
+          "done_wrap": 0,
+          "done": 0
+        }
+      },
+      {
+        "id": "GC_TXN_HOLD",
+        "name": "hold_state",
+        "kind": "GC_TXN_HOLD",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "GC_TXN_HOLD",
+          "transaction_name": "hold_state",
+          "sample_accepted": 1,
+          "gray_hold": 0,
+          "gray_value": 0,
+          "bin_hold": 0,
+          "bin_value": 0,
+          "done_hold": 0,
+          "done": 0
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 5,
+    "coverage_bins": 49,
+    "invariants_total": 5,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "gray_value is always a legal WIDTH-bit G",
+        "expr": "gray_value is always a legal WIDTH-bit Gray encoding of bin_state.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "bin_value always equals gray_to_bin(gray",
+        "expr": "bin_value always equals gray_to_bin(gray_value) combinationally.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "done is asserted for at most one consecu",
+        "expr": "done is asserted for at most one consecutive cycle per wrap event.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "clear has priority over enable on sample",
+        "expr": "clear has priority over enable on sampled clock edges.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "reset dominates all synchronous controls",
+        "expr": "reset dominates all synchronous controls when asserted.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 1,
+    "error_cases_planned": 1
+  },
+  "decomposition_units": 9,
+  "fcov_bins": 49,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "gray_counter/req/",
+      "gray_counter/yaml/gray_counter.ssot.yaml",
+      "gray_counter/model/functional_model.py",
+      "gray_counter/cov/fcov_plan.json",
+      "gray_counter/yaml/gray_counter.ssot.yaml#io_list",
+      "gray_counter/yaml/gray_counter.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "gray_counter/rtl/",
+      "gray_counter/tb/",
+      "gray_counter/sim/",
+      "gray_counter/vectors/",
+      "gray_counter/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

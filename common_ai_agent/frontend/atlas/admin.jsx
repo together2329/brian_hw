@@ -9,6 +9,9 @@ function AdminPage() {
   const [traceEvents, setTraceEvents] = React.useState([]);
   const [toolUsage, setToolUsage] = React.useState([]);
   const [interventions, setInterventions] = React.useState([]);
+  const [rtlRunHistory, setRtlRunHistory] = React.useState([]);
+  const [artifactVersions, setArtifactVersions] = React.useState([]);
+  const [runArtifactSets, setRunArtifactSets] = React.useState([]);
   const [feedback, setFeedback] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -95,6 +98,9 @@ function AdminPage() {
       setTraceEvents(usageData.trace_events || []);
       setToolUsage(usageData.tool_usage || []);
       setInterventions(usageData.interventions || []);
+      setRtlRunHistory(usageData.rtl_run_history || []);
+      setArtifactVersions(usageData.artifact_versions || []);
+      setRunArtifactSets(usageData.run_artifact_sets || []);
       setFeedback(fbData.feedback || []);
     } catch (e) {
       setError(String(e));
@@ -208,6 +214,9 @@ function AdminPage() {
     setTraceEvents([]);
     setToolUsage([]);
     setInterventions([]);
+    setRtlRunHistory([]);
+    setArtifactVersions([]);
+    setRunArtifactSets([]);
     setFeedback([]);
     setLoading(false);
   };
@@ -560,7 +569,8 @@ function AdminPage() {
   const sum = (rows, key) => rows.reduce((acc, row) => acc + Number(row[key] || 0), 0);
   const rowTimestamp = (row) => {
     const direct = row.last_message_at || row.last_event_at || row.last_tool_at
-      || row.last_intervention_at || row.created_at || row.updated_at || row.first_intervention_at;
+      || row.last_intervention_at || row.started_at || row.ended_at
+      || row.created_at || row.updated_at || row.first_intervention_at;
     if (direct) return Number(direct) || 0;
     if (row.day) {
       const parsed = Date.parse(`${row.day}T23:59:59`);
@@ -594,6 +604,9 @@ function AdminPage() {
     ...traceEvents,
     ...toolUsage,
     ...interventions,
+    ...rtlRunHistory,
+    ...artifactVersions,
+    ...runArtifactSets,
   ];
   const filterOptions = {
     ips: uniqueOptions(allContextRows, 'ip'),
@@ -633,6 +646,9 @@ function AdminPage() {
   const filteredTraceEvents = traceEvents.filter(rowMatches);
   const filteredToolUsage = toolUsage.filter(rowMatches);
   const filteredInterventions = interventions.filter(rowMatches);
+  const filteredRtlRunHistory = rtlRunHistory.filter(rowMatches);
+  const filteredArtifactVersions = artifactVersions.filter(rowMatches);
+  const filteredRunArtifactSets = runArtifactSets.filter(rowMatches);
   const filteredFeedback = feedback.filter((row) => (
     inRange(row)
     && valueMatches(filters.user, row.username)
@@ -671,6 +687,9 @@ function AdminPage() {
     rejectedTodos: sum(filteredTodoUsage, 'rejected_count'),
     openTodos: filteredTodoUsage.filter((row) => !['approved', 'completed'].includes(String(row.status || '').toLowerCase())).length,
     humanInputs: sum(filteredInterventions, 'intervention_count'),
+    rtlRuns: filteredRtlRunHistory.length,
+    artifactVersions: filteredArtifactVersions.length,
+    runArtifactSets: filteredRunArtifactSets.length,
     pendingHuman: Array.from(askUserOpened).filter((flow) => !askUserAnswered.has(flow)).length,
     pendingFeedback: filteredFeedback.filter((row) => row.status !== 'resolved').length,
   };
@@ -796,6 +815,15 @@ function AdminPage() {
               <button style={tabStyle(activeTab === 'tools')} onClick={() => setActiveTab('tools')}>
                 Tools ({filteredToolUsage.length})
               </button>
+              <button style={tabStyle(activeTab === 'rtl')} onClick={() => setActiveTab('rtl')}>
+                RTL Runs ({filteredRtlRunHistory.length})
+              </button>
+              <button style={tabStyle(activeTab === 'versions')} onClick={() => setActiveTab('versions')}>
+                Versions ({filteredArtifactVersions.length})
+              </button>
+              <button style={tabStyle(activeTab === 'run-sets')} onClick={() => setActiveTab('run-sets')}>
+                Run Sets ({filteredRunArtifactSets.length})
+              </button>
               <button style={tabStyle(activeTab === 'human')} onClick={() => setActiveTab('human')}>
                 Human ({filteredInterventions.length})
               </button>
@@ -910,6 +938,18 @@ function AdminPage() {
                   <div style={metricCardStyle(overview.openTodos ? 'danger' : 'default')}>
                     <div style={metricLabelStyle}>Open Todos</div>
                     <div style={metricValueStyle}>{fmt(overview.openTodos)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>RTL Runs</div>
+                    <div style={metricValueStyle}>{fmt(overview.rtlRuns)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>Artifact Versions</div>
+                    <div style={metricValueStyle}>{fmt(overview.artifactVersions)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>Run Artifact Sets</div>
+                    <div style={metricValueStyle}>{fmt(overview.runArtifactSets)}</div>
                   </div>
                   <div style={metricCardStyle()}>
                     <div style={metricLabelStyle}>Human Inputs</div>
@@ -1510,6 +1550,68 @@ function AdminPage() {
                           <td style={tdStyle}>{row.workflow || '—'}</td>
                           <td style={tdStyle} title={row.session_id || ''}>{row.session || shortId(row.session_id)}</td>
                           <td style={tdStyle}>{row.username || 'unknown'}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'rtl' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>When</th>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Workspace</th>
+                      <th style={thStyle}>Workflow</th>
+                      <th style={thStyle}>Status</th>
+                      <th style={thStyle}>RTL Version</th>
+                      <th style={thStyle}>Git Tag</th>
+                      <th style={thStyle}>Tree Hash</th>
+                      <th style={thStyle}>Top</th>
+                      <th style={thStyle}>LLM Calls</th>
+                      <th style={thStyle}>Cost</th>
+                      <th style={thStyle}>Error</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRtlRunHistory.length === 0 ? (
+                      <tr>
+                        <td colSpan={12} style={{ ...tdStyle, ...emptyStateStyle }}>
+                          No RTL-versioned downstream runs yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredRtlRunHistory.map((row) => (
+                        <tr key={`${row.run_id}-${row.rtl_version_id}`}>
+                          <td style={tdStyle}>{formatDate(row.started_at || row.created_at)}</td>
+                          <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                          <td style={tdStyle}>{row.workspace || 'default'}</td>
+                          <td style={tdStyle}>{row.workflow || '—'}</td>
+                          <td style={tdStyle}>{row.status || '—'}</td>
+                          <td style={tdStyle} title={row.rtl_version_id || ''}>
+                            <div>{row.rtl_version || shortId(row.rtl_version_id)}</div>
+                            {row.rtl_label && (
+                              <div style={{ color: '#8893a3', fontSize: 11, marginTop: 3 }}>
+                                {row.rtl_label}
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ ...tdStyle, maxWidth: 220, wordBreak: 'break-word' }}>
+                            {row.rtl_git_tag || '—'}
+                          </td>
+                          <td style={tdStyle} title={row.rtl_sha256_tree || ''}>
+                            {shortId(row.rtl_sha256_tree)}
+                          </td>
+                          <td style={tdStyle}>{row.rtl_top_module || '—'}</td>
+                          <td style={tdStyle}>{fmt(row.llm_calls)}</td>
+                          <td style={tdStyle}>{usd(row.cost)}</td>
+                          <td style={{ ...tdStyle, maxWidth: 280, whiteSpace: 'normal' }}>
+                            {row.error_summary || '—'}
+                          </td>
                         </tr>
                       ))
                     )}

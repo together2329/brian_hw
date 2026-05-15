@@ -46,6 +46,7 @@ def test_session_context_is_explicit_and_reusable(tmp_path: Path) -> None:
         "run_id": "",
         "stage_id": "",
         "todo_id": "",
+        "rtl_version_id": "",
         "actor_user_id": user["id"],
         "correlation_id": ctx.correlation_id,
     }
@@ -212,6 +213,49 @@ def test_trace_recorder_from_env_mirrors_todo_tool_events(tmp_path: Path, monkey
         "todo.approved",
         "todo.note",
     ]
+
+
+def test_trace_recorder_from_env_anchors_run_to_active_rtl_version(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from core.atlas_trace import TraceRecorder
+
+    db_path = tmp_path / "atlas.db"
+    with AtlasDB(str(db_path)) as db:
+        workspace = db.upsert_workspace("trace-workspace", owner_user_id="alice", local_path=str(tmp_path))
+        ip = db.upsert_ip_block(workspace["id"], "dma")
+        version = db.register_rtl_version(
+            ip_id=ip["id"],
+            workspace_id=workspace["id"],
+            version="rtl-v001",
+            rtl_root="dma/rtl",
+            sha256_tree="abc123",
+            git_tag="atlas/dma/rtl-v001",
+        )
+
+    monkeypatch.setenv("ATLAS_TRACE_ENABLE", "1")
+    monkeypatch.setenv("ATLAS_TRACE_DB_PATH", str(db_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", "alice/dma/lint")
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "dma")
+    monkeypatch.setenv("ATLAS_DEFAULT_WORKFLOW", "lint")
+    monkeypatch.setenv("ATLAS_ACTIVE_RTL_VERSION_ID", version["id"])
+    monkeypatch.delenv("ATLAS_ACTIVE_RUN_ID", raising=False)
+
+    recorder = TraceRecorder.from_env()
+    assert recorder is not None
+    artifact = recorder.register_artifact(kind="lint-report", path="dma/lint/report.txt")
+
+    with AtlasDB(str(db_path)) as db:
+        run = db.get_workflow_run(recorder.context.run_id)
+        artifacts = db.list_artifacts(run_id=recorder.context.run_id)
+
+    assert run["rtl_version_id"] == version["id"]
+    assert run["rtl_version"] == "rtl-v001"
+    assert run["rtl_git_tag"] == "atlas/dma/rtl-v001"
+    assert artifact["rtl_version_id"] == version["id"]
+    assert artifacts[0]["rtl_version_id"] == version["id"]
 
 
 def test_permission_policy_enforces_ranked_ip_access(tmp_path: Path) -> None:

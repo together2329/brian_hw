@@ -1,0 +1,1292 @@
+{
+  "execution_policy": {
+    "allowed_draft_work": [
+      "Author module RTL from SSOT-derived TODO packets.",
+      "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
+      "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority."
+    ],
+    "blocked_by_llm_work": [
+      {
+        "gate_kind": "static_rtl_evidence",
+        "owner_module": "gray_counter_top",
+        "reason": "54 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+        "status": "open",
+        "task_id": "RTL-0007"
+      },
+      {
+        "gate_kind": "owner_logic_structure_evidence",
+        "owner_module": "gray_counter_top",
+        "reason": "1 owner logic structure issue(s) remain. gray_counter_core: Behavior-owner module is not declared in its owner file",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
+        "status": "open",
+        "task_id": "RTL-0008"
+      },
+      {
+        "gate_kind": "rtl_placeholder_free_evidence",
+        "owner_module": "gray_counter_top",
+        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+        "status": "open",
+        "task_id": "RTL-0009"
+      },
+      {
+        "gate_kind": "top_io_contract_evidence",
+        "owner_module": "gray_counter_top",
+        "reason": "1 top IO contract issue(s) remain. gray_counter: SSOT top module is not declared in listed RTL sources",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
+        "status": "open",
+        "task_id": "RTL-0010"
+      },
+      {
+        "gate_kind": "top_output_drive_evidence",
+        "owner_module": "gray_counter_top",
+        "reason": "1 top output drive issue(s) remain. gray_counter: SSOT top module is not declared, so output drive evidence cannot be checked",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
+        "status": "open",
+        "task_id": "RTL-0011"
+      },
+      {
+        "gate_kind": "top_input_consumption_evidence",
+        "owner_module": "gray_counter_top",
+        "reason": "1 top input consumption issue(s) remain. gray_counter: SSOT top module is not declared, so input consumption evidence cannot be checked",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
+        "status": "open",
+        "task_id": "RTL-0012"
+      },
+      {
+        "gate_kind": "manifest_hierarchy_integration",
+        "owner_module": "gray_counter_top",
+        "reason": "2 manifest hierarchy integration issue(s) remain. gray_counter: SSOT top module is not declared in listed RTL sources; gray_counter_core: SSOT manifest child module is not declared in listed RTL sources",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
+        "status": "open",
+        "task_id": "RTL-0013"
+      },
+      {
+        "gate_kind": "manifest_signal_flow_evidence",
+        "owner_module": "gray_counter_top",
+        "reason": "1 manifest signal-flow issue(s) remain. gray_counter: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+        "status": "open",
+        "task_id": "RTL-0015"
+      }
+    ],
+    "blocked_by_locked_truth": [
+      {
+        "gate_kind": "manifest_connection_contract_evidence",
+        "owner_module": "gray_counter_top",
+        "reason": "7 SSOT connection contract issue(s) remain. gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "status": "open",
+        "task_id": "RTL-0016"
+      }
+    ],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "gray_counter_top",
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dut_compile",
+        "owner_module": "gray_counter_top",
+        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "gate_kind": "dut_lint",
+        "owner_module": "gray_counter_top",
+        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "gray_counter_top",
+        "reason": "140 required non-closure TODO(s) remain open.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 21,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rule": "Suggestions are emitted only when production connection contracts are missing.",
+      "sample_rows": [],
+      "summary": {
+        "applied_to_ssot": false,
+        "pending_review": 0,
+        "status": "not_required",
+        "suggested_rows": 0
+      }
+    },
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "gate_status": "fail",
+    "hard_blockers": [],
+    "open_required_todos": 141,
+    "pass_allowed": false,
+    "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
+    "stop_conditions": [
+      "Do not edit SSOT/FL/coverage/interface/performance authority artifacts without human approval.",
+      "Do not claim rtl-gen PASS while pass_allowed is false.",
+      "Do not sign off top integration while required connection contracts are missing."
+    ],
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "gray_counter/rtl/rtl_authoring_provenance.json",
+          "gray_counter/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip gray_counter --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "rtl/rtl_compile.json",
+        "artifacts": [
+          "gray_counter/rtl/rtl_compile.json",
+          "gray_counter/rtl/rtl_compile.log"
+        ],
+        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py gray_counter --top gray_counter --project-root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_compile",
+        "prerequisites": [
+          "gray_counter/list/gray_counter.f covers the current DUT RTL sources."
+        ],
+        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "stage_sequence": [
+          "ssot-rtl",
+          "dut_compile"
+        ],
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "artifact": "lint/dut_lint.json",
+        "artifacts": [
+          "gray_counter/lint/dut_lint.json"
+        ],
+        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "commands": [
+          "python3 workflow/lint/scripts/dut_lint_report.py gray_counter --top gray_counter",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_lint",
+        "prerequisites": [
+          "gray_counter/list/gray_counter.f covers the current DUT RTL/header sources."
+        ],
+        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "stage_sequence": [
+          "lint",
+          "dut_lint"
+        ],
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "gray_counter/rtl/rtl_todo_plan.json",
+          "gray_counter/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "140 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ]
+  },
+  "ip": "gray_counter",
+  "packet_dir": "rtl/authoring_packets",
+  "packets": [
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 48,
+        "open_required_count": 48,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__gray_counter_core__function_model_01.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__function_model_01.md",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "packet_id": "module__gray_counter_core__function_model_01",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 1,
+          "function_model.input": 5,
+          "function_model.output": 11,
+          "function_model.output_rule": 9,
+          "function_model.precondition": 9,
+          "function_model.side_effect": 6,
+          "function_model.state_variable": 3,
+          "function_model.transaction": 4
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 1,
+          "key": "function_model_01",
+          "module_task_count": 102,
+          "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 2,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 48,
+        "required_count": 48,
+        "source_refs": [
+          "function_model.state_variables.gray_state",
+          "function_model.state_variables.bin_state",
+          "function_model.state_variables.done_state",
+          "function_model.transactions.GC_TXN_RESET",
+          "function_model.transactions.GC_TXN_RESET.preconditions.precondition_0",
+          "function_model.transactions.GC_TXN_RESET.inputs.input_0",
+          "function_model.transactions.GC_TXN_RESET.outputs.output_0",
+          "function_model.transactions.GC_TXN_RESET.outputs.output_1",
+          "function_model.transactions.GC_TXN_RESET.outputs.output_2",
+          "function_model.transactions.GC_TXN_RESET.output_rules.gray_value_reset",
+          "function_model.transactions.GC_TXN_RESET.output_rules.bin_value_reset",
+          "function_model.transactions.GC_TXN_RESET.output_rules.done_reset",
+          "function_model.transactions.GC_TXN_RESET.side_effects.side_effect_0",
+          "function_model.transactions.GC_TXN_RESET.side_effects.side_effect_1",
+          "function_model.transactions.GC_TXN_CLEAR",
+          "function_model.transactions.GC_TXN_CLEAR.preconditions.precondition_0",
+          "function_model.transactions.GC_TXN_CLEAR.preconditions.precondition_1",
+          "function_model.transactions.GC_TXN_CLEAR.inputs.input_0",
+          "function_model.transactions.GC_TXN_CLEAR.outputs.output_0",
+          "function_model.transactions.GC_TXN_CLEAR.outputs.output_1",
+          "function_model.transactions.GC_TXN_CLEAR.outputs.output_2",
+          "function_model.transactions.GC_TXN_CLEAR.output_rules.gray_value_clear",
+          "function_model.transactions.GC_TXN_CLEAR.output_rules.bin_value_clear",
+          "function_model.transactions.GC_TXN_CLEAR.output_rules.done_clear"
+        ],
+        "status_counts": {
+          "open": 48
+        },
+        "task_count": 48
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 15,
+        "open_required_count": 15,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__gray_counter_core__cycle_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__cycle_model.md",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "packet_id": "module__gray_counter_core__cycle_model",
+      "summary": {
+        "categories": {
+          "cycle_model.backpressure": 1,
+          "cycle_model.clock": 1,
+          "cycle_model.handshake_rules": 3,
+          "cycle_model.latency": 1,
+          "cycle_model.observability": 1,
+          "cycle_model.ordering": 3,
+          "cycle_model.pipeline": 4,
+          "cycle_model.reset": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 3,
+          "key": "cycle_model",
+          "module_task_count": 102,
+          "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 15,
+        "required_count": 15,
+        "source_refs": [
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency",
+          "cycle_model.handshake_rules.enable",
+          "cycle_model.handshake_rules.clear",
+          "cycle_model.handshake_rules.rst_n",
+          "cycle_model.pipeline.S0_SAMPLE",
+          "cycle_model.pipeline.S1_COMPUTE",
+          "cycle_model.pipeline.S2_COMMIT",
+          "cycle_model.pipeline.S3_OBSERVE",
+          "cycle_model.ordering.ordering_rule_0",
+          "cycle_model.ordering.ordering_rule_1",
+          "cycle_model.ordering.ordering_rule_2",
+          "cycle_model.backpressure.backpressure_rule_0",
+          "cycle_model.observability.observability_signal_0"
+        ],
+        "status_counts": {
+          "open": 15
+        },
+        "task_count": 15
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 13,
+        "open_required_count": 13,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__gray_counter_core__fsm.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__fsm.md",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "packet_id": "module__gray_counter_core__fsm",
+      "summary": {
+        "categories": {
+          "fsm.state": 5,
+          "fsm.transition": 8
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 4,
+          "key": "fsm",
+          "module_task_count": 102,
+          "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "fsm",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 13,
+        "required_count": 13,
+        "source_refs": [
+          "fsm.control.states.state_0",
+          "fsm.control.states.state_1",
+          "fsm.control.states.state_2",
+          "fsm.control.states.state_3",
+          "fsm.control.states.state_4",
+          "fsm.control.transitions.transition_0",
+          "fsm.control.transitions.transition_1",
+          "fsm.control.transitions.transition_2",
+          "fsm.control.transitions.transition_3",
+          "fsm.control.transitions.transition_4",
+          "fsm.control.transitions.transition_5",
+          "fsm.control.transitions.transition_6",
+          "fsm.control.transitions.transition_7"
+        ],
+        "status_counts": {
+          "open": 13
+        },
+        "task_count": 13
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 10,
+        "open_required_count": 10,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__gray_counter_core__function_model_02.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__function_model_02.md",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "packet_id": "module__gray_counter_core__function_model_02",
+      "summary": {
+        "categories": {
+          "function_model.invariant": 5,
+          "function_model.output": 1,
+          "function_model.output_rule": 3,
+          "function_model.side_effect": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 2,
+          "key": "function_model_02",
+          "module_task_count": 102,
+          "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 2,
+          "section_chunk_index": 2,
+          "task_limit": 48
+        },
+        "open_required_count": 10,
+        "required_count": 10,
+        "source_refs": [
+          "function_model.transactions.GC_TXN_HOLD.outputs.output_2",
+          "function_model.transactions.GC_TXN_HOLD.output_rules.gray_hold",
+          "function_model.transactions.GC_TXN_HOLD.output_rules.bin_hold",
+          "function_model.transactions.GC_TXN_HOLD.output_rules.done_hold",
+          "function_model.transactions.GC_TXN_HOLD.side_effects.side_effect_0",
+          "function_model.invariants.invariant_0",
+          "function_model.invariants.invariant_1",
+          "function_model.invariants.invariant_2",
+          "function_model.invariants.invariant_3",
+          "function_model.invariants.invariant_4"
+        ],
+        "status_counts": {
+          "open": 10
+        },
+        "task_count": 10
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 9,
+        "open_required_count": 9,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__gray_counter_core__test_requirements.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__test_requirements.md",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "packet_id": "module__gray_counter_core__test_requirements",
+      "summary": {
+        "categories": {
+          "test_requirements.scenario": 9
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 7,
+          "key": "test_requirements",
+          "module_task_count": 102,
+          "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "test_requirements",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 9,
+        "required_count": 9,
+        "source_refs": [
+          "test_requirements.scenarios.SC01",
+          "test_requirements.scenarios.SC02",
+          "test_requirements.scenarios.SC03",
+          "test_requirements.scenarios.SC04",
+          "test_requirements.scenarios.SC05",
+          "test_requirements.scenarios.SC06",
+          "test_requirements.scenarios.SC07",
+          "test_requirements.scenarios.SC08",
+          "test_requirements.scenarios.SC09"
+        ],
+        "status_counts": {
+          "open": 9
+        },
+        "task_count": 9
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 3,
+        "open_required_count": 3,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__gray_counter_core__features.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__features.md",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "packet_id": "module__gray_counter_core__features",
+      "summary": {
+        "categories": {
+          "features.item": 3
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 5,
+          "key": "features",
+          "module_task_count": 102,
+          "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "features",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 3,
+        "required_count": 3,
+        "source_refs": [
+          "features.Gray_increment_progression",
+          "features.Wrap_pulse_generation",
+          "features.Deterministic_clear_reset"
+        ],
+        "status_counts": {
+          "open": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 2,
+        "open_required_count": 2,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__gray_counter_core__error_handling.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__error_handling.md",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "packet_id": "module__gray_counter_core__error_handling",
+      "summary": {
+        "categories": {
+          "error_handling.recovery": 2
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 6,
+          "key": "error_handling",
+          "module_task_count": 102,
+          "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "error_handling",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 2,
+        "required_count": 2,
+        "source_refs": [
+          "error_handling.recovery.recovery_0",
+          "error_handling.recovery.recovery_1"
+        ],
+        "status_counts": {
+          "open": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__gray_counter_core__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__equivalence.md",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "packet_id": "module__gray_counter_core__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 8,
+          "key": "equivalence",
+          "module_task_count": 102,
+          "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.gray_counter_core.module_equivalence"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__gray_counter_core__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__gray_counter_core__workflow_todo.md",
+      "owner_file": "rtl/gray_counter_core.sv",
+      "owner_module": "gray_counter_core",
+      "packet_id": "module__gray_counter_core__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 9,
+          "key": "workflow_todo",
+          "module_task_count": 102,
+          "rule": "Owner module gray_counter_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[0]"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 26,
+        "open_required_count": 26,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__gray_counter_top.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__gray_counter_top.md",
+      "owner_file": "rtl/gray_counter.sv",
+      "owner_module": "gray_counter_top",
+      "packet_id": "module__gray_counter_top",
+      "summary": {
+        "categories": {
+          "integration.connections": 7,
+          "integration.dependencies": 3,
+          "io_list.port": 7,
+          "parameters.item": 2,
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1,
+          "security.assets": 3,
+          "synthesis.constraints": 3
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 27,
+          "task_limit": 48
+        },
+        "open_required_count": 26,
+        "required_count": 27,
+        "source_refs": [
+          "top_module",
+          "io_list",
+          "security.assets.asset_0",
+          "security.assets.asset_1",
+          "security.assets.asset_2",
+          "integration.dependencies.dependencie_0",
+          "integration.dependencies.dependencie_1",
+          "integration.dependencies.dependencie_2",
+          "integration.connections.soc_clk_or_tb_clk",
+          "integration.connections.soc_rst_n_or_tb_rst_n",
+          "integration.connections.control_enable",
+          "integration.connections.control_clear",
+          "integration.connections.observed_gray_value",
+          "integration.connections.observed_bin_value",
+          "integration.connections.observed_done",
+          "synthesis.constraints.constraint_0",
+          "synthesis.constraints.constraint_1",
+          "synthesis.constraints.constraint_2",
+          "parameters.WIDTH",
+          "parameters.CLOCK_FREQ_MHZ",
+          "io_list.clock_domains.clk.ports.clk",
+          "io_list.resets.rst_n.ports.rst_n",
+          "io_list.interfaces.control.ports.enable",
+          "io_list.interfaces.control.ports.clear"
+        ],
+        "status_counts": {
+          "open": 26,
+          "pass": 1
+        },
+        "task_count": 27
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 8,
+        "open_required_count": 8,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "owner_file": "rtl/gray_counter.sv",
+      "owner_module": "gray_counter",
+      "packet_id": "rtl_gate_evidence_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 9
+        },
+        "module_slice": {},
+        "open_required_count": 8,
+        "required_count": 9,
+        "source_refs": [
+          "quality_gates.rtl_gen.static_rtl_evidence",
+          "quality_gates.rtl_gen.owner_logic_structure_evidence",
+          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+          "quality_gates.rtl_gen.top_io_contract_evidence",
+          "quality_gates.rtl_gen.top_output_drive_evidence",
+          "quality_gates.rtl_gen.top_input_consumption_evidence",
+          "quality_gates.rtl_gen.manifest_hierarchy_integration",
+          "quality_gates.rtl_gen.manifest_port_connection_evidence",
+          "quality_gates.rtl_gen.manifest_signal_flow_evidence"
+        ],
+        "status_counts": {
+          "open": 8,
+          "pass": 1
+        },
+        "task_count": 9
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [
+          {
+            "gate_kind": "manifest_connection_contract_evidence",
+            "owner_module": "gray_counter_top",
+            "reason": "7 SSOT connection contract issue(s) remain. gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL; gray_counter_core: SSOT connection contract targets a module not declared in RTL",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+            "status": "open",
+            "task_id": "RTL-0016"
+          }
+        ],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 1,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
+      "owner_file": "rtl/gray_counter.sv",
+      "owner_module": "gray_counter",
+      "packet_id": "rtl_gate_human_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 4
+        },
+        "module_slice": {},
+        "open_required_count": 1,
+        "required_count": 4,
+        "source_refs": [
+          "quality_gates.rtl_gen.ssot_required_sections",
+          "quality_gates.rtl_gen.workflow_todo_contract",
+          "quality_gates.rtl_gen.owner_traceability",
+          "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+        ],
+        "status_counts": {
+          "open": 1,
+          "pass": 3
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [
+          {
+            "gate_kind": "common_ai_agent_authoring",
+            "owner_module": "gray_counter_top",
+            "reason": "Missing common_ai_agent RTL authoring provenance.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "gate_kind": "dut_compile",
+            "owner_module": "gray_counter_top",
+            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dut_compile",
+            "status": "open",
+            "task_id": "RTL-0017"
+          },
+          {
+            "gate_kind": "dut_lint",
+            "owner_module": "gray_counter_top",
+            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "status": "open",
+            "task_id": "RTL-0018"
+          },
+          {
+            "gate_kind": "dynamic_todo_closure",
+            "owner_module": "gray_counter_top",
+            "reason": "140 required non-closure TODO(s) remain open.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "status": "open",
+            "task_id": "RTL-0019"
+          }
+        ],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 4,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 4,
+        "tool_evidence_plan": [
+          {
+            "artifact": "rtl/rtl_authoring_provenance.json",
+            "artifacts": [
+              "gray_counter/rtl/rtl_authoring_provenance.json",
+              "gray_counter/rtl/rtl_todo_plan.json"
+            ],
+            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+            "commands": [
+              "python3 src/headless_workflow.py --root . --ip gray_counter --stages rtl-gen",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
+            ],
+            "gate_kind": "common_ai_agent_authoring",
+            "prerequisites": [
+              "An LLM authoring pass emitted or repaired DUT RTL files."
+            ],
+            "reason": "Missing common_ai_agent RTL authoring provenance.",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "stage_sequence": [
+              "ssot-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "artifact": "rtl/rtl_compile.json",
+            "artifacts": [
+              "gray_counter/rtl/rtl_compile.json",
+              "gray_counter/rtl/rtl_compile.log"
+            ],
+            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py gray_counter --top gray_counter --project-root .",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
+            ],
+            "gate_kind": "dut_compile",
+            "prerequisites": [
+              "gray_counter/list/gray_counter.f covers the current DUT RTL sources."
+            ],
+            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+            "source_ref": "quality_gates.rtl_gen.dut_compile",
+            "stage_sequence": [
+              "ssot-rtl",
+              "dut_compile"
+            ],
+            "status": "open",
+            "task_id": "RTL-0017"
+          },
+          {
+            "artifact": "lint/dut_lint.json",
+            "artifacts": [
+              "gray_counter/lint/dut_lint.json"
+            ],
+            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+            "commands": [
+              "python3 workflow/lint/scripts/dut_lint_report.py gray_counter --top gray_counter",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
+            ],
+            "gate_kind": "dut_lint",
+            "prerequisites": [
+              "gray_counter/list/gray_counter.f covers the current DUT RTL/header sources."
+            ],
+            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "stage_sequence": [
+              "lint",
+              "dut_lint"
+            ],
+            "status": "open",
+            "task_id": "RTL-0018"
+          },
+          {
+            "artifact": "rtl/rtl_todo_plan.json",
+            "artifacts": [
+              "gray_counter/rtl/rtl_todo_plan.json",
+              "gray_counter/rtl/rtl_authoring_status.md"
+            ],
+            "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py gray_counter --root . --audit-rtl"
+            ],
+            "gate_kind": "dynamic_todo_closure",
+            "prerequisites": [
+              "All non-closure required TODOs have pass status."
+            ],
+            "reason": "140 required non-closure TODO(s) remain open.",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "stage_sequence": [
+              "audit-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0019"
+          }
+        ],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "owner_file": "rtl/gray_counter.sv",
+      "owner_module": "gray_counter",
+      "packet_id": "rtl_gate_tool_evidence",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 4
+        },
+        "module_slice": {},
+        "open_required_count": 4,
+        "required_count": 4,
+        "source_refs": [
+          "quality_gates.rtl_gen.common_ai_agent_authoring",
+          "quality_gates.rtl_gen.dut_compile",
+          "quality_gates.rtl_gen.dut_lint",
+          "quality_gates.rtl_gen.dynamic_todo_closure"
+        ],
+        "status_counts": {
+          "open": 4
+        },
+        "task_count": 4
+      }
+    }
+  ],
+  "policy": {
+    "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
+    "fixed_template_role": "seed_only",
+    "no_orphan_function_level": true,
+    "reference_profile_rule": "Optional rtl_reference_profile artifacts are calibration-only scale reports; they must not be copied, transformed, or used as fixed RTL templates.",
+    "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership/owner-logic/placeholder-free/implementation-depth/top-io/top-output-drive/top-input-consumption/hierarchy/port-connection/signal-flow/connection-contract gates must close as TODOs before PASS.",
+    "rtl_quality_profile": "standard",
+    "rtl_target_scale": {},
+    "rtl_target_scale_waiver": {},
+    "single_source_of_truth": "SSOT YAML is the only authority for function_model, cycle_model, RTL ownership, DV plan, and coverage.",
+    "ssot_workflow_todo_rule": "workflow_todos.rtl-gen[] entries are first-class downstream tasks; content/detail/criteria must be preserved and satisfied by RTL evidence.",
+    "target_scale_rule": "Optional quality_gates.rtl_gen.target_scale is SSOT-locked human policy. It can be calibrated from a reference profile, but it is enforced as generic structural depth evidence, not as copied reference RTL."
+  },
+  "reference_profile": null,
+  "reference_scale_gap": {},
+  "rules": [
+    "Use rtl_todo_plan.json as the complete ledger and rtl_authoring_plan.json as the LLM work queue.",
+    "Process one authoring packet at a time: module packets first, then unowned tasks if any, then rtl_gate_evidence_closure; leave rtl_gate_tool_evidence to tools and rtl_gate_contract_blocked/rtl_gate_human_closure to human-locked authority gaps.",
+    "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
+    "Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.",
+    "Do not close static RTL evidence with evidence-only alias/dummy wires; the matched identifiers must participate in real RTL behavior.",
+    "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
+    "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
+    "Keep locked authority artifacts unchanged unless a human approves a change request.",
+    "Rerun rtl_todo_plan audit, compile, lint, sim, and coverage evidence until required TODOs pass."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "status_markdown": "rtl/rtl_authoring_status.md",
+  "summary": {
+    "connection_contract_suggestions_present": false,
+    "deferred_human_qa_allowed": true,
+    "gate_packets": 3,
+    "human_locked_packets": 1,
+    "human_locked_tasks": 1,
+    "llm_actionable_packets": 11,
+    "llm_actionable_tasks": 136,
+    "max_packet_required_tasks": 48,
+    "module_packets": 10,
+    "next_llm_packets": [
+      "module__gray_counter_core__function_model_01",
+      "module__gray_counter_core__cycle_model",
+      "module__gray_counter_core__fsm",
+      "module__gray_counter_core__function_model_02",
+      "module__gray_counter_core__test_requirements",
+      "module__gray_counter_core__features",
+      "module__gray_counter_core__error_handling",
+      "module__gray_counter_core__equivalence"
+    ],
+    "packet_task_limit": 48,
+    "packets": 13,
+    "pass_allowed": false,
+    "pending_connection_contract_suggestions": 0,
+    "recommended_packet_batch_limit": 4,
+    "reference_profile_present": false,
+    "reference_scale_gap_present": false,
+    "required_tasks": 146,
+    "sliced_module_packets": 9,
+    "target_scale_present": false,
+    "tool_evidence_packets": 1,
+    "tool_evidence_tasks": 4,
+    "total_tasks": 146,
+    "unowned_packets": 0
+  },
+  "target_scale": {},
+  "todo_plan_sha256": "d473b2610c40c79069346972679ffe8377525380178163598257ddce80b959b1",
+  "top": "gray_counter",
+  "type": "rtl_authoring_plan"
+}

@@ -1,0 +1,21 @@
+{
+  "ip": "gray_counter",
+  "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53",
+  "run_log": "gray_counter/logs/headless_run.json",
+  "stages": [
+    {
+      "artifacts": [
+        "gray_counter/model/functional_model.py",
+        "gray_counter/model/decomposition.json",
+        "gray_counter/model/fl_model_check.json",
+        "gray_counter/cov/fcov_plan.json"
+      ],
+      "blocker": "",
+      "message": "[ssot-fl-model] generic SSOT-driven FL model stage\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py\nmodule: gray_counter\nsource: gray_counter/yaml/gray_counter.ssot.yaml\nexit: 1\n\nruns:\n- emit_fl_model: exit 1\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py gray_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53\n  stderr:\nTraceback (most recent call last):\n  File \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py\", line 1695, in <module>\n    raise SystemExit(main())\n  File \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py\", line 1661, in main\n    check = _run_generated_self_check(model_path)\n  File \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py\", line 1614, in _run_generated_self_check\n    result = mod.run_self_check()\n  File \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/model/functional_model.py\", line 535, in run_self_check\n    result = model.apply(txn)\n  File \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/model/functional_model.py\", line 495, in apply\n    return self._record(kind, txn, self._apply_primary(tx, txn))\n  File \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/model/functional_model.py\", line 462, in _apply_primary\n    structured = self._apply_structured_rules(tx, txn)\n  File \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/model/functional_model.py\", line 407, in _apply_structured_rules\n    unresolved_errors = _resolve_pending_outputs()\n  File \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/model/functional_model.py\", line 363, in _resolve_pending_outputs\n    value = _eval_rule_expr(expr, env)\n  File \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/model/functional_model.py\", line 165, in _eval_rule_expr\n    return _eval_ast(ast.parse(text, mode=\"eval\"), env)\n  File \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/model/functional_model.py\", line 92, in _eval_ast\n    return _eval_ast(node.body, env)\n  File \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53/gray_counter/model/functional_model.py\", line 147, in _eval_ast\n    raise ValueError(f\"unsupported rule helper {node.func.id}\")\nValueError: unsupported rule helper gray_to_bin\n\nexpected artifacts:\n- gray_counter/model/functional_model.py\n- gray_counter/model/decomposition.json\n- gray_counter/model/fl_model_check.json\n- gray_counter/cov/fcov_plan.json",
+      "returncode": 1,
+      "stage": "fl-model-gen",
+      "status": "fail"
+    }
+  ],
+  "status": "fail"
+}

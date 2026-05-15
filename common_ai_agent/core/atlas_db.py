@@ -8,6 +8,7 @@ Zero external dependencies — uses only Python stdlib sqlite3.
 """
 
 import json
+import os
 import sqlite3
 import threading
 import time
@@ -195,12 +196,96 @@ CREATE TABLE IF NOT EXISTS ip_permissions (
 CREATE INDEX IF NOT EXISTS idx_ip_permissions_user ON ip_permissions(grantee_user_id, permission);
 CREATE INDEX IF NOT EXISTS idx_ip_permissions_ip ON ip_permissions(ip_id, permission);
 
+-- artifact_versions (immutable SSOT/RTL/TB/model/netlist snapshots)
+CREATE TABLE IF NOT EXISTS artifact_versions (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT,
+    ip_id TEXT NOT NULL,
+    artifact_type TEXT NOT NULL,
+    version TEXT NOT NULL,
+    label TEXT,
+    root_path TEXT,
+    primary_path TEXT,
+    manifest TEXT,
+    sha256_tree TEXT,
+    git_commit TEXT,
+    git_tag TEXT,
+    status TEXT DEFAULT 'active',
+    source_run_id TEXT,
+    source_stage_id TEXT,
+    metadata TEXT,
+    created_at REAL,
+    UNIQUE(ip_id, artifact_type, version)
+);
+CREATE INDEX IF NOT EXISTS idx_artifact_versions_ip_type
+    ON artifact_versions(ip_id, artifact_type, created_at);
+CREATE INDEX IF NOT EXISTS idx_artifact_versions_workspace
+    ON artifact_versions(workspace_id, artifact_type, created_at);
+
+-- artifact_version_edges (artifact dependency graph)
+CREATE TABLE IF NOT EXISTS artifact_version_edges (
+    id TEXT PRIMARY KEY,
+    parent_version_id TEXT NOT NULL,
+    child_version_id TEXT NOT NULL,
+    relation TEXT NOT NULL,
+    metadata TEXT,
+    created_at REAL,
+    UNIQUE(parent_version_id, child_version_id, relation)
+);
+CREATE INDEX IF NOT EXISTS idx_artifact_version_edges_parent
+    ON artifact_version_edges(parent_version_id, relation);
+CREATE INDEX IF NOT EXISTS idx_artifact_version_edges_child
+    ON artifact_version_edges(child_version_id, relation);
+
+-- run_artifact_versions (which artifact versions a run used or produced)
+CREATE TABLE IF NOT EXISTS run_artifact_versions (
+    id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    stage_id TEXT,
+    artifact_version_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    required INT DEFAULT 1,
+    metadata TEXT,
+    created_at REAL,
+    UNIQUE(run_id, artifact_version_id, role)
+);
+CREATE INDEX IF NOT EXISTS idx_run_artifact_versions_run
+    ON run_artifact_versions(run_id, role);
+CREATE INDEX IF NOT EXISTS idx_run_artifact_versions_version
+    ON run_artifact_versions(artifact_version_id, role);
+
+-- rtl_versions (immutable RTL handoff snapshots)
+CREATE TABLE IF NOT EXISTS rtl_versions (
+    id TEXT PRIMARY KEY,
+    artifact_version_id TEXT,
+    ip_id TEXT NOT NULL,
+    workspace_id TEXT,
+    source_run_id TEXT,
+    source_stage_id TEXT,
+    version TEXT NOT NULL,
+    label TEXT,
+    rtl_root TEXT,
+    filelist_path TEXT,
+    top_module TEXT,
+    artifact_manifest TEXT,
+    sha256_tree TEXT,
+    git_commit TEXT,
+    git_tag TEXT,
+    status TEXT DEFAULT 'active',
+    metadata TEXT,
+    created_at REAL,
+    UNIQUE(ip_id, version)
+);
+CREATE INDEX IF NOT EXISTS idx_rtl_versions_ip ON rtl_versions(ip_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_rtl_versions_workspace ON rtl_versions(workspace_id, created_at);
+
 -- workflow_runs (one executable workflow invocation)
 CREATE TABLE IF NOT EXISTS workflow_runs (
     id TEXT PRIMARY KEY,
     session_id TEXT,
     workspace_id TEXT,
     ip_id TEXT,
+    rtl_version_id TEXT,
     workflow TEXT,
     mode TEXT,
     model_profile TEXT,
@@ -217,11 +302,13 @@ CREATE TABLE IF NOT EXISTS workflow_runs (
 );
 CREATE INDEX IF NOT EXISTS idx_workflow_runs_session ON workflow_runs(session_id, started_at);
 CREATE INDEX IF NOT EXISTS idx_workflow_runs_context ON workflow_runs(workspace_id, ip_id, workflow, started_at);
+CREATE INDEX IF NOT EXISTS idx_workflow_runs_rtl_version ON workflow_runs(rtl_version_id, workflow, started_at);
 
 -- workflow_stages (stage-level status inside a run)
 CREATE TABLE IF NOT EXISTS workflow_stages (
     id TEXT PRIMARY KEY,
     run_id TEXT NOT NULL,
+    rtl_version_id TEXT,
     stage_name TEXT NOT NULL,
     status TEXT,
     attempt INT DEFAULT 1,
@@ -233,6 +320,7 @@ CREATE TABLE IF NOT EXISTS workflow_stages (
     updated_at REAL
 );
 CREATE INDEX IF NOT EXISTS idx_workflow_stages_run ON workflow_stages(run_id, stage_name, attempt);
+CREATE INDEX IF NOT EXISTS idx_workflow_stages_rtl_version ON workflow_stages(rtl_version_id, stage_name, started_at);
 
 -- workflow_events (append-only run timeline)
 CREATE TABLE IF NOT EXISTS workflow_events (
@@ -345,6 +433,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
     run_id TEXT,
     stage_id TEXT,
     ip_id TEXT,
+    rtl_version_id TEXT,
     workflow TEXT,
     kind TEXT,
     path TEXT,
@@ -355,6 +444,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
     created_at REAL
 );
 CREATE INDEX IF NOT EXISTS idx_artifacts_run ON artifacts(run_id, kind, created_at);
+CREATE INDEX IF NOT EXISTS idx_artifacts_rtl_version ON artifacts(rtl_version_id, kind, created_at);
 """
 
 # Columns that should be serialized as JSON on write / deserialized on read
@@ -365,6 +455,10 @@ _JSON_COLUMNS = {
     "parts": {"tool_input", "patch_files"},
     "ws_connections": set(),
     "session_queue": {"payload"},
+    "artifact_versions": {"manifest", "metadata"},
+    "artifact_version_edges": {"metadata"},
+    "run_artifact_versions": {"metadata"},
+    "rtl_versions": {"artifact_manifest", "metadata"},
     "workflow_events": {"payload"},
     "workflow_todos": {"source_refs", "evidence", "notes"},
     "todo_events": {"evidence"},
@@ -386,7 +480,7 @@ class AtlasDB:
 
     def __init__(self, db_path: str = None):
         if db_path is None:
-            db_path = str(Path.home() / ".common_ai_agent" / "atlas.db")
+            db_path = os.environ.get("ATLAS_DB_PATH") or str(Path.home() / ".common_ai_agent" / "atlas.db")
         self.db_path = db_path
         self._lock = threading.RLock()
         self._conn: Optional[sqlite3.Connection] = None
@@ -469,9 +563,24 @@ class AtlasDB:
         """Create tables and indexes if they don't exist."""
         with self._lock:
             conn = self._connect()
+            self._preflight_legacy_schema(conn)
             conn.executescript(SCHEMA_SQL)
             self._run_lightweight_migrations(conn)
             conn.commit()
+
+    def _preflight_legacy_schema(self, conn: sqlite3.Connection) -> None:
+        """Add columns needed by indexes before running idempotent DDL."""
+        exists = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+            ("users",),
+        ).fetchone()
+        if not exists:
+            return
+        self._ensure_column(conn, "users", "email", "TEXT")
+        self._ensure_column(conn, "users", "password_reset_token_hash", "TEXT")
+        self._ensure_column(conn, "users", "password_reset_expires_at", "REAL")
+        self._ensure_column(conn, "users", "password_reset_requested_at", "REAL")
+        self._ensure_column(conn, "users", "password_reset_used_at", "REAL")
 
     def _run_lightweight_migrations(self, conn: sqlite3.Connection) -> None:
         """Apply additive SQLite migrations for existing local databases."""
@@ -489,6 +598,55 @@ class AtlasDB:
                   ON users(password_reset_token_hash) WHERE password_reset_token_hash IS NOT NULL"""
         )
         self._ensure_column(conn, "workflow_todos", "notes", "TEXT")
+        self._ensure_column(conn, "rtl_versions", "artifact_version_id", "TEXT")
+        self._ensure_column(conn, "workflow_runs", "rtl_version_id", "TEXT")
+        self._ensure_column(conn, "workflow_stages", "rtl_version_id", "TEXT")
+        self._ensure_column(conn, "artifacts", "rtl_version_id", "TEXT")
+        self._ensure_column(conn, "rtl_versions", "git_tag", "TEXT")
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_artifact_versions_ip_type
+                  ON artifact_versions(ip_id, artifact_type, created_at)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_artifact_versions_workspace
+                  ON artifact_versions(workspace_id, artifact_type, created_at)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_artifact_version_edges_parent
+                  ON artifact_version_edges(parent_version_id, relation)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_artifact_version_edges_child
+                  ON artifact_version_edges(child_version_id, relation)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_run_artifact_versions_run
+                  ON run_artifact_versions(run_id, role)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_run_artifact_versions_version
+                  ON run_artifact_versions(artifact_version_id, role)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_workflow_runs_rtl_version
+                  ON workflow_runs(rtl_version_id, workflow, started_at)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_workflow_stages_rtl_version
+                  ON workflow_stages(rtl_version_id, stage_name, started_at)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_artifacts_rtl_version
+                  ON artifacts(rtl_version_id, kind, created_at)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_rtl_versions_ip
+                  ON rtl_versions(ip_id, created_at)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_rtl_versions_workspace
+                  ON rtl_versions(workspace_id, created_at)"""
+        )
         # Backfill the chat-room index on databases created before
         # 2026-05-15. CREATE INDEX IF NOT EXISTS is idempotent so this
         # is safe to re-run on every boot.
@@ -1668,11 +1826,444 @@ class AtlasDB:
             result.append(item)
         return result
 
+    def register_artifact_version(
+        self,
+        ip_id: str,
+        artifact_type: str,
+        workspace_id: str = "",
+        source_run_id: str = "",
+        source_stage_id: str = "",
+        version: str = "",
+        label: str = "",
+        root_path: str = "",
+        primary_path: str = "",
+        manifest: Any = None,
+        sha256_tree: str = "",
+        git_commit: str = "",
+        git_tag: str = "",
+        status: str = "active",
+        metadata: Any = None,
+    ) -> Dict[str, Any]:
+        """Register an immutable artifact snapshot such as SSOT, RTL, or TB."""
+        artifact_type = str(artifact_type or "").strip()
+        version = str(version or "").strip()
+        if not ip_id:
+            raise ValueError("ip_id is required")
+        if not artifact_type:
+            raise ValueError("artifact_type is required")
+        if not version:
+            raise ValueError("version is required")
+        artifact_version_id = self._new_id()
+        now = self._now()
+        self._execute(
+            """
+            INSERT INTO artifact_versions
+            (id, workspace_id, ip_id, artifact_type, version, label,
+             root_path, primary_path, manifest, sha256_tree, git_commit,
+             git_tag, status, source_run_id, source_stage_id, metadata, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                artifact_version_id,
+                workspace_id,
+                ip_id,
+                artifact_type,
+                version,
+                label,
+                root_path,
+                primary_path,
+                self._dump_json(manifest if manifest is not None else []),
+                sha256_tree,
+                git_commit,
+                git_tag,
+                status,
+                source_run_id,
+                source_stage_id,
+                self._dump_json(metadata if metadata is not None else {}),
+                now,
+            ),
+        )
+        return self.get_artifact_version(artifact_version_id)
+
+    def get_artifact_version(self, artifact_version_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone(
+            """
+            SELECT av.*, w.name AS workspace_name, w.local_path AS workspace_path,
+                   i.ip_name AS ip_name
+              FROM artifact_versions av
+              LEFT JOIN workspaces w ON w.id = av.workspace_id
+              LEFT JOIN ip_blocks i ON i.id = av.ip_id
+             WHERE av.id = ?
+            """,
+            (artifact_version_id,),
+        )
+        return self._row_to_dict(row, "artifact_versions") if row is not None else None
+
+    def list_artifact_versions(
+        self,
+        ip_id: str = None,
+        workspace_id: str = None,
+        artifact_type: str = None,
+    ) -> List[Dict[str, Any]]:
+        clauses: list[str] = []
+        values: list[Any] = []
+        if ip_id is not None:
+            clauses.append("av.ip_id = ?")
+            values.append(ip_id)
+        if workspace_id is not None:
+            clauses.append("av.workspace_id = ?")
+            values.append(workspace_id)
+        if artifact_type is not None:
+            clauses.append("av.artifact_type = ?")
+            values.append(artifact_type)
+        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        rows = self._fetchall(
+            f"""
+            SELECT av.*, w.name AS workspace_name, w.local_path AS workspace_path,
+                   i.ip_name AS ip_name
+              FROM artifact_versions av
+              LEFT JOIN workspaces w ON w.id = av.workspace_id
+              LEFT JOIN ip_blocks i ON i.id = av.ip_id
+            {where}
+             ORDER BY av.created_at DESC, av.artifact_type ASC, av.version DESC
+            """,
+            tuple(values),
+        )
+        return [self._row_to_dict(row, "artifact_versions") for row in rows]
+
+    def link_artifact_versions(
+        self,
+        parent_version_id: str,
+        child_version_id: str,
+        relation: str = "generated_from",
+        metadata: Any = None,
+    ) -> Dict[str, Any]:
+        """Create an idempotent edge in the artifact version graph."""
+        if not parent_version_id or not child_version_id:
+            raise ValueError("parent_version_id and child_version_id are required")
+        relation = str(relation or "generated_from").strip()
+        row = self._fetchone(
+            """
+            SELECT id FROM artifact_version_edges
+             WHERE parent_version_id = ? AND child_version_id = ? AND relation = ?
+            """,
+            (parent_version_id, child_version_id, relation),
+        )
+        if row is None:
+            edge_id = self._new_id()
+            self._execute(
+                """
+                INSERT INTO artifact_version_edges
+                (id, parent_version_id, child_version_id, relation, metadata, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    edge_id,
+                    parent_version_id,
+                    child_version_id,
+                    relation,
+                    self._dump_json(metadata if metadata is not None else {}),
+                    self._now(),
+                ),
+            )
+        else:
+            edge_id = row["id"]
+        return self.get_artifact_version_edge(edge_id)
+
+    def get_artifact_version_edge(self, edge_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone("SELECT * FROM artifact_version_edges WHERE id = ?", (edge_id,))
+        return self._row_to_dict(row, "artifact_version_edges") if row is not None else None
+
+    def list_artifact_version_edges(
+        self,
+        parent_version_id: str = None,
+        child_version_id: str = None,
+    ) -> List[Dict[str, Any]]:
+        clauses: list[str] = []
+        values: list[Any] = []
+        if parent_version_id is not None:
+            clauses.append("e.parent_version_id = ?")
+            values.append(parent_version_id)
+        if child_version_id is not None:
+            clauses.append("e.child_version_id = ?")
+            values.append(child_version_id)
+        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        rows = self._fetchall(
+            f"""
+            SELECT e.*,
+                   p.artifact_type AS parent_type, p.version AS parent_version,
+                   c.artifact_type AS child_type, c.version AS child_version
+              FROM artifact_version_edges e
+              LEFT JOIN artifact_versions p ON p.id = e.parent_version_id
+              LEFT JOIN artifact_versions c ON c.id = e.child_version_id
+            {where}
+             ORDER BY e.created_at ASC
+            """,
+            tuple(values),
+        )
+        return [self._row_to_dict(row, "artifact_version_edges") for row in rows]
+
+    def attach_run_artifact_version(
+        self,
+        run_id: str,
+        artifact_version_id: str,
+        stage_id: str = "",
+        role: str = "input",
+        required: bool = True,
+        metadata: Any = None,
+    ) -> Dict[str, Any]:
+        """Attach an artifact version to a workflow run as input/output/reference."""
+        if not run_id or not artifact_version_id:
+            raise ValueError("run_id and artifact_version_id are required")
+        role = str(role or "input").strip()
+        row = self._fetchone(
+            """
+            SELECT id FROM run_artifact_versions
+             WHERE run_id = ? AND artifact_version_id = ? AND role = ?
+            """,
+            (run_id, artifact_version_id, role),
+        )
+        if row is None:
+            link_id = self._new_id()
+            self._execute(
+                """
+                INSERT INTO run_artifact_versions
+                (id, run_id, stage_id, artifact_version_id, role, required, metadata, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    link_id,
+                    run_id,
+                    stage_id,
+                    artifact_version_id,
+                    role,
+                    1 if required else 0,
+                    self._dump_json(metadata if metadata is not None else {}),
+                    self._now(),
+                ),
+            )
+        else:
+            link_id = row["id"]
+        rows = self.list_run_artifact_versions(run_id=run_id)
+        for item in rows:
+            if item.get("id") == link_id:
+                return item
+        return {"id": link_id}
+
+    def list_run_artifact_versions(
+        self,
+        run_id: str = None,
+        artifact_type: str = None,
+        role: str = None,
+    ) -> List[Dict[str, Any]]:
+        clauses: list[str] = []
+        values: list[Any] = []
+        if run_id is not None:
+            clauses.append("rav.run_id = ?")
+            values.append(run_id)
+        if artifact_type is not None:
+            clauses.append("av.artifact_type = ?")
+            values.append(artifact_type)
+        if role is not None:
+            clauses.append("rav.role = ?")
+            values.append(role)
+        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        rows = self._fetchall(
+            f"""
+            SELECT rav.*, r.session_id, r.workflow, r.status AS run_status,
+                   r.started_at, r.ended_at, r.duration_ms, r.error_summary,
+                   av.workspace_id, av.ip_id, av.artifact_type, av.version,
+                   av.label, av.root_path, av.primary_path, av.sha256_tree,
+                   av.git_commit, av.git_tag, av.status AS artifact_status,
+                   w.name AS workspace_name, i.ip_name AS ip_name
+              FROM run_artifact_versions rav
+              JOIN artifact_versions av ON av.id = rav.artifact_version_id
+              LEFT JOIN workflow_runs r ON r.id = rav.run_id
+              LEFT JOIN workspaces w ON w.id = av.workspace_id
+              LEFT JOIN ip_blocks i ON i.id = av.ip_id
+            {where}
+             ORDER BY r.started_at DESC, rav.created_at ASC
+            """,
+            tuple(values),
+        )
+        return [self._row_to_dict(row, "run_artifact_versions") for row in rows]
+
+    def list_run_artifact_version_sets(
+        self,
+        workflows: List[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Return one row per run with artifact versions grouped by type."""
+        clauses: list[str] = []
+        values: list[Any] = []
+        if workflows:
+            placeholders = ", ".join(["?"] * len(workflows))
+            clauses.append(f"r.workflow IN ({placeholders})")
+            values.extend(workflows)
+        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        rows = self._fetchall(
+            f"""
+            SELECT r.id AS run_id, r.session_id, r.workspace_id, r.ip_id,
+                   r.workflow, r.mode, r.model_profile, r.reasoning_effort,
+                   r.status, r.started_at, r.ended_at, r.duration_ms,
+                   r.error_summary, w.name AS workspace_name, i.ip_name AS ip_name,
+                   COALESCE(llm.llm_calls, 0) AS llm_calls,
+                   COALESCE(llm.tokens_input, 0) AS tokens_input,
+                   COALESCE(llm.tokens_output, 0) AS tokens_output,
+                   COALESCE(llm.tokens_reasoning, 0) AS tokens_reasoning,
+                   COALESCE(llm.cost, 0) AS cost
+              FROM workflow_runs r
+              LEFT JOIN workspaces w ON w.id = r.workspace_id
+              LEFT JOIN ip_blocks i ON i.id = r.ip_id
+              LEFT JOIN (
+                  SELECT run_id,
+                         COUNT(*) AS llm_calls,
+                         SUM(tokens_input) AS tokens_input,
+                         SUM(tokens_output) AS tokens_output,
+                         SUM(tokens_reasoning) AS tokens_reasoning,
+                         SUM(cost_usd) AS cost
+                    FROM llm_calls
+                   WHERE run_id IS NOT NULL AND run_id != ''
+                   GROUP BY run_id
+              ) llm ON llm.run_id = r.id
+            {where}
+             ORDER BY r.started_at DESC, r.created_at DESC
+            """,
+            tuple(values),
+        )
+        result: list[Dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            links = self.list_run_artifact_versions(run_id=item["run_id"])
+            versions_by_type: dict[str, list[Dict[str, Any]]] = {}
+            for link in links:
+                artifact_type = link.get("artifact_type") or "unknown"
+                versions_by_type.setdefault(artifact_type, []).append(link)
+            item["artifact_versions"] = versions_by_type
+            result.append(item)
+        return result
+
+    def register_rtl_version(
+        self,
+        ip_id: str,
+        workspace_id: str = "",
+        source_run_id: str = "",
+        source_stage_id: str = "",
+        version: str = "",
+        label: str = "",
+        rtl_root: str = "",
+        filelist_path: str = "",
+        top_module: str = "",
+        artifact_manifest: Any = None,
+        sha256_tree: str = "",
+        git_commit: str = "",
+        git_tag: str = "",
+        status: str = "active",
+        metadata: Any = None,
+    ) -> Dict[str, Any]:
+        """Register an immutable RTL handoff snapshot."""
+        version = str(version or "").strip()
+        if not ip_id:
+            raise ValueError("ip_id is required")
+        if not version:
+            raise ValueError("version is required")
+        artifact_version = self.register_artifact_version(
+            ip_id=ip_id,
+            workspace_id=workspace_id,
+            source_run_id=source_run_id,
+            source_stage_id=source_stage_id,
+            artifact_type="rtl",
+            version=version,
+            label=label,
+            root_path=rtl_root,
+            primary_path=filelist_path,
+            manifest=artifact_manifest if artifact_manifest is not None else [],
+            sha256_tree=sha256_tree,
+            git_commit=git_commit,
+            git_tag=git_tag,
+            status=status,
+            metadata=metadata if metadata is not None else {},
+        )
+        rtl_version_id = self._new_id()
+        now = self._now()
+        self._execute(
+            """
+            INSERT INTO rtl_versions
+            (id, artifact_version_id, ip_id, workspace_id, source_run_id, source_stage_id, version,
+             label, rtl_root, filelist_path, top_module, artifact_manifest,
+             sha256_tree, git_commit, git_tag, status, metadata, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                rtl_version_id,
+                artifact_version["id"],
+                ip_id,
+                workspace_id,
+                source_run_id,
+                source_stage_id,
+                version,
+                label,
+                rtl_root,
+                filelist_path,
+                top_module,
+                self._dump_json(artifact_manifest if artifact_manifest is not None else []),
+                sha256_tree,
+                git_commit,
+                git_tag,
+                status,
+                self._dump_json(metadata if metadata is not None else {}),
+                now,
+            ),
+        )
+        return self.get_rtl_version(rtl_version_id)
+
+    def get_rtl_version(self, rtl_version_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone(
+            """
+            SELECT rv.*, w.name AS workspace_name, w.local_path AS workspace_path,
+                   i.ip_name AS ip_name
+              FROM rtl_versions rv
+              LEFT JOIN workspaces w ON w.id = rv.workspace_id
+              LEFT JOIN ip_blocks i ON i.id = rv.ip_id
+             WHERE rv.id = ?
+            """,
+            (rtl_version_id,),
+        )
+        return self._row_to_dict(row, "rtl_versions") if row is not None else None
+
+    def list_rtl_versions(
+        self,
+        ip_id: str = None,
+        workspace_id: str = None,
+    ) -> List[Dict[str, Any]]:
+        clauses: list[str] = []
+        values: list[Any] = []
+        if ip_id is not None:
+            clauses.append("rv.ip_id = ?")
+            values.append(ip_id)
+        if workspace_id is not None:
+            clauses.append("rv.workspace_id = ?")
+            values.append(workspace_id)
+        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        rows = self._fetchall(
+            f"""
+            SELECT rv.*, w.name AS workspace_name, w.local_path AS workspace_path,
+                   i.ip_name AS ip_name
+              FROM rtl_versions rv
+              LEFT JOIN workspaces w ON w.id = rv.workspace_id
+              LEFT JOIN ip_blocks i ON i.id = rv.ip_id
+            {where}
+             ORDER BY rv.created_at DESC, rv.version DESC
+            """,
+            tuple(values),
+        )
+        return [self._row_to_dict(row, "rtl_versions") for row in rows]
+
     def start_workflow_run(
         self,
         session_id: str = "",
         workspace_id: str = "",
         ip_id: str = "",
+        rtl_version_id: str = "",
         workflow: str = "",
         mode: str = "interactive",
         model_profile: str = "",
@@ -1686,16 +2277,17 @@ class AtlasDB:
         self._execute(
             """
             INSERT INTO workflow_runs
-            (id, session_id, workspace_id, ip_id, workflow, mode, model_profile,
+            (id, session_id, workspace_id, ip_id, rtl_version_id, workflow, mode, model_profile,
              reasoning_effort, status, started_at, ended_at, duration_ms,
              trigger, input_summary, error_summary, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
                 session_id,
                 workspace_id,
                 ip_id,
+                rtl_version_id,
                 workflow,
                 mode,
                 model_profile,
@@ -1739,10 +2331,17 @@ class AtlasDB:
         row = self._fetchone(
             """
             SELECT r.*, w.name AS workspace_name, w.local_path AS workspace_path,
-                   i.ip_name AS ip_name, i.ssot_path AS ssot_path
+                   i.ip_name AS ip_name, i.ssot_path AS ssot_path,
+                   rv.version AS rtl_version,
+                   rv.sha256_tree AS rtl_sha256_tree,
+                   rv.git_commit AS rtl_git_commit,
+                   rv.git_tag AS rtl_git_tag,
+                   rv.filelist_path AS rtl_filelist_path,
+                   rv.top_module AS rtl_top_module
               FROM workflow_runs r
               LEFT JOIN workspaces w ON w.id = r.workspace_id
               LEFT JOIN ip_blocks i ON i.id = r.ip_id
+              LEFT JOIN rtl_versions rv ON rv.id = r.rtl_version_id
              WHERE r.id = ?
             """,
             (run_id,),
@@ -1755,17 +2354,37 @@ class AtlasDB:
         stage_name: str,
         status: str = "running",
         attempt: int = 1,
+        rtl_version_id: str = "",
     ) -> Dict[str, Any]:
         stage_id = self._new_id()
         now = self._now()
+        if not rtl_version_id:
+            row = self._fetchone(
+                "SELECT rtl_version_id FROM workflow_runs WHERE id = ?",
+                (run_id,),
+            )
+            rtl_version_id = row["rtl_version_id"] if row is not None else ""
         self._execute(
             """
             INSERT INTO workflow_stages
-            (id, run_id, stage_name, status, attempt, started_at, ended_at,
+            (id, run_id, rtl_version_id, stage_name, status, attempt, started_at, ended_at,
              duration_ms, error_summary, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (stage_id, run_id, stage_name, status, attempt, now, None, None, None, now, now),
+            (
+                stage_id,
+                run_id,
+                rtl_version_id,
+                stage_name,
+                status,
+                attempt,
+                now,
+                None,
+                None,
+                None,
+                now,
+                now,
+            ),
         )
         return self.get_workflow_stage(stage_id)
 
@@ -2272,6 +2891,7 @@ class AtlasDB:
         run_id: str = "",
         stage_id: str = "",
         ip_id: str = "",
+        rtl_version_id: str = "",
         workflow: str = "",
         kind: str = "",
         path: str = "",
@@ -2282,18 +2902,31 @@ class AtlasDB:
     ) -> Dict[str, Any]:
         artifact_id = self._new_id()
         now = self._now()
+        if not rtl_version_id and stage_id:
+            row = self._fetchone(
+                "SELECT rtl_version_id FROM workflow_stages WHERE id = ?",
+                (stage_id,),
+            )
+            rtl_version_id = row["rtl_version_id"] if row is not None else ""
+        if not rtl_version_id and run_id:
+            row = self._fetchone(
+                "SELECT rtl_version_id FROM workflow_runs WHERE id = ?",
+                (run_id,),
+            )
+            rtl_version_id = row["rtl_version_id"] if row is not None else ""
         self._execute(
             """
             INSERT INTO artifacts
-            (id, run_id, stage_id, ip_id, workflow, kind, path, storage_backend,
+            (id, run_id, stage_id, ip_id, rtl_version_id, workflow, kind, path, storage_backend,
              sha256, size_bytes, git_commit, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 artifact_id,
                 run_id,
                 stage_id,
                 ip_id,
+                rtl_version_id,
                 workflow,
                 kind,
                 path,
@@ -2320,6 +2953,68 @@ class AtlasDB:
             )
         else:
             rows = self._fetchall("SELECT * FROM artifacts ORDER BY created_at ASC")
+        return [dict(row) for row in rows]
+
+    def list_rtl_run_history(
+        self,
+        ip_id: str = None,
+        rtl_version_id: str = None,
+        workflows: List[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """List downstream workflow runs tied to registered RTL versions."""
+        selected = workflows or ["lint", "sim", "coverage", "syn", "sta", "pnr", "sta-post"]
+        placeholders = ", ".join(["?"] * len(selected))
+        clauses = [f"r.workflow IN ({placeholders})", "r.rtl_version_id IS NOT NULL", "r.rtl_version_id != ''"]
+        values: list[Any] = list(selected)
+        if ip_id is not None:
+            clauses.append("COALESCE(NULLIF(r.ip_id, ''), rv.ip_id) = ?")
+            values.append(ip_id)
+        if rtl_version_id is not None:
+            clauses.append("r.rtl_version_id = ?")
+            values.append(rtl_version_id)
+        where = " WHERE " + " AND ".join(clauses)
+        rows = self._fetchall(
+            f"""
+            SELECT r.id AS run_id, r.session_id, r.workspace_id, r.ip_id,
+                   r.rtl_version_id, r.workflow, r.mode, r.model_profile,
+                   r.reasoning_effort, r.status, r.started_at, r.ended_at,
+                   r.duration_ms, r.trigger, r.input_summary, r.error_summary,
+                   r.created_at, r.updated_at,
+                   rv.version AS rtl_version,
+                   rv.label AS rtl_label,
+                   rv.sha256_tree AS rtl_sha256_tree,
+                   rv.git_commit AS rtl_git_commit,
+                   rv.git_tag AS rtl_git_tag,
+                   rv.filelist_path AS rtl_filelist_path,
+                   rv.top_module AS rtl_top_module,
+                   COALESCE(llm.llm_calls, 0) AS llm_calls,
+                   COALESCE(llm.tokens_input, 0) AS tokens_input,
+                   COALESCE(llm.tokens_output, 0) AS tokens_output,
+                   COALESCE(llm.tokens_reasoning, 0) AS tokens_reasoning,
+                   COALESCE(llm.cost, 0) AS cost,
+                   w.name AS workspace_name,
+                   w.local_path AS workspace_path,
+                   i.ip_name AS ip_name
+              FROM workflow_runs r
+              JOIN rtl_versions rv ON rv.id = r.rtl_version_id
+              LEFT JOIN (
+                  SELECT run_id,
+                         COUNT(*) AS llm_calls,
+                         SUM(tokens_input) AS tokens_input,
+                         SUM(tokens_output) AS tokens_output,
+                         SUM(tokens_reasoning) AS tokens_reasoning,
+                         SUM(cost_usd) AS cost
+                    FROM llm_calls
+                   WHERE run_id IS NOT NULL AND run_id != ''
+                   GROUP BY run_id
+              ) llm ON llm.run_id = r.id
+              LEFT JOIN workspaces w ON w.id = COALESCE(NULLIF(r.workspace_id, ''), rv.workspace_id)
+              LEFT JOIN ip_blocks i ON i.id = COALESCE(NULLIF(r.ip_id, ''), rv.ip_id)
+            {where}
+             ORDER BY r.started_at DESC, r.created_at DESC, r.id DESC
+            """,
+            tuple(values),
+        )
         return [dict(row) for row in rows]
 
     # ---------- Orchestrator room context ----------

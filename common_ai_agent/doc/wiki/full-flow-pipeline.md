@@ -1,28 +1,31 @@
 # Full Flow Pipeline
 
-## Canonical Path
+## Canonical DAG
 
 ```text
 requirement
   -> ssot-gen
-  -> fl-model-gen
-  -> cl-model-gen
+  -> {fl-model-gen, cl-model-gen}
   -> equiv-goals
   -> rtl-gen
-  -> lint
-  -> tb-gen
-  -> sim
-  -> coverage
-  -> sim-debug
-  -> goal-audit
-  -> syn
-  -> sta
-  -> pnr
-  -> post-sta
+  -> {lint, tb-gen, syn}
+
+tb-gen -> sim -> {coverage, sim-debug}
+syn -> {sta, pnr}
+pnr -> post-sta
+all requested evidence -> goal-audit
 ```
 
 ATLAS Web UI, Textual UI, and headless tests must call the same common engine
 path. UI code renders and queues work; it does not own stage logic.
+
+The UI pipeline scheduler defaults to `schedule: "auto"`:
+
+- one resolved worker URL -> serial execution
+- multiple resolved worker URLs -> DAG execution
+
+Explicit `schedule: "dag"` and `schedule: "serial"` remain available for
+benchmark/debug runs.
 
 ## Stage Summary
 
@@ -57,4 +60,5 @@ owner-classified mismatch remains.
 
 - [[common-ai-agent-map]]
 - [[workflow-ownership-and-boundaries]]
+- [[workflow-feedback-and-scheduling]]
 - [[golden-todo-evidence]]
