@@ -169,6 +169,11 @@ function_model:
         - "req_i: N-bit request vector"
         - "req_mask: N-bit mask from CSR"
         - "last_winner: priority rotation base index"
+      outputs:
+        - "gnt_o is one-hot with exactly one bit set at selected_index"
+        - "gnt_valid_o == 1"
+        - "gnt_idx_o == selected_index (binary)"
+        - "last_winner updated to selected_index"
       output_rules:
         - { name: "grant", expr: "one_hot(selected_index)", width: "NUM_REQ", port: "gnt_o", description: "One-hot grant to selected requestor" }
         - { name: "grant_valid", expr: "arb_enabled && ((req_i & req_mask) != 0)", width: 1, port: "gnt_valid_o", description: "Indicates a valid grant is being asserted" }
@@ -186,6 +191,11 @@ function_model:
       inputs:
         - "req_i: N-bit request vector"
         - "req_mask: N-bit mask"
+      outputs:
+        - "gnt_o == 0"
+        - "gnt_valid_o == 0"
+        - "gnt_idx_o == 0"
+        - "last_winner unchanged"
       output_rules:
         - { name: "grant", expr: "0", width: "NUM_REQ", port: "gnt_o", description: "No grant asserted" }
         - { name: "grant_valid", expr: "0", width: 1, port: "gnt_valid_o", description: "No valid grant" }

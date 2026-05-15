@@ -896,6 +896,9 @@ quality_gates:
   eda:
     pass: "Synthesis meets 50 MHz timing at generic technology; no negative slack."
     evidence: ["syn report", "sta reports"]
+  signoff:
+    pass: "SSOT, RTL, DV, coverage, and EDA gates all pass with fresh evidence; no outstanding QA cards."
+    evidence: ["ssot_handoff_record.json", "quality_gates/*.json", "final_signoff_report.md"]
 
 # =============================================================================
 # SECTION 32: Traceability
