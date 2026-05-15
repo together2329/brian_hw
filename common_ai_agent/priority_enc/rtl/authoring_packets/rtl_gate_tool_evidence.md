@@ -41,13 +41,11 @@
   - priority_enc_regs.PSEL <= PSEL (observed_named_port_map)
   - priority_enc_regs.PSLVERR <= PSLVERR (observed_named_port_map)
 - Tool-evidence blockers:
-  - common_ai_agent_authoring: RTL authoring provenance is incomplete: todo_plan_sha256, rtl_files_missing_filelist:rtl/priority_enc_fsm.sv
-  - dynamic_todo_closure: 12 required non-closure TODO(s) remain open.
+  - dynamic_todo_closure: 11 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
   - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
 - Tool-evidence runbook:
-  - common_ai_agent_authoring: stages=ssot-rtl; artifact=priority_enc/rtl/rtl_authoring_provenance.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=priority_enc/rtl/rtl_todo_plan.json
   - protocol_assertion_evidence: stages=ssot-protocol-assertions, sim; artifact=priority_enc/verify/protocol_assertions.sva
   - fl_rtl_goal_audit: stages=ssot-fl-model, ssot-equiv-goals, ssot-tb-cocotb, sim, goal-audit; artifact=priority_enc/sim/fl_rtl_goal_audit.json
@@ -60,13 +58,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: RTL authoring provenance is incomplete: todo_plan_sha256, rtl_files_missing_filelist:rtl/priority_enc_fsm.sv
+- Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -132,7 +130,7 @@ Owner: priority_enc in rtl/priority_enc.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: 12 required non-closure TODO(s) remain open.
+- Current reason: 11 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

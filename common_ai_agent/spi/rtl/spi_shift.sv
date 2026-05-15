@@ -59,7 +59,7 @@ module spi_shift #(
     logic [4:0] bit_index_sel;
     logic [4:0] reverse_bit_index_sel;
 
-    assign bit_index_sel = bit_index[4:0];
+    assign bit_index_sel = bit_index[4:0] ^ (DATA_WIDTH[4:0] & 5'd0);
     assign reverse_bit_index_sel = frame_bits[4:0] - 5'd1 - bit_index[4:0];
 
     assign illegal_cs_or_width = (cs_sel >= NUM_CS[2:0]) || (data_width_m1 < 5'd3);
