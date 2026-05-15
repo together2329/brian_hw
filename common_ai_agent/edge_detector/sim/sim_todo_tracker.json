@@ -1,0 +1,34 @@
+{
+  "description": "Dynamic sim todo list from sim/sim_todo_plan.json",
+  "name": "edge_detector-sim",
+  "schema_version": "todo_tracker.dynamic.v1",
+  "source_plan": "sim/sim_todo_plan.json",
+  "tasks": [
+    {
+      "activeForm": "Run generated testbench and collect simulator evidence",
+      "approval_policy": "evidence_required",
+      "content": "Run generated testbench and collect simulator evidence",
+      "criteria": "A supported TB runner exists and sim.sh produces passing results.xml plus scoreboard_events.jsonl.",
+      "detail": "Simulation cannot start until TB GEN creates an executable runner.",
+      "priority": "high",
+      "required_evidence": [
+        "edge_detector/tb/cocotb/test_runner.py",
+        "edge_detector/sim/results.xml",
+        "edge_detector/sim/scoreboard_events.jsonl"
+      ],
+      "source_id": "SIM-0001",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "blocked",
+      "todo_completion": {
+        "evidence_basis": [
+          "edge_detector/tb/cocotb/test_runner.py",
+          "edge_detector/sim/results.xml",
+          "edge_detector/sim/scoreboard_events.jsonl"
+        ],
+        "reason": "[sim] blocked: no executable TB runner found",
+        "status": "open"
+      }
+    }
+  ],
+  "ui_grouping": false
+}

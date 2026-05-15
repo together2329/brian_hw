@@ -1,7 +1,7 @@
 {
+  "current_stage": "lint",
   "model": "glm-5.1",
-  "phase": "finished",
-  "state": "done",
-  "status": "blocked",
-  "ts": "2026-05-15T02:19:12Z"
+  "phase": "stage",
+  "state": "running",
+  "ts": "2026-05-15T02:19:42Z"
 }

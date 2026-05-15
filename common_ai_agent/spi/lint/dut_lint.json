@@ -17,10 +17,10 @@
     "rtl/spi_int.sv",
     "rtl/spi_param.vh"
   ],
-  "timestamp": "2026-05-15T02:15:40.453030+00:00",
+  "timestamp": "2026-05-15T02:19:39.579551+00:00",
   "returncode": 1,
   "errors": 0,
-  "warnings": 8,
+  "warnings": 1,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -39,79 +39,16 @@
       "command": "verilator --lint-only -Wall -Irtl -f list/spi.f --top-module spi",
       "returncode": 1,
       "errors": 0,
-      "warnings": 8,
+      "warnings": 1,
       "diagnostics": [
         {
           "severity": "warning",
-          "rule": "PINCONNECTEMPTY",
-          "file": "rtl/spi.sv",
-          "line": 108,
-          "column": 56,
-          "message": "Instance pin connected by name with empty reference: 'prescale_tick'",
-          "source": "        .prescale_div(prescale_div), .sclk_o(sclk_o), .prescale_tick(),"
-        },
-        {
-          "severity": "warning",
-          "rule": "PINCONNECTEMPTY",
-          "file": "rtl/spi.sv",
-          "line": 121,
-          "column": 10,
-          "message": "Instance pin connected by name with empty reference: 'rx_overrun_event'",
-          "source": "        .rx_overrun_event(), .bit_index_dbg(bit_index_dbg), .active_cs_dbg(active_cs_dbg), .cs_active(cs_active)"
-        },
-        {
-          "severity": "warning",
           "rule": "UNUSEDPARAM",
           "file": "rtl/spi.sv",
-          "line": 12,
-          "column": 23,
-          "message": "Parameter is not used: 'PCLK_FREQ_MHZ'",
-          "source": "    parameter integer PCLK_FREQ_MHZ = 100"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_shift.sv",
-          "line": 3,
+          "line": 5,
           "column": 23,
           "message": "Parameter is not used: 'DATA_WIDTH'",
           "source": "    parameter integer DATA_WIDTH = 8,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_shift.sv",
-          "line": 5,
-          "column": 23,
-          "message": "Parameter is not used: 'CPOL_RESET'",
-          "source": "    parameter integer CPOL_RESET = 0,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_shift.sv",
-          "line": 6,
-          "column": 23,
-          "message": "Parameter is not used: 'CPHA_RESET'",
-          "source": "    parameter integer CPHA_RESET = 0,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_shift.sv",
-          "line": 7,
-          "column": 23,
-          "message": "Parameter is not used: 'LSB_FIRST_RESET'",
-          "source": "    parameter integer LSB_FIRST_RESET = 0"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/spi_shift.sv",
-          "line": 64,
-          "column": 17,
-          "message": "Bits of signal are not used: 'reverse_bit_index_full'[5]",
-          "source": "    logic [5:0] reverse_bit_index_full;"
         }
       ],
       "passed": false

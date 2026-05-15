@@ -1,10 +1,14 @@
 {
-  "artifacts": [],
+  "artifacts": [
+    "arbiter_rr/sim/sim_todo_plan.json",
+    "arbiter_rr/todo/sim_todo_tracker.json",
+    "arbiter_rr/sim/sim_todo_tracker.json"
+  ],
   "blocker": "arbiter_rr/tb",
-  "created_at": "2026-05-15T02:15:10Z",
+  "created_at": "2026-05-15T02:19:37Z",
   "headline": "[sim] blocked: no executable TB runner found",
   "ip": "arbiter_rr",
-  "message": "[sim] blocked: no executable TB runner found for arbiter_rr\nexpected one of:\n- arbiter_rr/tb/cocotb/test_runner.py\n- arbiter_rr/tb/cocotb/run_tests.py\n- arbiter_rr/tb/test_runner.py\n- arbiter_rr/tb/run_tests.py\nRun /tb <ip> first.",
+  "message": "[sim] blocked: no executable TB runner found for arbiter_rr\nexpected one of:\n- arbiter_rr/tb/cocotb/test_runner.py\n- arbiter_rr/tb/cocotb/run_tests.py\n- arbiter_rr/tb/test_runner.py\n- arbiter_rr/tb/run_tests.py\nRun /tb <ip> first.\n\nexpected artifacts:\n- arbiter_rr/sim/sim_todo_plan.json\n- arbiter_rr/todo/sim_todo_tracker.json\n- arbiter_rr/sim/sim_todo_tracker.json",
   "metadata": {},
   "returncode": 2,
   "runs": [],

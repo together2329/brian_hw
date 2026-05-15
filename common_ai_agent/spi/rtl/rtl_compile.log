@@ -1,4 +1,0 @@
-rtl/spi.sv:125: error: Unresolved net/uwire rx_overrun_event cannot have multiple drivers.
-rtl/spi.sv:125: error: Output port expression must support continuous assignment.
-rtl/spi.sv:125:      : Port 28 (rx_overrun_event) of spi_shift is connected to rx_overrun_event
-2 error(s) during elaboration.

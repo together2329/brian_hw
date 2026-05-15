@@ -460,6 +460,49 @@ class TestTodoPromptLoading(unittest.TestCase):
         self.assertEqual(todos[0]["content"], "Implement SSOT-specific RTL behavior")
         self.assertIn("Cycle timing covered", todos[0]["criteria"])
 
+    def test_todo_template_load_dynamic_stage_template_for_ip(self):
+        self._make_registry({
+            "coverage": {
+                "name": "coverage",
+                "tasks": [{"content": "static coverage seed", "priority": "low"}],
+            }
+        })
+        ip = "todo_dynamic_cov_ip"
+        tracker_dir = self.tmp / ip / "todo"
+        tracker_dir.mkdir(parents=True)
+        (tracker_dir / "coverage_todo_tracker.json").write_text(
+            json.dumps({
+                "name": f"{ip}-coverage",
+                "source_plan": "cov/coverage_todo_plan.json",
+                "tasks": [
+                    {
+                        "content": "Audit SSOT function and cycle coverage",
+                        "activeForm": "Auditing SSOT function and cycle coverage",
+                        "detail": "Generated from coverage_todo_plan.json.",
+                        "criteria": "coverage.json status is pass",
+                        "priority": "high",
+                    }
+                ],
+            }),
+            encoding="utf-8",
+        )
+        todo_file = str(self.tmp / "todo.json")
+
+        from core.slash_commands import SlashCommandRegistry
+        reg = SlashCommandRegistry()
+        cwd = os.getcwd()
+        try:
+            os.chdir(self.tmp)
+            result = reg._todo_load_template("coverage", todo_file, dynamic_ip=ip)
+        finally:
+            os.chdir(cwd)
+
+        self.assertIn("dynamic template 'coverage'", result)
+        data = json.loads(Path(todo_file).read_text())
+        todos = data["todos"]
+        self.assertEqual(len(todos), 1)
+        self.assertEqual(todos[0]["content"], "Audit SSOT function and cycle coverage")
+
     def test_todo_template_load_unknown_name_returns_error(self):
         self._make_registry({"known": {"name": "known", "tasks": []}})
         from core.slash_commands import SlashCommandRegistry

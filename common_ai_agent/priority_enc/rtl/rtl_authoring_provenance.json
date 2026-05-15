@@ -5,15 +5,16 @@
   "workflow": "rtl-gen",
   "surface": "headless_common_engine",
   "ip": "priority_enc",
-  "todo_plan_sha256": "e5e03428ce4264719457e3bef124c6a8b6b1d161c366d82553a74e322cd9e577",
+  "todo_plan_sha256": "30c9bab40545df01e6d79e0c71a44ef01e6287c7848a91be81863b87ecaeafa9",
   "rtl_files": [
     "rtl/priority_enc.sv",
     "rtl/priority_enc_regs.sv",
-    "rtl/priority_enc_core.sv"
+    "rtl/priority_enc_core.sv",
+    "rtl/priority_enc_fsm.sv"
   ],
   "headers": [
     "rtl/priority_enc_param.vh"
   ],
   "filelist": "list/priority_enc.f",
-  "generated_at": "2026-05-15T02:13:08Z"
+  "generated_at": "2026-05-15T02:19:47Z"
 }
