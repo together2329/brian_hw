@@ -88,6 +88,21 @@ def _run_cmd(cmd: List[str], prompt: str, timeout_sec: int) -> tuple[int, str]:
     return proc.returncode or 0, out
 
 
+def _first_json_object(text: str) -> Optional[dict]:
+    """Return the first JSON object in stdout, ignoring hook diagnostics."""
+    decoder = json.JSONDecoder()
+    for idx, ch in enumerate(text or ""):
+        if ch != "{":
+            continue
+        try:
+            value, _end = decoder.raw_decode(text[idx:])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict):
+            return value
+    return None
+
+
 def _iter_chunks(proc, raw_lines: Optional[List[str]] = None) -> Iterator[dict]:
     for raw_line in proc.stdout:
         raw_line = raw_line.strip()
@@ -275,9 +290,8 @@ def claude_cli_call(
         if returncode != 0:
             return f"[claude-cli error] {out.strip() or f'exit code {returncode}'}"
         if fmt == "json":
-            try:
-                result = json.loads(out)
-            except json.JSONDecodeError:
+            result = _first_json_object(out)
+            if result is None:
                 return out.strip()
             text = _handle_result_object(result, _lc)
         else:

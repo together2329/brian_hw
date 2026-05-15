@@ -131,3 +131,16 @@ def test_claude_cli_backend_parses_json_result_usage():
     assert LC.last_input_tokens == 26
     assert LC.last_output_tokens == 5
     assert backend.last_claude_model == "claude-sonnet-4-6"
+
+
+def test_claude_cli_call_ignores_hook_noise_after_json(monkeypatch):
+    import src.claude_cli_backend as backend
+
+    noisy_stdout = (
+        '{"type":"result","subtype":"success","result":"OK",'
+        '"usage":{"input_tokens":3,"output_tokens":2}}\n'
+        'SessionEnd hook [cmux hooks claude session-end] failed: Hook cancelled\n'
+    )
+    monkeypatch.setattr(backend, "_run_cmd", lambda *_args, **_kwargs: (0, noisy_stdout))
+
+    assert backend.claude_cli_call(messages=[{"role": "user", "content": "hi"}]) == "OK"
