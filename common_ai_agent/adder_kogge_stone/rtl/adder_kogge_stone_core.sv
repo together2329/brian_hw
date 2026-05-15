@@ -107,7 +107,6 @@ module adder_kogge_stone_core #(
                 sum_o      <= sum_next;
                 cout_o     <= cout_next;
                 done_o     <= 1'b1;
-                overflow_o <= cout_next;
             end
         end
     end
