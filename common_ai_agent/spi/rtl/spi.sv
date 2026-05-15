@@ -52,7 +52,6 @@ module spi #(
     logic [4:0] tx_level;
     logic rx_push;
     logic [31:0] rx_word;
-    logic rx_push_drop;
     logic rx_pop;
     logic [31:0] rx_pop_data;
     logic rx_empty;
@@ -99,7 +98,7 @@ module spi #(
         .PCLK(PCLK), .PRESETn(PRESETn), .soft_reset(soft_reset),
         .tx_push(tx_push), .tx_push_data(tx_push_data), .tx_push_drop(tx_push_drop), .tx_pop(tx_pop),
         .tx_pop_data(tx_word), .tx_empty(tx_empty), .tx_full(tx_full), .tx_level(tx_level),
-        .rx_push(rx_push), .rx_push_data(rx_word), .rx_push_drop(rx_push_drop), .rx_pop(rx_pop),
+        .rx_push(rx_push), .rx_push_data(rx_word), .rx_push_drop(rx_overrun_event), .rx_pop(rx_pop),
         .rx_pop_data(rx_pop_data), .rx_empty(rx_empty), .rx_full(rx_full), .rx_level(rx_level)
     );
 
@@ -120,7 +119,7 @@ module spi #(
         .tx_empty(tx_empty), .tx_pop(tx_pop), .rx_push(rx_push), .rx_word(rx_word), .rx_full(rx_full),
         .sclk_shift_edge(shift_edge), .sclk_sample_edge(sample_edge), .miso_i(miso_i), .busy(busy),
         .mosi_o(mosi_o), .csn_o(csn_o), .done_event(done_event), .mode_fault_event(mode_fault_event),
-        .rx_overrun_event(rx_overrun_event), .bit_index_dbg(bit_index_dbg), .active_cs_dbg(active_cs_dbg), .cs_active(cs_active)
+        .rx_overrun_event(), .bit_index_dbg(bit_index_dbg), .active_cs_dbg(active_cs_dbg), .cs_active(cs_active)
     );
 
     spi_int u_int (

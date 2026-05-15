@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 10,
+    "open_required_todos": 7,
     "orphan_tasks": 0,
-    "static_missing": 1,
+    "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:10:23Z",
+  "generated_at": "2026-05-15T02:13:05Z",
   "ip": "edge_detector",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 5,
@@ -126,16 +126,16 @@
     "aggregate": {
       "behavior_owner_logic_modules": 1,
       "control_flow": 11,
-      "depth_score": 112,
+      "depth_score": 114,
       "instances": 1,
-      "lines": 220,
+      "lines": 223,
       "logic_modules": 2,
       "modules": 2,
-      "nonconstant_assigns": 24,
+      "nonconstant_assigns": 25,
       "procedural_blocks": 7,
       "source_files": 2,
       "state_updates": 11,
-      "storage_decls": 32
+      "storage_decls": 33
     },
     "issues": [
       {
@@ -161,16 +161,16 @@
         "module": "edge_detector_regs"
       },
       {
-        "depth_score": 45,
+        "depth_score": 47,
         "file": "rtl/edge_detector.sv",
         "metrics": {
           "control_flow": 2,
           "instances": 1,
-          "nonconstant_assigns": 6,
+          "nonconstant_assigns": 7,
           "placeholder_tokens": false,
           "procedural_blocks": 3,
           "state_updates": 6,
-          "storage_decls": 14
+          "storage_decls": 15
         },
         "module": "edge_detector"
       }
@@ -455,25 +455,9 @@
   ],
   "static_rtl_evidence": {
     "checked": 23,
-    "missing": 1,
-    "missing_tasks": [
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/edge_detector.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "status",
-          "status_sticky",
-          "sticky"
-        ],
-        "source_ref": "function_model.invariants.invariant_2",
-        "source_scope": "rtl/edge_detector.sv",
-        "task_id": "RTL-0067"
-      }
-    ],
-    "passed": 22,
+    "missing": 0,
+    "missing_tasks": [],
+    "passed": 23,
     "sources": [
       "rtl/edge_detector.sv",
       "rtl/edge_detector_regs.sv"
@@ -853,9 +837,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance is incomplete: type, todo_plan_sha256",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -901,9 +885,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1473,7 +1457,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "9 required non-closure TODO(s) remain open.",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -3424,10 +3408,13 @@
         "function_model.transactions.DETECT.outputs.output_1"
       ],
       "static_evidence": {
-        "matched_count": 2,
+        "matched_count": 5,
         "matched_terms": [
           "edge",
-          "edge_o"
+          "edge_o",
+          "status",
+          "status_sticky",
+          "sticky"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -3490,10 +3477,13 @@
         "function_model.transactions.DETECT.outputs.output_2"
       ],
       "static_evidence": {
-        "matched_count": 2,
+        "matched_count": 5,
         "matched_terms": [
           "edge",
-          "edge_o"
+          "edge_o",
+          "status",
+          "status_sticky",
+          "sticky"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -4037,8 +4027,12 @@
         "function_model.invariants.invariant_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "status",
+          "status_sticky",
+          "sticky"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4048,7 +4042,7 @@
           "sticky"
         ],
         "source_scope": "rtl/edge_detector.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4058,9 +4052,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7050,23 +7044,11 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 10,
+    "open_required_tasks": 7,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "RTL authoring provenance is incomplete: type, todo_plan_sha256",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "task_id": "RTL-0007"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "9 required non-closure TODO(s) remain open.",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -7105,15 +7087,9 @@
         "reason": "Missing coverage closure artifact: cov/coverage.json.",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "task_id": "RTL-0026"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.invariants.invariant_2",
-        "task_id": "RTL-0067"
       }
     ],
-    "required_passed": 118,
+    "required_passed": 121,
     "required_total": 128,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

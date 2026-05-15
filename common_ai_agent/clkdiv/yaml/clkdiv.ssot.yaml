@@ -670,6 +670,83 @@ quality_gates:
   signoff:
     pass: "All SSOT/RTL/DV/coverage/EDA gates pass with current evidence."
     evidence: ["signoff/signoff_summary.md", "quality_gates evidence bundle"]
-traceability: TBD
-workflow_todos: TBD
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "RTL module clkdiv and downstream file naming" }
+    - { yaml: "parameters", output: "rtl/clkdiv_param.vh and parameterized RTL widths" }
+    - { yaml: "io_list.interfaces", output: "rtl/clkdiv.sv top ports and protocol checks" }
+    - { yaml: "registers.register_list", output: "rtl/clkdiv_regs.sv, firmware header, register docs" }
+    - { yaml: "function_model", output: "rtl/clkdiv_core.sv and verification reference model" }
+    - { yaml: "cycle_model", output: "RTL sequential timing and cycle checkers" }
+    - { yaml: "fsm", output: "clkdiv_core state implementation and FSM coverage" }
+    - { yaml: "integration.connections", output: "clkdiv top named port maps" }
+    - { yaml: "timing", output: "sdc/clkdiv.sdc and STA pass/fail criteria" }
+    - { yaml: "security", output: "negative tests for illegal accesses and glitchless update" }
+    - { yaml: "error_handling", output: "RTL error responses and DV fault scenarios" }
+    - { yaml: "test_requirements.scenarios", output: "tb/sim scenario implementation" }
+    - { yaml: "quality_gates", output: "ATLAS workflow evidence and signoff criteria" }
+workflow_todos:
+  fl-model-gen:
+    - id: "FL_TODO_CLKDIV_MODEL"
+      content: "Implement clocked functional/cycle reference model for clkdiv"
+      detail: "Model APB register side effects, counter, active/pending divisor, clk_o, locked_o, irq_pending, and pslverr behavior from function_model and cycle_model."
+      criteria:
+        - "Model output_rules produce clk_o/locked_o/irq_o expected values"
+        - "Model covers DIVISOR=0 coercion and unsupported APB access"
+      source_refs: ["function_model", "cycle_model", "registers.register_list"]
+      priority: "high"
+      required: true
+  rtl-gen:
+    - id: "RTL_TODO_CLKDIV_TOP"
+      content: "Implement clkdiv top integration"
+      detail: "Create rtl/clkdiv.sv with declared IO ports and instantiate/wire clkdiv_regs and clkdiv_core according to integration.connections."
+      criteria:
+        - "Top module ports match io_list exactly"
+        - "Named port connections satisfy integration.connections"
+        - "No wrapper-only top pattern; top file is rtl/clkdiv.sv"
+      source_refs: ["top_module", "io_list", "integration.connections", "sub_modules"]
+      owner_module: "clkdiv"
+      owner_file: "rtl/clkdiv.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_CLKDIV_REGS"
+      content: "Implement APB register/status block"
+      detail: "Implement CTRL, DIVISOR, STATUS, INTCLR, APB one-cycle pready/prdata/pslverr behavior, reserved-field policy, divisor zero coercion, and irq pending clear/set policy."
+      criteria:
+        - "Register reset, access, bit ranges, write effects, and reserved fields match registers.register_list"
+        - "Unsupported address and RO write pslverr behavior matches error_handling"
+        - "irq_o reflects irq_pending && irq_enable"
+      source_refs: ["registers.register_list", "io_list.interfaces.apb_slave", "interrupts", "error_handling"]
+      owner_module: "clkdiv_regs"
+      owner_file: "rtl/clkdiv_regs.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_CLKDIV_CORE"
+      content: "Implement divider counter and output timing core"
+      detail: "Implement enable behavior, active/pending divisor boundary update, counter terminal detection, clk_o sequential toggle, locked_o, and terminal_event_o from function_model and cycle_model."
+      criteria:
+        - "clk_o changes only on clk_i rising edge terminal count"
+        - "DIVISOR updates are glitchless and apply only at terminal boundary"
+        - "FSM states/transitions and coverage hooks align with fsm.divider_fsm"
+      source_refs: ["function_model.transactions.FM_DIVIDE", "cycle_model.pipeline", "cycle_model.ordering", "fsm.divider_fsm"]
+      owner_module: "clkdiv_core"
+      owner_file: "rtl/clkdiv_core.sv"
+      priority: "high"
+      required: true
+  tb-gen:
+    - id: "TB_TODO_CLKDIV_SCENARIOS"
+      content: "Implement clkdiv DV scenarios from SSOT"
+      detail: "Generate tests for APB access, divide-by-two, glitchless divisor update, terminal interrupt, and DIVISOR zero policy."
+      criteria:
+        - "All test_requirements.scenarios execute"
+        - "Function and cycle coverage bins are sampled"
+      source_refs: ["test_requirements.scenarios", "test_requirements.coverage_goals"]
+      priority: "high"
+      required: true
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
 generation_flow: TBD

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "type": "rtl_authoring_provenance",
+  "agent": "common_ai_agent",
+  "workflow": "rtl-gen",
+  "surface": "atlas_ui",
+  "ip": "parity_gen",
+  "ssot": "parity_gen/yaml/parity_gen.ssot.yaml",
+  "todo_plan": "parity_gen/rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "db10f974ed41fd3c4ae35d4211590338ef0ee96308bf7ca2ad6bbccb25a20cb4",
+  "rtl_files": [
+    "parity_gen/rtl/parity_gen.sv",
+    "parity_gen/rtl/parity_gen_regs.sv",
+    "parity_gen/rtl/parity_gen_core.sv"
+  ],
+  "filelist": "parity_gen/list/parity_gen.f"
+}

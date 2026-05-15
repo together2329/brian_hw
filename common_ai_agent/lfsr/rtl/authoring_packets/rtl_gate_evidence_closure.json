@@ -461,7 +461,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top IO contract issue(s) remain. PCLK: RTL top port width/range does not match SSOT",
+        "reason": "4 top IO contract issue(s) remain. PADDR: RTL top port width/range does not match SSOT; PWDATA: RTL top port width/range does not match SSOT; PRDATA: RTL top port width/range does not match SSOT",
         "required": true,
         "status": "open"
       }

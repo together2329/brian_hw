@@ -278,8 +278,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 2,
-    "open_required_count": 2,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -311,7 +311,7 @@
       "rtl_gate.rtl_gen": 10
     },
     "module_slice": {},
-    "open_required_count": 2,
+    "open_required_count": 1,
     "required_count": 10,
     "source_refs": [
       "quality_gates.rtl_gen.static_rtl_evidence",
@@ -326,8 +326,8 @@
       "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
     ],
     "status_counts": {
-      "open": 2,
-      "pass": 8
+      "open": 1,
+      "pass": 9
     },
     "task_count": 10
   },
@@ -373,9 +373,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {

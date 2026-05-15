@@ -488,6 +488,9 @@ quality_gates:
   rtl:
     pass: "RTL output y matches function_model for every legal sel and randomized data sample."
     evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+  dv:
+    pass: "TB scenarios prove all legal select values, randomized data behavior, and unselected-input isolation."
+    evidence: ["tb/cocotb/test_mux_4to1.py", "sim/test_results.xml", "sim/fl_rtl_compare.json"]
   coverage:
     pass: "Declared function and cycle bins reach 100% or have approved waivers."
     evidence: ["cov/coverage.json", "sim/coverage_report.md"]

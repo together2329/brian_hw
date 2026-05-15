@@ -34,6 +34,7 @@ module adder_kogge_stone_core #(
     logic                  cin_sel;
     logic                  capture_en;
     logic                  shadow_valid;
+    logic                  apb_error_preserve_core;
 
     logic [DATA_WIDTH-1:0] bit_propagate;
     logic [DATA_WIDTH:0]   carry_chain;
@@ -52,8 +53,7 @@ module adder_kogge_stone_core #(
 
     assign capture_en = start_i | (~hold_mode_i);
     assign shadow_valid = capture_en;
-
-    // SSOT adder_fsm: IDLE waits for start or continuous hold_mode=0, COMPUTE captures, DONE returns.
+    assign apb_error_preserve_core = pslverr_shadow_policy(removed);
     always @(*) begin
         next_state = state;
         busy_o = (state == COMPUTE);

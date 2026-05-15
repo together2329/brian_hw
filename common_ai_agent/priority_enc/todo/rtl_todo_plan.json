@@ -429,12 +429,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 17,
+    "open_required_todos": 16,
     "orphan_tasks": 4,
     "static_missing": 7,
     "status": "blocked"
   },
-  "generated_at": "2026-05-15T02:12:50Z",
+  "generated_at": "2026-05-15T02:13:25Z",
   "ip": "priority_enc",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -1328,9 +1328,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1948,7 +1948,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "16 required non-closure TODO(s) remain open.",
+        "reason": "15 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -6568,19 +6568,13 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 17,
+    "open_required_tasks": 16,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
         "reason": "4 required SSOT-derived RTL task(s) still have no owner module.",
         "source_ref": "quality_gates.rtl_gen.owner_traceability",
         "task_id": "RTL-0005"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
       },
       {
         "category": "rtl_gate.rtl_gen",
@@ -6596,7 +6590,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "16 required non-closure TODO(s) remain open.",
+        "reason": "15 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -6673,7 +6667,7 @@
         "task_id": "RTL-0087"
       }
     ],
-    "required_passed": 91,
+    "required_passed": 92,
     "required_total": 108,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

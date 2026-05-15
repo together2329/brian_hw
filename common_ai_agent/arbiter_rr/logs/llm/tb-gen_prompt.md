@@ -1,0 +1,1 @@
+Prepare tb-gen for arbiter_rr using arbiter_rr/verify/equivalence_goals.json, arbiter_rr/model/functional_model.py, and arbiter_rr/rtl/rtl_contract.json. Do not duplicate expected behavior by hand; scoreboard must call FunctionalModel.

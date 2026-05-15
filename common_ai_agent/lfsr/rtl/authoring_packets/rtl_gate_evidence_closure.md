@@ -106,7 +106,7 @@ Owner: lfsr in rtl/lfsr.sv via top_module.
 - Detail: The top wrapper must expose the SSOT-declared clock/reset and explicit IO ports. A compiling top with missing, renamed, or wrong-direction ports cannot close RTL generation.
 SSOT ref: quality_gates.rtl_gen.top_io_contract_evidence.
 Owner: lfsr in rtl/lfsr.sv via top_module.
-- Current reason: 1 top IO contract issue(s) remain. PCLK: RTL top port width/range does not match SSOT
+- Current reason: 4 top IO contract issue(s) remain. PADDR: RTL top port width/range does not match SSOT; PWDATA: RTL top port width/range does not match SSOT; PRDATA: RTL top port width/range does not match SSOT
 - Criteria:
   - SSOT clock/reset names are declared on the RTL top module
   - Explicit io_list ports/signals are declared on the RTL top module

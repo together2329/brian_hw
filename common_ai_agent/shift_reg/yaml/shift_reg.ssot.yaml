@@ -619,6 +619,18 @@ quality_gates:
   signoff:
     pass: "All SSOT, RTL, DV, coverage, and EDA gates have current evidence."
     evidence: ["signoff checklist", "quality gate summary"]
-traceability: TBD
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "rtl/shift_reg.sv module name" }
+    - { yaml: "parameters", output: "rtl/shift_reg_param.vh and parameter declarations" }
+    - { yaml: "io_list.interfaces.shift_control.ports", output: "rtl/shift_reg.sv top-level ports" }
+    - { yaml: "function_model.transactions", output: "rtl/shift_reg_core.sv datapath behavior and tb scoreboard" }
+    - { yaml: "cycle_model", output: "RTL sequential timing and cycle assertions" }
+    - { yaml: "rtl_contract", output: "RTL state update and output mapping" }
+    - { yaml: "registers.register_list.STATUS", output: "DV/docs pseudo-register observability" }
+    - { yaml: "integration.connections", output: "Named top-to-core port wiring" }
+    - { yaml: "test_requirements.scenarios", output: "tb/cocotb/test_shift_reg.py tests" }
+    - { yaml: "timing", output: "sdc/shift_reg.sdc and STA constraints" }
+    - { yaml: "quality_gates", output: "workflow signoff evidence requirements" }
 workflow_todos: TBD
 generation_flow: TBD
