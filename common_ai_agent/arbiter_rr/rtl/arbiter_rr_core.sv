@@ -26,7 +26,6 @@ module arbiter_rr_core #(
     logic [1:0]                 state;
     logic [1:0]                 next_state;
     logic [NUM_REQ-1:0]         req_masked_now;
-    logic [NUM_REQ-1:0]         req_masked_q;
     logic [IDX_WIDTH-1:0]       last_winner;
     logic [NUM_REQ-1:0]         last_winner_oh;
     logic                       arb_enabled;

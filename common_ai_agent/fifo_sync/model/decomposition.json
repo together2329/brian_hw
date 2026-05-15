@@ -9,7 +9,7 @@
       "kind": "rtl_module",
       "source_sections": [
         "dataflow",
-        "features",
+        "decomposition",
         "memory"
       ],
       "rtl_candidates": [
@@ -20,7 +20,7 @@
         "dataflow",
         "dataflow.read_path",
         "dataflow.write_path",
-        "features.simultaneous_push_pop",
+        "decomposition.units.storage",
         "memory",
         "memory.instances",
         "memory.instances.fifo_ram"
@@ -28,7 +28,6 @@
       "function_model_refs": [],
       "cycle_model_refs": [],
       "structural_refs": [
-        "features.simultaneous_push_pop",
         "memory.instances.fifo_ram"
       ],
       "verification_impact": [
@@ -44,6 +43,7 @@
       "kind": "rtl_module",
       "source_sections": [
         "cycle_model",
+        "decomposition",
         "features",
         "fsm",
         "function_model"
@@ -75,8 +75,13 @@
         "cycle_model.pipeline.s2_update_ptrs",
         "cycle_model.pipeline.s3_write_mem",
         "cycle_model.reset",
+        "decomposition.units.pointer_control",
+        "features.overflow_protection",
+        "features.simultaneous_push_pop",
+        "features.synchronous_flush",
+        "features.synchronous_pop",
         "features.synchronous_push",
-        "fsm",
+        "features.underflow_protection",
         "fsm.ptr_fsm",
         "function_model",
         "function_model.invariants.invariant_0",
@@ -297,7 +302,12 @@
         "cycle_model.reset"
       ],
       "structural_refs": [
-        "features.synchronous_push"
+        "features.overflow_protection",
+        "features.simultaneous_push_pop",
+        "features.synchronous_flush",
+        "features.synchronous_pop",
+        "features.synchronous_push",
+        "features.underflow_protection"
       ],
       "verification_impact": [
         "module-level FL-vs-RTL scoreboard",
@@ -312,6 +322,7 @@
       "kind": "rtl_module",
       "source_sections": [
         "cycle_model",
+        "decomposition",
         "function_model"
       ],
       "rtl_candidates": [
@@ -322,8 +333,8 @@
         "cycle_model",
         "cycle_model.latency",
         "cycle_model.pipeline.s4_update_flags",
+        "decomposition.units.flag_generation",
         "function_model",
-        "function_model.transactions",
         "function_model.transactions.output_rules"
       ],
       "function_model_refs": [],
@@ -343,6 +354,7 @@
       "name": "fifo_sync_regs",
       "kind": "rtl_module",
       "source_sections": [
+        "decomposition",
         "io_list",
         "registers"
       ],
@@ -351,6 +363,7 @@
       ],
       "rtl_file": "rtl/fifo_sync_regs.sv",
       "ssot_refs": [
+        "decomposition.units.csr_access",
         "io_list",
         "io_list.interfaces.apb_csr",
         "registers",
@@ -402,6 +415,7 @@
         "parameters.almost_empty_threshold",
         "parameters.almost_full_threshold",
         "parameters.clock_freq_mhz",
+        "parameters.count_width",
         "parameters.data_width",
         "parameters.depth",
         "parameters.use_apb",
@@ -414,6 +428,7 @@
         "parameters.almost_empty_threshold",
         "parameters.almost_full_threshold",
         "parameters.clock_freq_mhz",
+        "parameters.count_width",
         "parameters.data_width",
         "parameters.depth",
         "parameters.use_apb",
@@ -550,14 +565,14 @@
       "rtl_file": "rtl/fifo_sync_mem.sv",
       "source_sections": [
         "dataflow",
-        "features",
+        "decomposition",
         "memory"
       ],
       "ssot_refs": [
         "dataflow",
         "dataflow.read_path",
         "dataflow.write_path",
-        "features.simultaneous_push_pop",
+        "decomposition.units.storage",
         "memory",
         "memory.instances",
         "memory.instances.fifo_ram"
@@ -565,7 +580,6 @@
       "function_model_refs": [],
       "cycle_model_refs": [],
       "structural_refs": [
-        "features.simultaneous_push_pop",
         "memory.instances.fifo_ram"
       ],
       "owner_matches": [],
@@ -573,10 +587,6 @@
         {
           "ref": "memory.instances.fifo_ram",
           "matched_ref": "memory"
-        },
-        {
-          "ref": "features.simultaneous_push_pop",
-          "matched_ref": "semantic_terms:mem,read,write"
         }
       ],
       "verification_scope": "module",
@@ -591,6 +601,7 @@
       "rtl_file": "rtl/fifo_sync_ptrs.sv",
       "source_sections": [
         "cycle_model",
+        "decomposition",
         "features",
         "fsm",
         "function_model"
@@ -618,8 +629,13 @@
         "cycle_model.pipeline.s2_update_ptrs",
         "cycle_model.pipeline.s3_write_mem",
         "cycle_model.reset",
+        "decomposition.units.pointer_control",
+        "features.overflow_protection",
+        "features.simultaneous_push_pop",
+        "features.synchronous_flush",
+        "features.synchronous_pop",
         "features.synchronous_push",
-        "fsm",
+        "features.underflow_protection",
         "fsm.ptr_fsm",
         "function_model",
         "function_model.invariants.invariant_0",
@@ -840,7 +856,12 @@
         "cycle_model.reset"
       ],
       "structural_refs": [
-        "features.synchronous_push"
+        "features.overflow_protection",
+        "features.simultaneous_push_pop",
+        "features.synchronous_flush",
+        "features.synchronous_pop",
+        "features.synchronous_push",
+        "features.underflow_protection"
       ],
       "owner_matches": [
         {
@@ -1307,7 +1328,27 @@
       "structural_owner_matches": [
         {
           "ref": "features.synchronous_push",
-          "matched_ref": "semantic_terms:fifo_sync_ptrs,ptr,ptrs"
+          "matched_ref": "semantic_terms:count,fifo_sync_ptrs,pointer,ptr,ptrs,wr"
+        },
+        {
+          "ref": "features.synchronous_pop",
+          "matched_ref": "semantic_terms:count,fifo_sync_ptrs,pointer,ptr,ptrs,rd"
+        },
+        {
+          "ref": "features.simultaneous_push_pop",
+          "matched_ref": "semantic_terms:count,ptr,rd,rd_ptr,wr,wr_ptr"
+        },
+        {
+          "ref": "features.overflow_protection",
+          "matched_ref": "semantic_terms:count,ptr,wr,wr_ptr"
+        },
+        {
+          "ref": "features.underflow_protection",
+          "matched_ref": "semantic_terms:count,ptr,rd,rd_ptr"
+        },
+        {
+          "ref": "features.synchronous_flush",
+          "matched_ref": "semantic_terms:count,ptr,rd,rd_ptr,wr,wr_ptr"
         }
       ],
       "verification_scope": "module",
@@ -1322,14 +1363,15 @@
       "rtl_file": "rtl/fifo_sync_flags.sv",
       "source_sections": [
         "cycle_model",
+        "decomposition",
         "function_model"
       ],
       "ssot_refs": [
         "cycle_model",
         "cycle_model.latency",
         "cycle_model.pipeline.s4_update_flags",
+        "decomposition.units.flag_generation",
         "function_model",
-        "function_model.transactions",
         "function_model.transactions.output_rules"
       ],
       "function_model_refs": [],
@@ -1355,10 +1397,12 @@
       "rtl_module": "fifo_sync_regs",
       "rtl_file": "rtl/fifo_sync_regs.sv",
       "source_sections": [
+        "decomposition",
         "io_list",
         "registers"
       ],
       "ssot_refs": [
+        "decomposition.units.csr_access",
         "io_list",
         "io_list.interfaces.apb_csr",
         "registers",
@@ -1436,6 +1480,7 @@
         "parameters.almost_empty_threshold",
         "parameters.almost_full_threshold",
         "parameters.clock_freq_mhz",
+        "parameters.count_width",
         "parameters.data_width",
         "parameters.depth",
         "parameters.use_apb",
@@ -1448,6 +1493,7 @@
         "parameters.almost_empty_threshold",
         "parameters.almost_full_threshold",
         "parameters.clock_freq_mhz",
+        "parameters.count_width",
         "parameters.data_width",
         "parameters.depth",
         "parameters.use_apb",
@@ -1470,6 +1516,10 @@
         },
         {
           "ref": "parameters.almost_empty_threshold",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.count_width",
           "matched_ref": "parameters"
         },
         {

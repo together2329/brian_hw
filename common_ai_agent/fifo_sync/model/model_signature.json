@@ -1,0 +1,9 @@
+{
+  "expressions_hash": "8dfec0583910659efc462c1294cc084bc8e939dfee39173dc20c3ac1e4f4a125",
+  "invariants_hash": "7f695a130214ca93ef46d10ec99a6bd8973969cb5a2bc8a62ea73ad89554e43c",
+  "ip": "fifo_sync",
+  "schema_version": 1,
+  "ssot_hash": "7daac51b634602bb1d23feb0a0f8eb0ce609a50ecb8972ef35f004d3ea5fbd3f",
+  "transactions_hash": "cf14efcad525d93844383f677b0a87837e85a553c400c81b7d01ae729f195b5f",
+  "type": "model_signature"
+}

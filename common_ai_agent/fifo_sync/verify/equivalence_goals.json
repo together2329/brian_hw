@@ -1,0 +1,3824 @@
+{
+  "ip": "fifo_sync",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "fifo_sync/yaml/fifo_sync.ssot.yaml",
+    "functional_model": "fifo_sync/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "fifo_sync/model/decomposition.json",
+    "coverage_plan": "fifo_sync/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "fifo_sync/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "fifo_sync/yaml/fifo_sync.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "fifo_sync/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "fifo_sync/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "fifo_sync/yaml/fifo_sync.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "fifo_sync/yaml/fifo_sync.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "fifo_sync/rtl/",
+        "fifo_sync/tb/",
+        "fifo_sync/sim/",
+        "fifo_sync/reports/",
+        "fifo_sync/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 52,
+    "required": 51,
+    "optional": 0,
+    "blocked": 1,
+    "module_total": 2,
+    "module_required": 1,
+    "module_blocked": 1
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM1",
+      "title": "Transaction push matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "SC6_executed",
+        "SC7_executed",
+        "SC10_executed",
+        "function_push",
+        "function_simultaneous_push_pop",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "latency_push_accept_lt_min",
+        "latency_push_accept_at_min",
+        "latency_push_accept_at_max",
+        "latency_push_accept_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "push",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "wr_en_i == 1",
+          "full_o == 0 (count < DEPTH)",
+          "flush_i == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "full_o = (count + 1 - pop_accepted) == DEPTH",
+          "almost_full_o = (count + 1 - pop_accepted) >= ALMOST_FULL_THRESHOLD",
+          "count_o = count + 1 - pop_accepted",
+          "full_o",
+          "almost_full_o",
+          "count_o"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "Architectural state updated per output_rules",
+          "mem[wr_ptr]",
+          "wr_ptr",
+          "count"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM2",
+      "title": "Transaction pop matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model"
+      ],
+      "coverage_refs": [
+        "SC2_executed",
+        "SC6_executed",
+        "SC7_executed",
+        "SC10_executed",
+        "function_pop",
+        "function_simultaneous_push_pop",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "latency_pop_combinational_at_min",
+        "latency_pop_combinational_at_max",
+        "latency_pop_combinational_gt_max",
+        "latency_pop_registered_lt_min",
+        "latency_pop_registered_at_min",
+        "latency_pop_registered_at_max",
+        "latency_pop_registered_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pop",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rd_en_i == 1",
+          "empty_o == 0 (count > 0)",
+          "flush_i == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "rd_data_o = mem[rd_ptr]",
+          "empty_o = (count - 1 + push_accepted) == 0",
+          "almost_empty_o = (count - 1 + push_accepted) <= ALMOST_EMPTY_THRESHOLD",
+          "count_o = count - 1 + push_accepted",
+          "rd_data_o",
+          "empty_o",
+          "almost_empty_o",
+          "count_o"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "Popped entry storage is invalidated (no read-again guarantee)",
+          "rd_ptr",
+          "count"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM3",
+      "title": "Transaction simultaneous_push_pop matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[2]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model"
+      ],
+      "coverage_refs": [
+        "function_simultaneous_push_pop"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "simultaneous_push_pop",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "wr_en_i == 1 and rd_en_i == 1",
+          "full_o == 0 and empty_o == 0",
+          "flush_i == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "rd_data_o = mem[rd_ptr]",
+          "full_o = count == DEPTH - 1",
+          "empty_o = count == 1",
+          "count_o = count",
+          "rd_data_o",
+          "full_o",
+          "empty_o",
+          "count_o"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "count is unchanged because push and pop cancel",
+          "mem[wr_ptr]",
+          "wr_ptr",
+          "rd_ptr",
+          "count"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM4",
+      "title": "Transaction overflow_reject matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[3]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model"
+      ],
+      "coverage_refs": [
+        "function_overflow_reject"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "overflow_reject",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "wr_en_i == 1",
+          "full_o == 1 (count == DEPTH)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "full_o = 1",
+          "count_o = DEPTH",
+          "full_o",
+          "count_o"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "Write rejected silently; no data corruption"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM5",
+      "title": "Transaction underflow_reject matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[4]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model"
+      ],
+      "coverage_refs": [
+        "function_underflow_reject"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "underflow_reject",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rd_en_i == 1",
+          "empty_o == 1 (count == 0)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "empty_o = 1",
+          "rd_data_o = previous_value_or_zero",
+          "count_o = 0",
+          "empty_o",
+          "rd_data_o",
+          "count_o"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "Read rejected silently; rd_data_o holds previous value (not guaranteed)"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM6",
+      "title": "Transaction flush matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[5]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model"
+      ],
+      "coverage_refs": [
+        "SC8_executed",
+        "SC9_executed",
+        "SC10_executed",
+        "SC15_executed",
+        "function_flush",
+        "latency_flush_lt_min",
+        "latency_flush_at_min",
+        "latency_flush_at_max",
+        "latency_flush_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "flush",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "flush_i == 1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "empty_o = 1",
+          "full_o = 0",
+          "almost_full_o = 0",
+          "almost_empty_o = 1",
+          "count_o = 0",
+          "empty_o",
+          "full_o",
+          "almost_full_o",
+          "almost_empty_o",
+          "count_o"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "All FIFO entries invalidated; memory contents become undefined",
+          "Flush takes precedence over concurrent push/pop",
+          "wr_ptr",
+          "rd_ptr",
+          "count"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "title": "Scenario SC1: Push single entry",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "SC10_executed",
+        "SC11_executed",
+        "SC12_executed",
+        "SC13_executed",
+        "SC14_executed",
+        "SC15_executed",
+        "SC16_executed",
+        "SC17_executed",
+        "SC18_executed",
+        "SC19_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC1",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert wr_en_i with wr_data_i=pattern_A while empty (count=0, full_o=0)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Data stored; count=1; full_o=0; empty_o=0"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "title": "Scenario SC2: Pop single entry",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC2_executed",
+        "SC20_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC2",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert rd_en_i when count=1, rd_ptr=0, mem[0]=pattern_A"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "rd_data_o=pattern_A; count=0; empty_o=1"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "title": "Scenario SC3: Fill to full",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC3_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC3",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Push DEPTH entries sequentially with incrementing data patterns"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "full_o=1 after DEPTH pushes; count_o=DEPTH; all entries stored correctly"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "title": "Scenario SC4: Overflow rejection",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC4",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert wr_en_i when full_o=1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "No state change; count unchanged; previously stored data intact"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC5",
+      "title": "Scenario SC5: Underflow rejection",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC5_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC5",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert rd_en_i when empty_o=1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "No state change; count remains 0; rd_data_o holds previous value"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC6",
+      "title": "Scenario SC6: Simultaneous push and pop",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[5]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC6_executed",
+        "SC7_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC6",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert wr_en_i and rd_en_i simultaneously when 0 < count < DEPTH"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Both accepted; count unchanged; new data pushed; old data popped correctly"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC7",
+      "title": "Scenario SC7: Simultaneous push and pop at boundary",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[6]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC7_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC7",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert wr_en_i and rd_en_i simultaneously when count=DEPTH (full)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Push rejected (full), pop accepted; count decrements to DEPTH-1"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC8",
+      "title": "Scenario SC8: Flush when partially full",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[7]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC8_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC8",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Push N entries (0 < N < DEPTH), then assert flush_i"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "wr_ptr=0; rd_ptr=0; count=0; empty_o=1; full_o=0; all entries invalidated"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC9",
+      "title": "Scenario SC9: Flush when full",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[8]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC9_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC9",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Fill FIFO to DEPTH, then assert flush_i"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "All pointers and count cleared; full_o deasserts; empty_o asserts"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC10",
+      "title": "Scenario SC10: Flush during simultaneous push/pop",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[9]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC10",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert wr_en_i, rd_en_i, and flush_i simultaneously"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Flush takes precedence; push and pop ignored; state reset to empty"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC11",
+      "title": "Scenario SC11: Almost full threshold",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[10]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC11_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC11",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Push entries until count reaches ALMOST_FULL_THRESHOLD"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "almost_full_o asserts at threshold; full_o not yet asserted"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC12",
+      "title": "Scenario SC12: Almost empty threshold",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[11]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC12_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC12",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Pop entries until count reaches ALMOST_EMPTY_THRESHOLD"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "almost_empty_o asserts at threshold; empty_o not yet asserted"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC13",
+      "title": "Scenario SC13: APB CSR read status",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[12]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC13_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC13",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Push 3 entries, then read FIFO_STATUS register via APB"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "FIFO_STATUS.count=3, full=0, empty=0, almost flags per threshold config"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC14",
+      "title": "Scenario SC14: APB CSR write config",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[13]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC14_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC14",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write new thresholds via FIFO_CONFIG, push entries to new threshold"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "almost_full_o and almost_empty_o reflect updated thresholds"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC15",
+      "title": "Scenario SC15: APB CSR flush",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[14]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC15_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC15",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Push entries, then write FIFO_CONTROL.flush=1 via APB"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "FIFO flushed; pointers cleared; FIFO_STATUS reflects empty state"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC16",
+      "title": "Scenario SC16: APB error response",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[15]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC16_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC16",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "APB read/write to unmapped offset"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pslverr=1; prdata=0 for reads; no FIFO state change"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC17",
+      "title": "Scenario SC17: Wrap-around pointer",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[16]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC17_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC17",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Push DEPTH entries, pop DEPTH entries, push again (wr_ptr wraps)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Pointers wrap correctly; data integrity maintained; count accurate"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC18",
+      "title": "Scenario SC18: Output register mode",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[17]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC18_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC18",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Configure USE_OUTPUT_REGISTER=1; push entry, pop entry"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "rd_data_o valid 1 cycle after rd_en_i acceptance; not combinationally"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC19",
+      "title": "Scenario SC19: Reset behavior",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[18]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC19_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC19",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Push entries, then assert PRESETn low asynchronously"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "All pointers/count cleared; flags reflect empty; rd_data_o undefined"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC20",
+      "title": "Scenario SC20: Reset deassertion",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[19]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_mem",
+        "fifo_sync_ptrs",
+        "fifo_sync_flags",
+        "fifo_sync_regs",
+        "fifo_sync_output_reg",
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_memory_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model",
+        "fifo_sync_security_model"
+      ],
+      "coverage_refs": [
+        "SC20_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC20",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Deassert PRESETn (sync deassert); immediate push on first valid edge"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Push accepted normally; count=1; no glitch on flags"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'wr_en_i', 'rule': 'Sampled on rising PCLK; data accepted only when full_o=0. Full flag gates write acceptance.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'push_accept': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Data written on the rising edge when wr_en_i && !full_o; flags update on the same edge.'}, 'pop_combinational': {'min_cycles': 0, 'max_cycles': 0, 'description': 'When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from mem[rd_ptr]; flags update 1 cycle after rd_en_i acceptance.'}, 'pop_registered': {'min_cycles': 1, 'max_cycles': 1, 'description': 'When USE_OUTPUT_REGISTER=1, rd_data_o appears 1 cycle after rd_en_i acceptance; flags update on the acceptance edge.'}, 'flush': {'min_cycles': 1, 'max_cycles': 1, 'description': 'All pointers and count cleared on the rising edge when flush_i=1; flags update on the same edge.'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR read: pready always 1 (0 wait states).'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR write: pready always 1 (0 wait states).'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "title": "Cycle/handshake rule handshake_1",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_1",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'rd_en_i', 'rule': 'Sampled on rising PCLK; data consumed only when empty_o=0. Empty flag gates read acceptance.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'push_accept': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Data written on the rising edge when wr_en_i && !full_o; flags update on the same edge.'}, 'pop_combinational': {'min_cycles': 0, 'max_cycles': 0, 'description': 'When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from mem[rd_ptr]; flags update 1 cycle after rd_en_i acceptance.'}, 'pop_registered': {'min_cycles': 1, 'max_cycles': 1, 'description': 'When USE_OUTPUT_REGISTER=1, rd_data_o appears 1 cycle after rd_en_i acceptance; flags update on the acceptance edge.'}, 'flush': {'min_cycles': 1, 'max_cycles': 1, 'description': 'All pointers and count cleared on the rising edge when flush_i=1; flags update on the same edge.'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR read: pready always 1 (0 wait states).'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR write: pready always 1 (0 wait states).'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "title": "Cycle/handshake rule handshake_2",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[2]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_2",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'full_o', 'rule': 'Combinational function of count and push/pop acceptance in the current cycle. Updates after each clock edge.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'push_accept': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Data written on the rising edge when wr_en_i && !full_o; flags update on the same edge.'}, 'pop_combinational': {'min_cycles': 0, 'max_cycles': 0, 'description': 'When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from mem[rd_ptr]; flags update 1 cycle after rd_en_i acceptance.'}, 'pop_registered': {'min_cycles': 1, 'max_cycles': 1, 'description': 'When USE_OUTPUT_REGISTER=1, rd_data_o appears 1 cycle after rd_en_i acceptance; flags update on the acceptance edge.'}, 'flush': {'min_cycles': 1, 'max_cycles': 1, 'description': 'All pointers and count cleared on the rising edge when flush_i=1; flags update on the same edge.'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR read: pready always 1 (0 wait states).'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR write: pready always 1 (0 wait states).'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
+      "title": "Cycle/handshake rule handshake_3",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[3]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_3",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'empty_o', 'rule': 'Combinational function of count and push/pop acceptance in the current cycle. Updates after each clock edge.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'push_accept': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Data written on the rising edge when wr_en_i && !full_o; flags update on the same edge.'}, 'pop_combinational': {'min_cycles': 0, 'max_cycles': 0, 'description': 'When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from mem[rd_ptr]; flags update 1 cycle after rd_en_i acceptance.'}, 'pop_registered': {'min_cycles': 1, 'max_cycles': 1, 'description': 'When USE_OUTPUT_REGISTER=1, rd_data_o appears 1 cycle after rd_en_i acceptance; flags update on the acceptance edge.'}, 'flush': {'min_cycles': 1, 'max_cycles': 1, 'description': 'All pointers and count cleared on the rising edge when flush_i=1; flags update on the same edge.'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR read: pready always 1 (0 wait states).'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR write: pready always 1 (0 wait states).'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_4",
+      "title": "Cycle/handshake rule handshake_4",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[4]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_4",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'flush_i', 'rule': 'Synchronous; takes precedence over push/pop. Clears all pointers and count on the rising edge.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'push_accept': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Data written on the rising edge when wr_en_i && !full_o; flags update on the same edge.'}, 'pop_combinational': {'min_cycles': 0, 'max_cycles': 0, 'description': 'When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from mem[rd_ptr]; flags update 1 cycle after rd_en_i acceptance.'}, 'pop_registered': {'min_cycles': 1, 'max_cycles': 1, 'description': 'When USE_OUTPUT_REGISTER=1, rd_data_o appears 1 cycle after rd_en_i acceptance; flags update on the acceptance edge.'}, 'flush': {'min_cycles': 1, 'max_cycles': 1, 'description': 'All pointers and count cleared on the rising edge when flush_i=1; flags update on the same edge.'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR read: pready always 1 (0 wait states).'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR write: pready always 1 (0 wait states).'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Push data is captured into memory in the same cycle as pointer update."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'push_accept': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Data written on the rising edge when wr_en_i && !full_o; flags update on the same edge.'}, 'pop_combinational': {'min_cycles': 0, 'max_cycles': 0, 'description': 'When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from mem[rd_ptr]; flags update 1 cycle after rd_en_i acceptance.'}, 'pop_registered': {'min_cycles': 1, 'max_cycles': 1, 'description': 'When USE_OUTPUT_REGISTER=1, rd_data_o appears 1 cycle after rd_en_i acceptance; flags update on the acceptance edge.'}, 'flush': {'min_cycles': 1, 'max_cycles': 1, 'description': 'All pointers and count cleared on the rising edge when flush_i=1; flags update on the same edge.'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR read: pready always 1 (0 wait states).'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR write: pready always 1 (0 wait states).'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "title": "Ordering rule ordering_1",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "ordering_1",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Pop data is available combinationally from memory (USE_OUTPUT_REGISTER=0) or one cycle later (USE_OUTPUT_REGISTER=1)."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'push_accept': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Data written on the rising edge when wr_en_i && !full_o; flags update on the same edge.'}, 'pop_combinational': {'min_cycles': 0, 'max_cycles': 0, 'description': 'When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from mem[rd_ptr]; flags update 1 cycle after rd_en_i acceptance.'}, 'pop_registered': {'min_cycles': 1, 'max_cycles': 1, 'description': 'When USE_OUTPUT_REGISTER=1, rd_data_o appears 1 cycle after rd_en_i acceptance; flags update on the acceptance edge.'}, 'flush': {'min_cycles': 1, 'max_cycles': 1, 'description': 'All pointers and count cleared on the rising edge when flush_i=1; flags update on the same edge.'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR read: pready always 1 (0 wait states).'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR write: pready always 1 (0 wait states).'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "title": "Ordering rule ordering_2",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[2]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "ordering_2",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Flush clears all state in the cycle it is sampled; concurrent push/pop are ignored."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'push_accept': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Data written on the rising edge when wr_en_i && !full_o; flags update on the same edge.'}, 'pop_combinational': {'min_cycles': 0, 'max_cycles': 0, 'description': 'When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from mem[rd_ptr]; flags update 1 cycle after rd_en_i acceptance.'}, 'pop_registered': {'min_cycles': 1, 'max_cycles': 1, 'description': 'When USE_OUTPUT_REGISTER=1, rd_data_o appears 1 cycle after rd_en_i acceptance; flags update on the acceptance edge.'}, 'flush': {'min_cycles': 1, 'max_cycles': 1, 'description': 'All pointers and count cleared on the rising edge when flush_i=1; flags update on the same edge.'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR read: pready always 1 (0 wait states).'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR write: pready always 1 (0 wait states).'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_3",
+      "title": "Ordering rule ordering_3",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[3]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "ordering_3",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Flag updates are visible on the cycle after pointer/count changes."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'push_accept': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Data written on the rising edge when wr_en_i && !full_o; flags update on the same edge.'}, 'pop_combinational': {'min_cycles': 0, 'max_cycles': 0, 'description': 'When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from mem[rd_ptr]; flags update 1 cycle after rd_en_i acceptance.'}, 'pop_registered': {'min_cycles': 1, 'max_cycles': 1, 'description': 'When USE_OUTPUT_REGISTER=1, rd_data_o appears 1 cycle after rd_en_i acceptance; flags update on the acceptance edge.'}, 'flush': {'min_cycles': 1, 'max_cycles': 1, 'description': 'All pointers and count cleared on the rising edge when flush_i=1; flags update on the same edge.'}, 'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR read: pready always 1 (0 wait states).'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR write: pready always 1 (0 wait states).'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_FIFO_STATUS",
+      "title": "Register access FIFO_STATUS",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[0]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_register_model"
+      ],
+      "coverage_refs": [
+        "SC18_executed",
+        "latency_pop_registered_lt_min",
+        "latency_pop_registered_at_min",
+        "latency_pop_registered_at_max",
+        "latency_pop_registered_gt_max",
+        "latency_register_read_at_min",
+        "latency_register_read_mid",
+        "latency_register_read_at_max",
+        "latency_register_read_gt_max",
+        "latency_register_write_at_min",
+        "latency_register_write_mid",
+        "latency_register_write_at_max",
+        "latency_register_write_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'FIFO_STATUS', 'offset': 0, 'width': 32, 'access': 'ro', 'reset': 5, 'category': 'status', 'description': 'FIFO status flags and fill count', 'fields': [{'name': 'empty', 'bits': [0, 0], 'access': 'ro', 'reset': 1, 'description': '1=FIFO empty'}, {'name': 'full', 'bits': [1, 1], 'access': 'ro', 'reset': 0, 'description': '1=FIFO full'}, {'name': 'almost_empty', 'bits': [2, 2], 'access': 'ro', 'reset': 1, 'description': '1=FIFO at or below almost-empty threshold'}, {'name': 'almost_full', 'bits': [3, 3], 'access': 'ro', 'reset': 0, 'description': '1=FIFO at or above almost-full threshold'}, {'name': 'count', 'bits': [11, 4], 'access': 'ro', 'reset': 0, 'description': 'Current fill count (0..DEPTH)'}, {'name': 'reserved_31_12', 'bits': [31, 12], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_FIFO_CONFIG",
+      "title": "Register access FIFO_CONFIG",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[1]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_register_model"
+      ],
+      "coverage_refs": [
+        "SC18_executed",
+        "latency_pop_registered_lt_min",
+        "latency_pop_registered_at_min",
+        "latency_pop_registered_at_max",
+        "latency_pop_registered_gt_max",
+        "latency_register_read_at_min",
+        "latency_register_read_mid",
+        "latency_register_read_at_max",
+        "latency_register_read_gt_max",
+        "latency_register_write_at_min",
+        "latency_register_write_mid",
+        "latency_register_write_at_max",
+        "latency_register_write_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'FIFO_CONFIG', 'offset': 4, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'config', 'description': 'FIFO threshold configuration', 'write_side_effects': ['Writing almost_full_thresh updates ALMOST_FULL_THRESHOLD comparison value.', 'Writing almost_empty_thresh updates ALMOST_EMPTY_THRESHOLD comparison value.', 'Thresholds take effect on the next clock edge after write acceptance.'], 'fields': [{'name': 'almost_full_thresh', 'bits': [7, 0], 'access': 'rw', 'reset': 0, 'write_effect': 'Update almost-full threshold', 'description': 'Almost-full threshold (default set by parameter ALMOST_FULL_THRESHOLD)'}, {'name': 'almost_empty_thresh', 'bits': [15, 8], 'access': 'rw', 'reset': 0, 'write_effect': 'Update almost-empty threshold', 'description': 'Almost-empty threshold (default set by parameter ALMOST_EMPTY_THRESHOLD)'}, {'name': 'reserved_31_16', 'bits': [31, 16], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_FIFO_CONTROL",
+      "title": "Register access FIFO_CONTROL",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[2]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_register_model"
+      ],
+      "coverage_refs": [
+        "SC18_executed",
+        "latency_pop_registered_lt_min",
+        "latency_pop_registered_at_min",
+        "latency_pop_registered_at_max",
+        "latency_pop_registered_gt_max",
+        "latency_register_read_at_min",
+        "latency_register_read_mid",
+        "latency_register_read_at_max",
+        "latency_register_read_gt_max",
+        "latency_register_write_at_min",
+        "latency_register_write_mid",
+        "latency_register_write_at_max",
+        "latency_register_write_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'FIFO_CONTROL', 'offset': 8, 'width': 32, 'access': 'wo', 'reset': 0, 'category': 'control', 'description': 'FIFO control actions', 'write_side_effects': ['Writing flush=1 triggers a synchronous flush; self-clearing after one cycle.'], 'fields': [{'name': 'flush', 'bits': [0, 0], 'access': 'wo', 'reset': 0, 'write_effect': 'Pulse flush; clears all pointers and count', 'description': 'Flush command (write 1 to trigger, auto-clears)'}, {'name': 'reserved_31_1', 'bits': [31, 1], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MEMORY_FIFO_RAM",
+      "title": "Memory behavior fifo_ram",
+      "kind": "memory",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "memory.instances[0]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_memory_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "memory_access",
+        "required_fields": [
+          "op",
+          "addr",
+          "data"
+        ],
+        "constraints": [
+          "{'name': 'fifo_ram', 'type': 'register_array', 'depth': 'DEPTH', 'width': 'DATA_WIDTH', 'read_ports': 1, 'write_ports': 1, 'latency': 0, 'description': 'Simple dual-port register array for FIFO storage; implemented as behavioral reg array'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "retention"
+        ],
+        "latency": "memory latency from cycle_model",
+        "state_updates": [
+          "memory contents"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL memory read/write behavior matches FunctionalModel state",
+        "Byte-lane, boundary, and retention behavior match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_error_model"
+      ],
+      "coverage_refs": [
+        "SC16_executed",
+        "error_error_0",
+        "error_error_1",
+        "error_error_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "None",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'id': 'ERR_OVERFLOW', 'condition': 'wr_en_i=1 while full_o=1', 'architectural_effect': 'Write rejected silently; no state change', 'propagation': 'full_o remains 1; no error flag or interrupt'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "['Overflow and underflow are silently rejected; no error status is latched.', 'APB error is a single-cycle pslverr response.']"
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_EMPTY_TO_NORMAL_0",
+      "title": "FSM transition ptr_fsm: EMPTY -> NORMAL",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC12_executed",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "error_error_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ptr_fsm_EMPTY_to_NORMAL_0",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "push_accepted && count becomes > ALMOST_EMPTY_THRESHOLD"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "ptr_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_EMPTY_TO_ALMOST_EMPTY_1",
+      "title": "FSM transition ptr_fsm: EMPTY -> ALMOST_EMPTY",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC12_executed",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "error_error_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ptr_fsm_EMPTY_to_ALMOST_EMPTY_1",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "push_accepted && count becomes <= ALMOST_EMPTY_THRESHOLD && count > 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "ptr_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_ALMOST_EMPTY_TO_EMPTY_2",
+      "title": "FSM transition ptr_fsm: ALMOST_EMPTY -> EMPTY",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions[2]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC12_executed",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "error_error_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ptr_fsm_ALMOST_EMPTY_to_EMPTY_2",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "pop_accepted && count becomes 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "ptr_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_ALMOST_EMPTY_TO_NORMAL_3",
+      "title": "FSM transition ptr_fsm: ALMOST_EMPTY -> NORMAL",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions[3]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ptr_fsm_ALMOST_EMPTY_to_NORMAL_3",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "push_accepted && count > ALMOST_EMPTY_THRESHOLD"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "ptr_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_NORMAL_TO_ALMOST_FULL_4",
+      "title": "FSM transition ptr_fsm: NORMAL -> ALMOST_FULL",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions[4]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ptr_fsm_NORMAL_to_ALMOST_FULL_4",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "push_accepted && count >= ALMOST_FULL_THRESHOLD"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "ptr_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_NORMAL_TO_ALMOST_EMPTY_5",
+      "title": "FSM transition ptr_fsm: NORMAL -> ALMOST_EMPTY",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions[5]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ptr_fsm_NORMAL_to_ALMOST_EMPTY_5",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "pop_accepted && count <= ALMOST_EMPTY_THRESHOLD"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "ptr_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_ALMOST_FULL_TO_FULL_6",
+      "title": "FSM transition ptr_fsm: ALMOST_FULL -> FULL",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions[6]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC3_executed",
+        "SC8_executed",
+        "SC9_executed",
+        "SC11_executed",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ptr_fsm_ALMOST_FULL_to_FULL_6",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "push_accepted && count == DEPTH"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "ptr_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_ALMOST_FULL_TO_NORMAL_7",
+      "title": "FSM transition ptr_fsm: ALMOST_FULL -> NORMAL",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions[7]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ptr_fsm_ALMOST_FULL_to_NORMAL_7",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "pop_accepted && count < ALMOST_FULL_THRESHOLD"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "ptr_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_FULL_TO_ALMOST_FULL_8",
+      "title": "FSM transition ptr_fsm: FULL -> ALMOST_FULL",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions[8]"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC3_executed",
+        "SC8_executed",
+        "SC9_executed",
+        "SC11_executed",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ptr_fsm_FULL_to_ALMOST_FULL_8",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "pop_accepted && count == DEPTH-1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "ptr_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "title": "Required debug/waveform observability exists",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "debug_observability.waveform_must_probe"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_protocol_model",
+        "fifo_sync_register_model",
+        "fifo_sync_datapath_model",
+        "fifo_sync_fsm_model",
+        "fifo_sync_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "debug_probe_capture",
+        "required_fields": [
+          "waveform_path"
+        ],
+        "constraints": [
+          "wr_ptr, rd_ptr, count",
+          "wr_en_i, rd_en_i, flush_i",
+          "full_o, empty_o, almost_full_o, almost_empty_o",
+          "rd_data_o, wr_data_i",
+          "push_accepted, pop_accepted (internal)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "waveform contains required probes"
+        ],
+        "latency": "throughout simulation window",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Waveform includes SSOT-required debug probes",
+        "sim_debug can inspect those probes around checked scenarios"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "tb",
+          "coverage",
+          "rtl",
+          "ssot",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MODULE_FIFO_SYNC_PTRS",
+      "title": "Module fifo_sync_ptrs functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "fifo_sync_ptrs",
+        "rtl_file": "rtl/fifo_sync_ptrs.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.backpressure.backpressure_1",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.empty_o",
+        "cycle_model.handshake_rules.flush_i",
+        "cycle_model.handshake_rules.full_o",
+        "cycle_model.handshake_rules.rd_en_i",
+        "cycle_model.handshake_rules.wr_en_i",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s0_sample_inputs",
+        "cycle_model.pipeline.s1_eval_accept",
+        "cycle_model.pipeline.s2_update_ptrs",
+        "cycle_model.pipeline.s3_write_mem",
+        "cycle_model.reset",
+        "decomposition.units.pointer_control",
+        "features.overflow_protection",
+        "features.simultaneous_push_pop",
+        "features.synchronous_flush",
+        "features.synchronous_pop",
+        "features.synchronous_push",
+        "features.underflow_protection",
+        "fsm.ptr_fsm",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.invariants.invariant_5",
+        "function_model.invariants.invariant_6",
+        "function_model.state_variables",
+        "function_model.state_variables.count",
+        "function_model.state_variables.mem",
+        "function_model.state_variables.rd_ptr",
+        "function_model.state_variables.wr_ptr",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.output_rules.almost_full_o",
+        "function_model.transactions.fm1.output_rules.count_o",
+        "function_model.transactions.fm1.output_rules.full_o",
+        "function_model.transactions.fm1.outputs.output_0",
+        "function_model.transactions.fm1.outputs.output_1",
+        "function_model.transactions.fm1.outputs.output_2",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.preconditions.precondition_1",
+        "function_model.transactions.fm1.preconditions.precondition_2",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm1.state_updates.count",
+        "function_model.transactions.fm1.state_updates.mem_wr_ptr",
+        "function_model.transactions.fm1.state_updates.wr_ptr",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.output_rules.almost_empty_o",
+        "function_model.transactions.fm2.output_rules.count_o",
+        "function_model.transactions.fm2.output_rules.empty_o",
+        "function_model.transactions.fm2.output_rules.rd_data_o",
+        "function_model.transactions.fm2.outputs.output_0",
+        "function_model.transactions.fm2.outputs.output_1",
+        "function_model.transactions.fm2.outputs.output_2",
+        "function_model.transactions.fm2.outputs.output_3",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.preconditions.precondition_1",
+        "function_model.transactions.fm2.preconditions.precondition_2",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.state_updates.count",
+        "function_model.transactions.fm2.state_updates.rd_ptr",
+        "function_model.transactions.fm3",
+        "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.inputs.input_1",
+        "function_model.transactions.fm3.output_rules.count_o",
+        "function_model.transactions.fm3.output_rules.empty_o",
+        "function_model.transactions.fm3.output_rules.full_o",
+        "function_model.transactions.fm3.output_rules.rd_data_o",
+        "function_model.transactions.fm3.outputs.output_0",
+        "function_model.transactions.fm3.outputs.output_1",
+        "function_model.transactions.fm3.outputs.output_2",
+        "function_model.transactions.fm3.outputs.output_3",
+        "function_model.transactions.fm3.preconditions.precondition_0",
+        "function_model.transactions.fm3.preconditions.precondition_1",
+        "function_model.transactions.fm3.preconditions.precondition_2",
+        "function_model.transactions.fm3.side_effects.side_effect_0",
+        "function_model.transactions.fm3.state_updates.count",
+        "function_model.transactions.fm3.state_updates.mem_wr_ptr",
+        "function_model.transactions.fm3.state_updates.rd_ptr",
+        "function_model.transactions.fm3.state_updates.wr_ptr",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.output_rules.count_o",
+        "function_model.transactions.fm4.output_rules.full_o",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.outputs.output_1",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.preconditions.precondition_1",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm5",
+        "function_model.transactions.fm5.output_rules.count_o",
+        "function_model.transactions.fm5.output_rules.empty_o",
+        "function_model.transactions.fm5.output_rules.rd_data_o",
+        "function_model.transactions.fm5.outputs.output_0",
+        "function_model.transactions.fm5.outputs.output_1",
+        "function_model.transactions.fm5.outputs.output_2",
+        "function_model.transactions.fm5.preconditions.precondition_0",
+        "function_model.transactions.fm5.preconditions.precondition_1",
+        "function_model.transactions.fm5.side_effects.side_effect_0",
+        "function_model.transactions.fm6",
+        "function_model.transactions.fm6.output_rules.almost_empty_o",
+        "function_model.transactions.fm6.output_rules.almost_full_o",
+        "function_model.transactions.fm6.output_rules.count_o",
+        "function_model.transactions.fm6.output_rules.empty_o",
+        "function_model.transactions.fm6.output_rules.full_o",
+        "function_model.transactions.fm6.outputs.output_0",
+        "function_model.transactions.fm6.outputs.output_1",
+        "function_model.transactions.fm6.outputs.output_2",
+        "function_model.transactions.fm6.outputs.output_3",
+        "function_model.transactions.fm6.outputs.output_4",
+        "function_model.transactions.fm6.preconditions.precondition_0",
+        "function_model.transactions.fm6.side_effects.side_effect_0",
+        "function_model.transactions.fm6.side_effects.side_effect_1",
+        "function_model.transactions.fm6.state_updates.count",
+        "function_model.transactions.fm6.state_updates.rd_ptr",
+        "function_model.transactions.fm6.state_updates.wr_ptr"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_ptrs"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "push",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "wr_en_i == 1",
+          "full_o == 0 (count < DEPTH)",
+          "flush_i == 0",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "full_o = (count + 1 - pop_accepted) == DEPTH",
+          "almost_full_o = (count + 1 - pop_accepted) >= ALMOST_FULL_THRESHOLD",
+          "count_o = count + 1 - pop_accepted",
+          "full_o",
+          "almost_full_o",
+          "count_o"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "Architectural state updated per output_rules",
+          "mem[wr_ptr]",
+          "wr_ptr",
+          "count"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MODULE_FIFO_SYNC_FLAGS",
+      "title": "Module fifo_sync_flags functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "fifo_sync_flags",
+        "rtl_file": "rtl/fifo_sync_flags.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.latency",
+        "cycle_model.pipeline.s4_update_flags",
+        "decomposition.units.flag_generation",
+        "function_model",
+        "function_model.transactions.output_rules"
+      ],
+      "decomposition_refs": [
+        "fifo_sync_flags"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "push",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "wr_en_i == 1",
+          "full_o == 0 (count < DEPTH)",
+          "flush_i == 0",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "full_o = (count + 1 - pop_accepted) == DEPTH",
+          "almost_full_o = (count + 1 - pop_accepted) >= ALMOST_FULL_THRESHOLD",
+          "count_o = count + 1 - pop_accepted",
+          "full_o",
+          "almost_full_o",
+          "count_o"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "Architectural state updated per output_rules",
+          "mem[wr_ptr]",
+          "wr_ptr",
+          "count"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": true,
+      "blocker": "module owns no function_model refs, so exact functionality cannot be compared"
+    }
+  ]
+}

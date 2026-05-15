@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "type": "protocol_assertions_summary",
+  "ip": "fifo_sync",
+  "source": "fifo_sync/yaml/fifo_sync.ssot.yaml",
+  "assertions_total": 9,
+  "output": "verify/protocol_assertions.sva"
+}
