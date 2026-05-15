@@ -1,15 +1,20 @@
 {
-  "schema_version": 1,
-  "type": "rtl_authoring_provenance",
   "agent": "common_ai_agent",
-  "workflow": "rtl-gen",
-  "surface": "atlas_ui",
+  "authoring_packets": [],
+  "contract_files": [],
+  "filelist": "lfsr/list/lfsr.f",
+  "generation_note": "Headless common engine recorded LLM-authored RTL artifacts from rtl_authoring_plan packets.",
   "ip": "lfsr",
-  "ssot": "lfsr/yaml/lfsr.ssot.yaml",
-  "todo_plan": "lfsr/rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "14a7352fdb74fca48fa0b1eca32de7467de9d2df7240a600292059629b27c486",
+  "model": "glm-5.1",
   "rtl_files": [
-    "lfsr/rtl/lfsr.sv"
+    "rtl/lfsr.sv"
   ],
-  "filelist": "lfsr/list/lfsr.f"
+  "schema_version": 1,
+  "ssot": "lfsr/yaml/lfsr.ssot.yaml",
+  "surface": "headless_common_engine",
+  "todo_plan": "lfsr/rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "338b9a1c7eaaafc2cd5df5724772728092783c959656b88a14ebc06419dfbf12",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-15T02:22:03Z",
+  "workflow": "rtl-gen"
 }

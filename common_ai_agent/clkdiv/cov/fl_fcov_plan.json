@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "type": "fl_functional_coverage_plan",
+  "ip": "clkdiv",
+  "source": "clkdiv/yaml/clkdiv.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "fl",
+  "summary": {
+    "total_bins": 14,
+    "by_class": {
+      "scenario": 5,
+      "transaction_type": 1,
+      "state_transition": 5,
+      "error": 3
+    }
+  },
+  "bins": [
+    {
+      "id": "SC_APB_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC_APB",
+      "description": "APB register access"
+    },
+    {
+      "id": "SC_DIV2_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC_DIV2",
+      "description": "Divide by two baseline"
+    },
+    {
+      "id": "SC_DIV_UPDATE_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC_DIV_UPDATE",
+      "description": "Glitchless divisor update"
+    },
+    {
+      "id": "SC_IRQ_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC_IRQ",
+      "description": "Terminal interrupt set and clear"
+    },
+    {
+      "id": "SC_DIV_ZERO_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC_DIV_ZERO",
+      "description": "DIVISOR zero write policy"
+    },
+    {
+      "id": "function_integer_clock_divide",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "integer_clock_divide"
+    },
+    {
+      "id": "fsm_divider_fsm_disabled_to_running_low_0",
+      "class": "state_transition",
+      "source": "fsm.divider_fsm.transitions[0]",
+      "description": "CTRL.enable=1"
+    },
+    {
+      "id": "fsm_divider_fsm_running_low_to_running_high_1",
+      "class": "state_transition",
+      "source": "fsm.divider_fsm.transitions[1]",
+      "description": "counter reaches terminal count"
+    },
+    {
+      "id": "fsm_divider_fsm_running_high_to_running_low_2",
+      "class": "state_transition",
+      "source": "fsm.divider_fsm.transitions[2]",
+      "description": "counter reaches terminal count"
+    },
+    {
+      "id": "fsm_divider_fsm_running_low_to_disabled_3",
+      "class": "state_transition",
+      "source": "fsm.divider_fsm.transitions[3]",
+      "description": "CTRL.enable=0 or reset asserted"
+    },
+    {
+      "id": "fsm_divider_fsm_running_high_to_disabled_4",
+      "class": "state_transition",
+      "source": "fsm.divider_fsm.transitions[4]",
+      "description": "CTRL.enable=0 or reset asserted"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_APB_ADDR', 'condition': 'APB access to unsupported offset', 'architectural_effect': 'pslverr=1 for access; no register state change on illegal write'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "source": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_APB_WRITE_RO', 'condition': 'APB write to read-only STATUS', 'architectural_effect': 'pslverr=1 for access; no status mutation'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "source": "error_handling.error_sources[2]",
+      "description": "{'id': 'WARN_DIV_ZERO', 'condition': 'DIVISOR write data divisor field is 0', 'architectural_effect': 'pending_divisor coerced to 1 without pslverr'}"
+    }
+  ]
+}

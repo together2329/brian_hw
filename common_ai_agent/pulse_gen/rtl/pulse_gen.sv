@@ -22,7 +22,6 @@ module pulse_gen #(
 );
 
     logic rst_sync_1;
-    logic PRESETn;
     logic PRESETn_sync;
     logic ctrl_fire;
     logic ctrl_polarity;
