@@ -513,7 +513,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "fifo_sync",
-        "reason": "5 required non-closure TODO(s) remain open.",
+        "reason": "4 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -522,7 +522,7 @@
       {
         "gate_kind": "protocol_assertion_evidence",
         "owner_module": "fifo_sync",
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "status": "open",
@@ -578,7 +578,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "5 required non-closure TODO(s) remain open.",
+        "reason": "4 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -603,7 +603,7 @@
           "SSOT cycle_model/protocol rules are machine-checkable.",
           "Simulation has run after RTL edits."
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "stage_sequence": [
           "ssot-protocol-assertions",
@@ -887,7 +887,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "5 required non-closure TODO(s) remain open.",
+        "reason": "4 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -935,7 +935,7 @@
           "rtl_todo_plan.json task criteria",
           "verify/protocol_assertions.sva"
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "required": true,
         "status": "open"
       }
@@ -1041,7 +1041,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
+  "todo_plan_sha256": "3bb468a6857fe7a80d83c39b2fb7a821ce6c84d068332d0f6c34fde4e99da551",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

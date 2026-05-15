@@ -330,9 +330,9 @@
         "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
         "Traceability keeps source_ref function_model.state_variables.mem",
         "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
-        "mem reset behavior matches SSOT value 0x0 per entry"
+        "mem reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.mem.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=mem; reset=0x0 per entry.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.mem.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=mem; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0065",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
@@ -342,7 +342,7 @@
       "source_ref": "function_model.state_variables.mem",
       "ssot_context": {
         "name": "mem",
-        "reset": "0x0 per entry"
+        "reset": "0"
       },
       "ssot_refs": [
         "function_model.state_variables.mem"
@@ -3124,7 +3124,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
+  "todo_plan_sha256": "3bb468a6857fe7a80d83c39b2fb7a821ce6c84d068332d0f6c34fde4e99da551",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

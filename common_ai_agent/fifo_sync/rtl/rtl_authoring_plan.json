@@ -10,27 +10,18 @@
       {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "fifo_sync",
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+        "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
         "status": "open",
         "task_id": "RTL-0020"
-      },
-      {
-        "gate_kind": "cycle_model_artifacts",
-        "owner_module": "fifo_sync",
-        "reason": "Missing executable cycle model: model/cycle_model.py.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-        "status": "open",
-        "task_id": "RTL-0023"
       }
     ],
     "blocked_by_tool_evidence": [
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "fifo_sync",
-        "reason": "5 required non-closure TODO(s) remain open.",
+        "reason": "4 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -39,7 +30,7 @@
       {
         "gate_kind": "protocol_assertion_evidence",
         "owner_module": "fifo_sync",
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "status": "open",
@@ -85,7 +76,7 @@
     "draft_allowed": true,
     "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 6,
+    "open_required_todos": 5,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -108,7 +99,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "5 required non-closure TODO(s) remain open.",
+        "reason": "4 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -133,7 +124,7 @@
           "SSOT cycle_model/protocol rules are machine-checkable.",
           "Simulation has run after RTL edits."
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "stage_sequence": [
           "ssot-protocol-assertions",
@@ -202,20 +193,11 @@
           {
             "gate_kind": "golden_authority_artifacts",
             "owner_module": "fifo_sync",
-            "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+            "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
             "status": "open",
             "task_id": "RTL-0020"
-          },
-          {
-            "gate_kind": "cycle_model_artifacts",
-            "owner_module": "fifo_sync",
-            "reason": "Missing executable cycle model: model/cycle_model.py.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-            "status": "open",
-            "task_id": "RTL-0023"
           }
         ],
         "blocked_by_tool_evidence": [],
@@ -223,11 +205,11 @@
         "deferred_human_qa_allowed": true,
         "draft_allowed": false,
         "evidence_closure_allowed": true,
-        "human_locked_open_count": 2,
+        "human_locked_open_count": 1,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 2,
+        "open_required_count": 1,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -249,7 +231,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 2,
+        "open_required_count": 1,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.ssot_required_sections",
@@ -261,8 +243,8 @@
           "quality_gates.rtl_gen.cycle_model_artifacts"
         ],
         "status_counts": {
-          "open": 2,
-          "pass": 5
+          "open": 1,
+          "pass": 6
         },
         "task_count": 7
       }
@@ -274,7 +256,7 @@
           {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "fifo_sync",
-            "reason": "5 required non-closure TODO(s) remain open.",
+            "reason": "4 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -283,7 +265,7 @@
           {
             "gate_kind": "protocol_assertion_evidence",
             "owner_module": "fifo_sync",
-            "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+            "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
             "status": "open",
@@ -339,7 +321,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "5 required non-closure TODO(s) remain open.",
+            "reason": "4 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -364,7 +346,7 @@
               "SSOT cycle_model/protocol rules are machine-checkable.",
               "Simulation has run after RTL edits."
             ],
-            "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+            "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
             "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
             "stage_sequence": [
               "ssot-protocol-assertions",
@@ -1791,7 +1773,7 @@
     "deferred_human_qa_allowed": true,
     "gate_packets": 3,
     "human_locked_packets": 1,
-    "human_locked_tasks": 2,
+    "human_locked_tasks": 1,
     "llm_actionable_packets": 0,
     "llm_actionable_tasks": 0,
     "max_packet_required_tasks": 48,
@@ -1813,7 +1795,7 @@
     "unowned_packets": 0
   },
   "target_scale": {},
-  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
+  "todo_plan_sha256": "3bb468a6857fe7a80d83c39b2fb7a821ce6c84d068332d0f6c34fde4e99da551",
   "top": "fifo_sync",
   "type": "rtl_authoring_plan"
 }

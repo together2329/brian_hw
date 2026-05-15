@@ -28,8 +28,8 @@
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Tool-evidence blockers:
-  - dynamic_todo_closure: 5 required non-closure TODO(s) remain open.
-  - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
+  - dynamic_todo_closure: 4 required non-closure TODO(s) remain open.
+  - protocol_assertion_evidence: Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.
   - fl_rtl_goal_audit: FL-vs-RTL goal audit is not clean.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
 - Tool-evidence runbook:
@@ -130,7 +130,7 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: 5 required non-closure TODO(s) remain open.
+- Current reason: 4 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero
@@ -149,7 +149,7 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 - Detail: PL330-level RTL needs protocol-checker style evidence for interface, ordering, valid/ready, reset, and backpressure rules. The assertion source comes from SSOT cycle_model; the pass condition comes from real simulation evidence.
 SSOT ref: quality_gates.rtl_gen.protocol_assertion_evidence.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: Missing protocol assertion artifact: verify/protocol_assertions.sva.
+- Current reason: Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.
 - Criteria:
   - verify/protocol_assertions.sva exists
   - verify/protocol_assertions.summary.json has assertions_total > 0

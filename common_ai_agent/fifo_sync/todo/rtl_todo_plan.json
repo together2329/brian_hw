@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 6,
+    "open_required_todos": 5,
     "orphan_tasks": 0,
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:39:53Z",
+  "generated_at": "2026-05-15T02:41:38Z",
   "ip": "fifo_sync",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 18,
@@ -1814,7 +1814,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "5 required non-closure TODO(s) remain open.",
+        "reason": "4 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1869,7 +1869,7 @@
           "rtl_todo_plan.json task criteria",
           "governance/authority.json"
         ],
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+        "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending",
         "required": true,
         "status": "open"
       }
@@ -2010,9 +2010,9 @@
           "rtl_todo_plan.json task criteria",
           "model/cycle_model.py"
         ],
-        "reason": "Missing executable cycle model: model/cycle_model.py.",
+        "reason": "Cycle model artifact and self-check are present.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2060,7 +2060,7 @@
           "rtl_todo_plan.json task criteria",
           "verify/protocol_assertions.sva"
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "required": true,
         "status": "open"
       }
@@ -4248,9 +4248,9 @@
         "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
         "Traceability keeps source_ref function_model.state_variables.mem",
         "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
-        "mem reset behavior matches SSOT value 0x0 per entry"
+        "mem reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.mem.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=mem; reset=0x0 per entry.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.mem.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=mem; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0065",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
@@ -4262,7 +4262,7 @@
       "source_ref": "function_model.state_variables.mem",
       "ssot_context": {
         "name": "mem",
-        "reset": "0x0 per entry"
+        "reset": "0"
       },
       "ssot_refs": [
         "function_model.state_variables.mem"
@@ -15860,29 +15860,23 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 6,
+    "open_required_tasks": 5,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "5 required non-closure TODO(s) remain open.",
+        "reason": "4 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+        "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
         "task_id": "RTL-0020"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing executable cycle model: model/cycle_model.py.",
-        "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-        "task_id": "RTL-0023"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "task_id": "RTL-0024"
       },
@@ -15899,7 +15893,7 @@
         "task_id": "RTL-0026"
       }
     ],
-    "required_passed": 264,
+    "required_passed": 265,
     "required_total": 270,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

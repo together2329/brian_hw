@@ -108,7 +108,7 @@ SSOT item context: name=count; reset=0.
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.mem.
 Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.
-SSOT item context: name=mem; reset=0x0 per entry.
+SSOT item context: name=mem; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
@@ -116,7 +116,7 @@ SSOT item context: name=mem; reset=0x0 per entry.
   - Every transaction update occurs at the SSOT-defined acceptance/cycle point
   - Traceability keeps source_ref function_model.state_variables.mem
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
-  - mem reset behavior matches SSOT value 0x0 per entry
+  - mem reset behavior matches SSOT value 0
 - SSOT refs: function_model.state_variables.mem
 
 ### RTL-0066: Implement transaction FM1

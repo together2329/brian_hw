@@ -25,11 +25,10 @@
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 2
+- Human-locked open tasks: 1
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Locked-truth blockers:
-  - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
-  - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
+  - golden_authority_artifacts: Human authority gate(s) required before production RTL-GEN are not approved: G1=pending
 - SSOT connection contracts:
   - fifo_sync_ptrs.clk_i <= PCLK (integration.connections[0])
   - fifo_sync_ptrs.rst_ni <= PRESETn (integration.connections[1])
@@ -134,7 +133,7 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 - Detail: PL330-level RTL cannot proceed from prose alone. It must carry machine-readable authority artifacts that separate human-owned truth from LLM-editable implementation.
 SSOT ref: quality_gates.rtl_gen.golden_authority_artifacts.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
+- Current reason: Human authority gate(s) required before production RTL-GEN are not approved: G1=pending
 - Criteria:
   - governance/authority.json exists
   - authority.json is the current IP human_llm_authority_manifest
@@ -174,13 +173,13 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.cycle_model_artifacts
 - Detail: Complex DMA-class RTL needs a cycle-level oracle for latency, handshake, ordering, backpressure, and performance-sensitive behavior.
 SSOT ref: quality_gates.rtl_gen.cycle_model_artifacts.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: Missing executable cycle model: model/cycle_model.py.
+- Current reason: Cycle model artifact and self-check are present.
 - Criteria:
   - model/cycle_model.py exists
   - model/cl_model_check.json passed=true
