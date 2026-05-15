@@ -6992,6 +6992,57 @@ def create_app():
             "created_at": time.time(),
         }
 
+    def _scaffold_ip_wiki(ip: str) -> None:
+        """Seed <ip>/wiki/{index.md, log.md, notes.md} idempotently.
+
+        Karpathy-style: `[[link]]` ToC into the IP tree + append-only log + free-form notes.
+        Re-runs of /new-ip leave existing pages untouched.
+        """
+        wiki_dir = PROJECT_ROOT / ip / "wiki"
+        wiki_dir.mkdir(parents=True, exist_ok=True)
+        today = time.strftime("%Y-%m-%d", time.gmtime())
+        seeds = {
+            "index.md": (
+                f"# {ip} IP Wiki\n\n"
+                f"Per-IP knowledge base. Read with `wiki_query(ip=\"{ip}\")` or run\n"
+                f"`python3 workflow/wiki/build_graph.py --ip {ip}` to refresh the index.\n\n"
+                "## Status snapshot\n\n"
+                "Populated by `workflow/wiki/build_graph.py --ip <ip>`; the synthetic\n"
+                "`[[ssot]]`, `[[fl_model]]`, `[[cl_model]]`, `[[rtl]]`, `[[filelist]]`,\n"
+                "`[[lint]]`, `[[tb]]`, `[[sim]]`, `[[coverage]]`, `[[audit]]`, and\n"
+                "`[[last_run]]` nodes carry status/digest fields.\n\n"
+                "## Tree\n\n"
+                f"- [[notes]] — free-form owner/manager notes\n"
+                f"- [[log]] — append-only event log\n"
+                f"- requirements at `../req/`\n"
+                f"- SSOT YAML at `../yaml/{ip}.ssot.yaml`\n"
+                f"- function/cycle model at `../model/`\n"
+                f"- RTL at `../rtl/` (filelist `../list/{ip}.f`)\n"
+                f"- testbench at `../tb/`\n"
+                f"- sim evidence at `../sim/`\n"
+                f"- lint/coverage at `../lint/` and `../cov/`\n"
+                f"- run logs at `../logs/`\n"
+            ),
+            "log.md": (
+                "# Wiki Log\n\n"
+                f"## [{today}] new-ip | scaffolded {ip} wiki\n"
+            ),
+            "notes.md": (
+                f"# {ip} Notes\n\n"
+                "Free-form notes for the IP owner and manager. Tooling does not\n"
+                "write to this file; only humans (and chat agents acting on a\n"
+                "user request) edit it. Cross-link with `[[ssot]]`, `[[rtl]]`,\n"
+                "`[[sim]]`, etc. to compound context across sessions.\n"
+            ),
+        }
+        for name, content in seeds.items():
+            target = wiki_dir / name
+            if not target.exists():
+                try:
+                    target.write_text(content, encoding="utf-8")
+                except Exception:
+                    pass
+
     def _ensure_new_ip_structure(ip: str) -> list[str]:
         dirs = [
             "doc",
@@ -7004,12 +7055,14 @@ def create_app():
             "sim",
             "cov",
             "lint",
+            "wiki",
         ]
         created: list[str] = []
         for rel in dirs:
             path = PROJECT_ROOT / ip / rel
             path.mkdir(parents=True, exist_ok=True)
             created.append(f"{ip}/{rel}")
+        _scaffold_ip_wiki(ip)
         # Per-IP git repo. Each IP gets its OWN .git so the agent's
         # write_file / replace_in_file calls can auto-commit and the
         # user has a per-IP history independent of the outer project

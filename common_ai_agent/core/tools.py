@@ -6083,6 +6083,147 @@ def record_ssot_qa(questions=None, ip=None, session=None, kind="",
         return f"[record_ssot_qa error: {type(e).__name__}: {e}]"
 
 
+def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 12) -> str:
+    """Read-only summary of the project wiki or a specific IP knowledge graph.
+
+    ip="" → project wiki at common_ai_agent/doc/wiki/_graph.json.
+    ip="<name>" → <ip>/wiki/_graph.json. Falls back to ATLAS_ACTIVE_IP env.
+                  Lazy-builds the graph by invoking
+                  workflow/wiki/build_graph.py when the index is missing
+                  or older than the IP directory.
+    topic = case-insensitive substring matched against id / title / tags;
+            empty matches everything.
+    depth = 1 (id + title), 2 (+ status digest + meta), 3 (+ summary).
+    max_nodes caps the rendered output to keep token cost predictable.
+    Returns a compact markdown block. Read-only — never mutates wiki content.
+    """
+    import json as _json
+    import os as _os
+    import subprocess as _sp
+    from pathlib import Path as _Path
+
+    project_root = _Path(
+        _os.environ.get("ATLAS_PROJECT_ROOT")
+        or _os.environ.get("COMMON_AI_AGENT_HOME")
+        or _os.getcwd()
+    ).resolve()
+    builder = project_root / "workflow" / "wiki" / "build_graph.py"
+
+    ip = (ip or _os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+    if ip:
+        ip_root = project_root / ip
+        if not ip_root.is_dir():
+            return f"[wiki_query] IP directory not found: {ip}"
+        graph_path = ip_root / "wiki" / "_graph.json"
+        rebuild_cmd = [
+            "python3",
+            str(builder),
+            "--ip",
+            ip,
+            "--project-root",
+            str(project_root),
+            "--quiet",
+        ]
+    else:
+        wiki_root = project_root / "doc" / "wiki"
+        graph_path = wiki_root / "_graph.json"
+        rebuild_cmd = ["python3", str(builder), "--wiki", str(wiki_root), "--quiet"]
+
+    needs_build = not graph_path.is_file()
+    if not needs_build and ip:
+        try:
+            graph_mtime = graph_path.stat().st_mtime
+            for sub in ("yaml", "rtl", "sim", "lint", "cov", "verify", "logs", "model"):
+                sub_dir = project_root / ip / sub
+                if sub_dir.is_dir() and sub_dir.stat().st_mtime > graph_mtime:
+                    needs_build = True
+                    break
+        except Exception:
+            needs_build = True
+    if needs_build and builder.is_file():
+        try:
+            _sp.run(rebuild_cmd, check=False, capture_output=True, timeout=30)
+        except Exception:
+            pass
+
+    if not graph_path.is_file():
+        return f"[wiki_query] graph index not found: {graph_path.relative_to(project_root) if project_root in graph_path.parents else graph_path}"
+    try:
+        graph = _json.loads(graph_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return f"[wiki_query] cannot parse {graph_path.name}: {exc}"
+
+    depth = max(1, min(3, int(depth) if isinstance(depth, int) else 2))
+    max_nodes = max(1, min(40, int(max_nodes) if isinstance(max_nodes, int) else 12))
+    topic_l = str(topic or "").strip().lower()
+    nodes = graph.get("nodes") or []
+
+    def _match(node: dict) -> bool:
+        if not topic_l:
+            return True
+        haystack = " ".join(
+            [
+                str(node.get("id") or ""),
+                str(node.get("title") or ""),
+                " ".join(str(t) for t in node.get("tags") or []),
+                str(node.get("type") or ""),
+            ]
+        ).lower()
+        return topic_l in haystack
+
+    matched = [n for n in nodes if _match(n)]
+    matched.sort(key=lambda n: (str(n.get("updated") or ""), str(n.get("id") or "")), reverse=True)
+    capped = matched[:max_nodes]
+
+    header_scope = f"ip={ip}" if ip else "scope=project"
+    lines: list[str] = [
+        f"# wiki_query [{header_scope}] depth={depth} "
+        f"matches={len(matched)}/{graph.get('node_count', len(nodes))} "
+        f"shown={len(capped)}"
+    ]
+    for node in capped:
+        nid = node.get("id") or "?"
+        ntitle = node.get("title") or nid
+        ntype = node.get("type") or "reference"
+        status = node.get("status")
+        digest = node.get("digest") or ""
+        updated = node.get("updated") or ""
+        path = node.get("path") or ""
+        head = f"## {nid} [{ntype}]"
+        if status:
+            head += f" · status={status}"
+        if updated:
+            head += f" · updated={updated}"
+        lines.append(head)
+        if depth >= 2:
+            meta_parts = [f"title: {ntitle}"]
+            if path:
+                meta_parts.append(f"path: {path}")
+            if digest:
+                meta_parts.append(f"digest: {digest}")
+            tags = node.get("tags") or []
+            if tags:
+                meta_parts.append("tags: " + ", ".join(str(t) for t in tags))
+            lines.append(" · ".join(meta_parts))
+            outgoing = node.get("outgoing") or []
+            if outgoing:
+                lines.append("links: " + " ".join(f"[[{t}]]" for t in outgoing[:8]))
+        if depth >= 3:
+            summary = node.get("summary") or ""
+            if summary:
+                lines.append(summary)
+    if len(matched) > len(capped):
+        lines.append(
+            f"\n…{len(matched) - len(capped)} more matches truncated. "
+            f"Re-query with a narrower topic= or higher max_nodes."
+        )
+    lines.append(
+        f"\nDrill deeper with `wiki_query(ip={ip!r}, topic=\"<keyword>\", depth=3)` "
+        f"or re-run `python3 workflow/wiki/build_graph.py {'--ip ' + ip if ip else '--check'}`."
+    )
+    return "\n".join(lines)
+
+
 # Registry of available tools
 AVAILABLE_TOOLS = {
     "read_file": read_file,
@@ -6098,6 +6239,7 @@ AVAILABLE_TOOLS = {
     "commit_ip": commit_ip,
     "replace_in_file": replace_in_file,
     "replace_lines": replace_lines,
+    "wiki_query": wiki_query,
     # Image Analysis (conditional — requires ENABLE_IMAGE_READ=true)
     "read_image": read_image,
     # Task Management

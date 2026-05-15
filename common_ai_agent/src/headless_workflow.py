@@ -2741,7 +2741,38 @@ class HeadlessWorkflowRunner:
         self._write_trace_summary(ip=ip, run_status=status)
         self._write_progress(ip, "run_end", status=status, run_log=str(run_log))
         self._write_heartbeat(ip, state="done", phase="finished", status=status, model=self.model)
+        self._refresh_ip_wiki_graph(ip)
         return result
+
+    def _refresh_ip_wiki_graph(self, ip: str) -> None:
+        """Refresh `<ip>/wiki/_graph.json` so wiki_query reflects this run.
+
+        Deterministic, in-process when possible (no subprocess churn).
+        Failures are non-fatal — the graph is a read-only convenience.
+        """
+        try:
+            try:
+                from workflow.wiki import build_graph as _wiki_build
+            except Exception:
+                import importlib.util as _ilu
+                builder = self.root.parent / "workflow" / "wiki" / "build_graph.py"
+                if not builder.is_file():
+                    builder = SOURCE_ROOT / "workflow" / "wiki" / "build_graph.py"
+                spec = _ilu.spec_from_file_location("atlas_wiki_build_graph", builder)
+                if spec is None or spec.loader is None:
+                    return
+                _wiki_build = _ilu.module_from_spec(spec)
+                spec.loader.exec_module(_wiki_build)
+            project_root = Path(SOURCE_ROOT).resolve()
+            graph = _wiki_build.build_ip(ip, project_root)
+            wiki_dir = project_root / ip / "wiki"
+            wiki_dir.mkdir(parents=True, exist_ok=True)
+            (wiki_dir / "_graph.json").write_text(
+                json.dumps(graph, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+        except Exception:
+            pass
 
     def _write_trace_summary(self, *, ip: str, run_status: str) -> None:
         llm_dir = self._log_dir(ip)
