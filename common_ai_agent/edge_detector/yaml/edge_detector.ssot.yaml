@@ -218,7 +218,24 @@ fsm:
   transitions:
     - { from: "SYNC_SAMPLE", to: "EDGE_DECODE", condition: "every PCLK rising edge", action: "advance sync_chain, latch prev_sample" }
     - { from: "EDGE_DECODE", to: "OUTPUT_PULSE", condition: "edge_decode matches EDGE_MODE and enable==1", action: "assert edge_o, set sticky/status" }
-rtl_contract: TBD
+rtl_contract:
+  transaction: "DETECT"
+  sample_condition: "PCLK rising edge after PRESETn deassertion"
+  input_map:
+    signal_in: "signal_i"
+    control: "registers.CONTROL"
+  output_map:
+    edge_pulse: "edge_o"
+    status: "registers.STATUS"
+    interrupt: "irq_o"
+  output_rules:
+    - { name: "edge_o", expr: "(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}", width: "WIDTH", port: "edge_o", description: "One-cycle pulse per detected edge, masked by mode and enable" }
+    - { name: "irq_o", expr: "|edge_o && irq_enable", width: 1, port: "irq_o", description: "Interrupt asserted when any edge detected and irq_enable set" }
+  state_updates:
+    - { name: "sync_chain", reset: 0, expr: "{sync_chain[SYNC_STAGES-2:0], signal_i}" }
+    - { name: "prev_sync", reset: 0, expr: "sync_chain[SYNC_STAGES-1]" }
+    - { name: "status_edge_sticky", reset: 0, expr: "status_edge_sticky | edge_o; cleared by W1C" }
+    - { name: "status_overflow", reset: 0, expr: "status_overflow | (edge_o & status_edge_sticky); cleared by W1C" }
 timing: TBD
 power: TBD
 security: TBD

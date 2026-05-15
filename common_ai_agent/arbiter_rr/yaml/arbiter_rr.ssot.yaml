@@ -821,7 +821,34 @@ workflow_todos:
   sta-post: []
 
 # =============================================================================
-# SECTION 33: Generation Flow
+# SECTION 33: PnR
+# =============================================================================
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: "met3"
+    vertical: "met2"
+  placement:
+    density_target: 0.65
+    max_displacement_um: null
+  cts:
+    buf_list: []
+    functional_mode_case_analysis: []
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    clock_layers: { min: "met3", max: "met5" }
+    drc_waivers: []
+  required_outputs:
+    - "pnr/out/routed.def"
+    - "pnr/out/routed.v"
+    - "pnr/out/routed.spef"
+    - "pnr/out/pnr.report.md"
+
+# =============================================================================
+# SECTION 34: Generation Flow
 # =============================================================================
 generation_flow:
   steps:
