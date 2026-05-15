@@ -229,7 +229,7 @@ Owner: priority_enc in rtl/priority_enc.sv via top_module.
 - Detail: Production-profile RTL cannot be a shallow shell that merely satisfies names, ports, or compile checks. The RTL must contain aggregate implementation structure scaled from the current SSOT task count, behavior-owner modules, and manifest hierarchy.
 SSOT ref: quality_gates.rtl_gen.rtl_implementation_depth_evidence.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=81, required=28).
+- Current reason: Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=97, required=28).
 - Criteria:
   - Implementation depth thresholds are derived from SSOT owner/task complexity, not a fixed IP template
   - Listed DUT RTL sources contain enough nonconstant logic, procedural/state/control structure, and child instances for the SSOT profile

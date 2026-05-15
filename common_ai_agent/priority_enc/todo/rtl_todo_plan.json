@@ -429,12 +429,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 19,
+    "open_required_todos": 17,
     "orphan_tasks": 4,
     "static_missing": 7,
     "status": "blocked"
   },
-  "generated_at": "2026-05-15T02:05:15Z",
+  "generated_at": "2026-05-15T02:12:50Z",
   "ip": "priority_enc",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -552,39 +552,39 @@
   "rtl_implementation_depth_evidence": {
     "aggregate": {
       "behavior_owner_logic_modules": 3,
-      "control_flow": 9,
-      "depth_score": 81,
+      "control_flow": 17,
+      "depth_score": 97,
       "instances": 2,
-      "lines": 199,
+      "lines": 209,
       "logic_modules": 3,
       "modules": 3,
-      "nonconstant_assigns": 12,
+      "nonconstant_assigns": 15,
       "procedural_blocks": 4,
       "source_files": 3,
-      "state_updates": 13,
-      "storage_decls": 18
+      "state_updates": 14,
+      "storage_decls": 21
     },
     "issues": [],
     "modules": [
       {
-        "depth_score": 43,
+        "depth_score": 52,
         "file": "rtl/priority_enc_regs.sv",
         "metrics": {
-          "control_flow": 6,
+          "control_flow": 7,
           "instances": 0,
-          "nonconstant_assigns": 8,
+          "nonconstant_assigns": 11,
           "placeholder_tokens": false,
           "procedural_blocks": 2,
-          "state_updates": 7,
-          "storage_decls": 9
+          "state_updates": 8,
+          "storage_decls": 12
         },
         "module": "priority_enc_regs"
       },
       {
-        "depth_score": 27,
+        "depth_score": 34,
         "file": "rtl/priority_enc_core.sv",
         "metrics": {
-          "control_flow": 3,
+          "control_flow": 10,
           "instances": 0,
           "nonconstant_assigns": 2,
           "placeholder_tokens": false,
@@ -1851,9 +1851,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1901,9 +1901,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1948,7 +1948,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "18 required non-closure TODO(s) remain open.",
+        "reason": "16 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -2097,7 +2097,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=81, required=28).",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=97, required=28).",
         "required": true,
         "status": "pass"
       }
@@ -6568,7 +6568,7 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 19,
+    "open_required_tasks": 17,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
@@ -6596,19 +6596,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "task_id": "RTL-0017"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "task_id": "RTL-0018"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "18 required non-closure TODO(s) remain open.",
+        "reason": "16 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -6685,7 +6673,7 @@
         "task_id": "RTL-0087"
       }
     ],
-    "required_passed": 89,
+    "required_passed": 91,
     "required_total": 108,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
@@ -6722,9 +6710,7 @@
     ],
     "status": "pass",
     "top_parameters": {
-      "N": 8,
-      "PCLK_FREQ_MHZ": 50,
-      "RESET_POLARITY": 0
+      "N": 8
     }
   },
   "top_output_drive_evidence": {

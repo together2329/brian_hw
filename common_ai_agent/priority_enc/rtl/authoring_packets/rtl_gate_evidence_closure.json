@@ -932,7 +932,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=81, required=28).",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=97, required=28).",
         "required": true,
         "status": "pass"
       }

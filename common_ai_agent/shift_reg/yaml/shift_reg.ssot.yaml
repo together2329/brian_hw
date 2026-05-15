@@ -583,7 +583,42 @@ test_requirements:
     branch: ">= 85% instrumented branch coverage or explicit waiver"
     fsm: "100% declared FSM states and legal transitions covered"
     assertions: "All reset, priority, and output-stability assertions pass"
-quality_gates: TBD
+quality_gates:
+  ssot:
+    pass: "Canonical SSOT sections are present, parseable, substantive, and validated by check_ssot_disk.sh."
+    evidence: ["check_ssot_disk.sh PASS", "YAML parse PASS"]
+  rtl_gen:
+    profile: "standard"
+    target_scale:
+      basis: "Small leaf datapath IP; no minimum structural depth beyond SSOT-owned modules."
+      source_files_min: 2
+      modules_min: 2
+      procedural_blocks_min: 1
+      state_updates_min: 1
+      depth_score_min: 1
+      logic_modules_min: 1
+      behavior_owner_logic_modules_min: 1
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "RTL implements function_model and cycle_model with no placeholders and named top/core port wiring matching integration.connections."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_traceability.json", "rtl/rtl_compile.json", "lint/dut_lint.json"]
+  rtl:
+    pass: "RTL compiles, implements reset/load/shift/hold/priority behavior, and maps all declared outputs."
+    evidence: ["rtl compile report", "lint report", "FL-vs-RTL scoreboard"]
+  dv:
+    pass: "DV scenarios SC_RESET, SC_LOAD, SC_SHIFT, SC_HOLD, and SC_PRIORITY pass."
+    evidence: ["tb test report", "scoreboard results", "assertion results"]
+  coverage:
+    pass: "Function and cycle coverage goals meet 100% planned bins or have approved waivers."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis, STA, and PnR meet timing and physical constraints or have approved waivers."
+    evidence: ["syn reports", "sta reports", "pnr report"]
+  signoff:
+    pass: "All SSOT, RTL, DV, coverage, and EDA gates have current evidence."
+    evidence: ["signoff checklist", "quality gate summary"]
 traceability: TBD
 workflow_todos: TBD
 generation_flow: TBD
