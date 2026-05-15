@@ -94,7 +94,6 @@ module pulse_gen #(
         .int_enable_i(\pulse_gen_core.int_enable_i ),
         .status_done_i(\pulse_gen_regs.status_done ),
         .status_busy_i(\pulse_gen_regs.status_busy ),
-        .status_done_o(\pulse_gen_regs.status_done ),
         .pulse_out(pulse_out),
         .irq_o(irq_o),
         .status_busy_o(\pulse_gen_regs.status_busy ),

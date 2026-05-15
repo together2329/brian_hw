@@ -35,12 +35,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 3,
+    "open_required_todos": 2,
     "orphan_tasks": 0,
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:34:14Z",
+  "generated_at": "2026-05-15T02:36:03Z",
   "ip": "pulse_gen",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 18,
@@ -54,6 +54,12 @@
           "PRESETn_sync"
         ],
         "source_ref": "integration.connections[1]"
+      },
+      {
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
+        "module": "pulse_gen_core",
+        "port": "status_done_o",
+        "source_ref": "integration.connections[15]"
       }
     ],
     "connection_contract_status": "fail",
@@ -90,8 +96,8 @@
     "status": "pass"
   },
   "manifest_signal_flow_evidence": {
-    "checked_inputs": 23,
-    "checked_outputs": 15,
+    "checked_inputs": 22,
+    "checked_outputs": 14,
     "issues": [],
     "reachable_modules": [
       "pulse_gen",
@@ -130,7 +136,7 @@
       "control_flow": 25,
       "depth_score": 231,
       "instances": 2,
-      "lines": 426,
+      "lines": 424,
       "logic_modules": 3,
       "modules": 3,
       "nonconstant_assigns": 36,
@@ -1033,9 +1039,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1507,7 +1513,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms",
+        "reason": "2 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: SSOT connection contract port is not connected by the RTL named port map",
         "required": true,
         "status": "open"
       }
@@ -1653,7 +1659,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "2 required non-closure TODO(s) remain open.",
+        "reason": "1 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -10472,28 +10478,22 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 3,
+    "open_required_tasks": 2,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms",
+        "reason": "2 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: SSOT connection contract port is not connected by the RTL named port map",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
         "task_id": "RTL-0016"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "2 required non-closure TODO(s) remain open.",
+        "reason": "1 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       }
     ],
-    "required_passed": 180,
+    "required_passed": 181,
     "required_total": 183,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
