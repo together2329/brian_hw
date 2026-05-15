@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 7,
+    "open_required_todos": 9,
     "orphan_tasks": 0,
-    "static_missing": 0,
+    "static_missing": 1,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:38:51Z",
+  "generated_at": "2026-05-15T02:39:57Z",
   "ip": "arbiter_rr",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 24,
@@ -132,31 +132,31 @@
   "rtl_implementation_depth_evidence": {
     "aggregate": {
       "behavior_owner_logic_modules": 3,
-      "control_flow": 45,
-      "depth_score": 289,
+      "control_flow": 28,
+      "depth_score": 266,
       "instances": 2,
-      "lines": 434,
+      "lines": 348,
       "logic_modules": 3,
       "modules": 3,
       "nonconstant_assigns": 20,
-      "procedural_blocks": 6,
+      "procedural_blocks": 5,
       "source_files": 3,
       "state_updates": 85,
-      "storage_decls": 32
+      "storage_decls": 29
     },
     "issues": [],
     "modules": [
       {
-        "depth_score": 223,
+        "depth_score": 200,
         "file": "rtl/arbiter_rr_core.sv",
         "metrics": {
-          "control_flow": 38,
+          "control_flow": 21,
           "instances": 0,
           "nonconstant_assigns": 4,
           "placeholder_tokens": false,
-          "procedural_blocks": 4,
+          "procedural_blocks": 3,
           "state_updates": 79,
-          "storage_decls": 11
+          "storage_decls": 8
         },
         "module": "arbiter_rr_core"
       },
@@ -697,9 +697,27 @@
   ],
   "static_rtl_evidence": {
     "checked": 49,
-    "missing": 0,
-    "missing_tasks": [],
-    "passed": 49,
+    "missing": 1,
+    "missing_tasks": [
+      {
+        "category": "function_model.state_update",
+        "matched_count": 1,
+        "matched_terms": [
+          "grant"
+        ],
+        "owner_file": "rtl/arbiter_rr_core.sv",
+        "required_match_count": 2,
+        "required_terms": [
+          "grant",
+          "grant_index",
+          "index"
+        ],
+        "source_ref": "function_model.transactions.FM1.state_updates.last_winner",
+        "source_scope": "rtl/arbiter_rr_core.sv",
+        "task_id": "RTL-0064"
+      }
+    ],
+    "passed": 48,
     "sources": [
       "rtl/arbiter_rr.sv",
       "rtl/arbiter_rr_core.sv",
@@ -1172,9 +1190,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Static DUT RTL evidence audit has no missing required task.",
+        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1697,7 +1715,7 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "lint/dut_lint.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT lint after the final RTL edit.",
+        "reason": "DUT lint artifact is not clean.",
         "required": true,
         "status": "open"
       }
@@ -1744,7 +1762,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "8 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1893,7 +1911,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=289, required=86).",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=266, required=86).",
         "required": true,
         "status": "pass"
       }
@@ -3744,13 +3762,10 @@
         "function_model.transactions.FM1.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 2,
         "matched_terms": [
           "gnt",
-          "gnt_o",
-          "index",
-          "selected",
-          "selected_index"
+          "gnt_o"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -3873,14 +3888,11 @@
         "function_model.transactions.FM1.outputs.output_2"
       ],
       "static_evidence": {
-        "matched_count": 6,
+        "matched_count": 3,
         "matched_terms": [
           "gnt",
           "gnt_idx_o",
-          "idx",
-          "index",
-          "selected",
-          "selected_index"
+          "idx"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -3943,13 +3955,10 @@
         "function_model.transactions.FM1.outputs.output_3"
       ],
       "static_evidence": {
-        "matched_count": 6,
+        "matched_count": 3,
         "matched_terms": [
-          "index",
           "last",
           "last_winner",
-          "selected",
-          "selected_index",
           "winner"
         ],
         "owner_file_scoped": true,
@@ -4107,12 +4116,11 @@
         "function_model.transactions.FM1.output_rules.grant"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 3,
         "matched_terms": [
           "gnt",
           "gnt_o",
-          "grant",
-          "index"
+          "grant"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -4244,10 +4252,9 @@
         "function_model.transactions.FM1.state_updates.last_winner"
       ],
       "static_evidence": {
-        "matched_count": 2,
+        "matched_count": 1,
         "matched_terms": [
-          "grant",
-          "index"
+          "grant"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -4258,7 +4265,7 @@
           "index"
         ],
         "source_scope": "rtl/arbiter_rr_core.sv",
-        "status": "pass"
+        "status": "missing"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -4268,9 +4275,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -9759,8 +9766,14 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 7,
+    "open_required_tasks": 9,
     "open_tasks": [
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "1 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+        "task_id": "RTL-0007"
+      },
       {
         "category": "rtl_gate.rtl_gen",
         "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT compile after the final RTL edit.",
@@ -9769,13 +9782,13 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "lint/dut_lint.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT lint after the final RTL edit.",
+        "reason": "DUT lint artifact is not clean.",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
         "task_id": "RTL-0018"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "8 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -9802,9 +9815,15 @@
         "reason": "Missing coverage closure artifact: cov/coverage.json.",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "task_id": "RTL-0026"
+      },
+      {
+        "category": "function_model.state_update",
+        "reason": "Required RTL static evidence is missing.",
+        "source_ref": "function_model.transactions.FM1.state_updates.last_winner",
+        "task_id": "RTL-0064"
       }
     ],
-    "required_passed": 162,
+    "required_passed": 160,
     "required_total": 169,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

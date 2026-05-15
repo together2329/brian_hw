@@ -30,8 +30,8 @@
 - SSOT target scale: min_behavior_owner_logic_modules=1, min_logic_modules=1, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=3
 - Tool-evidence blockers:
   - dut_compile: rtl/rtl_compile.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT compile after the final RTL edit.
-  - dut_lint: lint/dut_lint.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT lint after the final RTL edit.
-  - dynamic_todo_closure: 6 required non-closure TODO(s) remain open.
+  - dut_lint: DUT lint artifact is not clean.
+  - dynamic_todo_closure: 8 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.
   - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
@@ -113,7 +113,7 @@ Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
-- Current reason: lint/dut_lint.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT lint after the final RTL edit.
+- Current reason: DUT lint artifact is not clean.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -135,7 +135,7 @@ Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
-- Current reason: 6 required non-closure TODO(s) remain open.
+- Current reason: 8 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

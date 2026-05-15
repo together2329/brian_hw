@@ -510,7 +510,7 @@
       {
         "gate_kind": "dut_lint",
         "owner_module": "arbiter_rr",
-        "reason": "lint/dut_lint.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT lint after the final RTL edit.",
+        "reason": "DUT lint artifact is not clean.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
         "status": "open",
@@ -519,7 +519,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "arbiter_rr",
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "8 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -608,7 +608,7 @@
         "prerequisites": [
           "arbiter_rr/list/arbiter_rr.f covers the current DUT RTL/header sources."
         ],
-        "reason": "lint/dut_lint.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT lint after the final RTL edit.",
+        "reason": "DUT lint artifact is not clean.",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
         "stage_sequence": [
           "lint",
@@ -631,7 +631,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "8 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -895,7 +895,7 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "lint/dut_lint.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT lint after the final RTL edit.",
+        "reason": "DUT lint artifact is not clean.",
         "required": true,
         "status": "open"
       }
@@ -940,7 +940,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "8 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }

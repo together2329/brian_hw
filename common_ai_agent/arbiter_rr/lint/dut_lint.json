@@ -14,10 +14,10 @@
     "rtl/arbiter_rr.sv",
     "rtl/arbiter_rr_param.vh"
   ],
-  "timestamp": "2026-05-15T02:38:54.880957+00:00",
+  "timestamp": "2026-05-15T02:40:00.217930+00:00",
   "returncode": 1,
   "errors": 0,
-  "warnings": 3,
+  "warnings": 1,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -36,34 +36,16 @@
       "command": "verilator --lint-only -Wall -Irtl -f list/arbiter_rr.f --top-module arbiter_rr",
       "returncode": 1,
       "errors": 0,
-      "warnings": 3,
+      "warnings": 1,
       "diagnostics": [
         {
           "severity": "warning",
           "rule": "UNUSEDSIGNAL",
           "file": "rtl/arbiter_rr_core.sv",
-          "line": 31,
+          "line": 29,
           "column": 33,
-          "message": "Signal is not used: 'selected_oh'",
-          "source": "    logic [NUM_REQ-1:0]         selected_oh;"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/arbiter_rr_core.sv",
-          "line": 32,
-          "column": 33,
-          "message": "Signal is not used: 'selected_index'",
-          "source": "    logic [IDX_WIDTH-1:0]       selected_index;"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/arbiter_rr_core.sv",
-          "line": 33,
-          "column": 33,
-          "message": "Signal is not used: 'selected_valid'",
-          "source": "    logic                       selected_valid;"
+          "message": "Signal is not used: 'req_masked_q'",
+          "source": "    logic [NUM_REQ-1:0]         req_masked_q;"
         }
       ],
       "passed": false

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 0
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, dataflow, dataflow.sequence, dataflow.sequence.sequence_0, decomposition.units.arbitrate, features, fsm, fsm.arb_fsm, function_model, function_model.transactions, function_model.transactions.FM1, function_model.transactions.FM2
 - Module slice: 1/7 section=function_model task_limit=48
@@ -383,14 +383,14 @@ SSOT item context: name=grant_valid; port=gnt_valid_o; expr=1; width=1.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM1.state_updates.last_winner
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM1.state_updates.last_winner.
 Owner: arbiter_rr_core in rtl/arbiter_rr_core.sv via function_model.transactions.FM1.
 SSOT item context: name=last_winner; expr=grant_index; reset=0.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
