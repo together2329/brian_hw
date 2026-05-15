@@ -608,8 +608,8 @@ custom:
     - { id: "ASM_05", field: "registers.REQ_MASK.reset", assumption: "REQ_MASK resets to all-ones (0xFF for 8 inputs) — all inputs enabled by default. This is a reasonable power-on default for a priority encoder." }
     - { id: "ASM_06", field: "timing.io_delays", assumption: "IO delay values (2.0 ns) are conservative placeholders for 50 MHz operation. Real values depend on SoC integration and pad library." }
     - { id: "ASM_07", field: "function_model.transactions.PRI_ENCODE.output_rules.thresh_met", assumption: "popcount(masked_req) counts the number of active unmasked requests. For NUM_INPUTS=8, active_count fits in 3 bits (max value 8). Threshold comparison uses unsigned arithmetic." }
-    - { id: "ASM_08", field: "io_list.interfaces.apb_slave", assumption: "APB-Lite means no pstrb port in the minimal variant. pstrb is not included; all writes are full 32-bit. If byte-lane strobes are needed, upgrade to APB4 in a future revision." }
-    - { id: "ASM_09", field: "function_model.transactions.PRI_ENCODE.error_cases.pstrb", assumption: "pstrb is not present in APB-Lite; partial-write protection is not applicable." }
+    - { id: "ASM_08", field: "io_list.interfaces.apb_slave", assumption: "APB-Lite means no pstrb port in the minimal variant. All writes are full 32-bit. If byte-lane strobes are needed, upgrade to APB4 in a future revision." }
+    - { id: "ASM_09", field: "function_model.transactions.PRI_ENCODE.error_cases", assumption: "No encoding error cases beyond all-masked; pstrb/partial-write is an APB concern not a priority-encode concern." }
   note: "Pipeline mode: assumptions recorded instead of blocking on ask_user. Review and adjust as needed."
 dir_structure:
   template_dirs:

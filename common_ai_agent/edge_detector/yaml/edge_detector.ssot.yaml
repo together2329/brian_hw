@@ -118,7 +118,19 @@ features:
     datapath: "PADDR decode -> register read/write; PRDATA mux or register update"
     control: "APB slave stateless decode (PSEL && PENABLE)"
     output: "PRDATA, PREADY, PSLVERR; side effects on CONTROL/STATUS registers"
-dataflow: TBD
+dataflow:
+  input_path:
+    source: "signal_i (external, potentially asynchronous)"
+    buffer: "sync_chain[SYNC_STAGES-1:0]"
+    sequence: "signal_i -> sync_ff[0] -> ... -> sync_ff[SYNC_STAGES-1]"
+  detect_path:
+    source: "sync_ff[SYNC_STAGES-1]"
+    operation: "Compare with sync_ff_prev (latched previous cycle value)"
+    sequence: "prev_sample ^ curr_sample -> edge_decode -> edge_o pulse"
+  config_path:
+    source: "APB write to CONTROL register"
+    effect: "Updates EDGE_MODE enable/mask bits; may gate edge_o generation"
+    sequence: "PWDATA -> PADDR decode -> CONTROL.write -> edge_decode mask"
 function_model: TBD
 cycle_model: TBD
 clock_reset_domains:
@@ -128,8 +140,14 @@ clock_reset_domains:
     signal: "PRESETn"
     polarity: "active_low"
     type: "async_assert_sync_deassert"
-cdc_requirements: TBD
-rdc_requirements: TBD
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain (PCLK) — input sync chain handles external signal timing; no CDC between internal clock domains"
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain (PRESETn) — no RDC required"
 registers: TBD
 memory: TBD
 interrupts: TBD
