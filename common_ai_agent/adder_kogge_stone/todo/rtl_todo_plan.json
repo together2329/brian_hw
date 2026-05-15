@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 14,
+    "open_required_todos": 13,
     "orphan_tasks": 6,
     "static_missing": 0,
     "status": "blocked"
   },
-  "generated_at": "2026-05-15T02:16:27Z",
+  "generated_at": "2026-05-15T02:18:08Z",
   "ip": "adder_kogge_stone",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 4,
@@ -170,36 +170,29 @@
     "aggregate": {
       "behavior_owner_logic_modules": 3,
       "control_flow": 11,
-      "depth_score": 154,
+      "depth_score": 153,
       "instances": 2,
-      "lines": 353,
+      "lines": 356,
       "logic_modules": 3,
       "modules": 3,
       "nonconstant_assigns": 27,
-      "procedural_blocks": 5,
+      "procedural_blocks": 6,
       "source_files": 3,
-      "state_updates": 26,
+      "state_updates": 24,
       "storage_decls": 45
     },
-    "issues": [
-      {
-        "actual": 5,
-        "issue": "Production RTL procedural block count is below the SSOT-locked target scale",
-        "required": 6,
-        "source": "quality_gates.rtl_gen.target_scale"
-      }
-    ],
+    "issues": [],
     "modules": [
       {
-        "depth_score": 71,
+        "depth_score": 70,
         "file": "rtl/adder_kogge_stone_core.sv",
         "metrics": {
           "control_flow": 6,
           "instances": 0,
           "nonconstant_assigns": 9,
           "placeholder_tokens": false,
-          "procedural_blocks": 2,
-          "state_updates": 17,
+          "procedural_blocks": 3,
+          "state_updates": 15,
           "storage_decls": 16
         },
         "module": "adder_kogge_stone_core"
@@ -235,7 +228,7 @@
     ],
     "profile": "production",
     "reference_comparison": null,
-    "status": "fail",
+    "status": "pass",
     "target_scale": {
       "basis": "calibrated from user requirements; small parameterized accelerator",
       "min_behavior_owner_logic_modules": 1,
@@ -1550,7 +1543,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "13 required non-closure TODO(s) remain open.",
+        "reason": "12 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1699,9 +1692,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 production RTL implementation-depth issue(s) remain. Production RTL procedural block count is below the SSOT-locked target scale: actual=5 required=6",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=153, required=45).",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8126,7 +8119,7 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 14,
+    "open_required_tasks": 13,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
@@ -8136,7 +8129,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "13 required non-closure TODO(s) remain open.",
+        "reason": "12 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -8145,12 +8138,6 @@
         "reason": "Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json, verify/equivalence_goals.json",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
         "task_id": "RTL-0020"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 production RTL implementation-depth issue(s) remain. Production RTL procedural block count is below the SSOT-locked target scale: actual=5 required=6",
-        "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
-        "task_id": "RTL-0022"
       },
       {
         "category": "rtl_gate.rtl_gen",
@@ -8213,7 +8200,7 @@
         "task_id": "RTL-0119"
       }
     ],
-    "required_passed": 132,
+    "required_passed": 133,
     "required_total": 146,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

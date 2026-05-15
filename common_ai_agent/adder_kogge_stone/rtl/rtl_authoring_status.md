@@ -4,7 +4,7 @@
 
 - Top: adder_kogge_stone
 - Packets: 7
-- LLM-actionable tasks: 7
+- LLM-actionable tasks: 6
 - Human-locked tasks: 3
 - Tool-evidence tasks: 4
 - Deferred human QA allowed: False
@@ -16,7 +16,6 @@
 ## Next LLM Packets
 
 - unowned_tasks: rtl/authoring_packets/unowned_tasks.json (llm_open=6, human_locked=0)
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=1, human_locked=0)
 
 ## Tool Evidence Queue
 

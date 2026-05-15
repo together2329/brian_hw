@@ -14,10 +14,10 @@
     "rtl/pulse_gen.sv",
     "rtl/pulse_gen_param.vh"
   ],
-  "timestamp": "2026-05-15T02:17:46.480585+00:00",
-  "returncode": 1,
+  "timestamp": "2026-05-15T02:18:26.026105+00:00",
+  "returncode": 0,
   "errors": 0,
-  "warnings": 1,
+  "warnings": 0,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -34,21 +34,11 @@
       "tool": "verilator",
       "available": true,
       "command": "verilator --lint-only -Wall -Irtl -f list/pulse_gen.f --top-module pulse_gen",
-      "returncode": 1,
+      "returncode": 0,
       "errors": 0,
-      "warnings": 1,
-      "diagnostics": [
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/pulse_gen_core.sv",
-          "line": 37,
-          "column": 11,
-          "message": "Signal is not used: 'sw_trigger_allowed'",
-          "source": "    logic sw_trigger_allowed;"
-        }
-      ],
-      "passed": false
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
     }
   ],
   "suppression_violation_count": 0,
@@ -56,5 +46,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": false
+  "passed": true
 }

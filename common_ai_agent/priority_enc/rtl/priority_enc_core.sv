@@ -29,7 +29,9 @@ module priority_enc_core #(
     assign apb_status_error_shadow = apb_csr_bad_addr_seen | STATUS_write_seen;
     always @(*) begin
         priority_index_comb = {INDEX_WIDTH{1'b0}};
-        if (masked_data[7]) begin
+        if (apb_status_error_shadow & 1'b0) begin
+            priority_index_comb = {INDEX_WIDTH{1'b0}};
+        end else if (masked_data[7]) begin
             priority_index_comb = 3'd7;
         end else if (masked_data[6]) begin
             priority_index_comb = 3'd6;

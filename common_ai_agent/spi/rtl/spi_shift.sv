@@ -57,11 +57,9 @@ module spi_shift #(
     logic [NUM_CS-1:0] active_cs_mask;
     logic [4:0] bit_index_sel;
     logic [4:0] reverse_bit_index_sel;
-    logic [5:0] reverse_bit_index_full;
 
     assign bit_index_sel = bit_index[4:0];
-    assign reverse_bit_index_full = frame_bits - 6'd1 - bit_index;
-    assign reverse_bit_index_sel = reverse_bit_index_full[4:0];
+    assign reverse_bit_index_sel = frame_bits[4:0] - 5'd1 - bit_index[4:0];
 
     assign illegal_cs_or_width = (cs_sel >= NUM_CS[2:0]) || (data_width_m1 < 5'd3);
     assign launch_gate_true = enable && start_req && !busy && !tx_empty && !illegal_cs_or_width;
