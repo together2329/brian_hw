@@ -486,10 +486,113 @@ test_requirements:
         - { id: "CCOV_APB_WRITE", source_ref: "io_list.interfaces.apb_slave", class: "protocol", description: "APB write transaction observed" }
     functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
     code: "line >= 90%, branch >= 85%"
-quality_gates: TBD
-traceability: TBD
-workflow_todos: TBD
-generation_flow: TBD
-pnr: TBD
-synthesis: TBD
-dft: TBD
+quality_gates:
+  rtl_gen:
+    profile: "production"
+    target_scale:
+      basis: "Simple peripheral IP with combinational/sequential logic only"
+      source_files_min: 2
+      modules_min: 2
+      procedural_blocks_min: 4
+      state_updates_min: 4
+      depth_score_min: 0
+      logic_modules_min: 2
+      behavior_owner_logic_modules_min: 2
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "Every SSOT-derived RTL TODO and rtl_gate.rtl_gen gate closes with fresh evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "sim/fl_rtl_goal_audit.json", "cov/coverage.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches locked FL/CL authority."
+    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+  coverage:
+    pass: "SSOT-declared functional/code/toggle/FSM/assertion coverage goals pass or have approved SSOT waivers."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved SSOT waivers."
+    evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "edge_detector_param.vh (shared parameter include, no package)" }
+    - { yaml: "io_list.interfaces", output: "edge_detector.sv (port list)" }
+    - { yaml: "registers.register_list", output: "edge_detector_regs.sv + firmware + docs" }
+    - { yaml: "function_model", output: "edge_detector.sv + tb/cocotb scoreboard/reference model" }
+    - { yaml: "cycle_model", output: "edge_detector.sv pipeline/handshake logic + waveform checks" }
+    - { yaml: "timing", output: "STA constraints and latency pass/fail criteria" }
+    - { yaml: "pnr", output: "floorplan/place/CTS/route TCL and routed DEF/Verilog/SPEF" }
+    - { yaml: "security", output: "security/safety mitigations and negative tests" }
+    - { yaml: "error_handling", output: "RTL fault paths and DV fault scenarios" }
+    - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_TODO_CORE"
+      content: "Implement edge detector core logic"
+      detail: "Translate function_model state variables (sync_chain, prev_sync, status), cycle_model pipeline, and ownership refs into RTL state/datapath/control logic."
+      criteria:
+        - "RTL owner logic is present in edge_detector.sv"
+        - "FunctionalModel expected result and RTL observed result can be compared for DETECT transaction"
+      source_refs: ["function_model.transactions", "cycle_model.pipeline", "rtl_contract.state_updates"]
+      owner_module: "edge_detector"
+      owner_file: "rtl/edge_detector.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_REGS"
+      content: "Implement APB CSR register block"
+      detail: "Translate registers.register_list into APB decode, register read/write, W1C behavior, and PSLVERR generation."
+      criteria:
+        - "Register block is present in edge_detector_regs.sv"
+        - "All APB accesses to valid/invalid addresses produce correct PREADY/PSLVERR"
+      source_refs: ["registers.register_list", "io_list.interfaces.apb_csr"]
+      owner_module: "edge_detector_regs"
+      owner_file: "rtl/edge_detector_regs.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh edge_detector", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model edge_detector", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl edge_detector", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb edge_detector", description: "Downstream pyuvm/cocotb verification from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform, failure, and coverage inspection after sim exists" }
+    - { name: "handoff_coverage", command: "/coverage edge_detector", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn edge_detector && /sta edge_detector && /pnr edge_detector && /sta-post edge_detector", description: "Produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence" }
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  cts: { buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"] }
+  routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
+synthesis:
+  dialect: "systemverilog_2012"
+  constraints_source: "sdc/edge_detector.sdc"
+  target_utilization: 0.70
+  ppa_targets:
+    area_um2: null
+    power_mw: null
+    timing_wns_ns: 0.0
+  required_reports:
+    - "syn/report/area.rpt"
+    - "syn/report/timing.rpt"
+    - "syn/report/power.rpt"
+dft:
+  scan_required: false
+  scan_chains: 0
+  test_mode_port: null
+  mbist_required: false
+  jtag_required: false
+  testability_notes:
+    - "Simple peripheral; no dedicated test mode. ATPG relies on standard scan insertion at SoC level."
+    - "All registers are observable via APB read path for software-based test."
