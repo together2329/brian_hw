@@ -527,7 +527,62 @@ filelist:
   firmware: []
   docs:
     - "doc/shift_reg_mas.md"
-test_requirements: TBD
+test_requirements:
+  scenarios:
+    - id: "SC_RESET"
+      name: "Asynchronous reset"
+      stimulus: "Drive rst_n low from arbitrary state, then release."
+      expected: "parallel_out equals RESET_VALUE and serial_out equals selected RESET_VALUE endpoint."
+      checker: "Cycle checker observes immediate reset behavior and post-release stability."
+      coverage: ["cycle_model.reset", "function_model.state_variables.shift_q"]
+    - id: "SC_LOAD"
+      name: "Parallel load"
+      stimulus: "Apply multiple parallel_in patterns with load=1."
+      expected: "parallel_out equals each sampled parallel_in after the update edge."
+      checker: "Scoreboard compares FM_LOAD expected outputs against observed outputs."
+      coverage: ["FM_LOAD", "S1_UPDATE"]
+    - id: "SC_SHIFT"
+      name: "Serial shift"
+      stimulus: "Load a seed value, then drive serial_in sequence with enable=1 and load=0."
+      expected: "parallel_out follows one-bit shift sequence and serial_out reports shifted-out bits."
+      checker: "Scoreboard compares FM_SHIFT state progression for LEFT and RIGHT configurations."
+      coverage: ["FM_SHIFT", "enable_sample"]
+    - id: "SC_HOLD"
+      name: "Hold when idle"
+      stimulus: "Drive load=0 and enable=0 for multiple cycles after nonzero state."
+      expected: "parallel_out and serial_out remain stable."
+      checker: "Stability assertion and scoreboard hold check."
+      coverage: ["FM_HOLD", "hold_state"]
+    - id: "SC_PRIORITY"
+      name: "Load priority over enable"
+      stimulus: "Drive load=1 and enable=1 simultaneously with nontrivial serial_in."
+      expected: "FM_LOAD occurs and no shift is applied during that cycle."
+      checker: "Priority assertion compares output to parallel_in rather than shifted value."
+      coverage: ["load_priority", "features.parallel_load"]
+  scoreboard_checks: 10
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for reset, load, shift, hold, and priority semantics."
+      bins:
+        - { id: "FCOV_LOAD", source_ref: "function_model.transactions.FM_LOAD", class: "transaction", description: "Parallel load transaction observed" }
+        - { id: "FCOV_SHIFT", source_ref: "function_model.transactions.FM_SHIFT", class: "transaction", description: "Serial shift transaction observed" }
+        - { id: "FCOV_HOLD", source_ref: "function_model.transactions.FM_HOLD", class: "transaction", description: "Hold transaction observed" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle, reset, priority, and stage coverage."
+      bins:
+        - { id: "CCOV_RESET", source_ref: "cycle_model.reset", class: "reset", description: "Asynchronous reset assertion/deassertion covered" }
+        - { id: "CCOV_PIPE_SAMPLE", source_ref: "cycle_model.pipeline.S0_SAMPLE", class: "pipeline_stage", description: "Input sampling stage observed" }
+        - { id: "CCOV_LOAD_PRIORITY", source_ref: "cycle_model.handshake_rules.load_priority", class: "priority", description: "load-over-enable priority observed" }
+        - { id: "CCOV_FSM_RUN", source_ref: "fsm.control.transitions", class: "state_transition", description: "RUN-state legal transitions observed" }
+    functional: "Legacy alias: function + cycle coverage must both close."
+    line: ">= 90% instrumented line coverage or explicit waiver"
+    branch: ">= 85% instrumented branch coverage or explicit waiver"
+    fsm: "100% declared FSM states and legal transitions covered"
+    assertions: "All reset, priority, and output-stability assertions pass"
 quality_gates: TBD
 traceability: TBD
 workflow_todos: TBD

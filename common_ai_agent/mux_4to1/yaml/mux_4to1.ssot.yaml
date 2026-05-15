@@ -298,9 +298,12 @@ security:
     - "No stale state can be retained across input changes."
 
 error_handling:
-  error_sources: []
-  propagation: []
-  recovery: []
+  error_sources:
+    - { id: "NO_ARCH_ERRORS", condition: "All 2-bit sel values are legal and no protocol exists", architectural_effect: "No error status or interrupt is generated" }
+  propagation:
+    - "No error propagation path exists in this stateless combinational IP."
+  recovery:
+    - { action: "not_required", clears: [], preserves: ["combinational behavior"] }
   note: "No architectural error states; illegal select values do not exist for a 2-bit sel port in two-state verification."
 
 debug_observability:

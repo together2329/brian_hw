@@ -7,11 +7,11 @@ module lfsr (
     input  logic                      PSEL,
     input  logic                      PENABLE,
     input  logic                      PWRITE,
-    input  logic [APB_DATA_WIDTH-1:0] PWDATA,
-    output logic [APB_DATA_WIDTH-1:0] PRDATA,
+    input  logic [31:0]               PWDATA,
+    output logic [31:0]               PRDATA,
     output logic                      PREADY,
     output logic                      PSLVERR,
-    output logic [LFSR_WIDTH-1:0]     prbs_out,
+    output logic [31:0]               prbs_out,
     output logic                      prbs_bit,
     output logic                      prbs_valid
 );

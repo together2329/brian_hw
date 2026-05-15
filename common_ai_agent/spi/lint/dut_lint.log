@@ -8,97 +8,35 @@ errors=0 warnings=0
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/spi.f --top-module spi
 returncode: 1
-errors: 0 warnings: 19
-%Warning-WIDTHTRUNC: rtl/spi_shift.sv:129:26: Bit extraction of var[31:0] requires 5 bit index, not 6 bits.
-                                            : ... note: In instance 'spi.u_shift'
-  129 |             rx_shift_next[bit_index] = serial_sample_bit;
-      |                          ^
-                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.046
-                     ... Use "/* verilator lint_off WIDTHTRUNC */" and lint_on around source to disable this message.
-%Warning-WIDTHTRUNC: rtl/spi_shift.sv:131:26: Bit extraction of var[31:0] requires 5 bit index, not 6 bits.
-                                            : ... note: In instance 'spi.u_shift'
-  131 |             rx_shift_next[frame_bits - 6'd1 - bit_index] = serial_sample_bit;
-      |                          ^
-%Warning-WIDTHTRUNC: rtl/spi_shift.sv:173:54: Bit extraction of var[31:0] requires 5 bit index, not 6 bits.
-                                            : ... note: In instance 'spi.u_shift'
-  173 |                 if (lsb_first) mosi_o <= tx_shift_reg[bit_index];
-      |                                                      ^
-%Warning-WIDTHTRUNC: rtl/spi_shift.sv:174:44: Bit extraction of var[31:0] requires 5 bit index, not 6 bits.
-                                            : ... note: In instance 'spi.u_shift'
-  174 |                 else mosi_o <= tx_shift_reg[frame_bits - 6'd1 - bit_index];
-      |                                            ^
-%Warning-UNUSEDPARAM: rtl/spi_param.vh:4:19: Parameter is not used: 'DATA_WIDTH'
-                                           : ... note: In instance 'spi'
-    4 | parameter integer DATA_WIDTH     = 8,       
-      |                   ^~~~~~~~~~
-                      rtl/spi.sv:4:1: ... note: In file included from 'spi.sv'
-                      ... For warning description see https://verilator.org/warn/UNUSEDPARAM?v=5.046
-                      ... Use "/* verilator lint_off UNUSEDPARAM */" and lint_on around source to disable this message.
-%Warning-UNUSEDPARAM: rtl/spi_param.vh:5:19: Parameter is not used: 'FIFO_DEPTH'
-                                           : ... note: In instance 'spi'
-    5 | parameter integer FIFO_DEPTH     = 16,      
-      |                   ^~~~~~~~~~
-                      rtl/spi.sv:4:1: ... note: In file included from 'spi.sv'
-%Warning-UNUSEDPARAM: rtl/spi_param.vh:8:19: Parameter is not used: 'CPOL_RESET'
-                                           : ... note: In instance 'spi'
-    8 | parameter integer CPOL_RESET     = 0,       
-      |                   ^~~~~~~~~~
-                      rtl/spi.sv:4:1: ... note: In file included from 'spi.sv'
-%Warning-UNUSEDPARAM: rtl/spi_param.vh:9:19: Parameter is not used: 'CPHA_RESET'
-                                           : ... note: In instance 'spi'
-    9 | parameter integer CPHA_RESET     = 0,       
-      |                   ^~~~~~~~~~
-                      rtl/spi.sv:4:1: ... note: In file included from 'spi.sv'
-%Warning-UNUSEDPARAM: rtl/spi_param.vh:10:19: Parameter is not used: 'LSB_FIRST_RESET'
-                                            : ... note: In instance 'spi'
-   10 | parameter integer LSB_FIRST_RESET = 0,      
-      |                   ^~~~~~~~~~~~~~~
-                      rtl/spi.sv:4:1: ... note: In file included from 'spi.sv'
-%Warning-UNUSEDPARAM: rtl/spi_param.vh:11:19: Parameter is not used: 'PCLK_FREQ_MHZ'
-                                            : ... note: In instance 'spi'
-   11 | parameter integer PCLK_FREQ_MHZ  = 100      
-      |                   ^~~~~~~~~~~~~
-                      rtl/spi.sv:4:1: ... note: In file included from 'spi.sv'
-%Warning-UNUSEDSIGNAL: rtl/spi.sv:46:11: Signal is not used: 'rx_push_drop'
+errors: 0 warnings: 7
+%Warning-UNUSEDSIGNAL: rtl/spi.sv:75:11: Signal is not used: 'rx_push_drop_event'
                                        : ... note: In instance 'spi'
-   46 |     logic rx_push_drop;
-      |           ^~~~~~~~~~~~
+   75 |     logic rx_push_drop_event;
+      |           ^~~~~~~~~~~~~~~~~~
                        ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
                        ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
-%Warning-UNUSEDSIGNAL: rtl/spi.sv:53:11: Signal is not used: 'prescale_tick'
+%Warning-UNUSEDSIGNAL: rtl/spi.sv:76:11: Signal is not used: 'prescale_tick_event'
                                        : ... note: In instance 'spi'
-   53 |     logic prescale_tick;
-      |           ^~~~~~~~~~~~~
-%Warning-UNUSEDPARAM: rtl/spi_param.vh:2:19: Parameter is not used: 'APB_ADDR_WIDTH'
-                                           : ... note: In instance 'spi.u_fifo'
-    2 | parameter integer APB_ADDR_WIDTH = 12,      
-      |                   ^~~~~~~~~~~~~~
-                      rtl/spi_fifo.sv:4:1: ... note: In file included from 'spi_fifo.sv'
-%Warning-UNUSEDPARAM: rtl/spi_param.vh:3:19: Parameter is not used: 'APB_DATA_WIDTH'
-                                           : ... note: In instance 'spi.u_fifo'
-    3 | parameter integer APB_DATA_WIDTH = 32,      
-      |                   ^~~~~~~~~~~~~~
-                      rtl/spi_fifo.sv:4:1: ... note: In file included from 'spi_fifo.sv'
-%Warning-UNUSEDPARAM: rtl/spi_param.vh:6:19: Parameter is not used: 'NUM_CS'
-                                           : ... note: In instance 'spi.u_fifo'
-    6 | parameter integer NUM_CS         = 4,       
-      |                   ^~~~~~
-                      rtl/spi_fifo.sv:4:1: ... note: In file included from 'spi_fifo.sv'
-%Warning-UNUSEDPARAM: rtl/spi_param.vh:7:19: Parameter is not used: 'PRESCALE_WIDTH'
-                                           : ... note: In instance 'spi.u_fifo'
-    7 | parameter integer PRESCALE_WIDTH = 16,      
-      |                   ^~~~~~~~~~~~~~
-                      rtl/spi_fifo.sv:4:1: ... note: In file included from 'spi_fifo.sv'
-%Warning-UNUSEDSIGNAL: rtl/spi_shift.sv:10:25: Signal is not used: 'cpol'
+   76 |     logic prescale_tick_event;
+      |           ^~~~~~~~~~~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/spi.sv:77:18: Signal is not used: 'pclk_freq_mhz_marker'
+                                       : ... note: In instance 'spi'
+   77 |     logic [31:0] pclk_freq_mhz_marker;
+      |                  ^~~~~~~~~~~~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/spi_shift.sv:14:25: Signal is not used: 'cpol'
                                              : ... note: In instance 'spi.u_shift'
-   10 |     input  logic        cpol,
+   14 |     input  logic        cpol,
       |                         ^~~~
-%Warning-UNUSEDSIGNAL: rtl/spi_shift.sv:11:25: Signal is not used: 'cpha'
+%Warning-UNUSEDSIGNAL: rtl/spi_shift.sv:64:17: Bits of signal are not used: 'reverse_bit_index_full'[5]
                                              : ... note: In instance 'spi.u_shift'
-   11 |     input  logic        cpha,
-      |                         ^~~~
-%Warning-UNUSEDSIGNAL: rtl/spi_int.sv:7:25: Bits of signal are not used: 'int_clear_w1c'[7:6]
-                                          : ... note: In instance 'spi.u_int'
-    7 |     input  logic [7:0]  int_clear_w1c,
-      |                         ^~~~~~~~~~~~~
-%Error: Exiting due to 19 warning(s)
+   64 |     logic [5:0] reverse_bit_index_full;
+      |                 ^~~~~~~~~~~~~~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/spi_shift.sv:65:11: Signal is not used: 'cpha_mode_marker'
+                                             : ... note: In instance 'spi.u_shift'
+   65 |     logic cpha_mode_marker;
+      |           ^~~~~~~~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/spi_int.sv:20:11: Signal is not used: 'clear_level_marker'
+                                           : ... note: In instance 'spi.u_int'
+   20 |     logic clear_level_marker;
+      |           ^~~~~~~~~~~~~~~~~~
+%Error: Exiting due to 7 warning(s)

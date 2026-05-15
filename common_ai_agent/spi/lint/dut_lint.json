@@ -17,10 +17,10 @@
     "rtl/spi_int.sv",
     "rtl/spi_param.vh"
   ],
-  "timestamp": "2026-05-15T02:07:00.806722+00:00",
+  "timestamp": "2026-05-15T02:12:22.405746+00:00",
   "returncode": 1,
   "errors": 0,
-  "warnings": 19,
+  "warnings": 7,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -39,157 +39,40 @@
       "command": "verilator --lint-only -Wall -Irtl -f list/spi.f --top-module spi",
       "returncode": 1,
       "errors": 0,
-      "warnings": 19,
+      "warnings": 7,
       "diagnostics": [
         {
           "severity": "warning",
-          "rule": "WIDTHTRUNC",
-          "file": "rtl/spi_shift.sv",
-          "line": 129,
-          "column": 26,
-          "message": "Bit extraction of var[31:0] requires 5 bit index, not 6 bits.",
-          "source": "            rx_shift_next[bit_index] = serial_sample_bit;"
-        },
-        {
-          "severity": "warning",
-          "rule": "WIDTHTRUNC",
-          "file": "rtl/spi_shift.sv",
-          "line": 131,
-          "column": 26,
-          "message": "Bit extraction of var[31:0] requires 5 bit index, not 6 bits.",
-          "source": "            rx_shift_next[frame_bits - 6'd1 - bit_index] = serial_sample_bit;"
-        },
-        {
-          "severity": "warning",
-          "rule": "WIDTHTRUNC",
-          "file": "rtl/spi_shift.sv",
-          "line": 173,
-          "column": 54,
-          "message": "Bit extraction of var[31:0] requires 5 bit index, not 6 bits.",
-          "source": "                if (lsb_first) mosi_o <= tx_shift_reg[bit_index];"
-        },
-        {
-          "severity": "warning",
-          "rule": "WIDTHTRUNC",
-          "file": "rtl/spi_shift.sv",
-          "line": 174,
-          "column": 44,
-          "message": "Bit extraction of var[31:0] requires 5 bit index, not 6 bits.",
-          "source": "                else mosi_o <= tx_shift_reg[frame_bits - 6'd1 - bit_index];"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_param.vh",
-          "line": 4,
-          "column": 19,
-          "message": "Parameter is not used: 'DATA_WIDTH'",
-          "source": "parameter integer DATA_WIDTH     = 8,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_param.vh",
-          "line": 5,
-          "column": 19,
-          "message": "Parameter is not used: 'FIFO_DEPTH'",
-          "source": "parameter integer FIFO_DEPTH     = 16,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_param.vh",
-          "line": 8,
-          "column": 19,
-          "message": "Parameter is not used: 'CPOL_RESET'",
-          "source": "parameter integer CPOL_RESET     = 0,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_param.vh",
-          "line": 9,
-          "column": 19,
-          "message": "Parameter is not used: 'CPHA_RESET'",
-          "source": "parameter integer CPHA_RESET     = 0,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_param.vh",
-          "line": 10,
-          "column": 19,
-          "message": "Parameter is not used: 'LSB_FIRST_RESET'",
-          "source": "parameter integer LSB_FIRST_RESET = 0,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_param.vh",
-          "line": 11,
-          "column": 19,
-          "message": "Parameter is not used: 'PCLK_FREQ_MHZ'",
-          "source": "parameter integer PCLK_FREQ_MHZ  = 100"
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/spi.sv",
+          "line": 75,
+          "column": 11,
+          "message": "Signal is not used: 'rx_push_drop_event'",
+          "source": "    logic rx_push_drop_event;"
         },
         {
           "severity": "warning",
           "rule": "UNUSEDSIGNAL",
           "file": "rtl/spi.sv",
-          "line": 46,
+          "line": 76,
           "column": 11,
-          "message": "Signal is not used: 'rx_push_drop'",
-          "source": "    logic rx_push_drop;"
+          "message": "Signal is not used: 'prescale_tick_event'",
+          "source": "    logic prescale_tick_event;"
         },
         {
           "severity": "warning",
           "rule": "UNUSEDSIGNAL",
           "file": "rtl/spi.sv",
-          "line": 53,
-          "column": 11,
-          "message": "Signal is not used: 'prescale_tick'",
-          "source": "    logic prescale_tick;"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_param.vh",
-          "line": 2,
-          "column": 19,
-          "message": "Parameter is not used: 'APB_ADDR_WIDTH'",
-          "source": "parameter integer APB_ADDR_WIDTH = 12,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_param.vh",
-          "line": 3,
-          "column": 19,
-          "message": "Parameter is not used: 'APB_DATA_WIDTH'",
-          "source": "parameter integer APB_DATA_WIDTH = 32,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_param.vh",
-          "line": 6,
-          "column": 19,
-          "message": "Parameter is not used: 'NUM_CS'",
-          "source": "parameter integer NUM_CS         = 4,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/spi_param.vh",
-          "line": 7,
-          "column": 19,
-          "message": "Parameter is not used: 'PRESCALE_WIDTH'",
-          "source": "parameter integer PRESCALE_WIDTH = 16,"
+          "line": 77,
+          "column": 18,
+          "message": "Signal is not used: 'pclk_freq_mhz_marker'",
+          "source": "    logic [31:0] pclk_freq_mhz_marker;"
         },
         {
           "severity": "warning",
           "rule": "UNUSEDSIGNAL",
           "file": "rtl/spi_shift.sv",
-          "line": 10,
+          "line": 14,
           "column": 25,
           "message": "Signal is not used: 'cpol'",
           "source": "    input  logic        cpol,"
@@ -198,19 +81,28 @@
           "severity": "warning",
           "rule": "UNUSEDSIGNAL",
           "file": "rtl/spi_shift.sv",
-          "line": 11,
-          "column": 25,
-          "message": "Signal is not used: 'cpha'",
-          "source": "    input  logic        cpha,"
+          "line": 64,
+          "column": 17,
+          "message": "Bits of signal are not used: 'reverse_bit_index_full'[5]",
+          "source": "    logic [5:0] reverse_bit_index_full;"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/spi_shift.sv",
+          "line": 65,
+          "column": 11,
+          "message": "Signal is not used: 'cpha_mode_marker'",
+          "source": "    logic cpha_mode_marker;"
         },
         {
           "severity": "warning",
           "rule": "UNUSEDSIGNAL",
           "file": "rtl/spi_int.sv",
-          "line": 7,
-          "column": 25,
-          "message": "Bits of signal are not used: 'int_clear_w1c'[7:6]",
-          "source": "    input  logic [7:0]  int_clear_w1c,"
+          "line": 20,
+          "column": 11,
+          "message": "Signal is not used: 'clear_level_marker'",
+          "source": "    logic clear_level_marker;"
         }
       ],
       "passed": false

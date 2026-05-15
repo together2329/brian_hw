@@ -47,7 +47,7 @@
     "static_missing": 1,
     "status": "blocked"
   },
-  "generated_at": "2026-05-15T02:10:00Z",
+  "generated_at": "2026-05-15T02:12:23Z",
   "ip": "adder_kogge_stone",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 4,
@@ -170,15 +170,15 @@
     "aggregate": {
       "behavior_owner_logic_modules": 3,
       "control_flow": 10,
-      "depth_score": 169,
+      "depth_score": 163,
       "instances": 2,
-      "lines": 352,
+      "lines": 349,
       "logic_modules": 3,
       "modules": 3,
       "nonconstant_assigns": 27,
       "procedural_blocks": 4,
       "source_files": 3,
-      "state_updates": 36,
+      "state_updates": 33,
       "storage_decls": 44
     },
     "issues": [
@@ -191,7 +191,7 @@
     ],
     "modules": [
       {
-        "depth_score": 76,
+        "depth_score": 70,
         "file": "rtl/adder_kogge_stone_core.sv",
         "metrics": {
           "control_flow": 6,
@@ -199,7 +199,7 @@
           "nonconstant_assigns": 9,
           "placeholder_tokens": false,
           "procedural_blocks": 2,
-          "state_updates": 20,
+          "state_updates": 17,
           "storage_decls": 15
         },
         "module": "adder_kogge_stone_core"

@@ -7,12 +7,8 @@ errors=0 warnings=0
 
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/priority_enc.f --top-module priority_enc
-returncode: 1
-errors: 0 warnings: 1
-%Warning-UNUSEDSIGNAL: rtl/priority_enc_regs.sv:12:42: Bits of signal are not used: 'PWDATA'[31:8]
-                                                     : ... note: In instance 'priority_enc.u_priority_enc_regs'
-   12 |     input  logic [31:0]                  PWDATA,
-      |                                          ^~~~~~
-                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
-                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
-%Error: Exiting due to 1 warning(s)
+returncode: 0
+errors: 0 warnings: 0
+- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
+- Verilator: Built from 0.076 MB sources in 4 modules, into 0.026 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.328 s (elab=0.002, cvt=0.015, bld=0.000); cpu 0.025 s on 1 threads; allocated 11.250 MB

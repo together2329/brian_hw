@@ -72,14 +72,6 @@ module spi #(
     logic [2:0] active_cs_dbg;
     logic cs_active;
     logic [7:0] int_pending_raw;
-    logic rx_push_drop_event;
-    logic prescale_tick_event;
-    logic [31:0] pclk_freq_mhz_marker;
-
-    assign rx_push_drop_event = rx_push_drop;
-    assign prescale_tick_event = prescale_tick;
-    assign pclk_freq_mhz_marker = PCLK_FREQ_MHZ[31:0];
-
     assign tx_overrun_event = tx_push_drop;
     assign rx_underrun_event = rx_pop && rx_empty;
     assign illegal_access_event = PSLVERR;

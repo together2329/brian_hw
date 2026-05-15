@@ -634,7 +634,42 @@ test_requirements:
     branch: ">= 85% instrumented branch coverage or explicit project waiver"
     fsm: "100% declared FSM states and legal transitions covered"
     assertions: "All protocol/order/error assertions pass"
-quality_gates: TBD
+quality_gates:
+  ssot:
+    pass: "All canonical sections are present, substantive, internally consistent, and have no live template placeholders."
+    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+  rtl_gen:
+    profile: "production"
+    target_scale:
+      basis: "small programmable peripheral; no human-locked structural depth minima"
+      source_files_min: 0
+      modules_min: 0
+      procedural_blocks_min: 0
+      state_updates_min: 0
+      depth_score_min: 0
+      logic_modules_min: 0
+      behavior_owner_logic_modules_min: 0
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "RTL implements SSOT-derived register block, divider core, and top integration with fresh compile/lint/provenance evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "rtl/rtl_traceability.json", "rtl/rtl_compile.json", "lint/dut_lint.json", "sim/fl_rtl_goal_audit.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, lints, and maps every output_rule to declared ports."
+    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+  dv:
+    pass: "APB, divide timing, glitchless update, interrupt, and divisor-zero scenarios pass."
+    evidence: ["sim/test_results.json", "sim/scoreboard_report.md", "sim/assertion_failures.jsonl"]
+  coverage:
+    pass: "SSOT-declared functional and cycle coverage goals pass or have approved waivers."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved waivers."
+    evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
+  signoff:
+    pass: "All SSOT/RTL/DV/coverage/EDA gates pass with current evidence."
+    evidence: ["signoff/signoff_summary.md", "quality_gates evidence bundle"]
 traceability: TBD
 workflow_todos: TBD
 generation_flow: TBD
