@@ -12,6 +12,16 @@ function AdminPage() {
   const [feedback, setFeedback] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  const [authStatus, setAuthStatus] = React.useState(null);
+  const [authChecked, setAuthChecked] = React.useState(false);
+  const [authUser, setAuthUser] = React.useState(null);
+  const [authError, setAuthError] = React.useState(null);
+  const [loginSubmitting, setLoginSubmitting] = React.useState(false);
+  const [loginForm, setLoginForm] = React.useState({
+    username: 'admin',
+    password: '',
+    displayName: 'Admin',
+  });
   const [activeTab, setActiveTab] = React.useState('overview');
   const [filters, setFilters] = React.useState({
     range: '7d',
@@ -33,6 +43,14 @@ function AdminPage() {
     } catch (_) {}
   }
 
+  async function fetchAdminStatus() {
+    const r = await fetch('/api/admin/auth/status');
+    if (!r.ok) {
+      throw new Error(`Admin auth status failed: HTTP ${r.status}`);
+    }
+    return r.json();
+  }
+
   const loadAdminData = React.useCallback(async () => {
     try {
       setLoading(true);
@@ -44,11 +62,12 @@ function AdminPage() {
         fetch('/api/admin/feedback'),
       ]);
       if ([usersResp, sessionsResp, usageResp, fbResp].some((r) => r.status === 401)) {
-        setError('Admin API returned 401; local admin bypass is not active.');
+        setAuthUser(null);
+        setAuthError('Admin login required');
         return;
       }
       if ([usersResp, sessionsResp, usageResp, fbResp].some((r) => r.status === 403)) {
-        setError('Admin API returned 403; local admin bypass is not active.');
+        setError('Admin role required');
         return;
       }
       if (!usersResp.ok || !sessionsResp.ok) {
@@ -83,8 +102,106 @@ function AdminPage() {
   }, []);
 
   React.useEffect(() => {
-    loadAdminData();
+    let alive = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const status = await fetchAdminStatus();
+        if (!alive) return;
+        setAuthStatus(status);
+        setAuthChecked(true);
+        if (!status.login_required || status.authenticated) {
+          setAuthUser(status.user || null);
+          await loadAdminData();
+        } else {
+          setLoading(false);
+        }
+      } catch (e) {
+        if (!alive) return;
+        setAuthChecked(true);
+        setError(String(e));
+        setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
   }, [loadAdminData]);
+
+  const handleAdminLogin = async (ev) => {
+    ev.preventDefault();
+    setAuthError(null);
+    setLoginSubmitting(true);
+    try {
+      const username = String(loginForm.username || '').trim();
+      const password = String(loginForm.password || '');
+      if (!username || !password) {
+        throw new Error('Username and password required');
+      }
+      const createFirstAdmin = authStatus && authStatus.login_required && !authStatus.admin_user_exists;
+      const payload = {
+        username,
+        password,
+        display_name: String(loginForm.displayName || '').trim() || username,
+      };
+      let r = await fetch(createFirstAdmin ? '/api/auth/register' : '/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!r.ok && createFirstAdmin && r.status === 409) {
+        r = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+      }
+      if (!r.ok) {
+        let detail = `HTTP ${r.status}`;
+        try {
+          const body = await r.json();
+          detail = body.detail || body.error || detail;
+        } catch (_) {}
+        throw new Error(detail);
+      }
+      const status = await fetchAdminStatus();
+      setAuthStatus(status);
+      setAuthChecked(true);
+      if (!status.authenticated) {
+        throw new Error('Admin role required');
+      }
+      setAuthUser(status.user || null);
+      await loadAdminData();
+    } catch (e) {
+      setAuthError(String(e));
+      setLoading(false);
+    } finally {
+      setLoginSubmitting(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (_) {}
+    try {
+      const status = await fetchAdminStatus();
+      setAuthStatus(status);
+    } catch (_) {
+      setAuthStatus({ login_required: true, authenticated: false, admin_user_exists: true, mode: 'db' });
+    }
+    setAuthUser(null);
+    setUsers([]);
+    setSessions([]);
+    setUsage([]);
+    setCostContexts([]);
+    setDateCosts([]);
+    setTodoUsage([]);
+    setTodoFlow([]);
+    setTraceEvents([]);
+    setToolUsage([]);
+    setInterventions([]);
+    setFeedback([]);
+    setLoading(false);
+  };
 
   const handleResolveFeedback = async (fid) => {
     setResolving(fid);
@@ -167,6 +284,24 @@ function AdminPage() {
     border: '1px solid #3a4756',
   };
 
+  const headerRightStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+  };
+
+  const headerButtonStyle = {
+    minHeight: 28,
+    padding: '4px 9px',
+    borderRadius: 4,
+    border: '1px solid #3a4756',
+    background: '#10161d',
+    color: '#d6dde6',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    fontSize: 11,
+  };
+
   const mainStyle = {
     flex: 1,
     padding: '24px 32px 40px',
@@ -232,6 +367,60 @@ function AdminPage() {
     padding: '5px 8px',
     fontFamily: 'inherit',
     fontSize: 12,
+  };
+
+  const loginShellStyle = {
+    width: 'min(100%, 420px)',
+    margin: '78px auto 0',
+    padding: 24,
+    background: '#161d25',
+    border: '1px solid #2a3540',
+    borderRadius: 8,
+    boxShadow: '0 20px 50px rgba(0,0,0,0.35)',
+  };
+
+  const loginTitleStyle = {
+    margin: '0 0 18px',
+    color: '#f0c674',
+    fontSize: 18,
+    fontWeight: 700,
+  };
+
+  const loginFieldStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    marginBottom: 12,
+    color: '#8893a3',
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
+  };
+
+  const loginInputStyle = {
+    minHeight: 38,
+    background: '#10161d',
+    color: '#e6edf3',
+    border: '1px solid #2a3540',
+    borderRadius: 5,
+    padding: '7px 10px',
+    fontFamily: 'inherit',
+    fontSize: 14,
+  };
+
+  const loginButtonStyle = {
+    width: '100%',
+    minHeight: 40,
+    marginTop: 6,
+    borderRadius: 5,
+    border: '1px solid #4a5b6e',
+    background: '#2a3a4a',
+    color: '#f0c674',
+    cursor: loginSubmitting ? 'wait' : 'pointer',
+    fontFamily: 'inherit',
+    fontSize: 13,
+    fontWeight: 700,
   };
 
   const overviewGridStyle = {
