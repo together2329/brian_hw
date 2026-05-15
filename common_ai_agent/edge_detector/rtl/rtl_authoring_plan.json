@@ -58,7 +58,7 @@
       {
         "gate_kind": "coverage_closure",
         "owner_module": "edge_detector",
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "reason": "Coverage closure report is not pass.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "status": "open",
@@ -183,7 +183,7 @@
         "prerequisites": [
           "Simulation evidence exists and planned coverage bins are observable."
         ],
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "reason": "Coverage closure report is not pass.",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "stage_sequence": [
           "sim",
@@ -348,7 +348,7 @@
           {
             "gate_kind": "coverage_closure",
             "owner_module": "edge_detector",
-            "reason": "Missing coverage closure artifact: cov/coverage.json.",
+            "reason": "Coverage closure report is not pass.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.coverage_closure",
             "status": "open",
@@ -460,7 +460,7 @@
             "prerequisites": [
               "Simulation evidence exists and planned coverage bins are observable."
             ],
-            "reason": "Missing coverage closure artifact: cov/coverage.json.",
+            "reason": "Coverage closure report is not pass.",
             "source_ref": "quality_gates.rtl_gen.coverage_closure",
             "stage_sequence": [
               "sim",

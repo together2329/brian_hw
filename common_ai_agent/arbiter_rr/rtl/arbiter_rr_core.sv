@@ -58,7 +58,7 @@ module arbiter_rr_core #(
         endcase
     end
 
-    // The registered grant is computed in the clocked latency-1 block below; req_masked_q remains as pipeline observability.
+    // The registered grant is computed in the clocked latency-1 block below.
 
     // STATUS.winner exposes the last granted requestor as one-hot for the CSR block.
     always @(*) begin
@@ -76,7 +76,6 @@ module arbiter_rr_core #(
     always @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
             state <= IDLE;
-            req_masked_q <= {NUM_REQ{1'b0}};
             last_winner <= IDX_0;
             gnt_o <= {NUM_REQ{1'b0}};
             gnt_valid_o <= 1'b0;
@@ -84,7 +83,6 @@ module arbiter_rr_core #(
         end else begin
             state <= next_state;
             if (arb_enabled) begin
-                req_masked_q <= req_masked_now;
                 // For latency-1, compute the registered grant from the current accepted request vector.
                 if (req_masked_now != {NUM_REQ{1'b0}}) begin
                     if ((last_winner == IDX_0) && req_masked_now[1]) begin
@@ -174,7 +172,6 @@ module arbiter_rr_core #(
                     gnt_idx_o <= IDX_0;
                 end
             end else begin
-                req_masked_q <= {NUM_REQ{1'b0}};
                 gnt_o <= {NUM_REQ{1'b0}};
                 gnt_valid_o <= 1'b0;
                 gnt_idx_o <= IDX_0;

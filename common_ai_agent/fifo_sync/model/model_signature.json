@@ -3,7 +3,7 @@
   "invariants_hash": "7f695a130214ca93ef46d10ec99a6bd8973969cb5a2bc8a62ea73ad89554e43c",
   "ip": "fifo_sync",
   "schema_version": 1,
-  "ssot_hash": "7daac51b634602bb1d23feb0a0f8eb0ce609a50ecb8972ef35f004d3ea5fbd3f",
+  "ssot_hash": "ee8ff1e0c8da0bf221d4ad4624e76dd76300c12a40383c177c63193e797f7e5e",
   "transactions_hash": "cf14efcad525d93844383f677b0a87837e85a553c400c81b7d01ae729f195b5f",
   "type": "model_signature"
 }

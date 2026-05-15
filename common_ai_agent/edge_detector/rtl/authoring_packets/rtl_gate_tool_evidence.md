@@ -32,7 +32,7 @@
   - dynamic_todo_closure: 5 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.
   - fl_rtl_goal_audit: FL-vs-RTL goal audit is not clean.
-  - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
+  - coverage_closure: Coverage closure report is not pass.
 - Tool-evidence runbook:
   - dynamic_todo_closure: stages=audit-rtl; artifact=edge_detector/rtl/rtl_todo_plan.json
   - protocol_assertion_evidence: stages=ssot-protocol-assertions, sim; artifact=edge_detector/verify/protocol_assertions.sva
@@ -188,7 +188,7 @@ Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 - Detail: Coverage must be measured from passing RTL-observed scoreboard evidence. Raw FL-only coverage or weakened coverage goals cannot close this gate.
 SSOT ref: quality_gates.rtl_gen.coverage_closure.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
-- Current reason: Missing coverage closure artifact: cov/coverage.json.
+- Current reason: Coverage closure report is not pass.
 - Criteria:
   - cov/coverage.json exists
   - coverage.json is newer than or equal to every listed DUT RTL source

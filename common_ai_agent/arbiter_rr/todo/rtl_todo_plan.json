@@ -47,7 +47,7 @@
     "static_missing": 1,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:39:57Z",
+  "generated_at": "2026-05-15T02:41:27Z",
   "ip": "arbiter_rr",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 24,
@@ -133,21 +133,21 @@
     "aggregate": {
       "behavior_owner_logic_modules": 3,
       "control_flow": 28,
-      "depth_score": 266,
+      "depth_score": 259,
       "instances": 2,
-      "lines": 348,
+      "lines": 344,
       "logic_modules": 3,
       "modules": 3,
       "nonconstant_assigns": 20,
       "procedural_blocks": 5,
       "source_files": 3,
-      "state_updates": 85,
-      "storage_decls": 29
+      "state_updates": 82,
+      "storage_decls": 28
     },
     "issues": [],
     "modules": [
       {
-        "depth_score": 200,
+        "depth_score": 193,
         "file": "rtl/arbiter_rr_core.sv",
         "metrics": {
           "control_flow": 21,
@@ -155,8 +155,8 @@
           "nonconstant_assigns": 4,
           "placeholder_tokens": false,
           "procedural_blocks": 3,
-          "state_updates": 79,
-          "storage_decls": 8
+          "state_updates": 76,
+          "storage_decls": 7
         },
         "module": "arbiter_rr_core"
       },
@@ -1911,7 +1911,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=266, required=86).",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=259, required=86).",
         "required": true,
         "status": "pass"
       }

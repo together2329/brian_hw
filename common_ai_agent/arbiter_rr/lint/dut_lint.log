@@ -7,12 +7,8 @@ errors=0 warnings=0
 
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/arbiter_rr.f --top-module arbiter_rr
-returncode: 1
-errors: 0 warnings: 1
-%Warning-UNUSEDSIGNAL: rtl/arbiter_rr_core.sv:29:33: Signal is not used: 'req_masked_q'
-                                                   : ... note: In instance 'arbiter_rr.u_core'
-   29 |     logic [NUM_REQ-1:0]         req_masked_q;
-      |                                 ^~~~~~~~~~~~
-                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
-                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
-%Error: Exiting due to 1 warning(s)
+returncode: 0
+errors: 0 warnings: 0
+- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
+- Verilator: Built from 0.090 MB sources in 4 modules, into 0.027 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.020 s (elab=0.003, cvt=0.008, bld=0.000); cpu 0.015 s on 1 threads; allocated 10.109 MB

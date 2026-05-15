@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "fifo_sync",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 7,
+    "failed": 0,
+    "transactions": 6,
+    "transaction_results": [
+      {
+        "id": "FM1",
+        "name": "push",
+        "kind": "FM1",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM1",
+          "transaction_name": "push",
+          "sample_accepted": 1,
+          "full_o": 0,
+          "almost_full_o": 0,
+          "count_o": -2,
+          "state_updates": {
+            "mem[wr_ptr]": 4,
+            "wr_ptr": 1,
+            "count": -2
+          }
+        }
+      },
+      {
+        "id": "FM2",
+        "name": "pop",
+        "kind": "FM2",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM2",
+          "transaction_name": "pop",
+          "sample_accepted": 1,
+          "rd_data_o": 0,
+          "empty_o": 0,
+          "almost_empty_o": 1,
+          "count_o": 1,
+          "state_updates": {
+            "rd_ptr": 1,
+            "count": 1
+          }
+        }
+      },
+      {
+        "id": "FM3",
+        "name": "simultaneous_push_pop",
+        "kind": "FM3",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM3",
+          "transaction_name": "simultaneous_push_pop",
+          "sample_accepted": 1,
+          "rd_data_o": 0,
+          "full_o": 0,
+          "empty_o": 1,
+          "count_o": 1,
+          "state_updates": {
+            "mem[wr_ptr]": 5,
+            "wr_ptr": 2,
+            "rd_ptr": 2,
+            "count": 1
+          }
+        }
+      },
+      {
+        "id": "FM4",
+        "name": "overflow_reject",
+        "kind": "FM4",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM4",
+          "transaction_name": "overflow_reject",
+          "sample_accepted": 1,
+          "full_o": 1,
+          "count_o": 16
+        }
+      },
+      {
+        "id": "FM5",
+        "name": "underflow_reject",
+        "kind": "FM5",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM5",
+          "transaction_name": "underflow_reject",
+          "sample_accepted": 1,
+          "empty_o": 1,
+          "rd_data_o": 7,
+          "count_o": 0
+        }
+      },
+      {
+        "id": "FM6",
+        "name": "flush",
+        "kind": "FM6",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM6",
+          "transaction_name": "flush",
+          "sample_accepted": 1,
+          "empty_o": 1,
+          "full_o": 0,
+          "almost_full_o": 0,
+          "almost_empty_o": 1,
+          "count_o": 0,
+          "state_updates": {
+            "wr_ptr": 0,
+            "rd_ptr": 0,
+            "count": 0
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 7,
+    "coverage_bins": 78,
+    "invariants_total": 7,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "count is always in range [0, DEPTH].",
+        "expr": "count is always in range [0, DEPTH].",
+        "reason": "unexpected EOF while parsing (<unknown>, line 1)"
+      },
+      {
+        "name": "full_o == 1 if and only if count == DEPT",
+        "expr": "full_o == 1 if and only if count == DEPTH.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "empty_o == 1 if and only if count == 0.",
+        "expr": "empty_o == 1 if and only if count == 0.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "wr_ptr and rd_ptr are always in range [0",
+        "expr": "wr_ptr and rd_ptr are always in range [0, DEPTH-1].",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "No read data changes unless rd_en_i is a",
+        "expr": "No read data changes unless rd_en_i is accepted or flush occurs.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Simultaneous push/pop leaves count uncha",
+        "expr": "Simultaneous push/pop leaves count unchanged.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Overflow and underflow are silently reje",
+        "expr": "Overflow and underflow are silently rejected with no state corruption.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 0,
+    "error_cases_planned": 0
+  },
+  "decomposition_units": 12,
+  "fcov_bins": 78,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "fifo_sync/req/",
+      "fifo_sync/yaml/fifo_sync.ssot.yaml",
+      "fifo_sync/model/functional_model.py",
+      "fifo_sync/cov/fcov_plan.json",
+      "fifo_sync/yaml/fifo_sync.ssot.yaml#io_list",
+      "fifo_sync/yaml/fifo_sync.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "fifo_sync/rtl/",
+      "fifo_sync/tb/",
+      "fifo_sync/sim/",
+      "fifo_sync/vectors/",
+      "fifo_sync/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

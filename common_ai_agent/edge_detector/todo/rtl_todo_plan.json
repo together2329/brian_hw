@@ -47,7 +47,7 @@
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:36:46Z",
+  "generated_at": "2026-05-15T02:40:35Z",
   "ip": "edge_detector",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 5,
@@ -1824,7 +1824,7 @@
           "rtl_todo_plan.json task criteria",
           "cov/coverage.json"
         ],
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "reason": "Coverage closure report is not pass.",
         "required": true,
         "status": "open"
       }
@@ -7092,7 +7092,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "reason": "Coverage closure report is not pass.",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "task_id": "RTL-0026"
       }

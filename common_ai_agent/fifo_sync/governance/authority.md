@@ -20,7 +20,7 @@
 - [ ] **G1 Requirement 승인** — pending
 - [x] **G2 Spec 승인** — approved
 - [x] **G3 Interface 승인** — approved
-- [ ] **G4 FL golden model 승인** — pending
+- [x] **G4 FL golden model 승인** — approved
 - [x] **G5 Coverage goal 승인** — approved
 - [x] **G6 CL/performance target 승인** — approved
 - [x] **G7 RTL architecture 방향 승인** — approved
@@ -51,6 +51,6 @@
 **Agent-runnable validators**: lint/, sim/, cov/coverage.json, reports/ppa_sweep.json
 
 ## Summary
-- Gates approved: 6/9
-- Gates pending: 3/9
+- Gates approved: 7/9
+- Gates pending: 2/9
 - Gates blocked: 0/9

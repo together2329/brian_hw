@@ -423,7 +423,7 @@ function_model:
     description: Current number of valid entries (0..DEPTH)
   - name: mem
     source: fifo_sync_mem
-    reset: 0x0 per entry
+    reset: 0
     description: Storage array [0..DEPTH-1] each DATA_WIDTH wide
   transactions:
   - id: FM1

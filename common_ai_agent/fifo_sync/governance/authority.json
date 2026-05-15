@@ -75,7 +75,7 @@
     {
       "id": "G4",
       "title": "FL golden model 승인",
-      "status": "pending",
+      "status": "approved",
       "evidence_required": [
         "fifo_sync/model/functional_model.py exists",
         "fifo_sync/model/fl_model_check.json passed=true",
@@ -325,8 +325,8 @@
   },
   "summary": {
     "gates_total": 9,
-    "gates_approved": 6,
-    "gates_pending": 3,
+    "gates_approved": 7,
+    "gates_pending": 2,
     "gates_blocked": 0,
     "loops_total": 9,
     "loops_with_evidence_path": 9
