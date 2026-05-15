@@ -47,7 +47,7 @@
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:38:22Z",
+  "generated_at": "2026-05-15T02:39:09Z",
   "ip": "fifo_sync",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 18,
@@ -1194,7 +1194,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "required": true,
         "status": "open"
       }
@@ -15864,7 +15864,7 @@
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "task_id": "RTL-0006"
       },

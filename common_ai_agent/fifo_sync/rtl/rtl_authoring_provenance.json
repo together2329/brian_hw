@@ -1,0 +1,27 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_packets": [
+    "module__fifo_sync_mem",
+    "module__fifo_sync_ptrs",
+    "module__fifo_sync_flags",
+    "module__fifo_sync_output_reg",
+    "module__fifo_sync_regs",
+    "module__fifo_sync_top",
+    "rtl_gate_tool_evidence"
+  ],
+  "generated_at": "2026-05-15T02:39:06Z",
+  "generator": "codex_fifo_sync_rtl_authoring",
+  "rtl_files": [
+    "rtl/fifo_sync_mem.sv",
+    "rtl/fifo_sync_ptrs.sv",
+    "rtl/fifo_sync_flags.sv",
+    "rtl/fifo_sync_output_reg.sv",
+    "rtl/fifo_sync_regs.sv",
+    "rtl/fifo_sync.sv"
+  ],
+  "schema_version": 1,
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": "f226a0bd4555ca02cdae9395f6b0338ffa900b74a7d7fb1053c29bc8b0617640",
+  "type": "rtl_authoring_provenance",
+  "workflow": "rtl-gen"
+}

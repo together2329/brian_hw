@@ -1,0 +1,3214 @@
+{
+  "source": "ssot_coverage_summary",
+  "status": "blocked",
+  "ssot": "edge_detector/yaml/edge_detector.ssot.yaml",
+  "module": "edge_detector",
+  "dv_plan": {
+    "scenarios": 12,
+    "scoreboard_checks": 24,
+    "coverage_goals": {
+      "function": {
+        "target_pct": 100,
+        "model": "function_model",
+        "description": "Behavioral coverage for edge detection, sticky, overflow, and interrupt behavior.",
+        "bins": [
+          {
+            "id": "FCOV_RISING_EDGE",
+            "source_ref": "function_model.transactions.DETECT",
+            "class": "transaction",
+            "description": "Rising edge detected"
+          },
+          {
+            "id": "FCOV_FALLING_EDGE",
+            "source_ref": "function_model.transactions.DETECT",
+            "class": "transaction",
+            "description": "Falling edge detected"
+          },
+          {
+            "id": "FCOV_BOTH_EDGE",
+            "source_ref": "function_model.transactions.DETECT",
+            "class": "transaction",
+            "description": "Both-edge detection"
+          },
+          {
+            "id": "FCOV_STICKY_SET",
+            "source_ref": "function_model.state_variables.status_sticky",
+            "class": "state",
+            "description": "Sticky flag set"
+          },
+          {
+            "id": "FCOV_OVERFLOW_SET",
+            "source_ref": "function_model.state_variables.status_overflow",
+            "class": "state",
+            "description": "Overflow flag set"
+          },
+          {
+            "id": "FCOV_W1C_CLEAR",
+            "source_ref": "function_model.state_variables.status_sticky",
+            "class": "register",
+            "description": "W1C clear of sticky/overflow"
+          },
+          {
+            "id": "FCOV_ENABLE_GATE",
+            "source_ref": "function_model.output_rules.edge_o",
+            "class": "output",
+            "description": "Enable gating verified"
+          },
+          {
+            "id": "FCOV_RESERVED_MODE",
+            "source_ref": "function_model.state_variables.control_reg",
+            "class": "error",
+            "description": "Reserved mode safely ignored"
+          }
+        ]
+      },
+      "cycle": {
+        "target_pct": 100,
+        "model": "cycle_model",
+        "description": "Cycle/handshake/latency/FSM coverage for synchronizer delay, edge decode timing, and APB protocol.",
+        "bins": [
+          {
+            "id": "CCOV_SYNC_LATENCY",
+            "source_ref": "cycle_model.latency.sync_latency",
+            "class": "latency",
+            "description": "Synchronizer delay observed"
+          },
+          {
+            "id": "CCOV_EDGE_DECODE",
+            "source_ref": "cycle_model.pipeline.S1_EDGE_DECODE",
+            "class": "pipeline_stage",
+            "description": "Edge decode stage observed"
+          },
+          {
+            "id": "CCOV_IRQ_SAME_CYCLE",
+            "source_ref": "cycle_model.latency.interrupt_latency",
+            "class": "latency",
+            "description": "Interrupt same-cycle assertion"
+          },
+          {
+            "id": "CCOV_APB_READ",
+            "source_ref": "cycle_model.handshake_rules",
+            "class": "protocol",
+            "description": "APB read transaction observed"
+          },
+          {
+            "id": "CCOV_APB_WRITE",
+            "source_ref": "cycle_model.handshake_rules",
+            "class": "protocol",
+            "description": "APB write transaction observed"
+          }
+        ]
+      },
+      "functional": "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately.",
+      "code": "line >= 90%, branch >= 85%"
+    }
+  },
+  "functional": {
+    "hit": 48,
+    "total": 48,
+    "pct": 100.0
+  },
+  "function_coverage": {
+    "hit": 26,
+    "total": 26,
+    "pct": 100.0,
+    "target_pct": 100.0,
+    "meets_target": true,
+    "bins": {
+      "SC1_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC1",
+        "scenario_id": "SC_002_EQ_SCENARIO_SC1",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC1_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[0]",
+          "scenario": "SC1",
+          "description": "Basic rising edge detection"
+        },
+        "class": "scenario",
+        "description": "Basic rising edge detection",
+        "coverage_domain": "function"
+      },
+      "SC2_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC2",
+        "scenario_id": "SC_003_EQ_SCENARIO_SC2",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC2_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[1]",
+          "scenario": "SC2",
+          "description": "Basic falling edge detection"
+        },
+        "class": "scenario",
+        "description": "Basic falling edge detection",
+        "coverage_domain": "function"
+      },
+      "SC3_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC3",
+        "scenario_id": "SC_004_EQ_SCENARIO_SC3",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC3_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[2]",
+          "scenario": "SC3",
+          "description": "Both-edge detection"
+        },
+        "class": "scenario",
+        "description": "Both-edge detection",
+        "coverage_domain": "function"
+      },
+      "SC4_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC4",
+        "scenario_id": "SC_005_EQ_SCENARIO_SC4",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC4_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[3]",
+          "scenario": "SC4",
+          "description": "Synchronizer latency"
+        },
+        "class": "scenario",
+        "description": "Synchronizer latency",
+        "coverage_domain": "function"
+      },
+      "SC5_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC5",
+        "scenario_id": "SC_006_EQ_SCENARIO_SC5",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC5_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[4]",
+          "scenario": "SC5",
+          "description": "Sticky and overflow behavior"
+        },
+        "class": "scenario",
+        "description": "Sticky and overflow behavior",
+        "coverage_domain": "function"
+      },
+      "SC6_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC6",
+        "scenario_id": "SC_007_EQ_SCENARIO_SC6",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC6_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[5]",
+          "scenario": "SC6",
+          "description": "W1C clear"
+        },
+        "class": "scenario",
+        "description": "W1C clear",
+        "coverage_domain": "function"
+      },
+      "SC7_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC7",
+        "scenario_id": "SC_008_EQ_SCENARIO_SC7",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC7_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[6]",
+          "scenario": "SC7",
+          "description": "Enable gating"
+        },
+        "class": "scenario",
+        "description": "Enable gating",
+        "coverage_domain": "function"
+      },
+      "SC8_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC8",
+        "scenario_id": "SC_009_EQ_SCENARIO_SC8",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC8_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[7]",
+          "scenario": "SC8",
+          "description": "Reserved mode safety"
+        },
+        "class": "scenario",
+        "description": "Reserved mode safety",
+        "coverage_domain": "function"
+      },
+      "SC9_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC9",
+        "scenario_id": "SC_010_EQ_SCENARIO_SC9",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC9_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[8]",
+          "scenario": "SC9",
+          "description": "Interrupt generation"
+        },
+        "class": "scenario",
+        "description": "Interrupt generation",
+        "coverage_domain": "function"
+      },
+      "SC10_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_RAW_STATUS",
+        "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC10_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[9]",
+          "scenario": "SC10",
+          "description": "APB register read/write"
+        },
+        "class": "scenario",
+        "description": "APB register read/write",
+        "coverage_domain": "function"
+      },
+      "SC11_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC11",
+        "scenario_id": "SC_012_EQ_SCENARIO_SC11",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC11_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[10]",
+          "scenario": "SC11",
+          "description": "Illegal APB address"
+        },
+        "class": "scenario",
+        "description": "Illegal APB address",
+        "coverage_domain": "function"
+      },
+      "SC12_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC12",
+        "scenario_id": "SC_013_EQ_SCENARIO_SC12",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC12_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[11]",
+          "scenario": "SC12",
+          "description": "Multi-bit WIDTH operation"
+        },
+        "class": "scenario",
+        "description": "Multi-bit WIDTH operation",
+        "coverage_domain": "function"
+      },
+      "fcov_rising_edge": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_DETECT",
+        "scenario_id": "SC_001_EQ_TRANSACTION_DETECT",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_rising_edge",
+          "source_ref": "function_model.transactions.DETECT",
+          "class": "transaction",
+          "description": "Rising edge detected",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.DETECT"
+        },
+        "class": "transaction",
+        "coverage_domain": "function",
+        "description": "Rising edge detected",
+        "source_ref": "function_model.transactions.DETECT"
+      },
+      "fcov_sticky_set": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_STATUS",
+        "scenario_id": "SC_020_EQ_REGISTER_STATUS",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_sticky_set",
+          "source_ref": "function_model.state_variables.status_sticky",
+          "class": "state",
+          "description": "Sticky flag set",
+          "coverage_domain": "function",
+          "source": "function_model.state_variables.status_sticky"
+        },
+        "class": "state",
+        "coverage_domain": "function",
+        "description": "Sticky flag set",
+        "source_ref": "function_model.state_variables.status_sticky"
+      },
+      "fcov_overflow_set": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_STATUS",
+        "scenario_id": "SC_020_EQ_REGISTER_STATUS",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_overflow_set",
+          "source_ref": "function_model.state_variables.status_overflow",
+          "class": "state",
+          "description": "Overflow flag set",
+          "coverage_domain": "function",
+          "source": "function_model.state_variables.status_overflow"
+        },
+        "class": "state",
+        "coverage_domain": "function",
+        "description": "Overflow flag set",
+        "source_ref": "function_model.state_variables.status_overflow"
+      },
+      "fcov_enable_gate": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC7",
+        "scenario_id": "SC_008_EQ_SCENARIO_SC7",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_enable_gate",
+          "source_ref": "function_model.output_rules.edge_o",
+          "class": "output",
+          "description": "Enable gating verified",
+          "coverage_domain": "function",
+          "source": "function_model.output_rules.edge_o"
+        },
+        "class": "output",
+        "coverage_domain": "function",
+        "description": "Enable gating verified",
+        "source_ref": "function_model.output_rules.edge_o"
+      },
+      "fcov_reserved_mode": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_022_EQ_ERROR_NONE",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_reserved_mode",
+          "source_ref": "function_model.state_variables.control_reg",
+          "class": "error",
+          "description": "Reserved mode safely ignored",
+          "coverage_domain": "function",
+          "source": "function_model.state_variables.control_reg"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "Reserved mode safely ignored",
+        "source_ref": "function_model.state_variables.control_reg"
+      },
+      "error_error_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_022_EQ_ERROR_NONE",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "error_error_0",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[0]",
+          "source_ref": "error_handling.error_sources[0]",
+          "description": "{'id': 'ERR_ILLEGAL_ACCESS', 'condition': 'APB access to unmapped address', 'architectural_effect': 'PSLVERR=1, no register state change'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_ILLEGAL_ACCESS', 'condition': 'APB access to unmapped address', 'architectural_effect': 'PSLVERR=1, no register state change'}",
+        "source_ref": "error_handling.error_sources[0]"
+      },
+      "error_error_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_022_EQ_ERROR_NONE",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "error_error_1",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[1]",
+          "source_ref": "error_handling.error_sources[1]",
+          "description": "{'id': 'ERR_RESERVED_MODE', 'condition': 'EDGE_MODE=3 (reserved)', 'architectural_effect': 'No edge detection; edge_o remains zero regardless of input'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_RESERVED_MODE', 'condition': 'EDGE_MODE=3 (reserved)', 'architectural_effect': 'No edge detection; edge_o remains zero regardless of input'}",
+        "source_ref": "error_handling.error_sources[1]"
+      },
+      "fcov_falling_edge": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_DETECT",
+        "scenario_id": "SC_001_EQ_TRANSACTION_DETECT",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      },
+      "fcov_both_edge": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC3",
+        "scenario_id": "SC_004_EQ_SCENARIO_SC3",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      },
+      "function_edge_detect": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_DETECT",
+        "scenario_id": "SC_001_EQ_TRANSACTION_DETECT",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      },
+      "fcov_w1c_clear": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_RAW_STATUS",
+        "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      },
+      "ccov_apb_write": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      },
+      "cycle_latency_sync_latency": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_SYNC_LATENCY",
+        "scenario_id": "SC_028_EQ_COVERAGE_CYCLE_LATENCY_SYNC_LATENCY",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      },
+      "cycle_latency_interrupt_latency": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_INTERRUPT_LATENCY",
+        "scenario_id": "SC_029_EQ_COVERAGE_CYCLE_LATENCY_INTERRUPT_LATENCY",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      }
+    }
+  },
+  "cycle_coverage": {
+    "hit": 22,
+    "total": 22,
+    "pct": 100.0,
+    "target_pct": 100.0,
+    "meets_target": true,
+    "bins": {
+      "ccov_sync_latency": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CCOV_SYNC_LATENCY",
+        "scenario_id": "SC_025_EQ_COVERAGE_CCOV_SYNC_LATENCY",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "ccov_sync_latency",
+          "source_ref": "cycle_model.latency.sync_latency",
+          "class": "latency",
+          "description": "Synchronizer delay observed",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.sync_latency"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "Synchronizer delay observed",
+        "source_ref": "cycle_model.latency.sync_latency"
+      },
+      "ccov_edge_decode": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CCOV_EDGE_DECODE",
+        "scenario_id": "SC_026_EQ_COVERAGE_CCOV_EDGE_DECODE",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "ccov_edge_decode",
+          "source_ref": "cycle_model.pipeline.S1_EDGE_DECODE",
+          "class": "pipeline_stage",
+          "description": "Edge decode stage observed",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline.S1_EDGE_DECODE"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Edge decode stage observed",
+        "source_ref": "cycle_model.pipeline.S1_EDGE_DECODE"
+      },
+      "ccov_irq_same_cycle": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CCOV_IRQ_SAME_CYCLE",
+        "scenario_id": "SC_027_EQ_COVERAGE_CCOV_IRQ_SAME_CYCLE",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "ccov_irq_same_cycle",
+          "source_ref": "cycle_model.latency.interrupt_latency",
+          "class": "latency",
+          "description": "Interrupt same-cycle assertion",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.interrupt_latency"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "Interrupt same-cycle assertion",
+        "source_ref": "cycle_model.latency.interrupt_latency"
+      },
+      "ccov_apb_read": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "ccov_apb_read",
+          "source_ref": "cycle_model.handshake_rules",
+          "class": "protocol",
+          "description": "APB read transaction observed",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "APB read transaction observed",
+        "source_ref": "cycle_model.handshake_rules"
+      },
+      "cycle_handshake_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_handshake_0",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[0]",
+          "source_ref": "cycle_model.handshake_rules[0]",
+          "description": "{'signal': 'PSEL', 'rule': 'PSEL must be asserted before PENABLE rises; transaction begins in SETUP phase (PSEL=1, PENABLE=0).'}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'signal': 'PSEL', 'rule': 'PSEL must be asserted before PENABLE rises; transaction begins in SETUP phase (PSEL=1, PENABLE=0).'}",
+        "source_ref": "cycle_model.handshake_rules[0]"
+      },
+      "cycle_handshake_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_handshake_1",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[1]",
+          "source_ref": "cycle_model.handshake_rules[1]",
+          "description": "{'signal': 'PENABLE', 'rule': 'PENABLE rises one cycle after PSEL to enter ACCESS phase; sampled with PREADY to complete.'}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'signal': 'PENABLE', 'rule': 'PENABLE rises one cycle after PSEL to enter ACCESS phase; sampled with PREADY to complete.'}",
+        "source_ref": "cycle_model.handshake_rules[1]"
+      },
+      "cycle_handshake_2": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_handshake_2",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[2]",
+          "source_ref": "cycle_model.handshake_rules[2]",
+          "description": "{'signal': 'PREADY', 'rule': 'PREADY must be asserted by slave to complete the ACCESS phase; PREADY may deassert to extend wait states.'}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'signal': 'PREADY', 'rule': 'PREADY must be asserted by slave to complete the ACCESS phase; PREADY may deassert to extend wait states.'}",
+        "source_ref": "cycle_model.handshake_rules[2]"
+      },
+      "cycle_latency_edge_detect_latency": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_DETECT",
+        "scenario_id": "SC_001_EQ_TRANSACTION_DETECT",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_latency_edge_detect_latency",
+          "class": "latency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.edge_detect_latency",
+          "source_ref": "cycle_model.latency.edge_detect_latency",
+          "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'One-cycle combinational decode after sync'}"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'One-cycle combinational decode after sync'}",
+        "source_ref": "cycle_model.latency.edge_detect_latency"
+      },
+      "cycle_latency_register_read": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_RAW_STATUS",
+        "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_latency_register_read",
+          "class": "latency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.register_read",
+          "source_ref": "cycle_model.latency.register_read",
+          "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}",
+        "source_ref": "cycle_model.latency.register_read"
+      },
+      "cycle_latency_register_write": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_RAW_STATUS",
+        "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_latency_register_write",
+          "class": "latency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.register_write",
+          "source_ref": "cycle_model.latency.register_write",
+          "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}",
+        "source_ref": "cycle_model.latency.register_write"
+      },
+      "cycle_pipeline_s0_sync": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC",
+        "scenario_id": "SC_030_EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s0_sync",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[0]",
+          "source_ref": "cycle_model.pipeline[0]",
+          "description": "Propagate signal_i through sync_chain flops"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Propagate signal_i through sync_chain flops",
+        "source_ref": "cycle_model.pipeline[0]"
+      },
+      "cycle_pipeline_s1_edge_decode": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_EDGE_DECODE",
+        "scenario_id": "SC_031_EQ_COVERAGE_CYCLE_PIPELINE_S1_EDGE_DECODE",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s1_edge_decode",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[1]",
+          "source_ref": "cycle_model.pipeline[1]",
+          "description": "Compare prev_sync vs curr_sync; decode per EDGE_MODE"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Compare prev_sync vs curr_sync; decode per EDGE_MODE",
+        "source_ref": "cycle_model.pipeline[1]"
+      },
+      "cycle_pipeline_s2_output": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S2_OUTPUT",
+        "scenario_id": "SC_032_EQ_COVERAGE_CYCLE_PIPELINE_S2_OUTPUT",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s2_output",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[2]",
+          "source_ref": "cycle_model.pipeline[2]",
+          "description": "Assert edge_o pulse; update sticky/overflow/irq"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Assert edge_o pulse; update sticky/overflow/irq",
+        "source_ref": "cycle_model.pipeline[2]"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_018_EQ_TIMING_ORDERING_1",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_0",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[0]",
+          "source_ref": "cycle_model.ordering[0]",
+          "description": "edge_o for cycle N reflects signal_i transition captured at cycle N-SYNC_STAGES-1."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "edge_o for cycle N reflects signal_i transition captured at cycle N-SYNC_STAGES-1.",
+        "source_ref": "cycle_model.ordering[0]"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_018_EQ_TIMING_ORDERING_1",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_1",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[1]",
+          "source_ref": "cycle_model.ordering[1]",
+          "description": "Interrupt updates occur on the same rising edge as edge_o assertion."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "Interrupt updates occur on the same rising edge as edge_o assertion.",
+        "source_ref": "cycle_model.ordering[1]"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_backpressure_0",
+          "class": "backpressure",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure[0]",
+          "source_ref": "cycle_model.backpressure[0]",
+          "description": "No backpressure on edge_o; downstream must accept or drop the one-cycle pulse."
+        },
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "description": "No backpressure on edge_o; downstream must accept or drop the one-cycle pulse.",
+        "source_ref": "cycle_model.backpressure[0]"
+      },
+      "cycle_perf_outstanding": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_RAW_STATUS",
+        "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_outstanding",
+          "class": "performance",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.outstanding",
+          "source_ref": "cycle_model.performance.outstanding",
+          "description": "{'read_max': 0, 'write_max': 0, 'description': 'No outstanding transactions; purely register/pipeline IP'}"
+        },
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "description": "{'read_max': 0, 'write_max': 0, 'description': 'No outstanding transactions; purely register/pipeline IP'}",
+        "source_ref": "cycle_model.performance.outstanding"
+      },
+      "cycle_perf_depth": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+        "scenario_id": "SC_034_EQ_COVERAGE_CYCLE_PERF_DEPTH",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_depth",
+          "class": "performance",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.depth",
+          "source_ref": "cycle_model.performance.depth",
+          "description": "{'pipeline_stages': 'SYNC_STAGES + 1', 'queue_depth': 0, 'description': 'Sync chain plus decode stage'}"
+        },
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "description": "{'pipeline_stages': 'SYNC_STAGES + 1', 'queue_depth': 0, 'description': 'Sync chain plus decode stage'}",
+        "source_ref": "cycle_model.performance.depth"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "scenario_id": "SC_035_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_frequency_mhz",
+          "class": "frequency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.frequency_mhz",
+          "source_ref": "cycle_model.performance.frequency_mhz",
+          "description": "50"
+        },
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "description": "50",
+        "source_ref": "cycle_model.performance.frequency_mhz"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_036_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_throughput",
+          "class": "throughput",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.throughput",
+          "source_ref": "cycle_model.performance.throughput",
+          "description": "{'sustained_edges_per_cycle': 1, 'condition': 'No missed edges when input changes slower than PCLK period'}"
+        },
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "description": "{'sustained_edges_per_cycle': 1, 'condition': 'No missed edges when input changes slower than PCLK period'}",
+        "source_ref": "cycle_model.performance.throughput"
+      },
+      "fsm_note_sync_sample_to_edge_decode_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_FSM_NOTE_SYNC_SAMPLE_TO_EDGE_DECODE_0",
+        "scenario_id": "SC_037_EQ_COVERAGE_FSM_NOTE_SYNC_SAMPLE_TO_EDGE_DECODE_0",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_note_sync_sample_to_edge_decode_0",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.note.transitions[0]",
+          "source_ref": "fsm.note.transitions[0]",
+          "description": "every PCLK rising edge"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "every PCLK rising edge",
+        "source_ref": "fsm.note.transitions[0]"
+      },
+      "fsm_note_edge_decode_to_output_pulse_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_FSM_NOTE_EDGE_DECODE_TO_OUTPUT_PULSE_1",
+        "scenario_id": "SC_038_EQ_COVERAGE_FSM_NOTE_EDGE_DECODE_TO_OUTPUT_PULSE_1",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "edge_o",
+          "irq_o",
+          "prdata",
+          "pready",
+          "pslverr",
+          "write"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_note_edge_decode_to_output_pulse_1",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.note.transitions[1]",
+          "source_ref": "fsm.note.transitions[1]",
+          "description": "edge_decode matches EDGE_MODE and enable==1"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "edge_decode matches EDGE_MODE and enable==1",
+        "source_ref": "fsm.note.transitions[1]"
+      }
+    }
+  },
+  "coverage_model": {
+    "function": {
+      "source": "function_model",
+      "target_pct": 100.0,
+      "hit": 26,
+      "total": 26,
+      "pct": 100.0,
+      "meets_target": true
+    },
+    "cycle": {
+      "source": "cycle_model",
+      "target_pct": 100.0,
+      "hit": 22,
+      "total": 22,
+      "pct": 100.0,
+      "meets_target": true
+    }
+  },
+  "planned_bins": [
+    "SC1_executed",
+    "SC2_executed",
+    "SC3_executed",
+    "SC4_executed",
+    "SC5_executed",
+    "SC6_executed",
+    "SC7_executed",
+    "SC8_executed",
+    "SC9_executed",
+    "SC10_executed",
+    "SC11_executed",
+    "SC12_executed",
+    "fcov_rising_edge",
+    "fcov_sticky_set",
+    "fcov_overflow_set",
+    "fcov_enable_gate",
+    "fcov_reserved_mode",
+    "ccov_sync_latency",
+    "ccov_edge_decode",
+    "ccov_irq_same_cycle",
+    "ccov_apb_read",
+    "cycle_handshake_0",
+    "cycle_handshake_1",
+    "cycle_handshake_2",
+    "cycle_latency_edge_detect_latency",
+    "cycle_latency_register_read",
+    "cycle_latency_register_write",
+    "cycle_pipeline_s0_sync",
+    "cycle_pipeline_s1_edge_decode",
+    "cycle_pipeline_s2_output",
+    "cycle_ordering_0",
+    "cycle_ordering_1",
+    "cycle_backpressure_0",
+    "cycle_perf_outstanding",
+    "cycle_perf_depth",
+    "cycle_perf_frequency_mhz",
+    "cycle_perf_throughput",
+    "fsm_note_sync_sample_to_edge_decode_0",
+    "fsm_note_edge_decode_to_output_pulse_1",
+    "error_error_0",
+    "error_error_1"
+  ],
+  "functional_bins": {
+    "SC1_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC1",
+      "scenario_id": "SC_002_EQ_SCENARIO_SC1",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC1_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[0]",
+        "scenario": "SC1",
+        "description": "Basic rising edge detection"
+      },
+      "class": "scenario",
+      "description": "Basic rising edge detection",
+      "coverage_domain": "function"
+    },
+    "SC2_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC2",
+      "scenario_id": "SC_003_EQ_SCENARIO_SC2",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC2_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[1]",
+        "scenario": "SC2",
+        "description": "Basic falling edge detection"
+      },
+      "class": "scenario",
+      "description": "Basic falling edge detection",
+      "coverage_domain": "function"
+    },
+    "SC3_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC3",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC3",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC3_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[2]",
+        "scenario": "SC3",
+        "description": "Both-edge detection"
+      },
+      "class": "scenario",
+      "description": "Both-edge detection",
+      "coverage_domain": "function"
+    },
+    "SC4_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC4",
+      "scenario_id": "SC_005_EQ_SCENARIO_SC4",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC4_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[3]",
+        "scenario": "SC4",
+        "description": "Synchronizer latency"
+      },
+      "class": "scenario",
+      "description": "Synchronizer latency",
+      "coverage_domain": "function"
+    },
+    "SC5_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC5",
+      "scenario_id": "SC_006_EQ_SCENARIO_SC5",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC5_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[4]",
+        "scenario": "SC5",
+        "description": "Sticky and overflow behavior"
+      },
+      "class": "scenario",
+      "description": "Sticky and overflow behavior",
+      "coverage_domain": "function"
+    },
+    "SC6_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC6",
+      "scenario_id": "SC_007_EQ_SCENARIO_SC6",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC6_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[5]",
+        "scenario": "SC6",
+        "description": "W1C clear"
+      },
+      "class": "scenario",
+      "description": "W1C clear",
+      "coverage_domain": "function"
+    },
+    "SC7_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC7",
+      "scenario_id": "SC_008_EQ_SCENARIO_SC7",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC7_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[6]",
+        "scenario": "SC7",
+        "description": "Enable gating"
+      },
+      "class": "scenario",
+      "description": "Enable gating",
+      "coverage_domain": "function"
+    },
+    "SC8_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC8",
+      "scenario_id": "SC_009_EQ_SCENARIO_SC8",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC8_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[7]",
+        "scenario": "SC8",
+        "description": "Reserved mode safety"
+      },
+      "class": "scenario",
+      "description": "Reserved mode safety",
+      "coverage_domain": "function"
+    },
+    "SC9_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC9",
+      "scenario_id": "SC_010_EQ_SCENARIO_SC9",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC9_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[8]",
+        "scenario": "SC9",
+        "description": "Interrupt generation"
+      },
+      "class": "scenario",
+      "description": "Interrupt generation",
+      "coverage_domain": "function"
+    },
+    "SC10_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC10_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[9]",
+        "scenario": "SC10",
+        "description": "APB register read/write"
+      },
+      "class": "scenario",
+      "description": "APB register read/write",
+      "coverage_domain": "function"
+    },
+    "SC11_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC11",
+      "scenario_id": "SC_012_EQ_SCENARIO_SC11",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC11_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[10]",
+        "scenario": "SC11",
+        "description": "Illegal APB address"
+      },
+      "class": "scenario",
+      "description": "Illegal APB address",
+      "coverage_domain": "function"
+    },
+    "SC12_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC12",
+      "scenario_id": "SC_013_EQ_SCENARIO_SC12",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC12_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[11]",
+        "scenario": "SC12",
+        "description": "Multi-bit WIDTH operation"
+      },
+      "class": "scenario",
+      "description": "Multi-bit WIDTH operation",
+      "coverage_domain": "function"
+    },
+    "fcov_rising_edge": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_DETECT",
+      "scenario_id": "SC_001_EQ_TRANSACTION_DETECT",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_rising_edge",
+        "source_ref": "function_model.transactions.DETECT",
+        "class": "transaction",
+        "description": "Rising edge detected",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.DETECT"
+      },
+      "class": "transaction",
+      "coverage_domain": "function",
+      "description": "Rising edge detected",
+      "source_ref": "function_model.transactions.DETECT"
+    },
+    "fcov_sticky_set": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_STATUS",
+      "scenario_id": "SC_020_EQ_REGISTER_STATUS",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_sticky_set",
+        "source_ref": "function_model.state_variables.status_sticky",
+        "class": "state",
+        "description": "Sticky flag set",
+        "coverage_domain": "function",
+        "source": "function_model.state_variables.status_sticky"
+      },
+      "class": "state",
+      "coverage_domain": "function",
+      "description": "Sticky flag set",
+      "source_ref": "function_model.state_variables.status_sticky"
+    },
+    "fcov_overflow_set": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_STATUS",
+      "scenario_id": "SC_020_EQ_REGISTER_STATUS",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_overflow_set",
+        "source_ref": "function_model.state_variables.status_overflow",
+        "class": "state",
+        "description": "Overflow flag set",
+        "coverage_domain": "function",
+        "source": "function_model.state_variables.status_overflow"
+      },
+      "class": "state",
+      "coverage_domain": "function",
+      "description": "Overflow flag set",
+      "source_ref": "function_model.state_variables.status_overflow"
+    },
+    "fcov_enable_gate": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC7",
+      "scenario_id": "SC_008_EQ_SCENARIO_SC7",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_enable_gate",
+        "source_ref": "function_model.output_rules.edge_o",
+        "class": "output",
+        "description": "Enable gating verified",
+        "coverage_domain": "function",
+        "source": "function_model.output_rules.edge_o"
+      },
+      "class": "output",
+      "coverage_domain": "function",
+      "description": "Enable gating verified",
+      "source_ref": "function_model.output_rules.edge_o"
+    },
+    "fcov_reserved_mode": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_022_EQ_ERROR_NONE",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_reserved_mode",
+        "source_ref": "function_model.state_variables.control_reg",
+        "class": "error",
+        "description": "Reserved mode safely ignored",
+        "coverage_domain": "function",
+        "source": "function_model.state_variables.control_reg"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "Reserved mode safely ignored",
+      "source_ref": "function_model.state_variables.control_reg"
+    },
+    "ccov_sync_latency": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CCOV_SYNC_LATENCY",
+      "scenario_id": "SC_025_EQ_COVERAGE_CCOV_SYNC_LATENCY",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "ccov_sync_latency",
+        "source_ref": "cycle_model.latency.sync_latency",
+        "class": "latency",
+        "description": "Synchronizer delay observed",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.sync_latency"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "Synchronizer delay observed",
+      "source_ref": "cycle_model.latency.sync_latency"
+    },
+    "ccov_edge_decode": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CCOV_EDGE_DECODE",
+      "scenario_id": "SC_026_EQ_COVERAGE_CCOV_EDGE_DECODE",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "ccov_edge_decode",
+        "source_ref": "cycle_model.pipeline.S1_EDGE_DECODE",
+        "class": "pipeline_stage",
+        "description": "Edge decode stage observed",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline.S1_EDGE_DECODE"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Edge decode stage observed",
+      "source_ref": "cycle_model.pipeline.S1_EDGE_DECODE"
+    },
+    "ccov_irq_same_cycle": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CCOV_IRQ_SAME_CYCLE",
+      "scenario_id": "SC_027_EQ_COVERAGE_CCOV_IRQ_SAME_CYCLE",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "ccov_irq_same_cycle",
+        "source_ref": "cycle_model.latency.interrupt_latency",
+        "class": "latency",
+        "description": "Interrupt same-cycle assertion",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.interrupt_latency"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "Interrupt same-cycle assertion",
+      "source_ref": "cycle_model.latency.interrupt_latency"
+    },
+    "ccov_apb_read": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "ccov_apb_read",
+        "source_ref": "cycle_model.handshake_rules",
+        "class": "protocol",
+        "description": "APB read transaction observed",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "APB read transaction observed",
+      "source_ref": "cycle_model.handshake_rules"
+    },
+    "cycle_handshake_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_handshake_0",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[0]",
+        "source_ref": "cycle_model.handshake_rules[0]",
+        "description": "{'signal': 'PSEL', 'rule': 'PSEL must be asserted before PENABLE rises; transaction begins in SETUP phase (PSEL=1, PENABLE=0).'}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'signal': 'PSEL', 'rule': 'PSEL must be asserted before PENABLE rises; transaction begins in SETUP phase (PSEL=1, PENABLE=0).'}",
+      "source_ref": "cycle_model.handshake_rules[0]"
+    },
+    "cycle_handshake_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_handshake_1",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[1]",
+        "source_ref": "cycle_model.handshake_rules[1]",
+        "description": "{'signal': 'PENABLE', 'rule': 'PENABLE rises one cycle after PSEL to enter ACCESS phase; sampled with PREADY to complete.'}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'signal': 'PENABLE', 'rule': 'PENABLE rises one cycle after PSEL to enter ACCESS phase; sampled with PREADY to complete.'}",
+      "source_ref": "cycle_model.handshake_rules[1]"
+    },
+    "cycle_handshake_2": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_handshake_2",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[2]",
+        "source_ref": "cycle_model.handshake_rules[2]",
+        "description": "{'signal': 'PREADY', 'rule': 'PREADY must be asserted by slave to complete the ACCESS phase; PREADY may deassert to extend wait states.'}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'signal': 'PREADY', 'rule': 'PREADY must be asserted by slave to complete the ACCESS phase; PREADY may deassert to extend wait states.'}",
+      "source_ref": "cycle_model.handshake_rules[2]"
+    },
+    "cycle_latency_edge_detect_latency": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_DETECT",
+      "scenario_id": "SC_001_EQ_TRANSACTION_DETECT",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_latency_edge_detect_latency",
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.edge_detect_latency",
+        "source_ref": "cycle_model.latency.edge_detect_latency",
+        "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'One-cycle combinational decode after sync'}"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'One-cycle combinational decode after sync'}",
+      "source_ref": "cycle_model.latency.edge_detect_latency"
+    },
+    "cycle_latency_register_read": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_latency_register_read",
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.register_read",
+        "source_ref": "cycle_model.latency.register_read",
+        "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}",
+      "source_ref": "cycle_model.latency.register_read"
+    },
+    "cycle_latency_register_write": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_latency_register_write",
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.register_write",
+        "source_ref": "cycle_model.latency.register_write",
+        "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}",
+      "source_ref": "cycle_model.latency.register_write"
+    },
+    "cycle_pipeline_s0_sync": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC",
+      "scenario_id": "SC_030_EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s0_sync",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[0]",
+        "source_ref": "cycle_model.pipeline[0]",
+        "description": "Propagate signal_i through sync_chain flops"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Propagate signal_i through sync_chain flops",
+      "source_ref": "cycle_model.pipeline[0]"
+    },
+    "cycle_pipeline_s1_edge_decode": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_EDGE_DECODE",
+      "scenario_id": "SC_031_EQ_COVERAGE_CYCLE_PIPELINE_S1_EDGE_DECODE",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s1_edge_decode",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[1]",
+        "source_ref": "cycle_model.pipeline[1]",
+        "description": "Compare prev_sync vs curr_sync; decode per EDGE_MODE"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Compare prev_sync vs curr_sync; decode per EDGE_MODE",
+      "source_ref": "cycle_model.pipeline[1]"
+    },
+    "cycle_pipeline_s2_output": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S2_OUTPUT",
+      "scenario_id": "SC_032_EQ_COVERAGE_CYCLE_PIPELINE_S2_OUTPUT",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s2_output",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[2]",
+        "source_ref": "cycle_model.pipeline[2]",
+        "description": "Assert edge_o pulse; update sticky/overflow/irq"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Assert edge_o pulse; update sticky/overflow/irq",
+      "source_ref": "cycle_model.pipeline[2]"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_018_EQ_TIMING_ORDERING_1",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_0",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[0]",
+        "source_ref": "cycle_model.ordering[0]",
+        "description": "edge_o for cycle N reflects signal_i transition captured at cycle N-SYNC_STAGES-1."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "edge_o for cycle N reflects signal_i transition captured at cycle N-SYNC_STAGES-1.",
+      "source_ref": "cycle_model.ordering[0]"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_018_EQ_TIMING_ORDERING_1",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_1",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[1]",
+        "source_ref": "cycle_model.ordering[1]",
+        "description": "Interrupt updates occur on the same rising edge as edge_o assertion."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "Interrupt updates occur on the same rising edge as edge_o assertion.",
+      "source_ref": "cycle_model.ordering[1]"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_backpressure_0",
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure[0]",
+        "source_ref": "cycle_model.backpressure[0]",
+        "description": "No backpressure on edge_o; downstream must accept or drop the one-cycle pulse."
+      },
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "description": "No backpressure on edge_o; downstream must accept or drop the one-cycle pulse.",
+      "source_ref": "cycle_model.backpressure[0]"
+    },
+    "cycle_perf_outstanding": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_outstanding",
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.outstanding",
+        "source_ref": "cycle_model.performance.outstanding",
+        "description": "{'read_max': 0, 'write_max': 0, 'description': 'No outstanding transactions; purely register/pipeline IP'}"
+      },
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "description": "{'read_max': 0, 'write_max': 0, 'description': 'No outstanding transactions; purely register/pipeline IP'}",
+      "source_ref": "cycle_model.performance.outstanding"
+    },
+    "cycle_perf_depth": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "scenario_id": "SC_034_EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_depth",
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.depth",
+        "source_ref": "cycle_model.performance.depth",
+        "description": "{'pipeline_stages': 'SYNC_STAGES + 1', 'queue_depth': 0, 'description': 'Sync chain plus decode stage'}"
+      },
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "description": "{'pipeline_stages': 'SYNC_STAGES + 1', 'queue_depth': 0, 'description': 'Sync chain plus decode stage'}",
+      "source_ref": "cycle_model.performance.depth"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_035_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_frequency_mhz",
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.frequency_mhz",
+        "source_ref": "cycle_model.performance.frequency_mhz",
+        "description": "50"
+      },
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "description": "50",
+      "source_ref": "cycle_model.performance.frequency_mhz"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_036_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_throughput",
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.throughput",
+        "source_ref": "cycle_model.performance.throughput",
+        "description": "{'sustained_edges_per_cycle': 1, 'condition': 'No missed edges when input changes slower than PCLK period'}"
+      },
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "description": "{'sustained_edges_per_cycle': 1, 'condition': 'No missed edges when input changes slower than PCLK period'}",
+      "source_ref": "cycle_model.performance.throughput"
+    },
+    "fsm_note_sync_sample_to_edge_decode_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_FSM_NOTE_SYNC_SAMPLE_TO_EDGE_DECODE_0",
+      "scenario_id": "SC_037_EQ_COVERAGE_FSM_NOTE_SYNC_SAMPLE_TO_EDGE_DECODE_0",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_note_sync_sample_to_edge_decode_0",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.note.transitions[0]",
+        "source_ref": "fsm.note.transitions[0]",
+        "description": "every PCLK rising edge"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "every PCLK rising edge",
+      "source_ref": "fsm.note.transitions[0]"
+    },
+    "fsm_note_edge_decode_to_output_pulse_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_FSM_NOTE_EDGE_DECODE_TO_OUTPUT_PULSE_1",
+      "scenario_id": "SC_038_EQ_COVERAGE_FSM_NOTE_EDGE_DECODE_TO_OUTPUT_PULSE_1",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_note_edge_decode_to_output_pulse_1",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.note.transitions[1]",
+        "source_ref": "fsm.note.transitions[1]",
+        "description": "edge_decode matches EDGE_MODE and enable==1"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "edge_decode matches EDGE_MODE and enable==1",
+      "source_ref": "fsm.note.transitions[1]"
+    },
+    "error_error_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_022_EQ_ERROR_NONE",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "error_error_0",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[0]",
+        "source_ref": "error_handling.error_sources[0]",
+        "description": "{'id': 'ERR_ILLEGAL_ACCESS', 'condition': 'APB access to unmapped address', 'architectural_effect': 'PSLVERR=1, no register state change'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_ILLEGAL_ACCESS', 'condition': 'APB access to unmapped address', 'architectural_effect': 'PSLVERR=1, no register state change'}",
+      "source_ref": "error_handling.error_sources[0]"
+    },
+    "error_error_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_022_EQ_ERROR_NONE",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "error_error_1",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[1]",
+        "source_ref": "error_handling.error_sources[1]",
+        "description": "{'id': 'ERR_RESERVED_MODE', 'condition': 'EDGE_MODE=3 (reserved)', 'architectural_effect': 'No edge detection; edge_o remains zero regardless of input'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_RESERVED_MODE', 'condition': 'EDGE_MODE=3 (reserved)', 'architectural_effect': 'No edge detection; edge_o remains zero regardless of input'}",
+      "source_ref": "error_handling.error_sources[1]"
+    },
+    "fcov_falling_edge": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_DETECT",
+      "scenario_id": "SC_001_EQ_TRANSACTION_DETECT",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    },
+    "fcov_both_edge": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC3",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC3",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    },
+    "function_edge_detect": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_DETECT",
+      "scenario_id": "SC_001_EQ_TRANSACTION_DETECT",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    },
+    "fcov_w1c_clear": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    },
+    "ccov_apb_write": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    },
+    "cycle_latency_sync_latency": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_SYNC_LATENCY",
+      "scenario_id": "SC_028_EQ_COVERAGE_CYCLE_LATENCY_SYNC_LATENCY",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    },
+    "cycle_latency_interrupt_latency": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_INTERRUPT_LATENCY",
+      "scenario_id": "SC_029_EQ_COVERAGE_CYCLE_LATENCY_INTERRUPT_LATENCY",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "edge_o",
+        "irq_o",
+        "prdata",
+        "pready",
+        "pslverr",
+        "write"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    }
+  },
+  "raw_functional": {
+    "hit": 48,
+    "total": 48,
+    "pct": 100.0
+  },
+  "raw_functional_bins": {
+    "SC1_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC1",
+      "scenario_id": "SC_002_EQ_SCENARIO_SC1"
+    },
+    "SC2_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC2",
+      "scenario_id": "SC_003_EQ_SCENARIO_SC2"
+    },
+    "SC3_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC3",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC3"
+    },
+    "fcov_rising_edge": {
+      "hit": true,
+      "goal_id": "EQ_TRANSACTION_DETECT",
+      "scenario_id": "SC_001_EQ_TRANSACTION_DETECT"
+    },
+    "fcov_falling_edge": {
+      "hit": true,
+      "goal_id": "EQ_TRANSACTION_DETECT",
+      "scenario_id": "SC_001_EQ_TRANSACTION_DETECT"
+    },
+    "fcov_both_edge": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC3",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC3"
+    },
+    "function_edge_detect": {
+      "hit": true,
+      "goal_id": "EQ_TRANSACTION_DETECT",
+      "scenario_id": "SC_001_EQ_TRANSACTION_DETECT"
+    },
+    "cycle_latency_edge_detect_latency": {
+      "hit": true,
+      "goal_id": "EQ_TRANSACTION_DETECT",
+      "scenario_id": "SC_001_EQ_TRANSACTION_DETECT"
+    },
+    "error_error_1": {
+      "hit": true,
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_022_EQ_ERROR_NONE"
+    },
+    "SC10_executed": {
+      "hit": true,
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS"
+    },
+    "SC11_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC11",
+      "scenario_id": "SC_012_EQ_SCENARIO_SC11"
+    },
+    "SC12_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC12",
+      "scenario_id": "SC_013_EQ_SCENARIO_SC12"
+    },
+    "SC4_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC4",
+      "scenario_id": "SC_005_EQ_SCENARIO_SC4"
+    },
+    "SC5_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC5",
+      "scenario_id": "SC_006_EQ_SCENARIO_SC5"
+    },
+    "SC6_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC6",
+      "scenario_id": "SC_007_EQ_SCENARIO_SC6"
+    },
+    "fcov_w1c_clear": {
+      "hit": true,
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS"
+    },
+    "SC7_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC7",
+      "scenario_id": "SC_008_EQ_SCENARIO_SC7"
+    },
+    "fcov_enable_gate": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC7",
+      "scenario_id": "SC_008_EQ_SCENARIO_SC7"
+    },
+    "SC8_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC8",
+      "scenario_id": "SC_009_EQ_SCENARIO_SC8"
+    },
+    "SC9_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC9",
+      "scenario_id": "SC_010_EQ_SCENARIO_SC9"
+    },
+    "ccov_apb_read": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2"
+    },
+    "ccov_apb_write": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2"
+    },
+    "cycle_handshake_0": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2"
+    },
+    "cycle_handshake_1": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2"
+    },
+    "cycle_handshake_2": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "scenario_id": "SC_016_EQ_PROTOCOL_HANDSHAKE_2"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_018_EQ_TIMING_ORDERING_1"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_018_EQ_TIMING_ORDERING_1"
+    },
+    "fcov_reserved_mode": {
+      "hit": true,
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_022_EQ_ERROR_NONE"
+    },
+    "cycle_latency_register_read": {
+      "hit": true,
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS"
+    },
+    "cycle_latency_register_write": {
+      "hit": true,
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS"
+    },
+    "cycle_perf_outstanding": {
+      "hit": true,
+      "goal_id": "EQ_REGISTER_RAW_STATUS",
+      "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS"
+    },
+    "error_error_0": {
+      "hit": true,
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_022_EQ_ERROR_NONE"
+    },
+    "fcov_sticky_set": {
+      "hit": true,
+      "goal_id": "EQ_REGISTER_STATUS",
+      "scenario_id": "SC_020_EQ_REGISTER_STATUS"
+    },
+    "fcov_overflow_set": {
+      "hit": true,
+      "goal_id": "EQ_REGISTER_STATUS",
+      "scenario_id": "SC_020_EQ_REGISTER_STATUS"
+    },
+    "ccov_sync_latency": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CCOV_SYNC_LATENCY",
+      "scenario_id": "SC_025_EQ_COVERAGE_CCOV_SYNC_LATENCY"
+    },
+    "ccov_edge_decode": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CCOV_EDGE_DECODE",
+      "scenario_id": "SC_026_EQ_COVERAGE_CCOV_EDGE_DECODE"
+    },
+    "ccov_irq_same_cycle": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CCOV_IRQ_SAME_CYCLE",
+      "scenario_id": "SC_027_EQ_COVERAGE_CCOV_IRQ_SAME_CYCLE"
+    },
+    "cycle_latency_sync_latency": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_SYNC_LATENCY",
+      "scenario_id": "SC_028_EQ_COVERAGE_CYCLE_LATENCY_SYNC_LATENCY"
+    },
+    "cycle_latency_interrupt_latency": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_INTERRUPT_LATENCY",
+      "scenario_id": "SC_029_EQ_COVERAGE_CYCLE_LATENCY_INTERRUPT_LATENCY"
+    },
+    "cycle_pipeline_s0_sync": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC",
+      "scenario_id": "SC_030_EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC"
+    },
+    "cycle_pipeline_s1_edge_decode": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_EDGE_DECODE",
+      "scenario_id": "SC_031_EQ_COVERAGE_CYCLE_PIPELINE_S1_EDGE_DECODE"
+    },
+    "cycle_pipeline_s2_output": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S2_OUTPUT",
+      "scenario_id": "SC_032_EQ_COVERAGE_CYCLE_PIPELINE_S2_OUTPUT"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+    },
+    "cycle_perf_depth": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "scenario_id": "SC_034_EQ_COVERAGE_CYCLE_PERF_DEPTH"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_035_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_036_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+    },
+    "fsm_note_sync_sample_to_edge_decode_0": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_FSM_NOTE_SYNC_SAMPLE_TO_EDGE_DECODE_0",
+      "scenario_id": "SC_037_EQ_COVERAGE_FSM_NOTE_SYNC_SAMPLE_TO_EDGE_DECODE_0"
+    },
+    "fsm_note_edge_decode_to_output_pulse_1": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_FSM_NOTE_EDGE_DECODE_TO_OUTPUT_PULSE_1",
+      "scenario_id": "SC_038_EQ_COVERAGE_FSM_NOTE_EDGE_DECODE_TO_OUTPUT_PULSE_1"
+    }
+  },
+  "rtl_observed": {
+    "status": "pass",
+    "scoreboard_events": 38,
+    "scoreboard_passed_events_with_refs": 36,
+    "goal_refs": [
+      "SC10_executed",
+      "SC11_executed",
+      "SC12_executed",
+      "SC1_executed",
+      "SC2_executed",
+      "SC3_executed",
+      "SC4_executed",
+      "SC5_executed",
+      "SC6_executed",
+      "SC7_executed",
+      "SC8_executed",
+      "SC9_executed",
+      "ccov_apb_read",
+      "ccov_apb_write",
+      "ccov_edge_decode",
+      "ccov_irq_same_cycle",
+      "ccov_sync_latency",
+      "cycle_backpressure_0",
+      "cycle_handshake_0",
+      "cycle_handshake_1",
+      "cycle_handshake_2",
+      "cycle_latency_edge_detect_latency",
+      "cycle_latency_interrupt_latency",
+      "cycle_latency_register_read",
+      "cycle_latency_register_write",
+      "cycle_latency_sync_latency",
+      "cycle_ordering_0",
+      "cycle_ordering_1",
+      "cycle_perf_depth",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_outstanding",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_sync",
+      "cycle_pipeline_s1_edge_decode",
+      "cycle_pipeline_s2_output",
+      "error_error_0",
+      "error_error_1",
+      "fcov_both_edge",
+      "fcov_enable_gate",
+      "fcov_falling_edge",
+      "fcov_overflow_set",
+      "fcov_reserved_mode",
+      "fcov_rising_edge",
+      "fcov_sticky_set",
+      "fcov_w1c_clear",
+      "fsm_note_edge_decode_to_output_pulse_1",
+      "fsm_note_sync_sample_to_edge_decode_0",
+      "function_edge_detect"
+    ],
+    "missing_bins": [],
+    "invalid_rows": []
+  },
+  "lines": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": 90.0,
+    "meets_target": false
+  },
+  "branches": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": 90.0,
+    "meets_target": false
+  },
+  "functions": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "fsm_state": {
+    "target_pct": 100.0,
+    "hit": 2,
+    "total": 2,
+    "pct": 100.0,
+    "meets_target": true,
+    "source": "SSOT functional coverage bins"
+  },
+  "files": {},
+  "limitations": {
+    "line": "SSOT requests line/code coverage, but coverage.info has no DA records.",
+    "branch": "SSOT requests branch coverage, but coverage.info has no BRDA/BRF records for this tool flow."
+  },
+  "static_universe_not_instrumented": {
+    "line": "SSOT requests line/code coverage, but coverage.info has no DA records.",
+    "branch": "SSOT requests branch coverage, but coverage.info has no BRDA/BRF records for this tool flow."
+  },
+  "total_checks": 0,
+  "passed": 0,
+  "failed": 0,
+  "escalations": []
+}

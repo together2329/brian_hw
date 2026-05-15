@@ -513,7 +513,7 @@
       {
         "gate_kind": "common_ai_agent_authoring",
         "owner_module": "fifo_sync",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "status": "open",
@@ -588,7 +588,7 @@
         "prerequisites": [
           "An LLM authoring pass emitted or repaired DUT RTL files."
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "stage_sequence": [
           "ssot-rtl"
@@ -779,7 +779,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "required": true,
         "status": "open"
       }

@@ -3,7 +3,7 @@
   "type": "generic_goal_scoreboard_cocotb_generation",
   "status": "pass",
   "ip": "edge_detector",
-  "generated_at": "2026-05-15T02:38:15Z",
+  "generated_at": "2026-05-15T02:39:12Z",
   "manifest": "edge_detector/tb/cocotb/tb_manifest.json",
   "test": "edge_detector/tb/cocotb/test_edge_detector.py",
   "runner": "edge_detector/tb/cocotb/test_runner.py",

@@ -25,7 +25,8 @@
           "edge_detector/sim/scoreboard_events.jsonl",
           "edge_detector/sim/sim_report.txt",
           "sim",
-          "sim_evidence"
+          "sim_evidence",
+          "ssot_coverage_summary"
         ],
         "reason": "[sim] FAIL",
         "status": "open"
@@ -50,7 +51,8 @@
           "edge_detector/cov/coverage.json",
           "ssot_coverage_summary returncode 0 or explicit rc=3 policy override",
           "sim",
-          "sim_evidence"
+          "sim_evidence",
+          "ssot_coverage_summary"
         ],
         "reason": "[sim] FAIL",
         "status": "open"

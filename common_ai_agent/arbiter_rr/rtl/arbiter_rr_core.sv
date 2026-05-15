@@ -28,9 +28,6 @@ module arbiter_rr_core #(
     logic [NUM_REQ-1:0]         req_masked_now;
     logic [NUM_REQ-1:0]         req_masked_q;
     logic [IDX_WIDTH-1:0]       last_winner;
-    logic [NUM_REQ-1:0]         selected_oh;
-    logic [IDX_WIDTH-1:0]       selected_index;
-    logic                       selected_valid;
     logic [NUM_REQ-1:0]         last_winner_oh;
     logic                       arb_enabled;
 
@@ -62,90 +59,7 @@ module arbiter_rr_core #(
         endcase
     end
 
-    // Circular priority scan for four requestors: last_winner+1 is checked first.
-    always @(*) begin
-        selected_oh = {NUM_REQ{1'b0}};
-        selected_index = IDX_0;
-        selected_valid = 1'b0;
-        case (last_winner)
-            IDX_0: begin
-                if (req_masked_q[1]) begin
-                    selected_oh[1] = 1'b1;
-                    selected_index = IDX_1;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[2]) begin
-                    selected_oh[2] = 1'b1;
-                    selected_index = IDX_2;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[3]) begin
-                    selected_oh[3] = 1'b1;
-                    selected_index = IDX_3;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[0]) begin
-                    selected_oh[0] = 1'b1;
-                    selected_index = IDX_0;
-                    selected_valid = 1'b1;
-                end
-            end
-            IDX_1: begin
-                if (req_masked_q[2]) begin
-                    selected_oh[2] = 1'b1;
-                    selected_index = IDX_2;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[3]) begin
-                    selected_oh[3] = 1'b1;
-                    selected_index = IDX_3;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[0]) begin
-                    selected_oh[0] = 1'b1;
-                    selected_index = IDX_0;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[1]) begin
-                    selected_oh[1] = 1'b1;
-                    selected_index = IDX_1;
-                    selected_valid = 1'b1;
-                end
-            end
-            IDX_2: begin
-                if (req_masked_q[3]) begin
-                    selected_oh[3] = 1'b1;
-                    selected_index = IDX_3;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[0]) begin
-                    selected_oh[0] = 1'b1;
-                    selected_index = IDX_0;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[1]) begin
-                    selected_oh[1] = 1'b1;
-                    selected_index = IDX_1;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[2]) begin
-                    selected_oh[2] = 1'b1;
-                    selected_index = IDX_2;
-                    selected_valid = 1'b1;
-                end
-            end
-            default: begin
-                if (req_masked_q[0]) begin
-                    selected_oh[0] = 1'b1;
-                    selected_index = IDX_0;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[1]) begin
-                    selected_oh[1] = 1'b1;
-                    selected_index = IDX_1;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[2]) begin
-                    selected_oh[2] = 1'b1;
-                    selected_index = IDX_2;
-                    selected_valid = 1'b1;
-                end else if (req_masked_q[3]) begin
-                    selected_oh[3] = 1'b1;
-                    selected_index = IDX_3;
-                    selected_valid = 1'b1;
-                end
-            end
-        endcase
-    end
+    // The registered grant is computed in the clocked latency-1 block below; req_masked_q remains as pipeline observability.
 
     // STATUS.winner exposes the last granted requestor as one-hot for the CSR block.
     always @(*) begin

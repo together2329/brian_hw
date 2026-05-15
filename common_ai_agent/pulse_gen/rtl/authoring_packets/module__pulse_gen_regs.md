@@ -26,7 +26,7 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: integration, integration.bus_attachment, interrupts, registers, registers.register_list
+- Owner refs: decomposition, decomposition.units.register_decode, integration, integration.bus_attachment, interrupts, registers, registers.register_list
 - SSOT connection contracts:
   - pulse_gen_regs.clk_i <= PCLK (integration.connections[5])
   - pulse_gen_regs.rst_ni <= PRESETn (integration.connections[6])

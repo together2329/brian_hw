@@ -2,21 +2,151 @@
   "schema_version": 1,
   "type": "functional_coverage",
   "status": "pass",
-  "timestamp_iso": "2026-05-15T02:37:55Z",
+  "timestamp_iso": "2026-05-15T02:39:06Z",
   "functional": {
-    "hit": 2,
-    "total": 2,
+    "hit": 28,
+    "total": 28,
     "pct": 100.0,
     "bins": {
+      "fcov_grant_single": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "fcov_grant_all_rotation": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "function_arbitrate_grant": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "SC1_executed": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "SC10_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC1",
+        "scenario_id": "SC_003_EQ_SCENARIO_SC1"
+      },
+      "SC3_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC3",
+        "scenario_id": "SC_005_EQ_SCENARIO_SC3"
+      },
+      "ccov_req_stability": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_015_EQ_PROTOCOL_HANDSHAKE_2"
+      },
+      "ccov_gnt_onehot_assertion": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "cycle_handshake_0": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_015_EQ_PROTOCOL_HANDSHAKE_2"
+      },
+      "cycle_handshake_1": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_015_EQ_PROTOCOL_HANDSHAKE_2"
+      },
+      "cycle_handshake_2": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "cycle_handshake_3": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_015_EQ_PROTOCOL_HANDSHAKE_2"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "cycle_ordering_2": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_2",
+        "scenario_id": "SC_019_EQ_TIMING_ORDERING_2"
+      },
+      "SC9_executed": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
       "fcov_no_grant_idle": {
         "hit": true,
-        "goal_id": "EQ_TRANSACTION_FM2",
-        "scenario_id": "SC_002_EQ_TRANSACTION_FM2"
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "ccov_grant_stage": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
       },
       "function_no_grant_idle": {
         "hit": true,
-        "goal_id": "EQ_TRANSACTION_FM2",
-        "scenario_id": "SC_002_EQ_TRANSACTION_FM2"
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "cycle_latency_arbitration": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "cycle_pipeline_s1_grant": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "fsm_arb_fsm_idle_to_eval_0": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "fsm_arb_fsm_eval_to_grant_1": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "fsm_arb_fsm_grant_to_idle_2": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "fsm_arb_fsm_idle_to_idle_3": {
+        "hit": true,
+        "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+        "scenario_id": "SC_025_EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1"
+      },
+      "cycle_perf_outstanding": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+        "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING"
       }
     }
   }

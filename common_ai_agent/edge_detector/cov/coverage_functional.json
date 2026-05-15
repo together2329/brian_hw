@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "functional_coverage",
   "status": "pass",
-  "timestamp_iso": "2026-05-15T02:38:27Z",
+  "timestamp_iso": "2026-05-15T02:39:19Z",
   "functional": {
     "hit": 48,
     "total": 48,
@@ -60,8 +60,8 @@
       },
       "SC11_executed": {
         "hit": true,
-        "goal_id": "EQ_SCENARIO_SC1",
-        "scenario_id": "SC_002_EQ_SCENARIO_SC1"
+        "goal_id": "EQ_SCENARIO_SC11",
+        "scenario_id": "SC_012_EQ_SCENARIO_SC11"
       },
       "SC12_executed": {
         "hit": true,

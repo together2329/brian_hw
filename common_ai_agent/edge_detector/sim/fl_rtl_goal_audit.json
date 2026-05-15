@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "fl_rtl_goal_audit",
   "ip": "edge_detector",
-  "generated_at": "2026-05-15T02:38:30Z",
+  "generated_at": "2026-05-15T02:39:22Z",
   "status": "fail",
   "source_of_truth": {
     "ssot": "edge_detector/yaml/edge_detector.ssot.yaml",
@@ -12,12 +12,10 @@
   },
   "summary": {
     "total_checks": 16,
-    "passed_checks": 12,
-    "failed_checks": 4,
+    "passed_checks": 14,
+    "failed_checks": 2,
     "blockers": [
       "req",
-      "fl_rtl_compare",
-      "mismatch_classification",
       "functional_coverage"
     ]
   },
@@ -146,19 +144,19 @@
     {
       "id": "fl_rtl_compare",
       "label": "FL-vs-RTL comparator passes all equivalence goals",
-      "status": "fail",
+      "status": "pass",
       "owner": "sim_debug",
       "evidence": "edge_detector/sim/fl_rtl_compare.json",
-      "detail": "status=fail summary={'total': 38, 'goals_checked': 38, 'goals_passed': 36, 'goals_failed': 2, 'goals_blocked': 0, 'goals_untested': 0, 'scoreboard_events': 38, 'orphan_scoreboard_events': 0, 'missing_evidence': [], 'stale_evidence': [], 'sim_results': {'exists': True, 'total': 1, 'fail': 0, 'errors': 0, 'source': '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/sim/results.xml', 'failures': 0}}",
+      "detail": "status=pass summary={'total': 38, 'goals_checked': 38, 'goals_passed': 38, 'goals_failed': 0, 'goals_blocked': 0, 'goals_untested': 0, 'scoreboard_events': 38, 'orphan_scoreboard_events': 0, 'missing_evidence': [], 'stale_evidence': [], 'sim_results': {'exists': True, 'total': 1, 'fail': 0, 'errors': 0, 'source': '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/sim/results.xml', 'failures': 0}}",
       "next_action": "run /sim-debug edge_detector; repair classified owner or answer human gate"
     },
     {
       "id": "mismatch_classification",
       "label": "Mismatches are absent or fully routed before signoff",
-      "status": "fail",
+      "status": "pass",
       "owner": "sim_debug",
       "evidence": "edge_detector/sim/mismatch_classification.json",
-      "detail": "status=action_required classifications=2 schema_ok=True",
+      "detail": "status=pass classifications=0 schema_ok=True",
       "next_action": "loopable classifications may repair the owner; human classifications must open ATLAS question and persist answer"
     },
     {
@@ -167,7 +165,7 @@
       "status": "fail",
       "owner": "tb-gen",
       "evidence": "edge_detector/cov/coverage.json",
-      "detail": "missing cov/coverage.json",
+      "detail": "source=ssot_coverage_summary pct=100.0 required_refs=48 missing_refs=[] missing_rtl_bins=[] invalid_rows=[] rtl_observed_status=pass",
       "next_action": "rerun /coverage after /sim; coverage must be proven by passing scoreboard rows with real rtl_observed signals"
     },
     {
@@ -188,7 +186,7 @@
     "equivalence_goals_generated": true,
     "scoreboard_from_goals": true,
     "simulation_complete": true,
-    "fl_rtl_compare_complete": false,
+    "fl_rtl_compare_complete": true,
     "mismatches_classified_or_zero": true,
     "coverage_linked": false,
     "signoff_evidence_backed": false
