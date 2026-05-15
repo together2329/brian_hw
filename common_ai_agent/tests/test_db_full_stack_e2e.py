@@ -83,6 +83,7 @@ def atlas_server(tmp_path_factory):
     env["HOME"] = str(home)
     env["ATLAS_MULTI_USER"] = "1"
     env["ATLAS_USE_PROCESSES"] = "0"
+    env["ATLAS_ADMIN_AUTH_MODE"] = "local"
     env["CHAT_RESPONDER_AUTOSTART"] = "0"  # bot off for this suite
     env["PYTHONUNBUFFERED"] = "1"
     # Propagate the harness's site-packages — when HOME is overridden

@@ -72,6 +72,7 @@ def atlas_server(tmp_path_factory):
     env["HOME"] = str(home)
     env["ATLAS_MULTI_USER"] = "1"
     env["ATLAS_USE_PROCESSES"] = "0"
+    env["ATLAS_ADMIN_AUTH_MODE"] = "local"
     env["CHAT_RESPONDER_AUTOSTART"] = "0"
     env["PYTHONUNBUFFERED"] = "1"
     env["PYTHONPATH"] = os.pathsep.join(p for p in sys.path if p)

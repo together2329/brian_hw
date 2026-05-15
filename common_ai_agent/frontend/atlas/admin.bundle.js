@@ -1,4 +1,5 @@
 var AtlasAdminDashboard = (() => {
+  // frontend/atlas/admin.jsx
   function AdminPage() {
     const [users, setUsers] = React.useState([]);
     const [sessions, setSessions] = React.useState([]);
@@ -13,6 +14,16 @@ var AtlasAdminDashboard = (() => {
     const [feedback, setFeedback] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
+    const [authStatus, setAuthStatus] = React.useState(null);
+    const [authChecked, setAuthChecked] = React.useState(false);
+    const [authUser, setAuthUser] = React.useState(null);
+    const [authError, setAuthError] = React.useState(null);
+    const [loginSubmitting, setLoginSubmitting] = React.useState(false);
+    const [loginForm, setLoginForm] = React.useState({
+      username: "admin",
+      password: "",
+      displayName: "Admin"
+    });
     const [activeTab, setActiveTab] = React.useState("overview");
     const [filters, setFilters] = React.useState({
       range: "7d",
@@ -33,6 +44,13 @@ var AtlasAdminDashboard = (() => {
       } catch (_) {
       }
     }
+    async function fetchAdminStatus() {
+      const r = await fetch("/api/admin/auth/status");
+      if (!r.ok) {
+        throw new Error(`Admin auth status failed: HTTP ${r.status}`);
+      }
+      return r.json();
+    }
     const loadAdminData = React.useCallback(async () => {
       try {
         setLoading(true);
@@ -44,11 +62,12 @@ var AtlasAdminDashboard = (() => {
           fetch("/api/admin/feedback")
         ]);
         if ([usersResp, sessionsResp, usageResp, fbResp].some((r) => r.status === 401)) {
-          setError("Admin API returned 401; local admin bypass is not active.");
+          setAuthUser(null);
+          setAuthError("Admin login required");
           return;
         }
         if ([usersResp, sessionsResp, usageResp, fbResp].some((r) => r.status === 403)) {
-          setError("Admin API returned 403; local admin bypass is not active.");
+          setError("Admin role required");
           return;
         }
         if (!usersResp.ok || !sessionsResp.ok) {
@@ -83,8 +102,108 @@ var AtlasAdminDashboard = (() => {
       }
     }, []);
     React.useEffect(() => {
-      loadAdminData();
+      let alive = true;
+      (async () => {
+        try {
+          setLoading(true);
+          const status = await fetchAdminStatus();
+          if (!alive) return;
+          setAuthStatus(status);
+          setAuthChecked(true);
+          if (!status.login_required || status.authenticated) {
+            setAuthUser(status.user || null);
+            await loadAdminData();
+          } else {
+            setLoading(false);
+          }
+        } catch (e) {
+          if (!alive) return;
+          setAuthChecked(true);
+          setError(String(e));
+          setLoading(false);
+        }
+      })();
+      return () => {
+        alive = false;
+      };
     }, [loadAdminData]);
+    const handleAdminLogin = async (ev) => {
+      ev.preventDefault();
+      setAuthError(null);
+      setLoginSubmitting(true);
+      try {
+        const username = String(loginForm.username || "").trim();
+        const password = String(loginForm.password || "");
+        if (!username || !password) {
+          throw new Error("Username and password required");
+        }
+        const createFirstAdmin = authStatus && authStatus.login_required && !authStatus.admin_user_exists;
+        const payload = {
+          username,
+          password,
+          display_name: String(loginForm.displayName || "").trim() || username
+        };
+        let r = await fetch(createFirstAdmin ? "/api/auth/register" : "/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!r.ok && createFirstAdmin && r.status === 409) {
+          r = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+          });
+        }
+        if (!r.ok) {
+          let detail = `HTTP ${r.status}`;
+          try {
+            const body = await r.json();
+            detail = body.detail || body.error || detail;
+          } catch (_) {
+          }
+          throw new Error(detail);
+        }
+        const status = await fetchAdminStatus();
+        setAuthStatus(status);
+        setAuthChecked(true);
+        if (!status.authenticated) {
+          throw new Error("Admin role required");
+        }
+        setAuthUser(status.user || null);
+        await loadAdminData();
+      } catch (e) {
+        setAuthError(String(e));
+        setLoading(false);
+      } finally {
+        setLoginSubmitting(false);
+      }
+    };
+    const handleLogout = async () => {
+      try {
+        await fetch("/api/auth/logout", { method: "POST" });
+      } catch (_) {
+      }
+      try {
+        const status = await fetchAdminStatus();
+        setAuthStatus(status);
+      } catch (_) {
+        setAuthStatus({ login_required: true, authenticated: false, admin_user_exists: true, mode: "db" });
+      }
+      setAuthUser(null);
+      setUsers([]);
+      setSessions([]);
+      setUsage([]);
+      setCostContexts([]);
+      setDateCosts([]);
+      setTodoUsage([]);
+      setTodoFlow([]);
+      setTraceEvents([]);
+      setToolUsage([]);
+      setInterventions([]);
+      setFeedback([]);
+      setLoading(false);
+    };
     const handleResolveFeedback = async (fid) => {
       setResolving(fid);
       try {
@@ -161,6 +280,22 @@ var AtlasAdminDashboard = (() => {
       color: "#f0c674",
       border: "1px solid #3a4756"
     };
+    const headerRightStyle = {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    };
+    const headerButtonStyle = {
+      minHeight: 28,
+      padding: "4px 9px",
+      borderRadius: 4,
+      border: "1px solid #3a4756",
+      background: "#10161d",
+      color: "#d6dde6",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      fontSize: 11
+    };
     const mainStyle = {
       flex: 1,
       padding: "24px 32px 40px",
@@ -221,6 +356,55 @@ var AtlasAdminDashboard = (() => {
       padding: "5px 8px",
       fontFamily: "inherit",
       fontSize: 12
+    };
+    const loginShellStyle = {
+      width: "min(100%, 420px)",
+      margin: "78px auto 0",
+      padding: 24,
+      background: "#161d25",
+      border: "1px solid #2a3540",
+      borderRadius: 8,
+      boxShadow: "0 20px 50px rgba(0,0,0,0.35)"
+    };
+    const loginTitleStyle = {
+      margin: "0 0 18px",
+      color: "#f0c674",
+      fontSize: 18,
+      fontWeight: 700
+    };
+    const loginFieldStyle = {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6,
+      marginBottom: 12,
+      color: "#8893a3",
+      fontSize: 11,
+      fontWeight: 700,
+      textTransform: "uppercase",
+      letterSpacing: "0.04em"
+    };
+    const loginInputStyle = {
+      minHeight: 38,
+      background: "#10161d",
+      color: "#e6edf3",
+      border: "1px solid #2a3540",
+      borderRadius: 5,
+      padding: "7px 10px",
+      fontFamily: "inherit",
+      fontSize: 14
+    };
+    const loginButtonStyle = {
+      width: "100%",
+      minHeight: 40,
+      marginTop: 6,
+      borderRadius: 5,
+      border: "1px solid #4a5b6e",
+      background: "#2a3a4a",
+      color: "#f0c674",
+      cursor: loginSubmitting ? "wait" : "pointer",
+      fontFamily: "inherit",
+      fontSize: 13,
+      fontWeight: 700
     };
     const overviewGridStyle = {
       display: "grid",
@@ -407,7 +591,34 @@ var AtlasAdminDashboard = (() => {
     };
     const setFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
     const clearFilters = () => setFilters({ range: "all", ip: "", workspace: "", workflow: "", user: "" });
-    return /* @__PURE__ */ React.createElement("div", { style: pageStyle }, /* @__PURE__ */ React.createElement("header", { style: headerStyle }, /* @__PURE__ */ React.createElement("div", { style: logoStyle }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 26 } }, "\u25C8"), /* @__PURE__ */ React.createElement("span", null, "ATLAS Admin")), /* @__PURE__ */ React.createElement("span", { style: badgeStyle }, "Admin")), /* @__PURE__ */ React.createElement("main", { style: mainStyle }, loading && /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "40px 0", color: "#8893a3" } }, "Loading\u2026"), !loading && error && /* @__PURE__ */ React.createElement("div", { style: errorStateStyle }, error), !loading && !error && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: tabRowStyle }, /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "overview"), onClick: () => setActiveTab("overview") }, "Overview"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "users"), onClick: () => setActiveTab("users") }, "Users (", filteredUsers.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "sessions"), onClick: () => setActiveTab("sessions") }, "Sessions (", filteredSessions.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "usage"), onClick: () => setActiveTab("usage") }, "Usage (", filteredUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "costs"), onClick: () => setActiveTab("costs") }, "Costs (", filteredCostContexts.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "todos"), onClick: () => setActiveTab("todos") }, "Todos (", filteredTodoUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "flow"), onClick: () => setActiveTab("flow") }, "Flow (", filteredTodoFlow.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "trace"), onClick: () => setActiveTab("trace") }, "Trace (", filteredTraceEvents.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "tools"), onClick: () => setActiveTab("tools") }, "Tools (", filteredToolUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "human"), onClick: () => setActiveTab("human") }, "Human (", filteredInterventions.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "feedback"), onClick: () => setActiveTab("feedback") }, "Feedback (", filteredFeedback.filter((f) => f.status !== "resolved").length, "/", filteredFeedback.length, ")")), /* @__PURE__ */ React.createElement("div", { style: filterBarStyle }, /* @__PURE__ */ React.createElement("label", { style: filterLabelStyle, htmlFor: "admin-filter-range" }, "Range", /* @__PURE__ */ React.createElement(
+    const loginRequired = authChecked && authStatus && authStatus.login_required && !authStatus.authenticated;
+    const loginButtonText = authStatus && authStatus.admin_user_exists ? "Log in" : "Create admin account";
+    return /* @__PURE__ */ React.createElement("div", { style: pageStyle }, /* @__PURE__ */ React.createElement("header", { style: headerStyle }, /* @__PURE__ */ React.createElement("div", { style: logoStyle }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 26 } }, "\u25C8"), /* @__PURE__ */ React.createElement("span", null, "ATLAS Admin")), /* @__PURE__ */ React.createElement("div", { style: headerRightStyle }, authUser && /* @__PURE__ */ React.createElement("span", { style: badgeStyle }, authUser.username), /* @__PURE__ */ React.createElement("span", { style: badgeStyle }, authStatus && authStatus.mode === "local" ? "Local Admin" : "Admin"), authUser && authStatus && authStatus.login_required && /* @__PURE__ */ React.createElement("button", { type: "button", style: headerButtonStyle, onClick: handleLogout }, "Logout"))), /* @__PURE__ */ React.createElement("main", { style: mainStyle }, loading && /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "40px 0", color: "#8893a3" } }, "Loading\u2026"), !loading && loginRequired && /* @__PURE__ */ React.createElement("form", { style: loginShellStyle, onSubmit: handleAdminLogin }, /* @__PURE__ */ React.createElement("h1", { style: loginTitleStyle }, "Admin Login"), authError && /* @__PURE__ */ React.createElement("div", { style: { ...errorStateStyle, marginBottom: 14 } }, authError), /* @__PURE__ */ React.createElement("label", { style: loginFieldStyle }, "Username", /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        style: loginInputStyle,
+        value: loginForm.username,
+        autoComplete: "username",
+        onChange: (ev) => setLoginForm((prev) => ({ ...prev, username: ev.target.value }))
+      }
+    )), !authStatus.admin_user_exists && /* @__PURE__ */ React.createElement("label", { style: loginFieldStyle }, "Display Name", /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        style: loginInputStyle,
+        value: loginForm.displayName,
+        autoComplete: "name",
+        onChange: (ev) => setLoginForm((prev) => ({ ...prev, displayName: ev.target.value }))
+      }
+    )), /* @__PURE__ */ React.createElement("label", { style: loginFieldStyle }, "Password", /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        style: loginInputStyle,
+        type: "password",
+        value: loginForm.password,
+        autoComplete: authStatus.admin_user_exists ? "current-password" : "new-password",
+        onChange: (ev) => setLoginForm((prev) => ({ ...prev, password: ev.target.value }))
+      }
+    )), /* @__PURE__ */ React.createElement("button", { type: "submit", style: loginButtonStyle, disabled: loginSubmitting }, loginSubmitting ? "Working\u2026" : loginButtonText)), !loading && !loginRequired && error && /* @__PURE__ */ React.createElement("div", { style: errorStateStyle }, error), !loading && !loginRequired && !error && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: tabRowStyle }, /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "overview"), onClick: () => setActiveTab("overview") }, "Overview"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "users"), onClick: () => setActiveTab("users") }, "Users (", filteredUsers.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "sessions"), onClick: () => setActiveTab("sessions") }, "Sessions (", filteredSessions.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "usage"), onClick: () => setActiveTab("usage") }, "Usage (", filteredUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "costs"), onClick: () => setActiveTab("costs") }, "Costs (", filteredCostContexts.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "todos"), onClick: () => setActiveTab("todos") }, "Todos (", filteredTodoUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "flow"), onClick: () => setActiveTab("flow") }, "Flow (", filteredTodoFlow.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "trace"), onClick: () => setActiveTab("trace") }, "Trace (", filteredTraceEvents.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "tools"), onClick: () => setActiveTab("tools") }, "Tools (", filteredToolUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "human"), onClick: () => setActiveTab("human") }, "Human (", filteredInterventions.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "feedback"), onClick: () => setActiveTab("feedback") }, "Feedback (", filteredFeedback.filter((f) => f.status !== "resolved").length, "/", filteredFeedback.length, ")")), /* @__PURE__ */ React.createElement("div", { style: filterBarStyle }, /* @__PURE__ */ React.createElement("label", { style: filterLabelStyle, htmlFor: "admin-filter-range" }, "Range", /* @__PURE__ */ React.createElement(
       "select",
       {
         id: "admin-filter-range",
@@ -464,19 +675,16 @@ var AtlasAdminDashboard = (() => {
       },
       /* @__PURE__ */ React.createElement("option", { value: "" }, "All users"),
       filterOptions.users.map((value) => /* @__PURE__ */ React.createElement("option", { key: value, value }, value))
-    )), /* @__PURE__ */ React.createElement("label", { style: filterLabelStyle }, "Reset", /* @__PURE__ */ React.createElement("button", { type: "button", style: { ...selectStyle, cursor: "pointer", color: "#f0c674" }, onClick: clearFilters }, "Clear filters"))), activeTab === "overview" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: overviewGridStyle }, /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Cost"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, usd(overview.cost))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "LLM Calls"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.llmCalls))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Tool Calls"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.toolCalls))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.toolFailures ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Tool Failures"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.toolFailures))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Obs Tokens Est"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.obsTokens))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.rejectedTodos ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Rejected Todos"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.rejectedTodos))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.openTodos ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Open Todos"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.openTodos))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Human Inputs"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.humanInputs))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.pendingHuman ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Ask User Pending"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.pendingHuman))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.pendingFeedback ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Open Feedback"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.pendingFeedback)))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 430px), 1fr))", gap: 18 } }, /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Top Cost Contexts"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workspace"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Calls"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Cost"))), /* @__PURE__ */ React.createElement("tbody", null, topCostRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 5, style: { ...tdStyle, ...emptyStateStyle } }, "No cost data in filter.")) : topCostRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.workspace}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workspace || "default"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.calls)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, usd(row.cost))))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Tool Pressure"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Tool"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Failures"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Obs Tokens"))), /* @__PURE__ */ React.createElement("tbody", null, topToolRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No tool data in filter.")) : topToolRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.tool_name}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.tool_name || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.failed_calls)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.observation_tokens_est))))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Rejected Todo Hotspots"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Todo"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Rejects"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Last Reason"))), /* @__PURE__ */ React.createElement("tbody", null, topRejectedTodos.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No rejected todos in filter.")) : topRejectedTodos.map((row) => /* @__PURE__ */ React.createElement("tr", { key: row.todo_id }, /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, maxWidth: 260, whiteSpace: "normal" } }, row.content || shortId(row.todo_id)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.rejected_count)), /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, maxWidth: 320, whiteSpace: "normal" } }, row.last_rejected_reason || row.last_event_reason || "\u2014")))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Human Intervention Hotspots"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "User"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Inputs"))), /* @__PURE__ */ React.createElement("tbody", null, topHumanRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No human input in filter.")) : topHumanRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.username}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.username || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.intervention_count))))))))), activeTab === "users" && /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Username"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Display Name"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Role"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Sessions"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Created"))), /* @__PURE__ */ React.createElement("tbody", null, filteredUsers.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 5, style: { ...tdStyle, ...emptyStateStyle } }, "No users found.")) : filteredUsers.map((u) => {
-      var _a;
-      return /* @__PURE__ */ React.createElement("tr", { key: u.id }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.username), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.display_name || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement("span", { style: {
-        fontSize: 10,
-        fontWeight: 600,
-        textTransform: "uppercase",
-        padding: "2px 6px",
-        borderRadius: 3,
-        background: u.role === "admin" ? "#2a3a4a" : "#1c252f",
-        color: u.role === "admin" ? "#f0c674" : "#a3aebb",
-        border: "1px solid #2a3540"
-      } }, u.role)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, (_a = u.session_count) != null ? _a : 0), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(u.created_at)));
-    })))), activeTab === "sessions" && /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Title"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Project"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Status"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Owner"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Created"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Updated"), /* @__PURE__ */ React.createElement("th", { style: thStyle }))), /* @__PURE__ */ React.createElement("tbody", null, filteredSessions.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 7, style: { ...tdStyle, ...emptyStateStyle } }, "No sessions found.")) : filteredSessions.map((s) => /* @__PURE__ */ React.createElement("tr", { key: s.id }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.title || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.project_id || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement("span", { style: {
+    )), /* @__PURE__ */ React.createElement("label", { style: filterLabelStyle }, "Reset", /* @__PURE__ */ React.createElement("button", { type: "button", style: { ...selectStyle, cursor: "pointer", color: "#f0c674" }, onClick: clearFilters }, "Clear filters"))), activeTab === "overview" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: overviewGridStyle }, /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Cost"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, usd(overview.cost))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "LLM Calls"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.llmCalls))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Tool Calls"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.toolCalls))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.toolFailures ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Tool Failures"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.toolFailures))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Obs Tokens Est"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.obsTokens))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.rejectedTodos ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Rejected Todos"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.rejectedTodos))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.openTodos ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Open Todos"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.openTodos))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Human Inputs"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.humanInputs))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.pendingHuman ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Ask User Pending"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.pendingHuman))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.pendingFeedback ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Open Feedback"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.pendingFeedback)))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 430px), 1fr))", gap: 18 } }, /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Top Cost Contexts"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workspace"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Calls"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Cost"))), /* @__PURE__ */ React.createElement("tbody", null, topCostRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 5, style: { ...tdStyle, ...emptyStateStyle } }, "No cost data in filter.")) : topCostRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.workspace}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workspace || "default"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.calls)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, usd(row.cost))))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Tool Pressure"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Tool"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Failures"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Obs Tokens"))), /* @__PURE__ */ React.createElement("tbody", null, topToolRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No tool data in filter.")) : topToolRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.tool_name}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.tool_name || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.failed_calls)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.observation_tokens_est))))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Rejected Todo Hotspots"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Todo"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Rejects"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Last Reason"))), /* @__PURE__ */ React.createElement("tbody", null, topRejectedTodos.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No rejected todos in filter.")) : topRejectedTodos.map((row) => /* @__PURE__ */ React.createElement("tr", { key: row.todo_id }, /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, maxWidth: 260, whiteSpace: "normal" } }, row.content || shortId(row.todo_id)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.rejected_count)), /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, maxWidth: 320, whiteSpace: "normal" } }, row.last_rejected_reason || row.last_event_reason || "\u2014")))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Human Intervention Hotspots"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "User"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Inputs"))), /* @__PURE__ */ React.createElement("tbody", null, topHumanRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No human input in filter.")) : topHumanRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.username}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.username || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.intervention_count))))))))), activeTab === "users" && /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Username"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Display Name"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Role"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Sessions"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Created"))), /* @__PURE__ */ React.createElement("tbody", null, filteredUsers.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 5, style: { ...tdStyle, ...emptyStateStyle } }, "No users found.")) : filteredUsers.map((u) => /* @__PURE__ */ React.createElement("tr", { key: u.id }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.username), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.display_name || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement("span", { style: {
+      fontSize: 10,
+      fontWeight: 600,
+      textTransform: "uppercase",
+      padding: "2px 6px",
+      borderRadius: 3,
+      background: u.role === "admin" ? "#2a3a4a" : "#1c252f",
+      color: u.role === "admin" ? "#f0c674" : "#a3aebb",
+      border: "1px solid #2a3540"
+    } }, u.role)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.session_count ?? 0), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(u.created_at))))))), activeTab === "sessions" && /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Title"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Project"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Status"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Owner"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Created"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Updated"), /* @__PURE__ */ React.createElement("th", { style: thStyle }))), /* @__PURE__ */ React.createElement("tbody", null, filteredSessions.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 7, style: { ...tdStyle, ...emptyStateStyle } }, "No sessions found.")) : filteredSessions.map((s) => /* @__PURE__ */ React.createElement("tr", { key: s.id }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.title || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.project_id || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement("span", { style: {
       fontSize: 10,
       fontWeight: 600,
       textTransform: "uppercase",

@@ -1,3 +1,0 @@
-# lfsr — Requirements
-
-## TBD

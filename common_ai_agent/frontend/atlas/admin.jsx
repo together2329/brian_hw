@@ -63,6 +63,7 @@ function AdminPage() {
       ]);
       if ([usersResp, sessionsResp, usageResp, fbResp].some((r) => r.status === 401)) {
         setAuthUser(null);
+        setAuthStatus((prev) => ({ ...(prev || {}), login_required: true, authenticated: false }));
         setAuthError('Admin login required');
         return;
       }
@@ -667,6 +668,8 @@ function AdminPage() {
   };
   const setFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
   const clearFilters = () => setFilters({ range: 'all', ip: '', workspace: '', workflow: '', user: '' });
+  const loginRequired = authChecked && authStatus && authStatus.login_required && !authStatus.authenticated;
+  const loginButtonText = authStatus && authStatus.admin_user_exists ? 'Log in' : 'Create admin account';
 
   return (
     <div style={pageStyle}>
@@ -675,7 +678,15 @@ function AdminPage() {
           <span style={{ fontSize: 26 }}>◈</span>
           <span>ATLAS Admin</span>
         </div>
-        <span style={badgeStyle}>Admin</span>
+        <div style={headerRightStyle}>
+          {authUser && <span style={badgeStyle}>{authUser.username}</span>}
+          <span style={badgeStyle}>{authStatus && authStatus.mode === 'local' ? 'Local Admin' : 'Admin'}</span>
+          {authUser && authStatus && authStatus.login_required && (
+            <button type="button" style={headerButtonStyle} onClick={handleLogout}>
+              Logout
+            </button>
+          )}
+        </div>
       </header>
 
       <main style={mainStyle}>
@@ -685,13 +696,57 @@ function AdminPage() {
           </div>
         )}
 
-        {!loading && error && (
+        {!loading && loginRequired && (
+          <form style={loginShellStyle} onSubmit={handleAdminLogin}>
+            <h1 style={loginTitleStyle}>Admin Login</h1>
+            {authError && (
+              <div style={{ ...errorStateStyle, marginBottom: 14 }}>
+                {authError}
+              </div>
+            )}
+            <label style={loginFieldStyle}>
+              Username
+              <input
+                style={loginInputStyle}
+                value={loginForm.username}
+                autoComplete="username"
+                onChange={(ev) => setLoginForm((prev) => ({ ...prev, username: ev.target.value }))}
+              />
+            </label>
+            {!authStatus.admin_user_exists && (
+              <label style={loginFieldStyle}>
+                Display Name
+                <input
+                  style={loginInputStyle}
+                  value={loginForm.displayName}
+                  autoComplete="name"
+                  onChange={(ev) => setLoginForm((prev) => ({ ...prev, displayName: ev.target.value }))}
+                />
+              </label>
+            )}
+            <label style={loginFieldStyle}>
+              Password
+              <input
+                style={loginInputStyle}
+                type="password"
+                value={loginForm.password}
+                autoComplete={authStatus.admin_user_exists ? 'current-password' : 'new-password'}
+                onChange={(ev) => setLoginForm((prev) => ({ ...prev, password: ev.target.value }))}
+              />
+            </label>
+            <button type="submit" style={loginButtonStyle} disabled={loginSubmitting}>
+              {loginSubmitting ? 'Working…' : loginButtonText}
+            </button>
+          </form>
+        )}
+
+        {!loading && !loginRequired && error && (
           <div style={errorStateStyle}>
             {error}
           </div>
         )}
 
-        {!loading && !error && (
+        {!loading && !loginRequired && !error && (
           <>
             <div style={tabRowStyle}>
               <button style={tabStyle(activeTab === 'overview')} onClick={() => setActiveTab('overview')}>

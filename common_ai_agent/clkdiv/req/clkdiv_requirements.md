@@ -1,3 +1,0 @@
-# clkdiv — Requirements
-
-## TBD

@@ -597,6 +597,17 @@ pnr:
   routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
 synthesis:
   dialect: "systemverilog_2012"
+  constraints:
+    sdc_source: "sdc/edge_detector.sdc"
+    clock_groups:
+      - { name: "PCLK", period_ns: 20.0, waveform: "0 10", source: "PCLK port" }
+    io_constraints:
+      - { ports: "signal_i", input_delay_ns: 0, clock: "PCLK", note: "asynchronous; sync chain handles" }
+      - { ports: "APB inputs", input_delay_ns: 2.0, clock: "PCLK" }
+      - { ports: "edge_o, irq_o, APB outputs", output_delay_ns: 2.0, clock: "PCLK" }
+    timing_targets:
+      setup_wns_ns: 0.0
+      hold_wns_ns: 0.0
   constraints_source: "sdc/edge_detector.sdc"
   target_utilization: 0.70
   ppa_targets:
@@ -613,6 +624,8 @@ dft:
   test_mode_port: null
   mbist_required: false
   jtag_required: false
+  controllability: "All control paths are reachable via APB register writes or signal_i toggling."
+  observability: "All state (sync_chain, prev_sync, registers, sticky) is readable via APB or observable on edge_o/irq_o."
   testability_notes:
     - "Simple peripheral; no dedicated test mode. ATPG relies on standard scan insertion at SoC level."
     - "All registers are observable via APB read path for software-based test."
