@@ -47,7 +47,7 @@
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:41:38Z",
+  "generated_at": "2026-05-15T02:42:27Z",
   "ip": "fifo_sync",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 18,

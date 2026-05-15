@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "fl_rtl_goal_audit",
   "ip": "fifo_sync",
-  "generated_at": "2026-05-15T02:13:13Z",
+  "generated_at": "2026-05-15T02:43:18Z",
   "status": "fail",
   "source_of_truth": {
     "ssot": "fifo_sync/yaml/fifo_sync.ssot.yaml",
@@ -12,11 +12,10 @@
   },
   "summary": {
     "total_checks": 16,
-    "passed_checks": 7,
-    "failed_checks": 9,
+    "passed_checks": 8,
+    "failed_checks": 8,
     "blockers": [
       "req",
-      "fl_model",
       "equivalence_goals",
       "module_equivalence_goals",
       "scoreboard_contract",
@@ -48,13 +47,13 @@
     {
       "id": "fl_model",
       "label": "Executable functional model passes self-check",
-      "status": "fail",
+      "status": "pass",
       "owner": "fl-model-gen",
       "evidence": [
         "fifo_sync/model/functional_model.py",
         "fifo_sync/model/fl_model_check.json"
       ],
-      "detail": "missing model/fl_model_check.json",
+      "detail": "fl_model_check.passed=True",
       "next_action": "rerun /ssot-equiv-goals fifo_sync after repairing FunctionalModel from SSOT"
     },
     {
@@ -72,7 +71,7 @@
       "status": "pass",
       "owner": "fl-model-gen",
       "evidence": "fifo_sync/cov/fcov_plan.json",
-      "detail": "planned_before_rtl=True bins=78",
+      "detail": "planned_before_rtl=True bins=66",
       "next_action": "derive functional coverage bins from SSOT/decomposition before RTL/TB signoff"
     },
     {
@@ -81,7 +80,7 @@
       "status": "fail",
       "owner": "fl-model-gen",
       "evidence": "fifo_sync/verify/equivalence_goals.json",
-      "detail": "missing verify/equivalence_goals.json",
+      "detail": "total=52 blocked=1 errors=[]",
       "next_action": "rerun /ssot-equiv-goals fifo_sync or answer SSOT blockers"
     },
     {
@@ -90,7 +89,7 @@
       "status": "fail",
       "owner": "fl-model-gen",
       "evidence": "fifo_sync/verify/equivalence_goals.json",
-      "detail": "module_contracts=5 module_goals=0 missing=['fifo_sync_ptrs', 'fifo_sync_flags'] blocked=[]",
+      "detail": "module_contracts=5 module_goals=2 missing=[] blocked=['EQ_MODULE_FIFO_SYNC_FLAGS']",
       "next_action": "rerun /ssot-fl-model and /ssot-equiv-goals; every module owning function_model refs needs a scope.level=module goal"
     },
     {
@@ -137,7 +136,7 @@
         "fifo_sync/sim/scoreboard_events.jsonl",
         "workflow/tb-gen/scripts/check_scoreboard_events.py"
       ],
-      "detail": "[check_scoreboard_events] SKIP: missing fifo_sync/verify/equivalence_goals.json",
+      "detail": "[check_scoreboard_events] FAIL: no TB source files found under tb/ or sim/\n[check_scoreboard_events] FAIL: missing fifo_sync/sim/scoreboard_events.jsonl\n[check_scoreboard_events] FAIL: fifo_sync/sim/scoreboard_events.jsonl has no scoreboard rows\n[check_scoreboard_events] FAIL: missing scoreboard rows for required goals: EQ_DEBUG_OBSERVABILITY, EQ_ERROR_NONE, EQ_MEMORY_FIFO_RAM, EQ_MODULE_FIFO_SYNC_PTRS, EQ_PROTOCOL_HANDSHAKE_0, EQ_PROTOCOL_HANDSHAKE_1, EQ_PROTOCOL_HANDSHAKE_2, EQ_PROTOCOL_HANDSHAKE_3, EQ_PROTOCOL_HANDSHAKE_4, EQ_REGISTER_FIFO_CONFIG, EQ_REGISTER_FIFO_CONTROL, EQ_REGISTER_FIFO_STATUS, ... +39",
       "next_action": "repair cocotb/pyuvm TB to instantiate EquivalenceScoreboard and cover all required goals"
     },
     {
@@ -157,7 +156,7 @@
       "status": "fail",
       "owner": "sim_debug",
       "evidence": "fifo_sync/sim/fl_rtl_compare.json",
-      "detail": "missing sim/fl_rtl_compare.json",
+      "detail": "status=blocked summary={'total': 52, 'goals_checked': 0, 'goals_passed': 0, 'goals_failed': 0, 'goals_blocked': 1, 'goals_untested': 51, 'scoreboard_events': 0, 'orphan_scoreboard_events': 0, 'missing_evidence': ['fifo_sync/sim/scoreboard_events.jsonl', 'fifo_sync/sim/results.xml'], 'stale_evidence': [], 'sim_results': {'exists': False, 'total': 0, 'fail': 0, 'errors': 0, 'source': ''}}",
       "next_action": "run /sim-debug fifo_sync; repair classified owner or answer human gate"
     },
     {
@@ -166,7 +165,7 @@
       "status": "fail",
       "owner": "sim_debug",
       "evidence": "fifo_sync/sim/mismatch_classification.json",
-      "detail": "missing sim/mismatch_classification.json",
+      "detail": "status=action_required classifications=52 schema_ok=True",
       "next_action": "loopable classifications may repair the owner; human classifications must open ATLAS question and persist answer"
     },
     {
@@ -191,13 +190,13 @@
   "stop_condition": {
     "req_ok": false,
     "ssot_ok": true,
-    "fl_model_pass": false,
+    "fl_model_pass": true,
     "cycle_model_present": true,
     "equivalence_goals_generated": false,
     "scoreboard_from_goals": false,
     "simulation_complete": false,
     "fl_rtl_compare_complete": false,
-    "mismatches_classified_or_zero": false,
+    "mismatches_classified_or_zero": true,
     "coverage_linked": false,
     "signoff_evidence_backed": false
   }

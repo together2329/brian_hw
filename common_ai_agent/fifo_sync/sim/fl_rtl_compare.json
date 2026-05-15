@@ -1,0 +1,687 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_compare",
+  "ip": "fifo_sync",
+  "generated_at": "2026-05-15T02:42:07Z",
+  "status": "blocked",
+  "sources": {
+    "equivalence_goals": "fifo_sync/verify/equivalence_goals.json",
+    "scoreboard_events": "fifo_sync/sim/scoreboard_events.jsonl",
+    "results_xml": "fifo_sync/sim/results.xml",
+    "coverage": "fifo_sync/cov/coverage.json",
+    "fl_model_check": "fifo_sync/model/fl_model_check.json"
+  },
+  "summary": {
+    "total": 52,
+    "goals_checked": 0,
+    "goals_passed": 0,
+    "goals_failed": 0,
+    "goals_blocked": 1,
+    "goals_untested": 51,
+    "scoreboard_events": 0,
+    "orphan_scoreboard_events": 0,
+    "missing_evidence": [
+      "fifo_sync/sim/scoreboard_events.jsonl",
+      "fifo_sync/sim/results.xml"
+    ],
+    "stale_evidence": [],
+    "sim_results": {
+      "exists": false,
+      "total": 0,
+      "fail": 0,
+      "errors": 0,
+      "source": ""
+    }
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC1_executed",
+        "SC6_executed",
+        "SC7_executed",
+        "SC10_executed",
+        "function_push",
+        "function_simultaneous_push_pop",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "latency_push_accept_lt_min",
+        "latency_push_accept_at_min",
+        "latency_push_accept_at_max",
+        "latency_push_accept_gt_max"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC2_executed",
+        "SC6_executed",
+        "SC7_executed",
+        "SC10_executed",
+        "function_pop",
+        "function_simultaneous_push_pop",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "latency_pop_combinational_at_min",
+        "latency_pop_combinational_at_max",
+        "latency_pop_combinational_gt_max",
+        "latency_pop_registered_lt_min",
+        "latency_pop_registered_at_min",
+        "latency_pop_registered_at_max",
+        "latency_pop_registered_gt_max"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM3",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "function_simultaneous_push_pop"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM4",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "function_overflow_reject"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM5",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "function_underflow_reject"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM6",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC8_executed",
+        "SC9_executed",
+        "SC10_executed",
+        "SC15_executed",
+        "function_flush",
+        "latency_flush_lt_min",
+        "latency_flush_at_min",
+        "latency_flush_at_max",
+        "latency_flush_gt_max"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC1_executed",
+        "SC10_executed",
+        "SC11_executed",
+        "SC12_executed",
+        "SC13_executed",
+        "SC14_executed",
+        "SC15_executed",
+        "SC16_executed",
+        "SC17_executed",
+        "SC18_executed",
+        "SC19_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC2_executed",
+        "SC20_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC3_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC5",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC5_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC6",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC6_executed",
+        "SC7_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC7",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC7_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC8",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC8_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC9",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC9_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC10",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC10_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC11",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC11_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC12",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC12_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC13",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC13_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC14",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC14_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC15",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC15_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC16",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC16_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC17",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC17_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC18",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC18_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC19",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC19_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC20",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC20_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_4",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_3",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_REGISTER_FIFO_STATUS",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC18_executed",
+        "latency_pop_registered_lt_min",
+        "latency_pop_registered_at_min",
+        "latency_pop_registered_at_max",
+        "latency_pop_registered_gt_max",
+        "latency_register_read_at_min",
+        "latency_register_read_mid",
+        "latency_register_read_at_max",
+        "latency_register_read_gt_max",
+        "latency_register_write_at_min",
+        "latency_register_write_mid",
+        "latency_register_write_at_max",
+        "latency_register_write_gt_max"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_REGISTER_FIFO_CONFIG",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC18_executed",
+        "latency_pop_registered_lt_min",
+        "latency_pop_registered_at_min",
+        "latency_pop_registered_at_max",
+        "latency_pop_registered_gt_max",
+        "latency_register_read_at_min",
+        "latency_register_read_mid",
+        "latency_register_read_at_max",
+        "latency_register_read_gt_max",
+        "latency_register_write_at_min",
+        "latency_register_write_mid",
+        "latency_register_write_at_max",
+        "latency_register_write_gt_max"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_REGISTER_FIFO_CONTROL",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC18_executed",
+        "latency_pop_registered_lt_min",
+        "latency_pop_registered_at_min",
+        "latency_pop_registered_at_max",
+        "latency_pop_registered_gt_max",
+        "latency_register_read_at_min",
+        "latency_register_read_mid",
+        "latency_register_read_at_max",
+        "latency_register_read_gt_max",
+        "latency_register_write_at_min",
+        "latency_register_write_mid",
+        "latency_register_write_at_max",
+        "latency_register_write_gt_max"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_MEMORY_FIFO_RAM",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC16_executed",
+        "error_error_0",
+        "error_error_1",
+        "error_error_2"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_EMPTY_TO_NORMAL_0",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC12_executed",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "error_error_1"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_EMPTY_TO_ALMOST_EMPTY_1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC12_executed",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "error_error_1"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_ALMOST_EMPTY_TO_EMPTY_2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC12_executed",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "error_error_1"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_ALMOST_EMPTY_TO_NORMAL_3",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_NORMAL_TO_ALMOST_FULL_4",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_NORMAL_TO_ALMOST_EMPTY_5",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_ALMOST_FULL_TO_FULL_6",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC3_executed",
+        "SC8_executed",
+        "SC9_executed",
+        "SC11_executed",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "error_error_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_ALMOST_FULL_TO_NORMAL_7",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_PTR_FSM_FULL_TO_ALMOST_FULL_8",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC3_executed",
+        "SC8_executed",
+        "SC9_executed",
+        "SC11_executed",
+        "fsm_ptr_fsm_empty_to_normal_0",
+        "fsm_ptr_fsm_empty_to_almost_empty_1",
+        "fsm_ptr_fsm_almost_empty_to_empty_2",
+        "fsm_ptr_fsm_almost_empty_to_normal_3",
+        "fsm_ptr_fsm_normal_to_almost_full_4",
+        "fsm_ptr_fsm_normal_to_almost_empty_5",
+        "fsm_ptr_fsm_almost_full_to_full_6",
+        "fsm_ptr_fsm_almost_full_to_normal_7",
+        "fsm_ptr_fsm_full_to_almost_full_8",
+        "error_error_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_MODULE_FIFO_SYNC_PTRS",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_MODULE_FIFO_SYNC_FLAGS",
+      "status": "blocked",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    }
+  ]
+}
