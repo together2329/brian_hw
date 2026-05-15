@@ -4,22 +4,18 @@
 
 - Top: parity_gen
 - Packets: 7
-- LLM-actionable tasks: 1
+- LLM-actionable tasks: 0
 - Human-locked tasks: 5
-- Tool-evidence tasks: 5
+- Tool-evidence tasks: 4
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: True
 - Pending connection-contract suggestions: 23
 - Recommended packet batch limit: 4
 
-## Next LLM Packets
-
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=1, human_locked=0)
-
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=5, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=4, next_tool=audit-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 

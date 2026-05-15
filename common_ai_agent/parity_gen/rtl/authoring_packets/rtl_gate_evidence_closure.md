@@ -24,7 +24,7 @@
 - Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: False
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=2
@@ -109,13 +109,13 @@ Owner: parity_gen in rtl/parity_gen.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_io_contract_evidence
 - Detail: The top wrapper must expose the SSOT-declared clock/reset and explicit IO ports. A compiling top with missing, renamed, or wrong-direction ports cannot close RTL generation.
 SSOT ref: quality_gates.rtl_gen.top_io_contract_evidence.
 Owner: parity_gen in rtl/parity_gen.sv via top_module.
-- Current reason: 2 top IO contract issue(s) remain. PADDR: RTL top port width/range does not match SSOT; data_in: RTL top port width/range does not match SSOT
+- Current reason: SSOT top IO contracts match the RTL top declaration.
 - Criteria:
   - SSOT clock/reset names are declared on the RTL top module
   - Explicit io_list ports/signals are declared on the RTL top module

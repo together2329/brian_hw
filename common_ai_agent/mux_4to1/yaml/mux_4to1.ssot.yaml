@@ -497,6 +497,9 @@ quality_gates:
   eda:
     pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved waivers."
     evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
+  signoff:
+    pass: "SSOT, RTL, DV, coverage, and EDA gates are complete or have approved waivers for the mux_4to1 leaf primitive."
+    evidence: ["quality_gates.ssot", "quality_gates.rtl", "quality_gates.dv", "quality_gates.coverage", "quality_gates.eda"]
 
 traceability:
   yaml_to_output:

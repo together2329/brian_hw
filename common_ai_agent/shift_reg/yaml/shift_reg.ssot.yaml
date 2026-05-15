@@ -674,4 +674,12 @@ workflow_todos:
   pnr: []
   sta: []
   sta-post: []
-generation_flow: TBD
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh shift_reg", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model shift_reg", description: "Generate functional model from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl shift_reg", description: "Downstream RTL implementation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb shift_reg", description: "Downstream testbench implementation from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream simulation debug after RTL/TB exist" }
+    - { name: "handoff_coverage", command: "/coverage shift_reg", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn shift_reg && /sta shift_reg && /pnr shift_reg && /sta-post shift_reg", description: "Produce synthesis, timing, PnR, and signoff evidence" }

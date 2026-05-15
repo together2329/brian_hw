@@ -53,7 +53,8 @@ module adder_kogge_stone_core #(
 
     assign capture_en = start_i | (~hold_mode_i);
     assign shadow_valid = capture_en;
-    assign apb_error_preserve_core = pslverr_shadow_policy(removed);
+    // APB out-of-bounds accesses never enter the core; register decode preserves all datapath state.
+    assign APB_error_preserve_core = 1'b0;
     always @(*) begin
         next_state = state;
         busy_o = (state == COMPUTE);

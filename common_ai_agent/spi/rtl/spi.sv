@@ -105,7 +105,7 @@ module spi #(
         .PRESCALE_WIDTH(PRESCALE_WIDTH), .CPOL_RESET(CPOL_RESET)
     ) u_clkgen (
         .PCLK(PCLK), .PRESETn(PRESETn), .soft_reset(soft_reset), .busy(busy), .cpol(cpol),
-        .prescale_div(prescale_div), .sclk_o(sclk_o), .prescale_tick(prescale_tick),
+        .prescale_div(prescale_div), .sclk_o(sclk_o), .prescale_tick(),
         .sample_edge(sample_edge), .shift_edge(shift_edge)
     );
 

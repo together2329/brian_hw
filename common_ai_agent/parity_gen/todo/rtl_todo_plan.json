@@ -466,12 +466,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 9,
+    "open_required_todos": 7,
     "orphan_tasks": 0,
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:11:47Z",
+  "generated_at": "2026-05-15T02:13:59Z",
   "ip": "parity_gen",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -1231,9 +1231,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1423,9 +1423,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "2 top IO contract issue(s) remain. PADDR: RTL top port width/range does not match SSOT; data_in: RTL top port width/range does not match SSOT",
+        "reason": "SSOT top IO contracts match the RTL top declaration.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1851,7 +1851,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "8 required non-closure TODO(s) remain open.",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -5635,20 +5635,8 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 9,
+    "open_required_tasks": 7,
     "open_tasks": [
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "2 top IO contract issue(s) remain. PADDR: RTL top port width/range does not match SSOT; data_in: RTL top port width/range does not match SSOT",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "task_id": "RTL-0010"
-      },
       {
         "category": "rtl_gate.rtl_gen",
         "reason": "1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
@@ -5657,7 +5645,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "8 required non-closure TODO(s) remain open.",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -5692,7 +5680,7 @@
         "task_id": "RTL-0026"
       }
     ],
-    "required_passed": 83,
+    "required_passed": 85,
     "required_total": 92,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
@@ -5723,26 +5711,11 @@
       "parity_error",
       "parity_out"
     ],
-    "issues": [
-      {
-        "actual_range": "[ADDR_WIDTH-1:0]",
-        "expected_width": "12",
-        "issue": "RTL top port width/range does not match SSOT",
-        "port": "PADDR",
-        "source_ref": "io_list.interfaces[0].ports[0]"
-      },
-      {
-        "actual_range": "[DATA_WIDTH-1:0]",
-        "expected_width": "32",
-        "issue": "RTL top port width/range does not match SSOT",
-        "port": "data_in",
-        "source_ref": "io_list.interfaces[1].ports[0]"
-      }
-    ],
+    "issues": [],
     "roots": [
       "parity_gen"
     ],
-    "status": "fail",
+    "status": "pass",
     "top_parameters": {}
   },
   "top_output_drive_evidence": {
