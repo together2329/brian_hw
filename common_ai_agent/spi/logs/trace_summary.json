@@ -1,20 +1,47 @@
 {
-  "blocked_at_stage": "req",
+  "blocked_at_stage": "rtl-gen",
   "ip": "spi",
   "llm": {
-    "by_stage": {},
+    "by_stage": {
+      "rtl-gen": {
+        "cache_read_tokens": 0,
+        "calls": 1,
+        "cost_usd": 0.0,
+        "input_tokens": 0,
+        "models": [
+          "glm-5.1"
+        ],
+        "output_tokens": 0,
+        "repair_calls": 0,
+        "repair_rate": 0.0,
+        "total_tokens": 0
+      },
+      "ssot-gen": {
+        "cache_read_tokens": 14080,
+        "calls": 2,
+        "cost_usd": 0.17241300000000004,
+        "input_tokens": 41199,
+        "models": [
+          "gpt-5.3-codex"
+        ],
+        "output_tokens": 29724,
+        "repair_calls": 1,
+        "repair_rate": 0.5,
+        "total_tokens": 70923
+      }
+    },
     "totals": {
-      "cache_read_tokens": 0,
-      "calls": 0,
-      "cost_usd": 0.0,
-      "input_tokens": 0,
-      "output_tokens": 0,
-      "repair_calls": 0,
-      "repair_rate": 0.0,
-      "total_tokens": 0
+      "cache_read_tokens": 14080,
+      "calls": 3,
+      "cost_usd": 0.17241300000000004,
+      "input_tokens": 41199,
+      "output_tokens": 29724,
+      "repair_calls": 1,
+      "repair_rate": 0.3333333333333333,
+      "total_tokens": 70923
     }
   },
-  "llm_log_files": 0,
+  "llm_log_files": 3,
   "run_status": "blocked",
   "stage_engine_order": []
 }

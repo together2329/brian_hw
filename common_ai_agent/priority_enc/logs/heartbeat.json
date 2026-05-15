@@ -1,7 +1,7 @@
 {
-  "current_stage": "rtl-gen",
   "model": "glm-5.1",
-  "phase": "stage",
-  "state": "running",
-  "ts": "2026-05-15T02:24:33Z"
+  "phase": "finished",
+  "state": "done",
+  "status": "blocked",
+  "ts": "2026-05-15T02:25:13Z"
 }

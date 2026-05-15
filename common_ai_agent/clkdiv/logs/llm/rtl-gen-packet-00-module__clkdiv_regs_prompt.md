@@ -31,8 +31,8 @@ Packet execution rules:
 
 Current packet: module__clkdiv_regs
 kind: module
-work queue: 1/1 active packets (2 closed packets skipped from 10 total)
-batch limit: 1; deferred active packets after this batch: 7
+work queue: 1/1 active packets (4 closed packets skipped from 10 total)
+batch limit: 1; deferred active packets after this batch: 5
 owner_module: clkdiv_regs
 owner_file: rtl/clkdiv_regs.sv
 
@@ -865,7 +865,7 @@ Authoring plan overview:
       {
         "gate_kind": "static_rtl_evidence",
         "owner_module": "clkdiv",
-        "reason": "42 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "36 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "status": "open",
@@ -874,70 +874,34 @@ Authoring plan overview:
       {
         "gate_kind": "owner_logic_structure_evidence",
         "owner_module": "clkdiv",
-        "reason": "3 owner logic structure issue(s) remain. clkdiv_regs: Behavior-owner module is not declared in its owner file; clkdiv_core: Behavior-owner module is not declared in its owner file; clkdiv: Behavior-owner module is not declared in its owner file",
+        "reason": "1 owner logic structure issue(s) remain. clkdiv_regs: Behavior-owner module is not declared in its owner file",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
         "status": "open",
         "task_id": "RTL-0008"
       },
       {
-        "gate_kind": "rtl_placeholder_free_evidence",
-        "owner_module": "clkdiv",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "status": "open",
-        "task_id": "RTL-0009"
-      },
-      {
         "gate_kind": "top_io_contract_evidence",
         "owner_module": "clkdiv",
-        "reason": "1 top IO contract issue(s) remain. clkdiv: SSOT top module is not declared in listed RTL sources",
+        "reason": "14 top IO contract issue(s) remain. clk_i: SSOT top IO port is missing from RTL top declaration; rst_ni: SSOT top IO port is missing from RTL top declaration; paddr: SSOT top IO port is missing from RTL top declaration",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
         "status": "open",
         "task_id": "RTL-0010"
       },
       {
-        "gate_kind": "top_output_drive_evidence",
-        "owner_module": "clkdiv",
-        "reason": "1 top output drive issue(s) remain. clkdiv: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "status": "open",
-        "task_id": "RTL-0011"
-      },
-      {
-        "gate_kind": "top_input_consumption_evidence",
-        "owner_module": "clkdiv",
-        "reason": "1 top input consumption issue(s) remain. clkdiv: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "status": "open",
-        "task_id": "RTL-0012"
-      },
-      {
         "gate_kind": "manifest_hierarchy_integration",
         "owner_module": "clkdiv",
-        "reason": "3 manifest hierarchy integration issue(s) remain. clkdiv: SSOT top module is not declared in listed RTL sources; clkdiv_regs: SSOT manifest child module is not declared in listed RTL sources; clkdiv_core: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "1 manifest hierarchy integration issue(s) remain. clkdiv_regs: SSOT manifest child module is not declared in listed RTL sources",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
         "status": "open",
         "task_id": "RTL-0013"
       },
       {
-        "gate_kind": "manifest_signal_flow_evidence",
-        "owner_module": "clkdiv",
-        "reason": "1 manifest signal-flow issue(s) remain. clkdiv: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "status": "open",
-        "task_id": "RTL-0015"
-      },
-      {
         "gate_kind": "rtl_implementation_depth_evidence",
         "owner_module": "clkdiv",
-        "reason": "4 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=0 required=103; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=0 required=3",
+        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=27 required=103; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=2 required=3; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=2 required=3",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
         "status": "open",
@@ -968,7 +932,7 @@ Authoring plan overview:
       {
         "gate_kind": "common_ai_agent_authoring",
         "owner_module": "clkdiv",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/clkdiv_regs.sv",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "status": "open",
@@ -995,7 +959,7 @@ Authoring plan overview:
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "clkdiv",
-        "reason": "155 required non-closure TODO(s) remain open.",
+        "reason": "82 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -1050,7 +1014,7 @@ Authoring plan overview:
     "draft_allowed": true,
     "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 156,
+    "open_required_todos": 83,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -1074,7 +1038,7 @@ Authoring plan overview:
         "prerequisites": [
           "An LLM authoring pass emitted or repaired DUT RTL files."
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/clkdiv_regs.sv",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "stage_sequence": [
           "ssot-rtl"
@@ -1143,7 +1107,7 @@ Authoring plan overview:
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "155 required non-closure TODO(s) remain open.",
+        "reason": "82 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -1248,28 +1212,15 @@ Authoring plan overview:
       "human_locked_open_count": 0,
       "json": "rtl/authoring_packets/module__clkdiv_core__function_model.json",
       "kind": "module",
-      "llm_actionable_open_count": 30,
-      "open_required_count": 30,
+      "llm_actionable_open_count": 19,
+      "open_required_count": 19,
       "owner_file": "rtl/clkdiv_core.sv",
       "owner_module": "clkdiv_core",
       "packet_id": "module__clkdiv_core__function_model",
       "required_count": 30,
       "status_counts": {
-        "open": 30
-      }
-    },
-    {
-      "human_locked_open_count": 0,
-      "json": "rtl/authoring_packets/module__clkdiv_core__cycle_model.json",
-      "kind": "module",
-      "llm_actionable_open_count": 18,
-      "open_required_count": 18,
-      "owner_file": "rtl/clkdiv_core.sv",
-      "owner_module": "clkdiv_core",
-      "packet_id": "module__clkdiv_core__cycle_model",
-      "required_count": 18,
-      "status_counts": {
-        "open": 18
+        "open": 19,
+        "pass": 11
       }
     },
     {
@@ -1288,60 +1239,47 @@ Authoring plan overview:
     },
     {
       "human_locked_open_count": 0,
-      "json": "rtl/authoring_packets/module__clkdiv_core__equivalence.json",
+      "json": "rtl/authoring_packets/module__clkdiv_core__cycle_model.json",
       "kind": "module",
-      "llm_actionable_open_count": 1,
-      "open_required_count": 1,
+      "llm_actionable_open_count": 6,
+      "open_required_count": 6,
       "owner_file": "rtl/clkdiv_core.sv",
       "owner_module": "clkdiv_core",
-      "packet_id": "module__clkdiv_core__equivalence",
-      "required_count": 1,
+      "packet_id": "module__clkdiv_core__cycle_model",
+      "required_count": 18,
       "status_counts": {
-        "open": 1
-      }
-    },
-    {
-      "human_locked_open_count": 0,
-      "json": "rtl/authoring_packets/module__clkdiv_core__workflow_todo.json",
-      "kind": "module",
-      "llm_actionable_open_count": 1,
-      "open_required_count": 1,
-      "owner_file": "rtl/clkdiv_core.sv",
-      "owner_module": "clkdiv_core",
-      "packet_id": "module__clkdiv_core__workflow_todo",
-      "required_count": 1,
-      "status_counts": {
-        "open": 1
+        "open": 6,
+        "pass": 12
       }
     },
     {
       "human_locked_open_count": 0,
       "json": "rtl/authoring_packets/module__clkdiv.json",
       "kind": "module",
-      "llm_actionable_open_count": 46,
-      "open_required_count": 46,
+      "llm_actionable_open_count": 2,
+      "open_required_count": 2,
       "owner_file": "rtl/clkdiv.sv",
       "owner_module": "clkdiv",
       "packet_id": "module__clkdiv",
       "required_count": 47,
       "status_counts": {
-        "open": 46,
-        "pass": 1
+        "open": 2,
+        "pass": 45
       }
     },
     {
       "human_locked_open_count": 0,
       "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
       "kind": "gate",
-      "llm_actionable_open_count": 9,
-      "open_required_count": 9,
+      "llm_actionable_open_count": 5,
+      "open_required_count": 5,
       "owner_file": "rtl/clkdiv.sv",
       "owner_module": "clkdiv",
       "packet_id": "rtl_gate_evidence_closure",
       "required_count": 10,
       "status_counts": {
-        "open": 9,
-        "pass": 1
+        "open": 5,
+        "pass": 5
       }
     },
     {
@@ -1372,6 +1310,34 @@ Authoring plan overview:
       "status_counts": {
         "open": 7
       }
+    },
+    {
+      "human_locked_open_count": 0,
+      "json": "rtl/authoring_packets/module__clkdiv_core__equivalence.json",
+      "kind": "module",
+      "llm_actionable_open_count": 0,
+      "open_required_count": 0,
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "packet_id": "module__clkdiv_core__equivalence",
+      "required_count": 1,
+      "status_counts": {
+        "pass": 1
+      }
+    },
+    {
+      "human_locked_open_count": 0,
+      "json": "rtl/authoring_packets/module__clkdiv_core__workflow_todo.json",
+      "kind": "module",
+      "llm_actionable_open_count": 0,
+      "open_required_count": 0,
+      "owner_file": "rtl/clkdiv_core.sv",
+      "owner_module": "clkdiv_core",
+      "packet_id": "module__clkdiv_core__workflow_todo",
+      "required_count": 1,
+      "status_counts": {
+        "pass": 1
+      }
     }
   ],
   "policy": {
@@ -1394,17 +1360,15 @@ Authoring plan overview:
     "gate_packets": 3,
     "human_locked_packets": 1,
     "human_locked_tasks": 2,
-    "llm_actionable_packets": 8,
-    "llm_actionable_tasks": 147,
+    "llm_actionable_packets": 6,
+    "llm_actionable_tasks": 74,
     "max_packet_required_tasks": 47,
     "module_packets": 7,
     "next_llm_packets": [
       "module__clkdiv_regs",
       "module__clkdiv_core__function_model",
-      "module__clkdiv_core__cycle_model",
       "module__clkdiv_core__fsm",
-      "module__clkdiv_core__equivalence",
-      "module__clkdiv_core__workflow_todo",
+      "module__clkdiv_core__cycle_model",
       "module__clkdiv",
       "rtl_gate_evidence_closure"
     ],

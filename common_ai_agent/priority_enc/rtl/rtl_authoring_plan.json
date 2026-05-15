@@ -5,98 +5,7 @@
       "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
       "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority."
     ],
-    "blocked_by_llm_work": [
-      {
-        "gate_kind": "static_rtl_evidence",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "status": "planned",
-        "task_id": "RTL-0007"
-      },
-      {
-        "gate_kind": "owner_logic_structure_evidence",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "status": "planned",
-        "task_id": "RTL-0008"
-      },
-      {
-        "gate_kind": "rtl_placeholder_free_evidence",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "status": "planned",
-        "task_id": "RTL-0009"
-      },
-      {
-        "gate_kind": "top_io_contract_evidence",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "status": "planned",
-        "task_id": "RTL-0010"
-      },
-      {
-        "gate_kind": "top_output_drive_evidence",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "status": "planned",
-        "task_id": "RTL-0011"
-      },
-      {
-        "gate_kind": "top_input_consumption_evidence",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "status": "planned",
-        "task_id": "RTL-0012"
-      },
-      {
-        "gate_kind": "manifest_hierarchy_integration",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "status": "planned",
-        "task_id": "RTL-0013"
-      },
-      {
-        "gate_kind": "manifest_port_connection_evidence",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_port_connection_evidence",
-        "status": "planned",
-        "task_id": "RTL-0014"
-      },
-      {
-        "gate_kind": "manifest_signal_flow_evidence",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "status": "planned",
-        "task_id": "RTL-0015"
-      },
-      {
-        "gate_kind": "rtl_implementation_depth_evidence",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
-        "status": "planned",
-        "task_id": "RTL-0022"
-      }
-    ],
+    "blocked_by_llm_work": [],
     "blocked_by_locked_truth": [
       {
         "gate_kind": "manifest_connection_contract_evidence",
@@ -268,66 +177,39 @@
         "status": "missing"
       },
       {
-        "gate_kind": "ssot_required_sections",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
-        "status": "planned",
-        "task_id": "RTL-0003"
-      },
-      {
-        "gate_kind": "ssot_workflow_todo_format",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
-        "status": "planned",
-        "task_id": "RTL-0004"
-      },
-      {
         "gate_kind": "owner_traceability",
         "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
+        "reason": "4 required SSOT-derived RTL task(s) still have no owner module.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.owner_traceability",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0005"
       },
       {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0020"
-      },
-      {
-        "gate_kind": "target_scale_policy",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.target_scale",
-        "status": "planned",
-        "task_id": "RTL-0021"
       },
       {
         "gate_kind": "cycle_model_artifacts",
         "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing executable cycle model: model/cycle_model.py.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0023"
       },
       {
         "gate_kind": "manifest_connection_contract_evidence",
         "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
+        "reason": "1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0016"
       }
     ],
@@ -335,64 +217,46 @@
       {
         "gate_kind": "common_ai_agent_authoring",
         "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0006"
-      },
-      {
-        "gate_kind": "dut_compile",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "planned",
-        "task_id": "RTL-0017"
-      },
-      {
-        "gate_kind": "dut_lint",
-        "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "planned",
-        "task_id": "RTL-0018"
       },
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
+        "reason": "12 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0019"
       },
       {
         "gate_kind": "protocol_assertion_evidence",
         "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0024"
       },
       {
         "gate_kind": "fl_rtl_goal_audit",
         "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0025"
       },
       {
         "gate_kind": "coverage_closure",
         "owner_module": "priority_enc",
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing coverage closure artifact: cov/coverage.json.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0026"
       }
     ],
@@ -596,9 +460,18 @@
         "source": "orphan_task",
         "source_ref": "fsm.encoder_fsm.transitions.transition_1",
         "task_id": "RTL-0087"
+      },
+      {
+        "gate_kind": "owner_traceability",
+        "owner_module": "priority_enc",
+        "reason": "4 required SSOT-derived RTL task(s) still have no owner module.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.owner_traceability",
+        "status": "open",
+        "task_id": "RTL-0005"
       }
     ],
-    "open_required_todos": 108,
+    "open_required_todos": 13,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -622,60 +495,13 @@
         "prerequisites": [
           "An LLM authoring pass emitted or repaired DUT RTL files."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "stage_sequence": [
           "ssot-rtl"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0006"
-      },
-      {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "priority_enc/rtl/rtl_compile.json",
-          "priority_enc/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py priority_enc --top priority_enc --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "priority_enc/list/priority_enc.f covers the current DUT RTL sources."
-        ],
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "planned",
-        "task_id": "RTL-0017"
-      },
-      {
-        "artifact": "lint/dut_lint.json",
-        "artifacts": [
-          "priority_enc/lint/dut_lint.json"
-        ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-        "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py priority_enc --top priority_enc",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_lint",
-        "prerequisites": [
-          "priority_enc/list/priority_enc.f covers the current DUT RTL/header sources."
-        ],
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "stage_sequence": [
-          "lint",
-          "dut_lint"
-        ],
-        "status": "planned",
-        "task_id": "RTL-0018"
       },
       {
         "artifact": "rtl/rtl_todo_plan.json",
@@ -691,12 +517,12 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "12 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0019"
       },
       {
@@ -716,13 +542,13 @@
           "SSOT cycle_model/protocol rules are machine-checkable.",
           "Simulation has run after RTL edits."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "stage_sequence": [
           "ssot-protocol-assertions",
           "sim"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0024"
       },
       {
@@ -739,7 +565,7 @@
         "prerequisites": [
           "FL model, equivalence goals, TB, and simulation evidence are current."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "stage_sequence": [
           "ssot-fl-model",
@@ -748,7 +574,7 @@
           "sim",
           "goal-audit"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0025"
       },
       {
@@ -765,13 +591,13 @@
         "prerequisites": [
           "Simulation evidence exists and planned coverage bins are observable."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing coverage closure artifact: cov/coverage.json.",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "stage_sequence": [
           "sim",
           "coverage"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0026"
       }
     ]
@@ -790,8 +616,422 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 12,
-        "open_required_count": 12,
+        "llm_actionable_open_count": 4,
+        "open_required_count": 4,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/unowned_tasks.json",
+      "kind": "unowned",
+      "markdown": "rtl/authoring_packets/unowned_tasks.md",
+      "owner_file": "",
+      "owner_module": "",
+      "packet_id": "unowned_tasks",
+      "summary": {
+        "categories": {
+          "fsm.state": 2,
+          "fsm.transition": 2
+        },
+        "module_slice": {},
+        "open_required_count": 4,
+        "required_count": 4,
+        "source_refs": [
+          "fsm.encoder_fsm.states.state_0",
+          "fsm.encoder_fsm.states.state_1",
+          "fsm.encoder_fsm.transitions.transition_0",
+          "fsm.encoder_fsm.transitions.transition_1"
+        ],
+        "status_counts": {
+          "open": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [
+          {
+            "gate_kind": "manifest_connection_contract_evidence",
+            "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+            "source": "ssot_connection_contracts",
+            "status": "missing"
+          },
+          {
+            "gate_kind": "manifest_connection_contract_evidence",
+            "owner_module": "priority_enc",
+            "reason": "1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+            "status": "open",
+            "task_id": "RTL-0016"
+          }
+        ],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 1,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 2,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/rtl_gate_contract_blocked.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_contract_blocked.md",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "packet_id": "rtl_gate_contract_blocked",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 1
+        },
+        "module_slice": {},
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [
+          {
+            "gate_kind": "manifest_connection_contract_evidence",
+            "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+            "source": "ssot_connection_contracts",
+            "status": "missing"
+          },
+          {
+            "gate_kind": "owner_traceability",
+            "owner_module": "priority_enc",
+            "reason": "4 required SSOT-derived RTL task(s) still have no owner module.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.owner_traceability",
+            "status": "open",
+            "task_id": "RTL-0005"
+          },
+          {
+            "gate_kind": "golden_authority_artifacts",
+            "owner_module": "priority_enc",
+            "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+            "status": "open",
+            "task_id": "RTL-0020"
+          },
+          {
+            "gate_kind": "cycle_model_artifacts",
+            "owner_module": "priority_enc",
+            "reason": "Missing executable cycle model: model/cycle_model.py.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
+            "status": "open",
+            "task_id": "RTL-0023"
+          }
+        ],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 4,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 3,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "packet_id": "rtl_gate_human_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 6
+        },
+        "module_slice": {},
+        "open_required_count": 3,
+        "required_count": 6,
+        "source_refs": [
+          "quality_gates.rtl_gen.ssot_required_sections",
+          "quality_gates.rtl_gen.workflow_todo_contract",
+          "quality_gates.rtl_gen.owner_traceability",
+          "quality_gates.rtl_gen.golden_authority_artifacts",
+          "quality_gates.rtl_gen.target_scale",
+          "quality_gates.rtl_gen.cycle_model_artifacts"
+        ],
+        "status_counts": {
+          "open": 3,
+          "pass": 3
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [
+          {
+            "gate_kind": "common_ai_agent_authoring",
+            "owner_module": "priority_enc",
+            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "gate_kind": "dynamic_todo_closure",
+            "owner_module": "priority_enc",
+            "reason": "12 required non-closure TODO(s) remain open.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "status": "open",
+            "task_id": "RTL-0019"
+          },
+          {
+            "gate_kind": "protocol_assertion_evidence",
+            "owner_module": "priority_enc",
+            "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+            "status": "open",
+            "task_id": "RTL-0024"
+          },
+          {
+            "gate_kind": "fl_rtl_goal_audit",
+            "owner_module": "priority_enc",
+            "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+            "status": "open",
+            "task_id": "RTL-0025"
+          },
+          {
+            "gate_kind": "coverage_closure",
+            "owner_module": "priority_enc",
+            "reason": "Missing coverage closure artifact: cov/coverage.json.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.coverage_closure",
+            "status": "open",
+            "task_id": "RTL-0026"
+          }
+        ],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 5,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 5,
+        "tool_evidence_plan": [
+          {
+            "artifact": "rtl/rtl_authoring_provenance.json",
+            "artifacts": [
+              "priority_enc/rtl/rtl_authoring_provenance.json",
+              "priority_enc/rtl/rtl_todo_plan.json"
+            ],
+            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+            "commands": [
+              "python3 src/headless_workflow.py --root . --ip priority_enc --stages rtl-gen",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
+            ],
+            "gate_kind": "common_ai_agent_authoring",
+            "prerequisites": [
+              "An LLM authoring pass emitted or repaired DUT RTL files."
+            ],
+            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "stage_sequence": [
+              "ssot-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "artifact": "rtl/rtl_todo_plan.json",
+            "artifacts": [
+              "priority_enc/rtl/rtl_todo_plan.json",
+              "priority_enc/rtl/rtl_authoring_status.md"
+            ],
+            "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
+            ],
+            "gate_kind": "dynamic_todo_closure",
+            "prerequisites": [
+              "All non-closure required TODOs have pass status."
+            ],
+            "reason": "12 required non-closure TODO(s) remain open.",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "stage_sequence": [
+              "audit-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0019"
+          },
+          {
+            "artifact": "verify/protocol_assertions.sva",
+            "artifacts": [
+              "priority_enc/verify/protocol_assertions.sva",
+              "priority_enc/verify/protocol_assertions.summary.json",
+              "priority_enc/sim/assertion_failures.jsonl"
+            ],
+            "closure_rule": "Generated assertions exist and latest simulation has zero assertion failure records.",
+            "commands": [
+              "python3 workflow/fl-model-gen/scripts/emit_protocol_assertions.py priority_enc --root .",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
+            ],
+            "gate_kind": "protocol_assertion_evidence",
+            "prerequisites": [
+              "SSOT cycle_model/protocol rules are machine-checkable.",
+              "Simulation has run after RTL edits."
+            ],
+            "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+            "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+            "stage_sequence": [
+              "ssot-protocol-assertions",
+              "sim"
+            ],
+            "status": "open",
+            "task_id": "RTL-0024"
+          },
+          {
+            "artifact": "sim/fl_rtl_goal_audit.json",
+            "artifacts": [
+              "priority_enc/sim/fl_rtl_goal_audit.json"
+            ],
+            "closure_rule": "fl_rtl_goal_audit.json must be fresh and status=pass.",
+            "commands": [
+              "python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py priority_enc --root .",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
+            ],
+            "gate_kind": "fl_rtl_goal_audit",
+            "prerequisites": [
+              "FL model, equivalence goals, TB, and simulation evidence are current."
+            ],
+            "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+            "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+            "stage_sequence": [
+              "ssot-fl-model",
+              "ssot-equiv-goals",
+              "ssot-tb-cocotb",
+              "sim",
+              "goal-audit"
+            ],
+            "status": "open",
+            "task_id": "RTL-0025"
+          },
+          {
+            "artifact": "cov/coverage.json",
+            "artifacts": [
+              "priority_enc/cov/coverage.json"
+            ],
+            "closure_rule": "coverage.json must be fresh, come from ssot_coverage_summary, and close every planned required bin.",
+            "commands": [
+              "python3 workflow/coverage/scripts/ssot_coverage_summary.py priority_enc",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
+            ],
+            "gate_kind": "coverage_closure",
+            "prerequisites": [
+              "Simulation evidence exists and planned coverage bins are observable."
+            ],
+            "reason": "Missing coverage closure artifact: cov/coverage.json.",
+            "source_ref": "quality_gates.rtl_gen.coverage_closure",
+            "stage_sequence": [
+              "sim",
+              "coverage"
+            ],
+            "status": "open",
+            "task_id": "RTL-0026"
+          }
+        ],
+        "work_allowed": false
+      },
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "packet_id": "rtl_gate_tool_evidence",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 7
+        },
+        "module_slice": {},
+        "open_required_count": 5,
+        "required_count": 7,
+        "source_refs": [
+          "quality_gates.rtl_gen.common_ai_agent_authoring",
+          "quality_gates.rtl_gen.dut_compile",
+          "quality_gates.rtl_gen.dut_lint",
+          "quality_gates.rtl_gen.dynamic_todo_closure",
+          "quality_gates.rtl_gen.protocol_assertion_evidence",
+          "quality_gates.rtl_gen.fl_rtl_goal_audit",
+          "quality_gates.rtl_gen.coverage_closure"
+        ],
+        "status_counts": {
+          "open": 5,
+          "pass": 2
+        },
+        "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -823,7 +1063,7 @@
           "module_task_count": 12,
           "task_limit": 48
         },
-        "open_required_count": 12,
+        "open_required_count": 0,
         "required_count": 12,
         "source_refs": [
           "workflow_todos.rtl-gen[0]",
@@ -840,7 +1080,7 @@
           "sub_modules.priority_enc_regs.module_equivalence"
         ],
         "status_counts": {
-          "planned": 12
+          "pass": 12
         },
         "task_count": 12
       }
@@ -855,9 +1095,9 @@
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 29,
-        "open_required_count": 29,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -904,7 +1144,7 @@
           "module_task_count": 29,
           "task_limit": 48
         },
-        "open_required_count": 29,
+        "open_required_count": 0,
         "required_count": 29,
         "source_refs": [
           "workflow_todos.rtl-gen[1]",
@@ -933,7 +1173,7 @@
           "cycle_model.pipeline.S1_REG"
         ],
         "status_counts": {
-          "planned": 29
+          "pass": 29
         },
         "task_count": 29
       }
@@ -948,9 +1188,9 @@
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": false,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 39,
-        "open_required_count": 39,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -990,7 +1230,7 @@
           "module_task_count": 39,
           "task_limit": 48
         },
-        "open_required_count": 39,
+        "open_required_count": 0,
         "required_count": 39,
         "source_refs": [
           "top_module",
@@ -1019,7 +1259,7 @@
           "io_list.interfaces.priority_outputs.ports.valid_out"
         ],
         "status_counts": {
-          "planned": 39
+          "pass": 39
         },
         "task_count": 39
       }
@@ -1033,59 +1273,10 @@
         "draft_allowed": false,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 4,
-        "open_required_count": 4,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/unowned_tasks.json",
-      "kind": "unowned",
-      "markdown": "rtl/authoring_packets/unowned_tasks.md",
-      "owner_file": "",
-      "owner_module": "",
-      "packet_id": "unowned_tasks",
-      "summary": {
-        "categories": {
-          "fsm.state": 2,
-          "fsm.transition": 2
-        },
-        "module_slice": {},
-        "open_required_count": 4,
-        "required_count": 4,
-        "source_refs": [
-          "fsm.encoder_fsm.states.state_0",
-          "fsm.encoder_fsm.states.state_1",
-          "fsm.encoder_fsm.transitions.transition_0",
-          "fsm.encoder_fsm.transitions.transition_1"
-        ],
-        "status_counts": {
-          "planned": 4
-        },
-        "task_count": 4
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
         "integration_signoff_allowed": false,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 10,
-        "open_required_count": 10,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1107,7 +1298,7 @@
           "rtl_gate.rtl_gen": 10
         },
         "module_slice": {},
-        "open_required_count": 10,
+        "open_required_count": 0,
         "required_count": 10,
         "source_refs": [
           "quality_gates.rtl_gen.static_rtl_evidence",
@@ -1122,464 +1313,9 @@
           "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
         ],
         "status_counts": {
-          "planned": 10
+          "pass": 10
         },
         "task_count": 10
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [
-          {
-            "gate_kind": "manifest_connection_contract_evidence",
-            "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
-            "source": "ssot_connection_contracts",
-            "status": "missing"
-          },
-          {
-            "gate_kind": "manifest_connection_contract_evidence",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-            "status": "planned",
-            "task_id": "RTL-0016"
-          }
-        ],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 1,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 2,
-        "integration_signoff_allowed": false,
-        "llm_actionable": false,
-        "llm_actionable_open_count": 0,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/rtl_gate_contract_blocked.json",
-      "kind": "gate",
-      "markdown": "rtl/authoring_packets/rtl_gate_contract_blocked.md",
-      "owner_file": "rtl/priority_enc.sv",
-      "owner_module": "priority_enc",
-      "packet_id": "rtl_gate_contract_blocked",
-      "summary": {
-        "categories": {
-          "rtl_gate.rtl_gen": 1
-        },
-        "module_slice": {},
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "quality_gates.rtl_gen.manifest_connection_contract_evidence"
-        ],
-        "status_counts": {
-          "planned": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [
-          {
-            "gate_kind": "manifest_connection_contract_evidence",
-            "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
-            "source": "ssot_connection_contracts",
-            "status": "missing"
-          },
-          {
-            "gate_kind": "ssot_required_sections",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
-            "status": "planned",
-            "task_id": "RTL-0003"
-          },
-          {
-            "gate_kind": "ssot_workflow_todo_format",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
-            "status": "planned",
-            "task_id": "RTL-0004"
-          },
-          {
-            "gate_kind": "owner_traceability",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.owner_traceability",
-            "status": "planned",
-            "task_id": "RTL-0005"
-          },
-          {
-            "gate_kind": "golden_authority_artifacts",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
-            "status": "planned",
-            "task_id": "RTL-0020"
-          },
-          {
-            "gate_kind": "target_scale_policy",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.target_scale",
-            "status": "planned",
-            "task_id": "RTL-0021"
-          },
-          {
-            "gate_kind": "cycle_model_artifacts",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-            "status": "planned",
-            "task_id": "RTL-0023"
-          }
-        ],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 7,
-        "integration_signoff_allowed": false,
-        "llm_actionable": false,
-        "llm_actionable_open_count": 0,
-        "open_required_count": 6,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
-      "kind": "gate",
-      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
-      "owner_file": "rtl/priority_enc.sv",
-      "owner_module": "priority_enc",
-      "packet_id": "rtl_gate_human_closure",
-      "summary": {
-        "categories": {
-          "rtl_gate.rtl_gen": 6
-        },
-        "module_slice": {},
-        "open_required_count": 6,
-        "required_count": 6,
-        "source_refs": [
-          "quality_gates.rtl_gen.ssot_required_sections",
-          "quality_gates.rtl_gen.workflow_todo_contract",
-          "quality_gates.rtl_gen.owner_traceability",
-          "quality_gates.rtl_gen.golden_authority_artifacts",
-          "quality_gates.rtl_gen.target_scale",
-          "quality_gates.rtl_gen.cycle_model_artifacts"
-        ],
-        "status_counts": {
-          "planned": 6
-        },
-        "task_count": 6
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [
-          {
-            "gate_kind": "common_ai_agent_authoring",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "status": "planned",
-            "task_id": "RTL-0006"
-          },
-          {
-            "gate_kind": "dut_compile",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "status": "planned",
-            "task_id": "RTL-0017"
-          },
-          {
-            "gate_kind": "dut_lint",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "status": "planned",
-            "task_id": "RTL-0018"
-          },
-          {
-            "gate_kind": "dynamic_todo_closure",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-            "status": "planned",
-            "task_id": "RTL-0019"
-          },
-          {
-            "gate_kind": "protocol_assertion_evidence",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
-            "status": "planned",
-            "task_id": "RTL-0024"
-          },
-          {
-            "gate_kind": "fl_rtl_goal_audit",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
-            "status": "planned",
-            "task_id": "RTL-0025"
-          },
-          {
-            "gate_kind": "coverage_closure",
-            "owner_module": "priority_enc",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.coverage_closure",
-            "status": "planned",
-            "task_id": "RTL-0026"
-          }
-        ],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": false,
-        "llm_actionable": false,
-        "llm_actionable_open_count": 0,
-        "open_required_count": 7,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 7,
-        "tool_evidence_plan": [
-          {
-            "artifact": "rtl/rtl_authoring_provenance.json",
-            "artifacts": [
-              "priority_enc/rtl/rtl_authoring_provenance.json",
-              "priority_enc/rtl/rtl_todo_plan.json"
-            ],
-            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-            "commands": [
-              "python3 src/headless_workflow.py --root . --ip priority_enc --stages rtl-gen",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
-            ],
-            "gate_kind": "common_ai_agent_authoring",
-            "prerequisites": [
-              "An LLM authoring pass emitted or repaired DUT RTL files."
-            ],
-            "reason": "RTL audit has not run yet.",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "stage_sequence": [
-              "ssot-rtl"
-            ],
-            "status": "planned",
-            "task_id": "RTL-0006"
-          },
-          {
-            "artifact": "rtl/rtl_compile.json",
-            "artifacts": [
-              "priority_enc/rtl/rtl_compile.json",
-              "priority_enc/rtl/rtl_compile.log"
-            ],
-            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-            "commands": [
-              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py priority_enc --top priority_enc --project-root .",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_compile",
-            "prerequisites": [
-              "priority_enc/list/priority_enc.f covers the current DUT RTL sources."
-            ],
-            "reason": "RTL audit has not run yet.",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "stage_sequence": [
-              "ssot-rtl",
-              "dut_compile"
-            ],
-            "status": "planned",
-            "task_id": "RTL-0017"
-          },
-          {
-            "artifact": "lint/dut_lint.json",
-            "artifacts": [
-              "priority_enc/lint/dut_lint.json"
-            ],
-            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-            "commands": [
-              "python3 workflow/lint/scripts/dut_lint_report.py priority_enc --top priority_enc",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_lint",
-            "prerequisites": [
-              "priority_enc/list/priority_enc.f covers the current DUT RTL/header sources."
-            ],
-            "reason": "RTL audit has not run yet.",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "stage_sequence": [
-              "lint",
-              "dut_lint"
-            ],
-            "status": "planned",
-            "task_id": "RTL-0018"
-          },
-          {
-            "artifact": "rtl/rtl_todo_plan.json",
-            "artifacts": [
-              "priority_enc/rtl/rtl_todo_plan.json",
-              "priority_enc/rtl/rtl_authoring_status.md"
-            ],
-            "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
-            "commands": [
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
-            ],
-            "gate_kind": "dynamic_todo_closure",
-            "prerequisites": [
-              "All non-closure required TODOs have pass status."
-            ],
-            "reason": "RTL audit has not run yet.",
-            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-            "stage_sequence": [
-              "audit-rtl"
-            ],
-            "status": "planned",
-            "task_id": "RTL-0019"
-          },
-          {
-            "artifact": "verify/protocol_assertions.sva",
-            "artifacts": [
-              "priority_enc/verify/protocol_assertions.sva",
-              "priority_enc/verify/protocol_assertions.summary.json",
-              "priority_enc/sim/assertion_failures.jsonl"
-            ],
-            "closure_rule": "Generated assertions exist and latest simulation has zero assertion failure records.",
-            "commands": [
-              "python3 workflow/fl-model-gen/scripts/emit_protocol_assertions.py priority_enc --root .",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
-            ],
-            "gate_kind": "protocol_assertion_evidence",
-            "prerequisites": [
-              "SSOT cycle_model/protocol rules are machine-checkable.",
-              "Simulation has run after RTL edits."
-            ],
-            "reason": "RTL audit has not run yet.",
-            "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
-            "stage_sequence": [
-              "ssot-protocol-assertions",
-              "sim"
-            ],
-            "status": "planned",
-            "task_id": "RTL-0024"
-          },
-          {
-            "artifact": "sim/fl_rtl_goal_audit.json",
-            "artifacts": [
-              "priority_enc/sim/fl_rtl_goal_audit.json"
-            ],
-            "closure_rule": "fl_rtl_goal_audit.json must be fresh and status=pass.",
-            "commands": [
-              "python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py priority_enc --root .",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
-            ],
-            "gate_kind": "fl_rtl_goal_audit",
-            "prerequisites": [
-              "FL model, equivalence goals, TB, and simulation evidence are current."
-            ],
-            "reason": "RTL audit has not run yet.",
-            "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
-            "stage_sequence": [
-              "ssot-fl-model",
-              "ssot-equiv-goals",
-              "ssot-tb-cocotb",
-              "sim",
-              "goal-audit"
-            ],
-            "status": "planned",
-            "task_id": "RTL-0025"
-          },
-          {
-            "artifact": "cov/coverage.json",
-            "artifacts": [
-              "priority_enc/cov/coverage.json"
-            ],
-            "closure_rule": "coverage.json must be fresh, come from ssot_coverage_summary, and close every planned required bin.",
-            "commands": [
-              "python3 workflow/coverage/scripts/ssot_coverage_summary.py priority_enc",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
-            ],
-            "gate_kind": "coverage_closure",
-            "prerequisites": [
-              "Simulation evidence exists and planned coverage bins are observable."
-            ],
-            "reason": "RTL audit has not run yet.",
-            "source_ref": "quality_gates.rtl_gen.coverage_closure",
-            "stage_sequence": [
-              "sim",
-              "coverage"
-            ],
-            "status": "planned",
-            "task_id": "RTL-0026"
-          }
-        ],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
-      "kind": "gate",
-      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
-      "owner_file": "rtl/priority_enc.sv",
-      "owner_module": "priority_enc",
-      "packet_id": "rtl_gate_tool_evidence",
-      "summary": {
-        "categories": {
-          "rtl_gate.rtl_gen": 7
-        },
-        "module_slice": {},
-        "open_required_count": 7,
-        "required_count": 7,
-        "source_refs": [
-          "quality_gates.rtl_gen.common_ai_agent_authoring",
-          "quality_gates.rtl_gen.dut_compile",
-          "quality_gates.rtl_gen.dut_lint",
-          "quality_gates.rtl_gen.dynamic_todo_closure",
-          "quality_gates.rtl_gen.protocol_assertion_evidence",
-          "quality_gates.rtl_gen.fl_rtl_goal_audit",
-          "quality_gates.rtl_gen.coverage_closure"
-        ],
-        "status_counts": {
-          "planned": 7
-        },
-        "task_count": 7
       }
     }
   ],
@@ -1626,17 +1362,13 @@
     "deferred_human_qa_allowed": false,
     "gate_packets": 4,
     "human_locked_packets": 2,
-    "human_locked_tasks": 9,
-    "llm_actionable_packets": 5,
-    "llm_actionable_tasks": 94,
+    "human_locked_tasks": 6,
+    "llm_actionable_packets": 1,
+    "llm_actionable_tasks": 4,
     "max_packet_required_tasks": 39,
     "module_packets": 3,
     "next_llm_packets": [
-      "module__priority_enc_regs",
-      "module__priority_enc_core",
-      "module__priority_enc",
-      "unowned_tasks",
-      "rtl_gate_evidence_closure"
+      "unowned_tasks"
     ],
     "packet_task_limit": 48,
     "packets": 8,
@@ -1649,7 +1381,7 @@
     "sliced_module_packets": 0,
     "target_scale_present": true,
     "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 7,
+    "tool_evidence_tasks": 5,
     "total_tasks": 108,
     "unowned_packets": 1
   },

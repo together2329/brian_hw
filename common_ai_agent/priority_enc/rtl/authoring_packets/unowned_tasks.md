@@ -35,13 +35,13 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.encoder_fsm.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.encoder_fsm.states.state_0.
 SSOT item context: value=IDLE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task has no RTL owner file.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -54,13 +54,13 @@ SSOT item context: value=IDLE.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.encoder_fsm.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.encoder_fsm.states.state_1.
 SSOT item context: value=ACTIVE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task has no RTL owner file.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -73,13 +73,13 @@ SSOT item context: value=ACTIVE.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.encoder_fsm.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.encoder_fsm.transitions.transition_0.
 SSOT item context: from=IDLE; to=ACTIVE; condition=CTRL.enable == 1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task has no RTL owner file.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -93,13 +93,13 @@ SSOT item context: from=IDLE; to=ACTIVE; condition=CTRL.enable == 1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.encoder_fsm.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.encoder_fsm.transitions.transition_1.
 SSOT item context: from=ACTIVE; to=IDLE; condition=CTRL.enable == 0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task has no RTL owner file.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented

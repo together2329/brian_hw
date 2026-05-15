@@ -68,7 +68,7 @@ sub_modules:
   - function_model
   - cycle_model
   function_model_refs:
-  - function_model.transactions
+  - function_model.transactions.output_rules
   decomposition_refs:
   - decomposition.units.flag_generation
   cycle_model_refs:

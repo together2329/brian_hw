@@ -1,7 +1,8 @@
 {
-  "current_stage": "rtl-gen",
+  "log_stage": "rtl-gen-packet-00-module__clkdiv_regs",
   "model": "glm-5.1",
-  "phase": "stage",
+  "phase": "llm_call",
+  "stage": "rtl-gen",
   "state": "running",
-  "ts": "2026-05-15T02:24:32Z"
+  "ts": "2026-05-15T02:25:11Z"
 }

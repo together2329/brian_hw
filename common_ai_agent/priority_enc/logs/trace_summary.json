@@ -1,0 +1,26 @@
+{
+  "blocked_at_stage": "rtl-gen",
+  "ip": "priority_enc",
+  "llm": {
+    "by_stage": {},
+    "totals": {
+      "cache_read_tokens": 0,
+      "calls": 0,
+      "cost_usd": 0.0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "repair_calls": 0,
+      "repair_rate": 0.0,
+      "total_tokens": 0
+    }
+  },
+  "llm_log_files": 0,
+  "run_status": "blocked",
+  "stage_engine_order": [
+    {
+      "created_at": "2026-05-15T02:25:13Z",
+      "stage_engine": "ssot-rtl",
+      "status": "human_gate"
+    }
+  ]
+}

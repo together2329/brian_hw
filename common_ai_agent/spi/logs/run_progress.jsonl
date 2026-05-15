@@ -9,3 +9,7 @@
 {"event": "llm_call_start", "log_stage": "ssot-gen-repair-2", "model": "gpt-5.3-codex", "stage": "ssot-gen", "ts": "2026-05-14T05:30:13Z"}
 {"event": "run_start", "model": "glm-5.1", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["rtl-gen", "tb-cocotb", "sim", "sim-debug", "lint"], "target_ip": "spi", "ts": "2026-05-15T02:24:22Z"}
 {"event": "stage_start", "stage": "rtl-gen", "ts": "2026-05-15T02:24:22Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-00-module__spi_clkgen", "model": "glm-5.1", "stage": "rtl-gen", "ts": "2026-05-15T02:25:19Z"}
+{"elapsed_sec": 0.002, "error": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "event": "llm_call_end", "log_stage": "rtl-gen-packet-00-module__spi_clkgen", "model": "glm-5.1", "stage": "rtl-gen", "status": "blocked", "ts": "2026-05-15T02:25:19Z"}
+{"event": "stage_end", "message": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "stage": "rtl-gen", "status": "blocked", "ts": "2026-05-15T02:25:19Z"}
+{"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/spi/logs/headless_run.json", "status": "blocked", "ts": "2026-05-15T02:25:19Z"}

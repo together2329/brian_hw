@@ -42,7 +42,7 @@
   - priority_enc_regs.PSLVERR <= PSLVERR (observed_named_port_map)
 - Locked-truth blockers:
   - manifest_connection_contract_evidence: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
-  - manifest_connection_contract_evidence: RTL audit has not run yet.
+  - manifest_connection_contract_evidence: 1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts
 - SSOT top IO contracts: 13
 
 ## Tasks
@@ -51,13 +51,13 @@
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: 1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port
