@@ -31,7 +31,7 @@
   - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
   - dut_compile: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
   - dut_lint: Missing canonical DUT lint artifact: lint/dut_lint.json.
-  - dynamic_todo_closure: 123 required non-closure TODO(s) remain open.
+  - dynamic_todo_closure: 71 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
   - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
@@ -136,7 +136,7 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: 123 required non-closure TODO(s) remain open.
+- Current reason: 71 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

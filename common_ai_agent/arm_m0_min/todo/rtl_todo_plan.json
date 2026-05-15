@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 124,
+    "open_required_todos": 72,
     "orphan_tasks": 0,
-    "static_missing": 28,
+    "static_missing": 18,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T09:50:15Z",
+  "generated_at": "2026-05-15T09:52:08Z",
   "ip": "arm_m0_min",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 12,
@@ -83,43 +83,43 @@
         "source_ref": "integration.connections[4]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "arm_m0_min_ex",
         "port": "d_haddr",
         "source_ref": "integration.connections[5]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "arm_m0_min_ex",
         "port": "d_htrans",
         "source_ref": "integration.connections[6]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "arm_m0_min_ex",
         "port": "d_hwrite",
         "source_ref": "integration.connections[7]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "arm_m0_min_ex",
         "port": "d_hwdata",
         "source_ref": "integration.connections[8]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "arm_m0_min_ex",
         "port": "d_hready",
         "source_ref": "integration.connections[9]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "arm_m0_min_ex",
         "port": "d_hrdata",
         "source_ref": "integration.connections[10]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "module": "arm_m0_min_ex",
         "port": "d_hresp",
         "source_ref": "integration.connections[11]"
@@ -129,14 +129,24 @@
     "declared_modules": [
       "arm_m0_min_alu",
       "arm_m0_min_branch",
+      "arm_m0_min_ex",
+      "arm_m0_min_id",
       "arm_m0_min_if",
-      "arm_m0_min_mem_if"
+      "arm_m0_min_mem_if",
+      "arm_m0_min_rf"
     ],
     "graph": {
       "arm_m0_min_alu": [],
       "arm_m0_min_branch": [],
+      "arm_m0_min_ex": [
+        "arm_m0_min_alu",
+        "arm_m0_min_branch",
+        "arm_m0_min_mem_if"
+      ],
+      "arm_m0_min_id": [],
       "arm_m0_min_if": [],
-      "arm_m0_min_mem_if": []
+      "arm_m0_min_mem_if": [],
+      "arm_m0_min_rf": []
     },
     "issues": [
       {
@@ -151,17 +161,17 @@
       },
       {
         "file": "rtl/arm_m0_min_id.sv",
-        "issue": "SSOT manifest child module is not declared in listed RTL sources",
+        "issue": "SSOT manifest child module is declared but not reachable from the top RTL hierarchy",
         "module": "arm_m0_min_id"
       },
       {
         "file": "rtl/arm_m0_min_ex.sv",
-        "issue": "SSOT manifest child module is not declared in listed RTL sources",
+        "issue": "SSOT manifest child module is declared but not reachable from the top RTL hierarchy",
         "module": "arm_m0_min_ex"
       },
       {
         "file": "rtl/arm_m0_min_rf.sv",
-        "issue": "SSOT manifest child module is not declared in listed RTL sources",
+        "issue": "SSOT manifest child module is declared but not reachable from the top RTL hierarchy",
         "module": "arm_m0_min_rf"
       }
     ],
@@ -172,8 +182,11 @@
     "sources": [
       "rtl/arm_m0_min_alu.sv",
       "rtl/arm_m0_min_branch.sv",
+      "rtl/arm_m0_min_ex.sv",
+      "rtl/arm_m0_min_id.sv",
       "rtl/arm_m0_min_if.sv",
-      "rtl/arm_m0_min_mem_if.sv"
+      "rtl/arm_m0_min_mem_if.sv",
+      "rtl/arm_m0_min_rf.sv"
     ],
     "status": "fail"
   },
@@ -194,21 +207,6 @@
   "owner_logic_evidence": {
     "checked": 5,
     "issues": [
-      {
-        "file": "rtl/arm_m0_min_id.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "arm_m0_min_id"
-      },
-      {
-        "file": "rtl/arm_m0_min_ex.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "arm_m0_min_ex"
-      },
-      {
-        "file": "rtl/arm_m0_min_rf.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "arm_m0_min_rf"
-      },
       {
         "file": "rtl/arm_m0_min.sv",
         "issue": "Behavior-owner module is not declared in its owner file",
@@ -234,40 +232,56 @@
   "reference_scale_gap": {},
   "rtl_implementation_depth_evidence": {
     "aggregate": {
-      "behavior_owner_logic_modules": 1,
-      "control_flow": 11,
-      "depth_score": 52,
-      "instances": 0,
-      "lines": 162,
-      "logic_modules": 4,
-      "modules": 4,
-      "nonconstant_assigns": 11,
-      "procedural_blocks": 3,
-      "source_files": 4,
-      "state_updates": 7,
-      "storage_decls": 7
+      "behavior_owner_logic_modules": 4,
+      "control_flow": 39,
+      "depth_score": 207,
+      "instances": 3,
+      "lines": 508,
+      "logic_modules": 7,
+      "modules": 7,
+      "nonconstant_assigns": 12,
+      "procedural_blocks": 10,
+      "source_files": 7,
+      "state_updates": 44,
+      "storage_decls": 32
     },
     "issues": [
       {
-        "actual": 52,
-        "issue": "Production RTL implementation depth score is below the SSOT-derived or target-scale threshold",
-        "required": 66,
-        "source": "ssot_derived_threshold"
-      },
-      {
         "actual": 4,
-        "issue": "Too few RTL modules contain implementation structure for the SSOT behavior complexity",
-        "required": 5,
-        "source": "ssot_derived_threshold"
-      },
-      {
-        "actual": 1,
         "issue": "Too few SSOT behavior-owner modules contain implementation-depth evidence",
         "required": 5,
         "source": "ssot_derived_threshold"
       }
     ],
     "modules": [
+      {
+        "depth_score": 95,
+        "file": "rtl/arm_m0_min_rf.sv",
+        "metrics": {
+          "control_flow": 5,
+          "instances": 0,
+          "nonconstant_assigns": 0,
+          "placeholder_tokens": false,
+          "procedural_blocks": 3,
+          "state_updates": 32,
+          "storage_decls": 17
+        },
+        "module": "arm_m0_min_rf"
+      },
+      {
+        "depth_score": 51,
+        "file": "rtl/arm_m0_min_ex.sv",
+        "metrics": {
+          "control_flow": 20,
+          "instances": 3,
+          "nonconstant_assigns": 0,
+          "placeholder_tokens": false,
+          "procedural_blocks": 3,
+          "state_updates": 5,
+          "storage_decls": 6
+        },
+        "module": "arm_m0_min_ex"
+      },
       {
         "depth_score": 27,
         "file": "rtl/arm_m0_min_if.sv",
@@ -311,6 +325,20 @@
         "module": "arm_m0_min_branch"
       },
       {
+        "depth_score": 9,
+        "file": "rtl/arm_m0_min_id.sv",
+        "metrics": {
+          "control_flow": 3,
+          "instances": 0,
+          "nonconstant_assigns": 1,
+          "placeholder_tokens": false,
+          "procedural_blocks": 1,
+          "state_updates": 0,
+          "storage_decls": 2
+        },
+        "module": "arm_m0_min_id"
+      },
+      {
         "depth_score": 7,
         "file": "rtl/arm_m0_min_mem_if.sv",
         "metrics": {
@@ -339,7 +367,7 @@
     }
   },
   "rtl_placeholder_free_evidence": {
-    "checked": 4,
+    "checked": 7,
     "issues": [],
     "status": "pass"
   },
@@ -792,82 +820,8 @@
   ],
   "static_rtl_evidence": {
     "checked": 30,
-    "missing": 28,
+    "missing": 18,
     "missing_tasks": [
-      {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/arm_m0_min_ex.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "RTL_TODO_PIPELINE",
-          "TODO",
-          "arm",
-          "arm_m0_min_ex",
-          "ex",
-          "m0",
-          "min"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[0]",
-        "source_scope": "rtl/arm_m0_min_ex.sv",
-        "task_id": "RTL-0027"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/arm_m0_min_id.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "DECODE",
-          "EXEC",
-          "ISA",
-          "RTL_TODO_ISA",
-          "TODO",
-          "TX",
-          "TX_DECODE_EXEC",
-          "arm"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[1]",
-        "source_scope": "rtl/arm_m0_min_id.sv",
-        "task_id": "RTL-0028"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/arm_m0_min_ex.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "FAULT",
-          "RTL_TODO_FAULT",
-          "TODO",
-          "arm",
-          "arm_m0_min_ex",
-          "error_handling",
-          "error_sources",
-          "ex"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[2]",
-        "source_scope": "rtl/arm_m0_min_ex.sv",
-        "task_id": "RTL-0029"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/arm_m0_min_id.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "fault",
-          "fault_halt",
-          "halt"
-        ],
-        "source_ref": "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_0",
-        "source_scope": "rtl/arm_m0_min_id.sv",
-        "task_id": "RTL-0061"
-      },
       {
         "category": "function_model.precondition",
         "matched_count": 0,
@@ -905,8 +859,10 @@
       },
       {
         "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "rs2"
+        ],
         "owner_file": "rtl/arm_m0_min_id.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -919,66 +875,6 @@
         "source_ref": "function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux",
         "source_scope": "rtl/arm_m0_min_id.sv",
         "task_id": "RTL-0069"
-      },
-      {
-        "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/arm_m0_min_ex.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "fault",
-          "fault_halt",
-          "halt"
-        ],
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.preconditions.precondition_0",
-        "source_scope": "rtl/arm_m0_min_ex.sv",
-        "task_id": "RTL-0074"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/arm_m0_min_ex.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "d_haddr",
-          "haddr"
-        ],
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.output_rules.d_haddr_rule",
-        "source_scope": "rtl/arm_m0_min_ex.sv",
-        "task_id": "RTL-0081"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/arm_m0_min_ex.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "d_hwrite",
-          "hwrite",
-          "is_store",
-          "store"
-        ],
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.output_rules.d_hwrite_rule",
-        "source_scope": "rtl/arm_m0_min_ex.sv",
-        "task_id": "RTL-0082"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/arm_m0_min_id.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "fault",
-          "fault_halt",
-          "halt"
-        ],
-        "source_ref": "function_model.invariants.invariant_0",
-        "source_scope": "rtl/arm_m0_min_id.sv",
-        "task_id": "RTL-0085"
       },
       {
         "category": "cycle_model.handshake_rules",
@@ -1079,19 +975,6 @@
         "task_id": "RTL-0107"
       },
       {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/arm_m0_min_id.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "FAULT_HALT"
-        ],
-        "source_ref": "fsm.core.states.state_4",
-        "source_scope": "rtl/arm_m0_min_id.sv",
-        "task_id": "RTL-0108"
-      },
-      {
         "category": "fsm.transition",
         "matched_count": 0,
         "matched_terms": [],
@@ -1174,8 +1057,10 @@
       },
       {
         "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "FAULT_HALT"
+        ],
         "owner_file": "rtl/arm_m0_min_id.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1191,8 +1076,10 @@
       },
       {
         "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "FAULT_HALT"
+        ],
         "owner_file": "rtl/arm_m0_min_id.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1207,8 +1094,10 @@
       },
       {
         "category": "fsm.transition",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "FAULT_HALT"
+        ],
         "owner_file": "rtl/arm_m0_min_id.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1218,29 +1107,17 @@
         "source_ref": "fsm.core.transitions.transition_7",
         "source_scope": "rtl/arm_m0_min_id.sv",
         "task_id": "RTL-0116"
-      },
-      {
-        "category": "error_handling.recovery",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/arm_m0_min_ex.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "fault",
-          "fault_halt",
-          "halt"
-        ],
-        "source_ref": "error_handling.recovery.recovery_0",
-        "source_scope": "rtl/arm_m0_min_ex.sv",
-        "task_id": "RTL-0120"
       }
     ],
-    "passed": 2,
+    "passed": 12,
     "sources": [
       "rtl/arm_m0_min_alu.sv",
       "rtl/arm_m0_min_branch.sv",
+      "rtl/arm_m0_min_ex.sv",
+      "rtl/arm_m0_min_id.sv",
       "rtl/arm_m0_min_if.sv",
-      "rtl/arm_m0_min_mem_if.sv"
+      "rtl/arm_m0_min_mem_if.sv",
+      "rtl/arm_m0_min_rf.sv"
     ]
   },
   "summary": {
@@ -1723,7 +1600,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "28 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "18 static-evidence-required task(s) still lack DUT RTL evidence.",
         "required": true,
         "status": "open"
       }
@@ -1770,7 +1647,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 owner logic structure issue(s) remain. arm_m0_min_id: Behavior-owner module is not declared in its owner file; arm_m0_min_ex: Behavior-owner module is not declared in its owner file; arm_m0_min_rf: Behavior-owner module is not declared in its owner file",
+        "reason": "1 owner logic structure issue(s) remain. arm_m0_min: Behavior-owner module is not declared in its owner file",
         "required": true,
         "status": "open"
       }
@@ -2008,7 +1885,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "5 manifest hierarchy integration issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources; arm_m0_min_if: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; arm_m0_min_id: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "5 manifest hierarchy integration issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources; arm_m0_min_if: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; arm_m0_min_id: SSOT manifest child module is declared but not reachable from the top RTL hierarchy",
         "required": true,
         "status": "open"
       }
@@ -2295,7 +2172,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "123 required non-closure TODO(s) remain open.",
+        "reason": "71 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -2444,7 +2321,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=52 required=66; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=4 required=5; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=5",
+        "reason": "1 production RTL implementation-depth issue(s) remain. Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=4 required=5",
         "required": true,
         "status": "open"
       }
@@ -2690,8 +2567,14 @@
         "workflow_todos.rtl-gen[0]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "arm",
+          "arm_m0_min_ex",
+          "ex",
+          "m0",
+          "min"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2705,7 +2588,7 @@
           "min"
         ],
         "source_scope": "rtl/arm_m0_min_ex.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -2715,9 +2598,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_PIPELINE",
@@ -2778,8 +2661,14 @@
         "workflow_todos.rtl-gen[1]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "arm",
+          "arm_m0_min_id",
+          "id",
+          "m0",
+          "min"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2801,7 +2690,7 @@
           "spec"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -2811,9 +2700,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_ISA",
@@ -2871,8 +2760,15 @@
         "workflow_todos.rtl-gen[2]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "FAULT",
+          "arm",
+          "arm_m0_min_ex",
+          "ex",
+          "m0",
+          "min"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2891,7 +2787,7 @@
           "sources"
         ],
         "source_scope": "rtl/arm_m0_min_ex.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -2901,9 +2797,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_FAULT",
@@ -3651,9 +3547,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3698,9 +3594,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3745,9 +3641,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3792,9 +3688,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3839,9 +3735,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3886,9 +3782,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3933,9 +3829,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3980,9 +3876,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4027,9 +3923,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4074,9 +3970,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4121,9 +4017,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4166,9 +4062,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_rf.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4211,9 +4107,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_rf.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4256,9 +4152,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_rf.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4301,9 +4197,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_rf.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4345,9 +4241,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4381,8 +4277,12 @@
         "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4392,7 +4292,7 @@
           "halt"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -4402,9 +4302,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4461,7 +4361,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4504,9 +4404,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4547,9 +4447,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4590,9 +4490,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4633,9 +4533,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4676,9 +4576,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4748,7 +4648,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4793,8 +4693,10 @@
         "function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "rs2"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4816,7 +4718,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4859,9 +4761,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4902,9 +4804,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4946,9 +4848,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4990,9 +4892,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5026,8 +4928,12 @@
         "function_model.transactions.TX_LOAD_STORE.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5037,7 +4943,7 @@
           "halt"
         ],
         "source_scope": "rtl/arm_m0_min_ex.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5047,9 +4953,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5090,9 +4996,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5133,9 +5039,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5176,9 +5082,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5219,9 +5125,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5262,9 +5168,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5305,9 +5211,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5347,8 +5253,11 @@
         "function_model.transactions.TX_LOAD_STORE.output_rules.d_haddr_rule"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "d_haddr",
+          "haddr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5357,7 +5266,7 @@
           "haddr"
         ],
         "source_scope": "rtl/arm_m0_min_ex.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -5367,9 +5276,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5411,8 +5320,12 @@
         "function_model.transactions.TX_LOAD_STORE.output_rules.d_hwrite_rule"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "d_hwrite",
+          "hwrite",
+          "store"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5423,7 +5336,7 @@
           "store"
         ],
         "source_scope": "rtl/arm_m0_min_ex.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -5433,9 +5346,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5476,9 +5389,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5520,9 +5433,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5556,8 +5469,12 @@
         "function_model.invariants.invariant_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5567,7 +5484,7 @@
           "halt"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5577,9 +5494,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5620,9 +5537,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5663,9 +5580,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5791,9 +5708,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6105,9 +6022,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6149,9 +6066,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6193,9 +6110,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6504,7 +6421,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6558,7 +6475,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6612,7 +6529,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6666,7 +6583,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6701,8 +6618,10 @@
         "fsm.core.states.state_4"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "FAULT_HALT"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -6710,7 +6629,7 @@
           "FAULT_HALT"
         ],
         "source_scope": "rtl/arm_m0_min_id.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -6720,9 +6639,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6779,7 +6698,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6842,7 +6761,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6905,7 +6824,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6968,7 +6887,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7037,7 +6956,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7079,8 +6998,10 @@
         "fsm.core.transitions.transition_5"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "FAULT_HALT"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7102,7 +7023,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7143,8 +7064,10 @@
         "fsm.core.transitions.transition_6"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "FAULT_HALT"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7165,7 +7088,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7204,8 +7127,10 @@
         "fsm.core.transitions.transition_7"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "FAULT_HALT"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7224,7 +7149,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7392,8 +7317,12 @@
         "error_handling.recovery.recovery_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7403,7 +7332,7 @@
           "halt"
         ],
         "source_scope": "rtl/arm_m0_min_ex.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7413,9 +7342,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8491,9 +8420,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8534,9 +8463,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8577,9 +8506,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_rf.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8859,7 +8788,7 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 124,
+    "open_required_tasks": 72,
     "open_tasks": [
       {
         "category": "rtl_flow.top",
@@ -8875,13 +8804,13 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "28 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "18 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "task_id": "RTL-0007"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "4 owner logic structure issue(s) remain. arm_m0_min_id: Behavior-owner module is not declared in its owner file; arm_m0_min_ex: Behavior-owner module is not declared in its owner file; arm_m0_min_rf: Behavior-owner module is not declared in its owner file",
+        "reason": "1 owner logic structure issue(s) remain. arm_m0_min: Behavior-owner module is not declared in its owner file",
         "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
         "task_id": "RTL-0008"
       },
@@ -8905,7 +8834,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "5 manifest hierarchy integration issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources; arm_m0_min_if: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; arm_m0_min_id: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "5 manifest hierarchy integration issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources; arm_m0_min_if: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; arm_m0_min_id: SSOT manifest child module is declared but not reachable from the top RTL hierarchy",
         "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
         "task_id": "RTL-0013"
       },
@@ -8935,7 +8864,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "123 required non-closure TODO(s) remain open.",
+        "reason": "71 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -8947,7 +8876,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=52 required=66; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=4 required=5; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=5",
+        "reason": "1 production RTL implementation-depth issue(s) remain. Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=4 required=5",
         "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
         "task_id": "RTL-0022"
       },
@@ -8976,24 +8905,6 @@
         "task_id": "RTL-0026"
       },
       {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "workflow_todos.rtl-gen[0]",
-        "task_id": "RTL-0027"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "workflow_todos.rtl-gen[1]",
-        "task_id": "RTL-0028"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "workflow_todos.rtl-gen[2]",
-        "task_id": "RTL-0029"
-      },
-      {
         "category": "parameters.item",
         "reason": "Owner RTL file is missing: rtl/arm_m0_min.sv.",
         "source_ref": "parameters.XLEN",
@@ -9012,268 +8923,22 @@
         "task_id": "RTL-0032"
       },
       {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "io_list.interfaces.ahb_d_master.ports.d_haddr",
-        "task_id": "RTL-0045"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "io_list.interfaces.ahb_d_master.ports.d_htrans",
-        "task_id": "RTL-0046"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hwrite",
-        "task_id": "RTL-0047"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hsize",
-        "task_id": "RTL-0048"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hburst",
-        "task_id": "RTL-0049"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hprot",
-        "task_id": "RTL-0050"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hmastlock",
-        "task_id": "RTL-0051"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hwdata",
-        "task_id": "RTL-0052"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hready",
-        "task_id": "RTL-0053"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hrdata",
-        "task_id": "RTL-0054"
-      },
-      {
-        "category": "io_list.port",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hresp",
-        "task_id": "RTL-0055"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_rf.sv.",
-        "source_ref": "function_model.state_variables.pc",
-        "task_id": "RTL-0056"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_rf.sv.",
-        "source_ref": "function_model.state_variables.gpr",
-        "task_id": "RTL-0057"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_rf.sv.",
-        "source_ref": "function_model.state_variables.nzcv",
-        "task_id": "RTL-0058"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_rf.sv.",
-        "source_ref": "function_model.state_variables.fault_halt",
-        "task_id": "RTL-0059"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.transactions.TX_DECODE_EXEC",
-        "task_id": "RTL-0060"
-      },
-      {
         "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_0",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_1",
         "task_id": "RTL-0062"
       },
       {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.transactions.TX_DECODE_EXEC.inputs.input_0",
-        "task_id": "RTL-0063"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.transactions.TX_DECODE_EXEC.inputs.input_1",
-        "task_id": "RTL-0064"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.transactions.TX_DECODE_EXEC.outputs.output_0",
-        "task_id": "RTL-0065"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.transactions.TX_DECODE_EXEC.outputs.output_1",
-        "task_id": "RTL-0066"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.transactions.TX_DECODE_EXEC.outputs.output_2",
-        "task_id": "RTL-0067"
-      },
-      {
         "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr",
         "task_id": "RTL-0068"
       },
       {
         "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux",
         "task_id": "RTL-0069"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_0",
-        "task_id": "RTL-0070"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_1",
-        "task_id": "RTL-0071"
-      },
-      {
-        "category": "function_model.error_case",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.transactions.TX_DECODE_EXEC.error_cases.error_case_0",
-        "task_id": "RTL-0072"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE",
-        "task_id": "RTL-0073"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.preconditions.precondition_0",
-        "task_id": "RTL-0074"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.preconditions.precondition_1",
-        "task_id": "RTL-0075"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.inputs.input_0",
-        "task_id": "RTL-0076"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.inputs.input_1",
-        "task_id": "RTL-0077"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.inputs.input_2",
-        "task_id": "RTL-0078"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.outputs.output_0",
-        "task_id": "RTL-0079"
-      },
-      {
-        "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.outputs.output_1",
-        "task_id": "RTL-0080"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.output_rules.d_haddr_rule",
-        "task_id": "RTL-0081"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.output_rules.d_hwrite_rule",
-        "task_id": "RTL-0082"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.side_effects.side_effect_0",
-        "task_id": "RTL-0083"
-      },
-      {
-        "category": "function_model.error_case",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "function_model.transactions.TX_LOAD_STORE.error_cases.error_case_0",
-        "task_id": "RTL-0084"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.invariants.invariant_0",
-        "task_id": "RTL-0085"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.invariants.invariant_1",
-        "task_id": "RTL-0086"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "function_model.invariants.invariant_2",
-        "task_id": "RTL-0087"
-      },
-      {
-        "category": "cycle_model.latency",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "cycle_model.latency",
-        "task_id": "RTL-0090"
       },
       {
         "category": "cycle_model.handshake_rules",
@@ -9286,24 +8951,6 @@
         "reason": "Required RTL static evidence is missing.",
         "source_ref": "cycle_model.handshake_rules.d_hwdata",
         "task_id": "RTL-0093"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "cycle_model.pipeline.EX",
-        "task_id": "RTL-0096"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_0",
-        "task_id": "RTL-0097"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_1",
-        "task_id": "RTL-0098"
       },
       {
         "category": "cycle_model.backpressure",
@@ -9325,79 +8972,73 @@
       },
       {
         "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.states.state_0",
         "task_id": "RTL-0104"
       },
       {
         "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.states.state_1",
         "task_id": "RTL-0105"
       },
       {
         "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.states.state_2",
         "task_id": "RTL-0106"
       },
       {
         "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.states.state_3",
         "task_id": "RTL-0107"
       },
       {
-        "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "fsm.core.states.state_4",
-        "task_id": "RTL-0108"
-      },
-      {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.transitions.transition_0",
         "task_id": "RTL-0109"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.transitions.transition_1",
         "task_id": "RTL-0110"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.transitions.transition_2",
         "task_id": "RTL-0111"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.transitions.transition_3",
         "task_id": "RTL-0112"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.transitions.transition_4",
         "task_id": "RTL-0113"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.transitions.transition_5",
         "task_id": "RTL-0114"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.transitions.transition_6",
         "task_id": "RTL-0115"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.core.transitions.transition_7",
         "task_id": "RTL-0116"
       },
@@ -9418,12 +9059,6 @@
         "reason": "Owner RTL file is missing: rtl/arm_m0_min.sv.",
         "source_ref": "features.Conditional_branch",
         "task_id": "RTL-0119"
-      },
-      {
-        "category": "error_handling.recovery",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "error_handling.recovery.recovery_0",
-        "task_id": "RTL-0120"
       },
       {
         "category": "security.assets",
@@ -9553,24 +9188,6 @@
       },
       {
         "category": "equivalence.module",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_id.sv.",
-        "source_ref": "sub_modules.arm_m0_min_id.module_equivalence",
-        "task_id": "RTL-0143"
-      },
-      {
-        "category": "equivalence.module",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_ex.sv.",
-        "source_ref": "sub_modules.arm_m0_min_ex.module_equivalence",
-        "task_id": "RTL-0144"
-      },
-      {
-        "category": "equivalence.module",
-        "reason": "Owner RTL file is missing: rtl/arm_m0_min_rf.sv.",
-        "source_ref": "sub_modules.arm_m0_min_rf.module_equivalence",
-        "task_id": "RTL-0145"
-      },
-      {
-        "category": "equivalence.module",
         "reason": "Owner RTL file is missing: rtl/arm_m0_min.sv.",
         "source_ref": "sub_modules.arm_m0_min.module_equivalence",
         "task_id": "RTL-0146"
@@ -9606,7 +9223,7 @@
         "task_id": "RTL-0151"
       }
     ],
-    "required_passed": 27,
+    "required_passed": 79,
     "required_total": 151,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

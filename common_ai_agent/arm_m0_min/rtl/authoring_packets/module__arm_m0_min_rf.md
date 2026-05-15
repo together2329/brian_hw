@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 5
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: function_model, function_model.state_variables, register_file, register_file.architecture
 
@@ -34,14 +34,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.pc
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.pc.
 Owner: arm_m0_min_rf in rtl/arm_m0_min_rf.sv via function_model.state_variables.
 SSOT item context: name=pc; reset=0.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_rf.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -55,14 +55,14 @@ SSOT item context: name=pc; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.gpr
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.gpr.
 Owner: arm_m0_min_rf in rtl/arm_m0_min_rf.sv via function_model.state_variables.
 SSOT item context: name=gpr; reset=0.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_rf.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -76,14 +76,14 @@ SSOT item context: name=gpr; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.nzcv
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.nzcv.
 Owner: arm_m0_min_rf in rtl/arm_m0_min_rf.sv via function_model.state_variables.
 SSOT item context: name=nzcv; reset=0.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_rf.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -97,14 +97,14 @@ SSOT item context: name=nzcv; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.fault_halt
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.fault_halt.
 Owner: arm_m0_min_rf in rtl/arm_m0_min_rf.sv via function_model.state_variables.
 SSOT item context: name=fault_halt; reset=0.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_rf.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -118,13 +118,13 @@ SSOT item context: name=fault_halt; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.arm_m0_min_rf.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.arm_m0_min_rf.module_equivalence.
 Owner: arm_m0_min_rf in rtl/arm_m0_min_rf.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_rf.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

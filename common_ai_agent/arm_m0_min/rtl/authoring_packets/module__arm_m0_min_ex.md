@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 31
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.ordering, cycle_model.pipeline, error_handling, error_handling.error_sources, function_model, function_model.transactions.TX_DECODE_EXEC, function_model.transactions.TX_LOAD_STORE, io_list, io_list.interfaces.ahb_d_master
 - SSOT connection contracts:
@@ -42,14 +42,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Translate cycle_model pipeline, ordering, and backpressure rules into concrete stage-valid/stall logic.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_PIPELINE.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Program-order commit is preserved
   - IF stall on i_hready low and MEM stall on d_hready low are correct
@@ -64,14 +64,14 @@ SSOT item context: id=RTL_TODO_PIPELINE.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[2]
 - Detail: Detect i_hresp/d_hresp errors on completed transfers and latch FAULT_HALT until reset.
 SSOT ref: workflow_todos.rtl-gen[2].
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_FAULT.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - No retire after FAULT_HALT entry
   - Reset exits FAULT_HALT
@@ -86,14 +86,14 @@ SSOT item context: id=RTL_TODO_FAULT.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.TX_LOAD_STORE
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: id=TX_LOAD_STORE; name=single_transfer_memory_access.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -106,14 +106,14 @@ SSOT item context: id=TX_LOAD_STORE; name=single_transfer_memory_access.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.TX_LOAD_STORE.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.preconditions.precondition_0.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: value=fault_halt == 0.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -126,14 +126,14 @@ SSOT item context: value=fault_halt == 0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.TX_LOAD_STORE.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.preconditions.precondition_1.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: value=decoded opcode is LDR or STR.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -146,14 +146,14 @@ SSOT item context: value=decoded opcode is LDR or STR.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.TX_LOAD_STORE.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.inputs.input_0.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: value=base register.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -166,14 +166,14 @@ SSOT item context: value=base register.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.TX_LOAD_STORE.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.inputs.input_1.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: value=immediate offset.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -186,14 +186,14 @@ SSOT item context: value=immediate offset.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.TX_LOAD_STORE.inputs.input_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.inputs.input_2.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: value=store data for STR or bus read data for LDR.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -206,14 +206,14 @@ SSOT item context: value=store data for STR or bus read data for LDR.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.TX_LOAD_STORE.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.outputs.output_0.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: value=LDR updates destination register with returned word.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -226,14 +226,14 @@ SSOT item context: value=LDR updates destination register with returned word.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.TX_LOAD_STORE.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.outputs.output_1.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: value=STR commits one data write on bus.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -246,14 +246,14 @@ SSOT item context: value=STR commits one data write on bus.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.TX_LOAD_STORE.output_rules.d_haddr_rule
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.output_rules.d_haddr_rule.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: name=d_haddr_rule; port=d_haddr; expr=base + imm; width=32.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -270,14 +270,14 @@ SSOT item context: name=d_haddr_rule; port=d_haddr; expr=base + imm; width=32.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.TX_LOAD_STORE.output_rules.d_hwrite_rule
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.output_rules.d_hwrite_rule.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: name=d_hwrite_rule; port=d_hwrite; expr=(1) if (is_store) else (0); width=1.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -294,14 +294,14 @@ SSOT item context: name=d_hwrite_rule; port=d_hwrite; expr=(1) if (is_store) els
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.TX_LOAD_STORE.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.side_effects.side_effect_0.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: value=pc advances after transfer completion.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -314,14 +314,14 @@ SSOT item context: value=pc advances after transfer completion.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.TX_LOAD_STORE.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_LOAD_STORE.error_cases.error_case_0.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via function_model.transactions.TX_LOAD_STORE.
 SSOT item context: condition=data bus response ERROR.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -335,13 +335,13 @@ SSOT item context: condition=data bus response ERROR.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via cycle_model.latency.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -355,14 +355,14 @@ Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via cycle_model.latency.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.EX
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.EX.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via cycle_model.pipeline.
 SSOT item context: stage=EX; action=Execute/branch/load-store and commit results; cycle=n+2.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -377,14 +377,14 @@ SSOT item context: stage=EX; action=Execute/branch/load-store and commit results
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via cycle_model.ordering.
 SSOT item context: value=Program-order retirement: instruction i commits before i+1..
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -398,14 +398,14 @@ SSOT item context: value=Program-order retirement: instruction i commits before 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via cycle_model.ordering.
 SSOT item context: value=Branch redirection affects subsequent fetch only after branch evaluation reaches commit boundary..
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -419,14 +419,14 @@ SSOT item context: value=Branch redirection affects subsequent fetch only after 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_0
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_0.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via error_handling.
 SSOT item context: value=Only synchronous reset clears fault_halt.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -439,13 +439,13 @@ SSOT item context: value=Only synchronous reset clears fault_halt.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.arm_m0_min_ex.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.arm_m0_min_ex.module_equivalence.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -460,14 +460,14 @@ Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via module_equivalence.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_d_master.ports.d_haddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_d_master.ports.d_haddr.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via io_list.interfaces.ahb_d_master.
 SSOT item context: name=d_haddr; width=32; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -482,14 +482,14 @@ SSOT item context: name=d_haddr; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_d_master.ports.d_htrans
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_d_master.ports.d_htrans.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via io_list.interfaces.ahb_d_master.
 SSOT item context: name=d_htrans; width=2; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -504,14 +504,14 @@ SSOT item context: name=d_htrans; width=2; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_d_master.ports.d_hwrite
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_d_master.ports.d_hwrite.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via io_list.interfaces.ahb_d_master.
 SSOT item context: name=d_hwrite; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -526,14 +526,14 @@ SSOT item context: name=d_hwrite; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_d_master.ports.d_hsize
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_d_master.ports.d_hsize.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via io_list.interfaces.ahb_d_master.
 SSOT item context: name=d_hsize; width=3; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -548,14 +548,14 @@ SSOT item context: name=d_hsize; width=3; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_d_master.ports.d_hburst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_d_master.ports.d_hburst.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via io_list.interfaces.ahb_d_master.
 SSOT item context: name=d_hburst; width=3; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -570,14 +570,14 @@ SSOT item context: name=d_hburst; width=3; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_d_master.ports.d_hprot
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_d_master.ports.d_hprot.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via io_list.interfaces.ahb_d_master.
 SSOT item context: name=d_hprot; width=4; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -592,14 +592,14 @@ SSOT item context: name=d_hprot; width=4; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_d_master.ports.d_hmastlock
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_d_master.ports.d_hmastlock.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via io_list.interfaces.ahb_d_master.
 SSOT item context: name=d_hmastlock; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -614,14 +614,14 @@ SSOT item context: name=d_hmastlock; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_d_master.ports.d_hwdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_d_master.ports.d_hwdata.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via io_list.interfaces.ahb_d_master.
 SSOT item context: name=d_hwdata; width=32; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -636,14 +636,14 @@ SSOT item context: name=d_hwdata; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_d_master.ports.d_hready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_d_master.ports.d_hready.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via io_list.interfaces.ahb_d_master.
 SSOT item context: name=d_hready; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -658,14 +658,14 @@ SSOT item context: name=d_hready; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_d_master.ports.d_hrdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_d_master.ports.d_hrdata.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via io_list.interfaces.ahb_d_master.
 SSOT item context: name=d_hrdata; width=32; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -680,14 +680,14 @@ SSOT item context: name=d_hrdata; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_d_master.ports.d_hresp
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_d_master.ports.d_hresp.
 Owner: arm_m0_min_ex in rtl/arm_m0_min_ex.sv via io_list.interfaces.ahb_d_master.
 SSOT item context: name=d_hresp; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_ex.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 31
+- LLM-actionable open tasks: 15
 - Human-locked open tasks: 0
 - Owner refs: fsm, fsm.core, fsm.core.states.DECODE, function_model, function_model.transactions.TX_DECODE_EXEC, isa_spec, isa_spec.decode_contract
 
@@ -34,14 +34,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[1]
 - Detail: Implement decode and execution for listed instructions with correct writeback and flag policy.
 SSOT ref: workflow_todos.rtl-gen[1].
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_ISA.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Only supported opcodes retire
   - CMP updates flags without destination register write
@@ -56,14 +56,14 @@ SSOT item context: id=RTL_TODO_ISA.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.TX_DECODE_EXEC
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: id=TX_DECODE_EXEC; name=alu_compare_branch.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -76,14 +76,14 @@ SSOT item context: id=TX_DECODE_EXEC; name=alu_compare_branch.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_0.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: value=fault_halt == 0.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -103,7 +103,7 @@ SSOT item context: value=fault_halt == 0.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_1.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: value=instruction fetch completed with i_hready == 1 and i_hresp == OKAY.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -116,14 +116,14 @@ SSOT item context: value=instruction fetch completed with i_hready == 1 and i_hr
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.TX_DECODE_EXEC.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.inputs.input_0.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: value=decoded opcode.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -136,14 +136,14 @@ SSOT item context: value=decoded opcode.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.TX_DECODE_EXEC.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.inputs.input_1.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: value=operand values from architectural registers.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -156,14 +156,14 @@ SSOT item context: value=operand values from architectural registers.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.TX_DECODE_EXEC.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.outputs.output_0.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: value=ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -176,14 +176,14 @@ SSOT item context: value=ALU destination register update for ADD/SUB/AND/ORR/EOR
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.TX_DECODE_EXEC.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.outputs.output_1.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: value=NZCV updated only for CMP.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -196,14 +196,14 @@ SSOT item context: value=NZCV updated only for CMP.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.TX_DECODE_EXEC.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.outputs.output_2.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: value=PC updated sequentially or redirected for B/BEQ/BNE.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -223,7 +223,7 @@ SSOT item context: value=PC updated sequentially or redirected for B/BEQ/BNE.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: name=pc_next_addr; port=i_haddr; expr=(branch_target) if (branch_taken) else ((pc + 2)); width=32.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -247,7 +247,7 @@ SSOT item context: name=pc_next_addr; port=i_haddr; expr=(branch_target) if (bra
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: name=store_data_mux; port=d_hwdata; expr=(rs2) if (is_store) else (0); width=32.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -264,14 +264,14 @@ SSOT item context: name=store_data_mux; port=d_hwdata; expr=(rs2) if (is_store) 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_0.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: value=pc advances by instruction size on non-branch.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -284,14 +284,14 @@ SSOT item context: value=pc advances by instruction size on non-branch.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_1.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: value=pc set to target when branch taken.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -304,14 +304,14 @@ SSOT item context: value=pc set to target when branch taken.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.TX_DECODE_EXEC.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.TX_DECODE_EXEC.error_cases.error_case_0.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.
 SSOT item context: condition=instruction bus response ERROR.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -325,14 +325,14 @@ SSOT item context: condition=instruction bus response ERROR.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_0
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_0.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.
 SSOT item context: value=No instruction retires while fault_halt==1..
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -345,14 +345,14 @@ SSOT item context: value=No instruction retires while fault_halt==1..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_1
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_1.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.
 SSOT item context: value=IF/ID/EX ordering remains in-order with no out-of-order commit..
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -365,14 +365,14 @@ SSOT item context: value=IF/ID/EX ordering remains in-order with no out-of-order
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_2
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_2.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.
 SSOT item context: value=Register writes occur only from committed EX outcomes..
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -392,7 +392,7 @@ SSOT item context: value=Register writes occur only from committed EX outcomes..
 SSOT ref: fsm.core.states.state_0.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: value=RESET.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -413,7 +413,7 @@ SSOT item context: value=RESET.
 SSOT ref: fsm.core.states.state_1.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: value=RUN.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -434,7 +434,7 @@ SSOT item context: value=RUN.
 SSOT ref: fsm.core.states.state_2.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: value=STALL_IF.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -455,7 +455,7 @@ SSOT item context: value=STALL_IF.
 SSOT ref: fsm.core.states.state_3.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: value=STALL_MEM.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -469,14 +469,14 @@ SSOT item context: value=STALL_MEM.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.core.states.state_4
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.core.states.state_4.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: value=FAULT_HALT.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -497,7 +497,7 @@ SSOT item context: value=FAULT_HALT.
 SSOT ref: fsm.core.transitions.transition_0.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=RESET; to=RUN; condition=rst deasserted.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -519,7 +519,7 @@ SSOT item context: from=RESET; to=RUN; condition=rst deasserted.
 SSOT ref: fsm.core.transitions.transition_1.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=RUN; to=STALL_IF; condition=i_hready==0.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -541,7 +541,7 @@ SSOT item context: from=RUN; to=STALL_IF; condition=i_hready==0.
 SSOT ref: fsm.core.transitions.transition_2.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=STALL_IF; to=RUN; condition=i_hready==1.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -563,7 +563,7 @@ SSOT item context: from=STALL_IF; to=RUN; condition=i_hready==1.
 SSOT ref: fsm.core.transitions.transition_3.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=RUN; to=STALL_MEM; condition=active load/store && d_hready==0.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -585,7 +585,7 @@ SSOT item context: from=RUN; to=STALL_MEM; condition=active load/store && d_hrea
 SSOT ref: fsm.core.transitions.transition_4.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=STALL_MEM; to=RUN; condition=d_hready==1 && d_hresp==OKAY.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -607,7 +607,7 @@ SSOT item context: from=STALL_MEM; to=RUN; condition=d_hready==1 && d_hresp==OKA
 SSOT ref: fsm.core.transitions.transition_5.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=RUN; to=FAULT_HALT; condition=i_hresp==ERROR || d_hresp==ERROR.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -629,7 +629,7 @@ SSOT item context: from=RUN; to=FAULT_HALT; condition=i_hresp==ERROR || d_hresp=
 SSOT ref: fsm.core.transitions.transition_6.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=STALL_MEM; to=FAULT_HALT; condition=d_hresp==ERROR.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -651,7 +651,7 @@ SSOT item context: from=STALL_MEM; to=FAULT_HALT; condition=d_hresp==ERROR.
 SSOT ref: fsm.core.transitions.transition_7.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.
 SSOT item context: from=FAULT_HALT; to=RESET; condition=rst asserted.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -666,13 +666,13 @@ SSOT item context: from=FAULT_HALT; to=RESET; condition=rst asserted.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.arm_m0_min_id.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.arm_m0_min_id.module_equivalence.
 Owner: arm_m0_min_id in rtl/arm_m0_min_id.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_id.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
