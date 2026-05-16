@@ -1143,11 +1143,24 @@ def register_jobs_routes(
 
     # ── /api/pipeline/state ────────────────────────────────────────
 
+    # 2-second response micro-cache keyed by (ip). The frontend polls
+    # this endpoint every 2 s per open tab; without a cache, N tabs ×
+    # 30 polls/min would each do a workspace upsert + ip_block upsert +
+    # DB query + 15 FS stat checks. With the cache, only the first call
+    # in a 2 s window does the work; the others reuse the JSON.
+    _state_cache: dict[str, tuple[float, Any]] = {}
+    _STATE_CACHE_TTL = 2.0
+
     @app.get("/api/pipeline/state")
     async def api_pipeline_state(ip: str = ""):
         ip = ip.strip()
         if not ip or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
+
+        import time as _t
+        cached = _state_cache.get(ip)
+        if cached and (_t.monotonic() - cached[0]) < _STATE_CACHE_TTL:
+            return JSONResponse(cached[1])
 
         pr = project_root()
         ip_dir = pr / ip
@@ -1426,12 +1439,14 @@ def register_jobs_routes(
                 "source": "db" if db_state is not None else ("fs" if sid in passed_stages else "none"),
             }
 
-        return JSONResponse({
+        payload = {
             "ip": ip,
             "rtl_version_id": rtl_version_id,
             "mode": "pipeline",
             "stages": stages_out,
-        })
+        }
+        _state_cache[ip] = (_t.monotonic(), payload)
+        return JSONResponse(payload)
 
     # ── /api/pipeline/dispatch ─────────────────────────────────────
 
