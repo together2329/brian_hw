@@ -2225,3 +2225,510 @@ code,
   text-align: center;
   line-height: 14px;
 }
+
+/* ── Pipeline screen ─────────────────────────────────────────────
+   Live full-screen stage dispatcher (frontend/atlas/pipeline.jsx).
+   Uses the same semantic tokens (--ok / --warn / --err / --cyan)
+   as the rest of the UI, plus the .arch-screen / .run-bar / .rb-btn
+   chrome from soc-architect.jsx so the visual language stays
+   identical between Workspace and Pipeline screens.
+   ──────────────────────────────────────────────────────────────── */
+
+.pipe-screen {
+  display: flex; flex-direction: column;
+  height: 100%; width: 100%;
+  background: var(--bg); color: var(--fg);
+  overflow: hidden;
+}
+
+.pipe-runbar {
+  /* .run-bar styles from soc-architect.jsx already cover the visual
+     chrome; .pipe-runbar is here so future tweaks (e.g. a model
+     selector strip) have a clean hook. */
+  flex: 0 0 auto;
+}
+
+.pipe-running-chip {
+  border-color: var(--cyan) !important;
+  color: var(--cyan) !important;
+  animation: pipe-pulse-ring 1.4s infinite;
+}
+
+.pipe-board {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+.pipe-col-left {
+  flex: 0 0 220px;
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  background: var(--panel);
+}
+.pipe-col-center {
+  flex: 1 1 auto;
+  display: flex; flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+}
+.pipe-col-right {
+  flex: 0 0 320px;
+  border-left: 1px solid var(--line);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  background: var(--panel);
+}
+
+/* ── Hierarchy column ───────────────────────────────────────────── */
+.pipe-hierarchy { padding: 12px 0; font-family: var(--mono); font-size: 11px; }
+.pipe-hierarchy-title {
+  padding: 0 12px 8px;
+  color: var(--fg-mute);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+.pipe-hierarchy-list { list-style: none; padding: 0; margin: 0; }
+.pipe-hierarchy-row {
+  padding: 6px 12px;
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  color: var(--fg-dim);
+  transition: background .12s, color .12s, border-color .12s;
+}
+.pipe-hierarchy-row:hover { background: var(--bg-2); color: var(--fg); }
+.pipe-hierarchy-row.sel {
+  background: color-mix(in oklch, var(--accent) 12%, var(--bg-2));
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+.pipe-hierarchy-glyph { color: var(--fg-mute); width: 12px; }
+.pipe-hierarchy-row.sel .pipe-hierarchy-glyph { color: var(--accent); }
+.pipe-hierarchy-name {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;
+}
+.pipe-hierarchy-legend {
+  padding: 14px 12px;
+  font-size: 10px;
+  color: var(--fg-mute);
+  border-top: 1px solid var(--line);
+  margin-top: 14px;
+  line-height: 1.6;
+}
+
+/* ── DAG MAP ────────────────────────────────────────────────────── */
+.pipe-dagmap {
+  padding: 14px 16px 6px;
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 1px 1px, color-mix(in oklch, var(--line) 70%, transparent) 1px, transparent 0) 0 0/24px 24px,
+    var(--bg);
+}
+.pipe-node {
+  transition: stroke-width .12s, opacity .12s, fill .12s, stroke .12s;
+  stroke: var(--line);
+  stroke-width: 1.2;
+  fill: var(--bg);
+}
+.pipe-node[data-state="idle"] {
+  stroke: var(--line);
+  stroke-dasharray: 2 2;
+  fill: var(--bg);
+}
+.pipe-node[data-state="ready"] {
+  stroke: var(--accent);
+  fill: color-mix(in oklch, var(--accent) 8%, var(--bg-2));
+}
+.pipe-node[data-state="passed"],
+.pipe-node[data-state="ok"] {
+  stroke: var(--ok);
+  stroke-width: 1.6;
+  fill: color-mix(in oklch, var(--ok) 18%, var(--bg-2));
+}
+.pipe-node[data-state="failed"],
+.pipe-node[data-state="err"] {
+  stroke: var(--err);
+  stroke-width: 1.8;
+  fill: color-mix(in oklch, var(--err) 22%, var(--bg-2));
+}
+.pipe-node[data-state="blocked"] {
+  stroke: var(--warn);
+  stroke-dasharray: 4 2;
+  fill: color-mix(in oklch, var(--warn) 14%, var(--bg-2));
+}
+.pipe-node[data-state="stale"] {
+  stroke: var(--warn);
+  stroke-dasharray: 3 3;
+  fill: transparent;
+}
+.pipe-node[data-state="locked"] {
+  stroke: var(--line);
+  fill: var(--bg-2);
+  opacity: 0.45;
+}
+.pipe-node-running {
+  animation: pipe-pulse-ring 1.4s infinite;
+  stroke: var(--cyan);
+  stroke-width: 1.8;
+  fill: color-mix(in oklch, var(--cyan) 22%, var(--bg-2));
+}
+/* Glyph text inside the node — match the state. Default = subdued fg. */
+.pipe-node-glyph { fill: var(--fg); font-weight: 500; }
+.pipe-node-glyph[data-state="passed"], .pipe-node-glyph[data-state="ok"] { fill: var(--ok); font-weight: 600; }
+.pipe-node-glyph[data-state="failed"], .pipe-node-glyph[data-state="err"] { fill: var(--err); font-weight: 600; }
+.pipe-node-glyph[data-state="running"] { fill: var(--cyan); font-weight: 600; }
+.pipe-node-glyph[data-state="locked"] { fill: var(--fg-mute); }
+.pipe-node-glyph[data-state="blocked"], .pipe-node-glyph[data-state="stale"] { fill: var(--warn); }
+.pipe-node-glyph[data-state="ready"] { fill: var(--accent); font-weight: 600; }
+.pipe-node-glyph[data-state="idle"] { fill: var(--fg-mute); }
+
+/* ── Stage grid + cards ─────────────────────────────────────────── */
+.pipe-stage-grid-wrap {
+  flex: 1 1 auto;
+  padding: 12px 16px 12px;
+  display: flex; flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+
+.pipe-phase-group {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: color-mix(in oklch, var(--panel) 60%, var(--bg));
+  overflow: hidden;
+}
+.pipe-phase-header {
+  padding: 6px 12px;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+.pipe-phase-header:hover { color: var(--fg); }
+.pipe-phase-glyph { width: 12px; }
+.pipe-phase-name { color: var(--fg); }
+.pipe-phase-count { font-size: 10px; }
+.pipe-phase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  padding: 10px 12px 12px;
+}
+
+.pipe-stage-card {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 8px 10px;
+  display: flex; flex-direction: column;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: default;
+  transition: border-color .12s, box-shadow .12s, transform .12s;
+}
+.pipe-stage-card:hover { border-color: color-mix(in oklch, var(--accent) 50%, var(--line)); }
+.pipe-stage-card[data-state="running"],
+.pipe-stage-card[data-state="run"] {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--cyan) 20%, transparent),
+              0 6px 18px rgba(0,0,0,0.25);
+}
+.pipe-stage-card[data-state="running"]::before,
+.pipe-stage-card[data-state="run"]::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--cyan);
+  animation: pipe-card-breath 2s ease-in-out infinite alternate;
+}
+.pipe-stage-card[data-state="failed"],
+.pipe-stage-card[data-state="err"] {
+  border-left: 3px solid var(--err);
+}
+.pipe-stage-card[data-state="locked"] { opacity: 0.55; }
+.pipe-stage-card[data-state="passed"],
+.pipe-stage-card[data-state="ok"] {
+  border-left: 3px solid var(--ok);
+}
+.pipe-stage-card[data-state="blocked"] {
+  border-left: 3px solid var(--warn);
+}
+.pipe-stage-card[data-state="stale"] {
+  border-left: 3px dashed var(--warn);
+}
+/* "Start here" highlight: the SSOT card on a fresh IP needs to be the
+   obvious first click. Strong border + accent colored RUN button + a
+   small banner on top. */
+.pipe-stage-card[data-start="true"] {
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--accent) 16%, transparent);
+}
+.pipe-stage-card[data-start="true"]::after {
+  content: "▶ Start here — click run to seed SSOT";
+  position: absolute;
+  top: -10px; left: 8px;
+  padding: 1px 6px;
+  background: var(--accent);
+  color: var(--bg);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+.pipe-stage-card[data-start="true"] .pipe-stage-run {
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+}
+/* Locked-reason chip rendered inside the card row1: "(needs ssot)". */
+.pipe-stage-locked-why {
+  font-size: 10px;
+  color: var(--fg-mute);
+  font-style: italic;
+}
+.pipe-stage-card-flash {
+  animation: pipe-card-flash 1.4s ease-out;
+}
+
+.pipe-stage-row1 {
+  display: flex; align-items: center; gap: 6px;
+}
+.pipe-stage-glyph { font-size: 13px; min-width: 14px; text-align: center; }
+.pipe-stage-label {
+  font-weight: 600;
+  color: var(--fg);
+  letter-spacing: 0.04em;
+}
+.pipe-stage-state {
+  font-size: 9.5px;
+  padding: 1px 6px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid var(--fg-mute);
+  color: var(--fg-mute);
+}
+.pipe-stage-state[data-state="passed"],
+.pipe-stage-state[data-state="ok"] {
+  border-color: var(--ok); color: var(--ok);
+}
+.pipe-stage-state[data-state="running"],
+.pipe-stage-state[data-state="run"] {
+  border-color: var(--cyan); color: var(--cyan);
+}
+.pipe-stage-state[data-state="failed"],
+.pipe-stage-state[data-state="err"] {
+  border-color: var(--err); color: var(--err);
+}
+.pipe-stage-state[data-state="blocked"],
+.pipe-stage-state[data-state="stale"] {
+  border-color: var(--warn); color: var(--warn);
+}
+.pipe-stage-spacer { flex: 1; }
+.pipe-stage-meta {
+  font-size: 10px;
+  color: var(--fg-mute);
+  white-space: nowrap;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pipe-stage-row2 { min-height: 12px; }
+.pipe-stage-row3 { min-height: 14px; font-size: 10.5px; }
+.pipe-stage-row4 { min-height: 14px; font-size: 10px; color: var(--fg-mute); }
+.pipe-stage-row5 { min-height: 16px; font-size: 10px; }
+
+.pipe-stage-top {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pipe-stage-secondary {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.pipe-live-tail {
+  font-size: 10px;
+  color: var(--cyan);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pipe-stage-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+.pipe-stage-link:hover { color: var(--accent-2, var(--accent)); }
+
+.pipe-blame { color: var(--fg-dim); }
+.pipe-blame b { color: var(--err); }
+
+.pipe-stage-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+.pipe-stage-run {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  color: var(--fg-dim);
+  padding: 3px 10px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  cursor: pointer;
+  transition: border-color .12s, color .12s, background .12s;
+}
+.pipe-stage-run:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.pipe-stage-run:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Mini scoresheet (KPI dots) ─────────────────────────────────── */
+.pipe-scoresheet {
+  display: inline-flex; gap: 4px; align-items: center;
+}
+.pipe-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--fg-mute);
+  background: transparent;
+  cursor: pointer;
+  transition: transform .12s;
+}
+.pipe-dot:hover { transform: scale(1.3); }
+.pipe-dot[data-kpi="pass"]  { background: var(--ok);  border-color: var(--ok); }
+.pipe-dot[data-kpi="warn"]  { background: var(--warn);border-color: var(--warn); }
+.pipe-dot[data-kpi="fail"]  { background: var(--err); border-color: var(--err); }
+.pipe-dot[data-kpi="idle"]  { background: transparent; border-color: var(--fg-mute); }
+
+/* ── Progress bar ───────────────────────────────────────────────── */
+.pipe-progress {
+  position: relative;
+  height: 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.pipe-progress-fill {
+  height: 100%;
+  background: var(--cyan);
+  transition: width .3s linear;
+}
+.pipe-progress::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklch, var(--cyan) 35%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: pipe-shimmer 1.2s infinite linear;
+  pointer-events: none;
+}
+
+/* ── Dispatch rail ──────────────────────────────────────────────── */
+.pipe-dispatch-rail {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.pipe-rail-label {
+  color: var(--fg-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+.pipe-rail-chips {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.pipe-rail-chip {
+  background: var(--bg-2);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 2px 8px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.pipe-rail-chip:hover { background: color-mix(in oklch, var(--err) 14%, var(--bg-2)); border-color: var(--err); color: var(--err); }
+.pipe-rail-spacer { flex: 1 1 auto; }
+.pipe-rail-select {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  padding: 2px 4px;
+}
+
+/* ── Animations ─────────────────────────────────────────────────── */
+@keyframes pipe-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklch, var(--cyan) 70%, transparent); }
+  70%  { box-shadow: 0 0 0 6px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes pipe-card-breath {
+  0%   { background: color-mix(in oklch, var(--cyan) 60%, transparent); }
+  100% { background: color-mix(in oklch, var(--cyan) 100%, transparent); }
+}
+@keyframes pipe-shimmer {
+  0%   { background-position:  100% 0; }
+  100% { background-position: -100% 0; }
+}
+@keyframes pipe-card-flash {
+  0%   { box-shadow: 0 0 0 2px var(--accent), 0 0 24px var(--accent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pipe-node-running,
+  .pipe-running-chip,
+  .pipe-stage-card[data-state="running"]::before,
+  .pipe-stage-card[data-state="run"]::before,
+  .pipe-progress::after,
+  .pipe-stage-card-flash {
+    animation: none !important;
+  }
+  .pipe-node[data-state="running"],
+  .pipe-node[data-state="run"] {
+    outline: 2px solid var(--cyan);
+  }
+}
+

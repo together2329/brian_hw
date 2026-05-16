@@ -1141,6 +1141,313 @@ def register_jobs_routes(
     async def api_pipeline_stages():
         return JSONResponse({"stages": _PIPELINE_STAGES})
 
+    # ── /api/pipeline/state ────────────────────────────────────────
+
+    # 2-second response micro-cache keyed by (ip). The frontend polls
+    # this endpoint every 2 s per open tab; without a cache, N tabs ×
+    # 30 polls/min would each do a workspace upsert + ip_block upsert +
+    # DB query + 15 FS stat checks. With the cache, only the first call
+    # in a 2 s window does the work; the others reuse the JSON.
+    _state_cache: dict[str, tuple[float, Any]] = {}
+    _STATE_CACHE_TTL = 2.0
+
+    @app.get("/api/pipeline/state")
+    async def api_pipeline_state(ip: str = ""):
+        ip = ip.strip()
+        if not ip or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+            return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
+
+        import time as _t
+        cached = _state_cache.get(ip)
+        if cached and (_t.monotonic() - cached[0]) < _STATE_CACHE_TTL:
+            return JSONResponse(cached[1])
+
+        pr = project_root()
+        ip_dir = pr / ip
+
+        try:
+            from src.workflow_stage_surface import compute_kpi_dots, compute_kpi_dots_labeled
+        except ModuleNotFoundError:
+            from workflow_stage_surface import compute_kpi_dots, compute_kpi_dots_labeled
+
+        # latest rtl_version_id + DB-first state snapshot from workflow_runs.
+        # DB is the source of truth for state (idle/running/passed/failed);
+        # filesystem is consulted only as a fallback for hand-placed artifacts.
+        rtl_version_id: str | None = None
+        db_state_by_workflow: dict[str, dict[str, Any]] = {}
+        try:
+            import os as _os
+            db_path = _os.environ.get("ATLAS_DB_PATH", str(pr / "atlas.db"))
+            from core.atlas_db import AtlasDB
+            with AtlasDB(db_path) as _db:
+                versions = _db.list_rtl_versions()
+                # workspace + ip_block lookup (creates rows if missing — same
+                # pattern as register_rtl_version in this file)
+                try:
+                    _ws = _db.upsert_workspace(pr.name or "default", local_path=str(pr))
+                    _ipb = _db.upsert_ip_block(_ws["id"], ip)
+                    _runs = _db._fetchall(
+                        """
+                        SELECT workflow, status, error_summary, started_at, ended_at
+                        FROM workflow_runs
+                        WHERE workspace_id = ? AND ip_id = ?
+                        ORDER BY started_at DESC
+                        """,
+                        (_ws["id"], _ipb["id"]),
+                    )
+                    # First (latest) row per workflow wins.
+                    for _r in _runs:
+                        wf = _r["workflow"]
+                        if wf not in db_state_by_workflow:
+                            db_state_by_workflow[wf] = dict(_r)
+                except Exception:
+                    pass
+            ip_versions = [v for v in versions if v.get("ip") == ip or v.get("ip_id")]
+            if ip_versions:
+                rtl_version_id = ip_versions[-1].get("version") or ip_versions[-1].get("id")
+        except Exception:
+            pass
+
+        def _state_from_db(workflow_name: str) -> tuple[str | None, str | None]:
+            """Return (state, error_summary) from the latest workflow_runs
+            row for this IP+workflow, or (None, None) when no row exists."""
+            row = db_state_by_workflow.get(workflow_name)
+            if not row:
+                return (None, None)
+            st = (row.get("status") or "").lower()
+            if st == "running":
+                return ("running", None)
+            if st in ("completed", "success", "ok"):
+                return ("passed", None)
+            if st in ("error", "failed", "blocked", "cancelled"):
+                return ("failed", row.get("error_summary"))
+            return (None, None)
+
+        # snapshot of running jobs for this ip
+        with _jobs_lock:
+            ip_jobs = [dict(j) for j in _jobs.values() if j.get("ip") == ip]
+
+        def _running_job_for(stage_id: str) -> dict[str, Any] | None:
+            for j in ip_jobs:
+                if j.get("stage_id") == stage_id and j.get("status") in {"running", "pending"}:
+                    return j
+            return None
+
+        def _latest_completed_job(stage_id: str) -> dict[str, Any] | None:
+            matches = [j for j in ip_jobs if j.get("stage_id") == stage_id
+                       and j.get("status") in {"completed", "error", "cancelled"}]
+            if not matches:
+                return None
+            return max(matches, key=lambda j: j.get("started_at", 0))
+
+        # blame: read mismatch_classification for sim failures
+        blame_workflow: str | None = None
+        _blame_path = ip_dir / "sim" / "mismatch_classification.json"
+        if _blame_path.is_file():
+            try:
+                _blame_doc = json.loads(_blame_path.read_text(encoding="utf-8"))
+                blame_workflow = _blame_doc.get("owner_workflow") or None
+            except Exception:
+                pass
+
+        # rtl blocked flag
+        _rtl_blocked = False
+        _rtl_blocked_path = ip_dir / "rtl" / "rtl_blocked.json"
+        if _rtl_blocked_path.is_file():
+            try:
+                _rtl_blocked_doc = json.loads(_rtl_blocked_path.read_text(encoding="utf-8"))
+                _rtl_blocked = bool(_rtl_blocked_doc)
+            except Exception:
+                pass
+
+        _GLYPHS: dict[str, str] = {
+            "idle": "◯", "ready": "◯", "running": "▶", "passed": "✓",
+            "failed": "!", "blocked": "⏸", "stale": "⊘", "locked": "⊘",
+        }
+
+        def _stage_top_secondary(stage_id: str, ip_dir: Path, ip: str) -> tuple[str, str]:
+            if stage_id in ("rtl", "rtl-gen"):
+                try:
+                    from src.workflow_stage_surface import _rtl_authoring_summary
+                except ModuleNotFoundError:
+                    from workflow_stage_surface import _rtl_authoring_summary
+                summary = _rtl_authoring_summary(pr, ip)
+                return (f"rtl/{ip}.sv (authoring)", summary or "")
+            if stage_id == "ssot":
+                ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+                if ssot_path.is_file():
+                    size_kb = ssot_path.stat().st_size // 1024
+                    lines = ssot_path.read_text(encoding="utf-8").splitlines()
+                    sections = sum(1 for ln in lines if ln.startswith("  - name:") or ln.startswith("- name:"))
+                    tbds = sum(1 for ln in lines if "TBD" in ln)
+                    return (f"yaml/{ip}.ssot.yaml · {size_kb} KB · {sections} sect",
+                            f"{tbds} TBD")
+            if stage_id == "lint":
+                try:
+                    doc = json.loads((ip_dir / "lint" / "dut_lint.json").read_text(encoding="utf-8"))
+                    errs = doc.get("errors", doc.get("error_count", "?"))
+                    warns = doc.get("warnings", doc.get("warning_count", "?"))
+                    return (f"errors={errs} warnings={warns}", "")
+                except Exception:
+                    pass
+            if stage_id == "sim":
+                results_xml = ip_dir / "sim" / "results.xml"
+                if not results_xml.is_file():
+                    results_xml = ip_dir / "tb" / "cocotb" / "results.xml"
+                if results_xml.is_file():
+                    try:
+                        import xml.etree.ElementTree as _ET
+                        root_el = _ET.parse(str(results_xml)).getroot()
+                        failures = int(root_el.get("failures", 0)) + int(root_el.get("errors", 0))
+                        tests = int(root_el.get("tests", 0))
+                        return (f"{tests} tests · {failures} failures", "")
+                    except Exception:
+                        pass
+            if stage_id == "coverage":
+                try:
+                    doc = json.loads((ip_dir / "cov" / "coverage.json").read_text(encoding="utf-8"))
+                    bins_hit = doc.get("bins_hit", "?")
+                    bins_total = doc.get("bins_total", doc.get("total_bins", "?"))
+                    return (f"bins {bins_hit}/{bins_total}", "")
+                except Exception:
+                    pass
+            return ("", "")
+
+        def _stage_history(stage_id: str) -> list[dict[str, Any]]:
+            matches = [j for j in ip_jobs if j.get("stage_id") == stage_id]
+            history = []
+            for j in sorted(matches, key=lambda x: x.get("started_at", 0), reverse=True)[:3]:
+                duration = None
+                if j.get("finished_at") and j.get("started_at"):
+                    duration = round(j["finished_at"] - j["started_at"])
+                history.append({
+                    "run_id": j.get("run_id") or j.get("job_id"),
+                    "state": j.get("status"),
+                    "duration_s": duration,
+                    "model": j.get("model"),
+                    "cost": j.get("cost"),
+                })
+            return history
+
+        # determine which stages have passing artifacts (filesystem truth)
+        passed_stages: set[str] = set()
+        for stage in _PIPELINE_STAGES:
+            sid = stage["id"]
+            fake_job = {"ip": ip, "stage_id": sid, "workflow": stage["workflow"]}
+            ok, _ = _job_artifact_recovery(fake_job, pr)
+            if ok:
+                passed_stages.add(sid)
+
+        stages_out: dict[str, Any] = {}
+        for stage in _PIPELINE_STAGES:
+            sid = stage["id"]
+            running_job = _running_job_for(sid)
+            last_job = _latest_completed_job(sid)
+
+            # determine state — DB-first, FS-fallback
+            state: str
+            db_state, db_error = _state_from_db(stage["workflow"])
+            if running_job:
+                state = "running"
+            elif db_state is not None:
+                state = db_state  # DB is source of truth for completed runs
+            elif sid in passed_stages:
+                state = "passed"  # FS evidence without a DB row (hand-placed)
+            elif sid == "rtl" and _rtl_blocked:
+                state = "blocked"
+            else:
+                # check if all deps are passed (ready) or any dep missing (locked)
+                deps = _PIPELINE_STAGE_DEPS.get(sid, ())
+                if not deps:
+                    state = "idle"
+                elif all(dep in passed_stages for dep in deps):
+                    state = "ready"
+                else:
+                    state = "locked"
+
+            # locked-reason: name the missing upstream so the card can say
+            # "(needs ssot)" instead of just "LOCKED".
+            locked_reason: str | None = None
+            if state == "locked":
+                deps = _PIPELINE_STAGE_DEPS.get(sid, ())
+                missing = [d for d in deps if d not in passed_stages]
+                if missing:
+                    locked_reason = "needs " + " + ".join(missing)
+
+            # running iter info
+            iter_str: str | None = None
+            progress: float | None = None
+            live_tail: str | None = None
+            abortable = False
+            if running_job:
+                iters = running_job.get("iterations", 0)
+                iter_str = str(iters) if iters else None
+                abortable = True
+                live_tail = (running_job.get("result_summary") or "")[-120:] or None
+
+            # evidence paths
+            evidence_paths: list[str] = []
+            _evidence_map: dict[str, list[str]] = {
+                "ssot": [f"yaml/{ip}.ssot.yaml"],
+                "fl-model": ["model/fl_model_check.json", "cov/fcov_plan.json"],
+                "cl-model": ["model/cl_model_check.json"],
+                "equivalence": ["verify/equivalence_goals.json"],
+                "rtl": ["rtl/rtl_compile.json", "lint/dut_lint.json",
+                        "rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json"],
+                "lint": ["lint/dut_lint.json"],
+                "tb": ["tb/cocotb/"],
+                "sim": ["sim/results.xml", "sim/fl_rtl_compare.json"],
+                "coverage": ["cov/coverage.json"],
+                "sim-debug": ["sim/mismatch_classification.json"],
+                "goal-audit": ["sim/fl_rtl_goal_audit.json"],
+                "syn": ["syn/out/"],
+                "sta": ["sta/out/"],
+                "pnr": ["pnr/out/"],
+                "sta-post": ["sta-post/out/"],
+            }
+            for rel in _evidence_map.get(sid, []):
+                if (ip_dir / rel).exists():
+                    evidence_paths.append(f"{ip}/{rel}")
+
+            scoresheet = compute_kpi_dots_labeled(ip, sid, root=pr)
+            top, secondary = _stage_top_secondary(sid, ip_dir, ip)
+
+            stage_blame: str | None = None
+            if state == "failed" and sid == "sim" and blame_workflow:
+                stage_blame = blame_workflow
+
+            model = (running_job or last_job or {}).get("model") or None
+            effort = (running_job or last_job or {}).get("effort") or None
+
+            stages_out[sid] = {
+                "state": state,
+                "glyph": _GLYPHS.get(state, "◯"),
+                "scoresheet": scoresheet,
+                "iter": iter_str,
+                "progress": progress,
+                "live_tail": live_tail,
+                "top": top,
+                "secondary": secondary,
+                "evidence_paths": evidence_paths,
+                "abortable": abortable,
+                "model": model,
+                "effort": effort,
+                "history": _stage_history(sid),
+                "blame": stage_blame,
+                "locked_reason": locked_reason,
+                "error_summary": db_error if state == "failed" else None,
+                "source": "db" if db_state is not None else ("fs" if sid in passed_stages else "none"),
+            }
+
+        payload = {
+            "ip": ip,
+            "rtl_version_id": rtl_version_id,
+            "mode": "pipeline",
+            "stages": stages_out,
+        }
+        _state_cache[ip] = (_t.monotonic(), payload)
+        return JSONResponse(payload)
+
     # ── /api/pipeline/dispatch ─────────────────────────────────────
 
     @app.post("/api/pipeline/dispatch")

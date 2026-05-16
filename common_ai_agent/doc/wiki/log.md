@@ -2,6 +2,25 @@
 
 ## 2026-05-16
 
+- New top-level ATLAS screen: [[atlas-pipeline-screen]] (`◫ Pipeline`,
+  branch `feature_pipeline_ui`). Replaces the mock `◫ Architect`
+  screen. Each of the 14 canonical stages becomes a click on a stage
+  card with a 3-5 dot KPI scoresheet read from on-disk evidence JSON;
+  the DAG MAP at the top shows token-flow animation along edges from
+  running stages. Failed cards offer `[ go fix <owner> ]`, never
+  `[ retry ]`, per [[workflow-ownership-and-boundaries]]. Live state
+  served from a new `GET /api/pipeline/state?ip=<ip>` endpoint that
+  composes `_job_artifact_recovery` + the existing `/api/jobs` poll +
+  per-stage evidence JSON readers.
+- New wiki page [[ui-design-references]] documents external UI
+  checkouts under `~/Desktop/Project/brian_hw/external_refs/`.
+  First entry: `nexu-io/open-design` (Apache-2.0). Pattern map: their
+  `Theater/ScoreTicker` → our `MiniScoresheet`, `PanelistLane`
+  `data-role` borders → our phase-band tints, `runtime/todos.ts`
+  reverse-walk → our running-card mini-todo list, `InterruptButton`
+  Esc keybind → our running-card `⏹`, `LiveArtifactBadges` → our
+  state badges. Conceptual borrowing only — no code copied, no
+  CSS / fonts / OKLch palettes / Next.js machinery imported.
 - New IP run captured: [[arm-m0-min-pipeline-run]] — first CPU-class IP
   driven end-to-end through `ssot-gen → fl-model-gen → rtl-gen → tb-gen →
   sim → lint` with green compile/lint/sim/coverage on the headless
@@ -27,6 +46,8 @@
 - New wiki page [[deterministic-emit-stages]] documents why fl-model-gen / cl-model-gen run with 0 LLM calls, what SSOT contract this places on the upstream ssot-gen LLM, and what failure modes (`SyntaxError`, helper unknown, etc.) mean for ownership. Also captures the cl-model-gen entry point: `/ssot-cycle-model <ip>` lives inside the `fl-model-gen` workspace (no separate `workflow/cl-model-gen/` directory).
 - New wiki page [[karpathy-llm-wiki-pattern]] captures Andrej Karpathy's LLM Wiki concept (3-layer markdown architecture, frontmatter schema, ingest/query/lint/log operations, no RAG / no vector DB) and the gap analysis against the current `doc/wiki/`. Frontmatter rollout and lint extension are parked as follow-ups; the discussion itself is now searchable.
 - New script `workflow/wiki/build_graph.py` emits `doc/wiki/_graph.json` (schema `wiki_graph.v1`) by parsing every wiki `.md`, optional YAML frontmatter, and `[[refs]]`. Initial index: nodes=15, edges=58, broken_refs=0. `--check` exits non-zero on broken refs so CI/lint can catch dangling wiki links.
+- Per-IP knowledge graph + chat tool landed: `workflow/wiki/build_graph.py --ip <name>` emits `<ip>/wiki/_graph.json` (schema `ip_wiki_graph.v1`) with 10–11 synthetic artifact nodes (`ssot`, `fl_model`, `cl_model`, `rtl`, `filelist`, `lint`, `tb`, `sim`, `coverage`, `audit`, `last_run`) sourced from the canonical IP layout. `/new-ip` now scaffolds `<ip>/wiki/{index,log,notes}.md`. `core/tools.wiki_query(ip, topic, depth)` is registered in `AVAILABLE_TOOLS` so Global Chat and IP Chat agents can read the graph without grep gymnastics. `src/headless_workflow._finish()` calls `_refresh_ip_wiki_graph(ip)` so the per-IP graph stays current after every run. arm_m0_min initial graph: 10 nodes, 14 edges, 0 broken refs. 38/38 e2e checks pass.
+- New page [[wiki-curation-policy]] codifies *what* belongs in the wiki and *when* to write it. Five high-signal triggers (decision-not-in-code, pattern-repeated-across-IPs, policy-not-fix, external reference, IP-handover); four no-write rules (anything already encoded in workflow source, single-shot debug traces, system-prompt rules, wishful "would be nice"); four trigger moments (surprise, commit-not-self-explaining, IP handover/completion, new-IP start with `wiki_query` lookup); four-step promotion ladder (`log line → consolidated paragraph → dedicated page → cross-IP rollup`). "Cite, don't embed" rule for large evidence (LLM trace, scoreboard JSON, DB row stays in source; wiki page only cites the locator). Policy lives next to the code so it evolves in place; revisions edit the page in the same commit.
 - Addressed the three workflow improvement candidates surfaced by the arm_m0_min run:
   1. Confirmed `repair_ssot_schema.py` already normalizes C ternary (`cond ? a : b` → `(a if cond else b)`), full Verilog bit literals (`32'h0`, `1'b1`, `8'hff`), and SystemVerilog unsized fills (`'0`, `'1`, `'x`, `'z`) inside `expr` strings. Verified with a regression matrix; no further patch needed.
   2. `workflow/rtl-gen/system_prompt.md` now states the provenance JSON schema explicitly and tells the LLM rtl-gen agent NOT to write `rtl/rtl_authoring_provenance.json` directly — the engine (`src/headless_workflow.py`, `workflow/rtl-gen/scripts/ssot_to_rtl.py`) already auto-emits it at end of every rtl-gen run.
@@ -51,3 +72,4 @@
 - Downstream readiness validator added to `repair_ssot_schema.py`: detects (a) cyclic same-cycle output_rule dependencies per transaction, (b) `sample_condition` strings that are not DSL-parseable, (c) `sub_modules[]` entries with no ownership refs. Writes `<ip>/req/ssot_downstream_blockers.json` after canonicalization; `--strict-downstream` makes the script exit non-zero so the ssot-gen stage gates instead of pushing the problem to fl/cl/equiv/rtl.
 - `workflow/ssot-gen/system_prompt.md` now has a "DOWNSTREAM READINESS" section that tells the ssot-gen LLM the DSL rules, the no-output-cycle rule, the SV fill literal rule, the sub_module ownership refs rule, and the helper reserved names. Goal: catch the same gaps during authoring instead of waiting for rtl-gen preflight.
 - SSOT Q&A Workbench UI contract added: `ssot-gen` now starts on Q&A Session, hides the old QA history panel, uses the full center card for ask_user, exposes Import / Deep Interview(`/grill-me`) / To SSOT(`/to-ssot`) buttons, and shows remaining SSOT requirement decisions. Verified by targeted pytest and ATLAS browser smoke.
+- RTL-GEN split-workspace guidance fix: `rtl-gen` now treats `workflow/` as source-repo tooling under `ATLAS_SOURCE_ROOT`, not as an IP-workspace artifact that must exist in CWD. This prevents UI ask_user cards that ask the user to mount/copy `workflow/rtl-gen/scripts/derive_rtl_todos.py` when the source root is already injected.

@@ -1,13 +1,14 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-15T22:00:47Z",
+  "generated_at": "2026-05-16T00:42:03Z",
   "root": "doc/wiki",
-  "node_count": 15,
-  "edge_count": 64,
+  "node_count": 18,
+  "edge_count": 86,
   "tags": {},
   "types": {
     "reference": [
       "arm-m0-min-pipeline-run",
+      "atlas-pipeline-screen",
       "common-ai-agent-map",
       "deterministic-emit-stages",
       "full-flow-pipeline",
@@ -20,6 +21,8 @@
       "rtl-gen-ssot-contract",
       "rtl-version-run-history",
       "ssot-qa-workbench",
+      "ui-design-references",
+      "wiki-curation-policy",
       "workflow-feedback-and-scheduling",
       "workflow-ownership-and-boundaries"
     ]
@@ -54,6 +57,31 @@
       "summary": "End-to-end run of common_ai_agent on a minimal ARMv6-M Thumb CPU, `SSOT → fl-model-gen → rtl-gen → tb-gen → sim → lint`. This page is the **reference run** for CPU-class IPs and the first IP-on-DB-stack run captured in the wiki. Detailed run report lives at [`arm_m0_min/PIPELINE_SUMMARY.md`](../../arm_m0_min/PIPELINE_SUMMARY.md).",
       "path": "doc/wiki/arm-m0-min-pipeline-run.md",
       "size_bytes": 7510
+    },
+    {
+      "id": "atlas-pipeline-screen",
+      "title": "ATLAS Pipeline Screen",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "log",
+        "full-flow-pipeline",
+        "ui-design-references",
+        "workflow-ownership-and-boundaries",
+        "workflow-feedback-and-scheduling",
+        "deterministic-emit-stages"
+      ],
+      "incoming": [
+        "index",
+        "log",
+        "ui-design-references"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`◫ Pipeline` is a top-level ATLAS screen that turns the 14-stage common_ai_agent flow into a click-to-run + glance-to-read situation board. It replaced the mock `◫ Architect` screen on 2026-05-16 (see [[log]] entry).",
+      "path": "doc/wiki/atlas-pipeline-screen.md",
+      "size_bytes": 10107
     },
     {
       "id": "common-ai-agent-map",
@@ -94,9 +122,12 @@
         "log"
       ],
       "incoming": [
+        "atlas-pipeline-screen",
         "index",
         "karpathy-llm-wiki-pattern",
-        "log"
+        "log",
+        "ui-design-references",
+        "wiki-curation-policy"
       ],
       "broken_refs": [],
       "updated": "",
@@ -119,6 +150,7 @@
       ],
       "incoming": [
         "arm-m0-min-pipeline-run",
+        "atlas-pipeline-screen",
         "common-ai-agent-map",
         "deterministic-emit-stages",
         "golden-todo-evidence",
@@ -127,6 +159,7 @@
         "provider-and-llm-call-accounting",
         "rtl-gen-ssot-contract",
         "ssot-qa-workbench",
+        "ui-design-references",
         "workflow-ownership-and-boundaries"
       ],
       "broken_refs": [],
@@ -205,16 +238,20 @@
         "human-review-and-escalation",
         "deterministic-emit-stages",
         "karpathy-llm-wiki-pattern",
+        "wiki-curation-policy",
+        "atlas-pipeline-screen",
+        "ui-design-references",
         "arm-m0-min-pipeline-run"
       ],
       "incoming": [
-        "karpathy-llm-wiki-pattern"
+        "karpathy-llm-wiki-pattern",
+        "wiki-curation-policy"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 3371
+      "size_bytes": 3842
     },
     {
       "id": "karpathy-llm-wiki-pattern",
@@ -230,7 +267,8 @@
       ],
       "incoming": [
         "index",
-        "log"
+        "log",
+        "wiki-curation-policy"
       ],
       "broken_refs": [],
       "updated": "",
@@ -245,21 +283,27 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "atlas-pipeline-screen",
+        "workflow-ownership-and-boundaries",
+        "ui-design-references",
         "arm-m0-min-pipeline-run",
         "rtl-version-run-history",
         "deterministic-emit-stages",
-        "karpathy-llm-wiki-pattern"
+        "karpathy-llm-wiki-pattern",
+        "wiki-curation-policy"
       ],
       "incoming": [
         "arm-m0-min-pipeline-run",
+        "atlas-pipeline-screen",
         "deterministic-emit-stages",
-        "karpathy-llm-wiki-pattern"
+        "karpathy-llm-wiki-pattern",
+        "wiki-curation-policy"
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- New IP run captured: [[arm-m0-min-pipeline-run]] — first CPU-class IP driven end-to-end through `ssot-gen → fl-model-gen → rtl-gen → tb-gen → sim → lint` with green compile/lint/sim/coverage on the headless surface (`gpt-5.3-codex`, `/mode pipeline`). 8 SV files (22 KB), scoreboard 37/37 with 0 mismatches, 35/35 fcov bins hit, lint clean. Detailed report…",
+      "summary": "- New top-level ATLAS screen: [[atlas-pipeline-screen]] (`◫ Pipeline`, branch `feature_pipeline_ui`). Replaces the mock `◫ Architect` screen. Each of the 14 canonical stages becomes a click on a stage card with a 3-5 dot KPI scoresheet read from on-disk evidence JSON; the DAG MAP at the top shows token-flow animation along edges from running stages. Failed…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 8270
+      "size_bytes": 11421
     },
     {
       "id": "provider-and-llm-call-accounting",
@@ -346,6 +390,52 @@
       "size_bytes": 1576
     },
     {
+      "id": "ui-design-references",
+      "title": "UI Design References",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "atlas-pipeline-screen",
+        "full-flow-pipeline",
+        "workflow-ownership-and-boundaries",
+        "workflow-feedback-and-scheduling",
+        "deterministic-emit-stages"
+      ],
+      "incoming": [
+        "atlas-pipeline-screen",
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Read-only external UI checkouts we study when building or extending ATLAS UI surfaces. None of this code ships in `common_ai_agent`; we only borrow patterns conceptually.",
+      "path": "doc/wiki/ui-design-references.md",
+      "size_bytes": 4507
+    },
+    {
+      "id": "wiki-curation-policy",
+      "title": "Wiki Curation Policy — what to capture, when to capture it",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "karpathy-llm-wiki-pattern",
+        "index",
+        "log",
+        "deterministic-emit-stages"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Working policy for `common_ai_agent/doc/wiki/` and the per-IP `<ip>/wiki/` directories. Lives here so it can be revised in place as we learn from real use. Until this page is rewritten, the rules below apply.",
+      "path": "doc/wiki/wiki-curation-policy.md",
+      "size_bytes": 5175
+    },
+    {
       "id": "workflow-feedback-and-scheduling",
       "title": "Workflow Feedback And Scheduling",
       "type": "reference",
@@ -354,8 +444,10 @@
       "outgoing": [],
       "incoming": [
         "arm-m0-min-pipeline-run",
+        "atlas-pipeline-screen",
         "full-flow-pipeline",
-        "index"
+        "index",
+        "ui-design-references"
       ],
       "broken_refs": [],
       "updated": "",
@@ -376,6 +468,7 @@
       ],
       "incoming": [
         "arm-m0-min-pipeline-run",
+        "atlas-pipeline-screen",
         "common-ai-agent-map",
         "deterministic-emit-stages",
         "full-flow-pipeline",
@@ -383,8 +476,10 @@
         "human-review-and-escalation",
         "index",
         "karpathy-llm-wiki-pattern",
+        "log",
         "rtl-gen-ssot-contract",
-        "ssot-qa-workbench"
+        "ssot-qa-workbench",
+        "ui-design-references"
       ],
       "broken_refs": [],
       "updated": "",

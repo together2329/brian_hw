@@ -3707,7 +3707,7 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
   return (
     <div style={{ background: 'var(--panel)', borderLeft: '1px solid var(--line)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <div className="box-h">
-        <b>chat · architect</b>
+        <b>chat · {String(view || 'architect').toLowerCase()}</b>
         <span style={{ flex: 1 }} />
         <span className={`pill ${streaming ? 'run' : 'acc'}`} style={{ fontSize: 9 }}>
           {streaming ? 'react-loop · streaming' : 'react-loop · idle'}

@@ -117,6 +117,50 @@ def _active_session_value() -> str:
     return env_value or current
 
 
+def _atlas_todo_item_from_raw(item: dict[str, Any]) -> dict[str, Any]:
+    todo = dict(item)
+    content = todo.get("content") or todo.get("title") or todo.get("id") or ""
+    todo["content"] = str(content)
+    todo["activeForm"] = str(todo.get("activeForm") or todo.get("active_form") or content)
+    todo["status"] = str(todo.get("status") or "pending")
+    todo["priority"] = str(todo.get("priority") or "medium")
+    todo["detail"] = str(todo.get("detail") or "")
+    todo["criteria"] = str(todo.get("criteria") or "")
+    return todo
+
+
+def _atlas_todo_payload_from_raw(raw: Any, fallback: dict[str, Any] | None = None) -> dict[str, Any]:
+    payload = dict(fallback or {})
+    raw_items: Any = None
+    if isinstance(raw, dict):
+        for key in (
+            "name",
+            "description",
+            "lock_additions",
+            "source_plan",
+            "source_task_count",
+            "status_counts",
+            "ui_grouping",
+            "current_index",
+        ):
+            if key in raw:
+                payload[key] = raw[key]
+        raw_items = raw.get("todos")
+        if not isinstance(raw_items, list):
+            raw_items = raw.get("tasks")
+    elif isinstance(raw, list):
+        raw_items = raw
+    if isinstance(raw_items, list):
+        payload["todos"] = [
+            _atlas_todo_item_from_raw(item)
+            for item in raw_items
+            if isinstance(item, dict)
+        ]
+    else:
+        payload.setdefault("todos", [])
+    return payload
+
+
 def _normalize_reasoning_effort(raw: Any) -> str:
     effort = _REASONING_EFFORT_ALIASES.get(str(raw or "").strip().lower(), "")
     if not effort:
@@ -612,6 +656,57 @@ def create_app():
         if broadcaster_task is None or broadcaster_task.done():
             broadcaster_task = asyncio.create_task(_broadcast_outbox())
 
+    # ── inlined-HTML cache ────────────────────────────────────────
+    # The browser fetches /  on every reload — the 14 .jsx files we
+    # inline are large (~1.1 MB total) and each read_text() is sync,
+    # so doing it from inside `async def index()` blocks the event
+    # loop and starves every other request (api, static assets, ws).
+    # Cache the assembled HTML and rebuild only when any inlined
+    # source file's mtime changes.
+    _INLINE_INDEX_RE = re.compile(
+        r'<script\s+type="text/babel"\s+(?P<attrs>[^>]*?)src="(?P<src>[^"]+)"[^>]*>\s*</script>'
+    )
+    _inline_cache: dict[str, dict[str, Any]] = {}
+
+    def _inline_html_cached(template_name: str) -> str:
+        """Return the inlined HTML for a frontend template, cached by
+        max mtime of (template + every referenced .jsx/.js asset)."""
+        tmpl = FRONTEND / template_name
+        if not tmpl.is_file():
+            return ""
+        # Cheap stat-only mtime scan over the frontend dir.
+        candidates = [tmpl, *FRONTEND.glob("*.jsx"), *FRONTEND.glob("*.js")]
+        latest = 0.0
+        for p in candidates:
+            try:
+                m = p.stat().st_mtime
+                if m > latest:
+                    latest = m
+            except OSError:
+                pass
+        cached = _inline_cache.get(template_name)
+        if cached and cached["stamp"] >= latest:
+            return cached["html"]
+
+        html = tmpl.read_text(encoding="utf-8")
+        def _inline_script(match):
+            attrs = match.group("attrs")
+            src = match.group("src").split("?", 1)[0]
+            if not src.endswith((".jsx", ".js")):
+                return match.group(0)
+            path = (FRONTEND / src).resolve()
+            try:
+                path.relative_to(FRONTEND.resolve())
+            except Exception:
+                return match.group(0)
+            if not path.is_file():
+                return match.group(0)
+            code = path.read_text(encoding="utf-8")
+            return f'<script type="text/babel" {attrs}>{code}</script>'
+        html = _INLINE_INDEX_RE.sub(_inline_script, html)
+        _inline_cache[template_name] = {"html": html, "stamp": latest}
+        return html
+
     @app.get("/")
     async def index():
         """Serve index.html with local JSX inlined.
@@ -620,56 +715,13 @@ def create_app():
         in-app browser can intermittently fail those localhost XHRs even
         when the same asset is directly reachable.  Inlining keeps the
         dev-time Babel path but removes the fragile second fetch.
+        Cached by frontend mtime — see _inline_html_cached().
         """
-        html = (FRONTEND / "index.html").read_text(encoding="utf-8")
-
-        def _inline_script(match):
-            attrs = match.group("attrs")
-            src = match.group("src").split("?", 1)[0]
-            if not src.endswith((".jsx", ".js")):
-                return match.group(0)
-            path = (FRONTEND / src).resolve()
-            try:
-                path.relative_to(FRONTEND.resolve())
-            except Exception:
-                return match.group(0)
-            if not path.is_file():
-                return match.group(0)
-            code = path.read_text(encoding="utf-8")
-            return f'<script type="text/babel" {attrs}>{code}</script>'
-
-        html = re.sub(
-            r'<script\s+type="text/babel"\s+(?P<attrs>[^>]*?)src="(?P<src>[^"]+)"[^>]*>\s*</script>',
-            _inline_script,
-            html,
-        )
-        return HTMLResponse(html)
+        return HTMLResponse(_inline_html_cached("index.html"))
 
     @app.get("/lobby")
     async def lobby():
-        html = (FRONTEND / "lobby.html").read_text(encoding="utf-8")
-
-        def _inline_script(match):
-            attrs = match.group("attrs")
-            src = match.group("src").split("?", 1)[0]
-            if not src.endswith((".jsx", ".js")):
-                return match.group(0)
-            path = (FRONTEND / src).resolve()
-            try:
-                path.relative_to(FRONTEND.resolve())
-            except Exception:
-                return match.group(0)
-            if not path.is_file():
-                return match.group(0)
-            code = path.read_text(encoding="utf-8")
-            return f'<script type="text/babel" {attrs}>{code}</script>'
-
-        html = re.sub(
-            r'<script\s+type="text/babel"\s+(?P<attrs>[^>]*?)src="(?P<src>[^"]+)"[^>]*>\s*</script>',
-            _inline_script,
-            html,
-        )
-        return HTMLResponse(html)
+        return HTMLResponse(_inline_html_cached("lobby.html"))
 
     # Per-process startup epoch — bumps every time the backend
     # restarts. Surfaced in /api/version so the frontend polling loop
@@ -3128,16 +3180,45 @@ def create_app():
     async def api_todos():
         # Prefer the live tracker the agent is mutating in main.py — that's
         # the only way to see in-progress changes before they hit disk. Fall
-        # back to the on-disk file if main hasn't initialized one yet.
+        # back to the on-disk file if main hasn't initialized one yet. When
+        # ATLAS has an active namespaced session, that session's todo.json is
+        # the source of truth; a process-global live tracker may still point at
+        # an older HOME-level current_todos.json from another IP.
         candidates: list[Path] = []
+        active_session = normalize_session_name(_active_session_value())
+        active_todo_path = (
+            PROJECT_ROOT / ".session" / active_session / "todo.json"
+            if active_session else None
+        )
+
+        def _same_path(left: Path | None, right: Path | None) -> bool:
+            if left is None or right is None:
+                return False
+            try:
+                return left.expanduser().resolve() == right.expanduser().resolve()
+            except Exception:
+                return str(left) == str(right)
+
         try:
             import main as _main  # noqa: WPS433
             live = getattr(_main, "todo_tracker", None)
+            live_persist_path = (
+                getattr(live, "_persist_path", None)
+                if live is not None
+                else None
+            )
+            live_path = Path(live_persist_path) if live_persist_path else None
             if live is not None and getattr(live, "todos", None):
-                return JSONResponse(_gate_for_workflow(live.to_dict()))
-            live_path = getattr(live, "_persist_path", None) if live is not None else None
+                if (
+                    not active_todo_path
+                    or not active_todo_path.exists()
+                    or _same_path(live_path, active_todo_path)
+                ):
+                    return JSONResponse(_gate_for_workflow(live.to_dict()))
+            if active_todo_path:
+                candidates.append(active_todo_path)
             if live_path:
-                candidates.append(Path(live_path))
+                candidates.append(live_path)
         except Exception:
             pass
         # On-disk fallback. Two persistence paths exist in this repo:
@@ -3160,9 +3241,6 @@ def create_app():
                 candidates.append(cfg_todo if cfg_todo.is_absolute() else PROJECT_ROOT / cfg_todo)
             except Exception:
                 pass
-            active_session = normalize_session_name(_active_session_value())
-            if active_session:
-                candidates.append(PROJECT_ROOT / ".session" / active_session / "todo.json")
             candidates.extend([
                 PROJECT_ROOT / "current_todos.json",
                 Path.cwd() / "current_todos.json",
@@ -3181,23 +3259,16 @@ def create_app():
             picked = next((p for p in deduped if p.exists()), None)
             if picked is None:
                 return JSONResponse({"todos": []})
+            raw = None
+            try:
+                raw = _json.loads(picked.read_text(encoding="utf-8"))
+            except Exception:
+                raw = None
             tt = TodoTracker.load(picked)
             d = tt.to_dict()
             if d.get("todos"):
                 return JSONResponse(_gate_for_workflow(d))
-            # Legacy array shape: `[{...}]` instead of `{"todos": [...]}`.
-            try:
-                raw = _json.loads(picked.read_text())
-                if isinstance(raw, list):
-                    d = {"todos": [
-                        {"content": t.get("content", ""),
-                         "status": t.get("status", "pending"),
-                         "priority": t.get("priority", ""),
-                         "detail": t.get("detail", "")}
-                        for t in raw if isinstance(t, dict)
-                    ]}
-            except Exception:
-                pass
+            d = _atlas_todo_payload_from_raw(raw, d)
             return JSONResponse(_gate_for_workflow(d))
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
@@ -8020,6 +8091,14 @@ def create_app():
         state["rtl_blocker_source"] = str(_rtl_blocker_path(ip).relative_to(PROJECT_ROOT))
         state["rtl_blocker_answers"] = answer_entries
         _save_ssot_state(ip, state)
+        answers_path = _ssot_session_dir(ip) / "rtl_blocker_answers.json"
+        answers_path.parent.mkdir(parents=True, exist_ok=True)
+        answers_path.write_text(json.dumps({
+            "rtl_blocker_answers": answer_entries,
+            "source": "atlas-ui",
+            "ip": ip,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }, ensure_ascii=False, indent=2), encoding="utf-8")
 
         scripts = {
             "resolve": SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "resolve_rtl_blockers.py",
@@ -8046,7 +8125,15 @@ def create_app():
             })
             return int(proc.returncode)
 
-        resolve_rc = _run("resolve_rtl_blockers", [sys.executable, str(scripts["resolve"]), ip, "--root", str(PROJECT_ROOT)])
+        resolve_rc = _run("resolve_rtl_blockers", [
+            sys.executable,
+            str(scripts["resolve"]),
+            ip,
+            "--root",
+            str(PROJECT_ROOT),
+            "--answers-json",
+            str(answers_path),
+        ])
         check_rc = _run("check_ssot_disk", ["bash", str(scripts["check"]), ip]) if resolve_rc == 0 else None
         fl_rc = _run("emit_fl_model", [sys.executable, str(scripts["fl"]), ip, "--root", str(PROJECT_ROOT)]) if check_rc == 0 else None
         preflight_rc = _run("rtl_preflight", [sys.executable, str(scripts["preflight"]), ip, "--root", str(PROJECT_ROOT), "--preflight-only"]) if fl_rc == 0 else None
@@ -11452,6 +11539,17 @@ def create_app():
             cookies = websocket.scope.get("cookies") or {}
         user = auth.get_user_from_cookie(_WebSocketCookieRequest(cookies))
         if user is None:
+            try:
+                from core.atlas_auth import is_local_admin_mode, local_admin_user
+            except Exception:
+                try:
+                    from atlas_auth import is_local_admin_mode, local_admin_user  # type: ignore
+                except Exception:
+                    is_local_admin_mode = None  # type: ignore
+                    local_admin_user = None  # type: ignore
+            if callable(is_local_admin_mode) and is_local_admin_mode() and callable(local_admin_user):
+                user = local_admin_user()
+        if user is None:
             await _close_websocket_quietly(websocket, code=1008, reason="unauthenticated")
             return
 
@@ -12310,7 +12408,8 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         threading.Thread(target=ctx.run, args=(_run_agent,), daemon=True).start()
 
     bridge.set_agent_starter(_start_agent_thread)
-    bridge.ensure_agent_alive()
+    if os.environ.get("ATLAS_AGENT_AUTOSTART", "1").strip().lower() not in {"0", "false", "off", "no"}:
+        bridge.ensure_agent_alive()
 
     # Surface the source-repo path to the agent so it can locate
     # workflow/, rules/, templates/, etc. when running from a non-source
@@ -12323,7 +12422,11 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         f"All file reads/writes default to here. The source repo "
         f"(workflow templates, ssot-template.yaml, skills) lives at "
         f"{SOURCE_ROOT} — reference those by absolute path, not by "
-        f"relative path from cwd."
+        f"relative path from cwd. This source path is allowed for "
+        f"read-only workflow tooling/scripts such as "
+        f"$ATLAS_SOURCE_ROOT/workflow/...; keep generated IP artifacts "
+        f"under cwd and do not ask the user to mount or copy workflow/ "
+        f"into the project workspace."
     )
     try:
         # Append to whatever the existing system prompt builder produces
