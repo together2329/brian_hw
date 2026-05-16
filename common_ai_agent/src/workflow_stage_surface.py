@@ -495,3 +495,90 @@ def compute_kpi_dots(
         dots = ["idle"] * 5
 
     return dots[:5]
+
+
+# Per-stage KPI dot labels and evidence path hints. Index aligns with the
+# corresponding _kpi_*() helper output above; lengths must match.
+_KPI_LABELS: dict[str, list[str]] = {
+    "ssot": ["sections", "qa resolved", "tbd=0", "isa_spec", "register_file"],
+    "fl-model": ["emit_passed", "self_check", "fcov_plan", "manifest_ok"],
+    "cl-model": ["emit_passed", "cl_self_check", "cycle_cov_plan"],
+    "equivalence": ["parses", "goals_resolved", "sub_module_refs"],
+    "rtl": ["compile_rc", "lint_clean", "todo_audit", "provenance"],
+    "lint": ["errors=0", "warnings≤waivers", "waiver_count"],
+    "tb": ["top_present", "scoreboard", "tc_count", "manifest"],
+    "sim": ["results.xml", "mismatches=0", "vcd_present", "seed_coverage"],
+    "coverage": ["bins_hit", "cycle_cov", "func_cov", "uncov_count"],
+    "sim-debug": ["classification", "owner_routed", "feedback_packet"],
+    "goal-audit": ["failed_checks=0", "blockers=0", "status=pass"],
+    "syn": ["tool_rc", "area", "timing_slack", "fanout", "power"],
+    "sta": ["tool_rc", "area", "timing_slack", "fanout", "power"],
+    "pnr": ["tool_rc", "area", "timing_slack", "fanout", "power"],
+    "sta-post": ["tool_rc", "area", "timing_slack", "fanout", "power"],
+}
+
+_KPI_EVIDENCE: dict[str, list[str]] = {
+    "ssot": ["yaml/{ip}.ssot.yaml"] * 5,
+    "fl-model": [
+        "model/fl_model_check.json", "model/fl_model_check.json",
+        "cov/fcov_plan.json", "model/fl_model_check.json",
+    ],
+    "cl-model": ["model/cl_model_check.json"] * 3,
+    "equivalence": ["verify/equivalence_goals.json"] * 3,
+    "rtl": [
+        "rtl/rtl_compile.json", "lint/dut_lint.json",
+        "rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json",
+    ],
+    "lint": ["lint/dut_lint.json"] * 3,
+    "tb": ["tb/cocotb/"] * 4,
+    "sim": [
+        "sim/results.xml", "sim/fl_rtl_compare.json",
+        "sim/", "sim/fl_rtl_compare.json",
+    ],
+    "coverage": ["cov/coverage.json"] * 4,
+    "sim-debug": ["sim/mismatch_classification.json"] * 3,
+    "goal-audit": ["sim/fl_rtl_goal_audit.json"] * 3,
+    "syn": ["syn/out/"] * 5,
+    "sta": ["sta/out/"] * 5,
+    "pnr": ["pnr/out/"] * 5,
+    "sta-post": ["sta-post/out/"] * 5,
+}
+
+
+_STAGE_ALIASES_FOR_LABELS = {
+    "ssot-gen": "ssot",
+    "fl-model-gen": "fl-model",
+    "cl-model-gen": "cl-model",
+    "equiv-goals": "equivalence",
+    "rtl-gen": "rtl",
+    "tb-gen": "tb",
+}
+
+
+def compute_kpi_dots_labeled(
+    ip: str,
+    stage: str,
+    *,
+    root: Path | None = None,
+) -> list[dict[str, str]]:
+    """Same dots as compute_kpi_dots(), each paired with a human label and
+    an evidence file path hint. Returns up to 5 entries:
+        [{"state": "pass", "label": "compile_rc", "evidence_path": "rtl/rtl_compile.json"}, ...]
+    """
+    canonical = _STAGE_ALIASES_FOR_LABELS.get(stage, stage)
+    states = compute_kpi_dots(ip, stage, root=root)
+    labels = _KPI_LABELS.get(canonical, [f"kpi {i+1}" for i in range(len(states))])
+    evidence = _KPI_EVIDENCE.get(canonical, [""] * len(states))
+    out: list[dict[str, str]] = []
+    n = min(len(states), len(labels), len(evidence), 5)
+    for i in range(n):
+        out.append({
+            "state": states[i],
+            "label": labels[i].format(ip=ip),
+            "evidence_path": evidence[i].format(ip=ip),
+        })
+    # Append remaining states (if helper returned more than labels) with
+    # generic labels — keeps shape consistent.
+    for i in range(n, min(len(states), 5)):
+        out.append({"state": states[i], "label": f"kpi {i+1}", "evidence_path": ""})
+    return out

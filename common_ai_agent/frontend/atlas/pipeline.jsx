@@ -196,16 +196,13 @@ window.DagMap = function DagMap({ state, onNodeClick }) {
                style={{ cursor: 'pointer' }}>
               <rect width={NODE_W} height={NODE_H} rx="4" ry="4"
                     className={`pipe-node ${isRunning ? 'pipe-node-running' : ''}`}
-                    data-state={stageState}
-                    fill="var(--bg-2)"
-                    stroke={meta.color}
-                    strokeWidth="1.5" />
+                    data-state={stageState} />
               <text x={NODE_W / 2} y={NODE_H / 2 + 4}
                     textAnchor="middle"
                     fontFamily="var(--mono)"
                     fontSize="10"
-                    fontWeight="600"
-                    fill={meta.color}>
+                    className="pipe-node-glyph"
+                    data-state={stageState}>
                 {label}
               </text>
               <title>{`${labels[s] || s} · ${meta.label}`}</title>
@@ -225,23 +222,36 @@ window.DagMap = function DagMap({ state, onNodeClick }) {
 // path from `evidence_paths[i]` so the existing FileViewer can pick
 // it up (workspace.jsx wires the listener).
 window.MiniScoresheet = function MiniScoresheet({ scoresheet, evidencePaths }) {
-  const dots = Array.isArray(scoresheet) ? scoresheet : [];
-  const paths = Array.isArray(evidencePaths) ? evidencePaths : [];
+  const raw = Array.isArray(scoresheet) ? scoresheet : [];
+  const fallbackPaths = Array.isArray(evidencePaths) ? evidencePaths : [];
+  // Backend now returns labeled dots: {state, label, evidence_path}.
+  // Older callers may still pass bare strings — keep both shapes working.
+  const dots = raw.map((d, i) => {
+    if (typeof d === 'string') {
+      return { state: d, label: '', evidence_path: fallbackPaths[i] || fallbackPaths[0] || '' };
+    }
+    return {
+      state: d && d.state ? d.state : 'idle',
+      label: d && d.label ? d.label : '',
+      evidence_path: (d && d.evidence_path) || fallbackPaths[i] || fallbackPaths[0] || '',
+    };
+  });
   if (!dots.length) return null;
   return (
     <div className="pipe-scoresheet">
-      {dots.map((kpi, i) => {
-        const path = paths[i] || paths[0] || '';
+      {dots.map((dot, i) => {
+        const tip = `${dot.label || 'kpi ' + (i + 1)}: ${dot.state}` +
+                    (dot.evidence_path ? `\n${dot.evidence_path}` : '');
         return (
           <span key={i}
                 className="pipe-dot"
-                data-kpi={kpi || 'idle'}
-                title={`${kpi || 'idle'}${path ? ` · ${path}` : ''}`}
+                data-kpi={dot.state || 'idle'}
+                title={tip}
                 onClick={() => {
-                  if (!path) return;
+                  if (!dot.evidence_path) return;
                   try {
                     window.dispatchEvent(new CustomEvent('atlas:open_evidence', {
-                      detail: { path, kpi, source: 'pipeline' },
+                      detail: { path: dot.evidence_path, kpi: dot.state, label: dot.label, source: 'pipeline' },
                     }));
                   } catch (_) {}
                 }} />
@@ -359,17 +369,32 @@ window.StageCard = function StageCard({ stageId, info, ip, onChain }) {
   const progress = data.progress;
   const evidencePaths = data.evidence_paths || [];
 
+  // "Start here" highlight: SSOT card when nothing has run yet — gives the
+  // user an unambiguous entry point on a fresh IP instead of a sea of locked
+  // cards.
+  const isSsot = stageId === 'ssot' || stageId === 'ssot-gen';
+  const noHistory = !Array.isArray(data.history) || data.history.length === 0;
+  const isStartHere = isSsot && (stageState === 'idle' || stageState === 'ready') && noHistory;
+
   return (
     <div className="pipe-stage-card"
          data-state={stageState}
          data-stage={stageId}
+         data-start={isStartHere ? 'true' : undefined}
          ref={cardRef}
          onClick={onCardClick}
-         title={isLocked ? 'Upstream not satisfied — locked' : undefined}>
+         title={isLocked && data.locked_reason ? data.locked_reason
+               : isLocked ? 'Upstream not satisfied — locked'
+               : undefined}>
       <div className="pipe-stage-row1">
         <span className="pipe-stage-glyph" style={{ color: meta.color }}>{glyph}</span>
         <span className="pipe-stage-label">{label}</span>
         <span className="pipe-stage-state" data-state={stageState}>{meta.label}</span>
+        {isLocked && data.locked_reason && (
+          <span className="pipe-stage-locked-why mute" title={data.locked_reason}>
+            ({data.locked_reason})
+          </span>
+        )}
         <span className="pipe-stage-spacer" />
         {iter && <span className="pipe-stage-meta">{iter}</span>}
         {dur && <span className="pipe-stage-meta">{dur}</span>}

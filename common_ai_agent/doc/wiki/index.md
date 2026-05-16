@@ -23,6 +23,7 @@ follow the source docs for implementation detail.
 ## UI
 
 - [[atlas-pipeline-screen]] — `◫ Pipeline` top-level screen: click-to-run stage dispatcher, per-stage scoresheet, owner-aware blame routing.
+- [[atlas-pipeline-db-state]] — how `/api/pipeline/state` derives state (DB-first, FS-fallback for hand-placed evidence) and the migration plan for moving KPI dots fully into the DB.
 - [[ui-design-references]] — external UI checkouts under `external_refs/` (currently `nexu-io/open-design`) and which patterns inform ATLAS.
 
 ## Reference Runs (working examples on real IPs)

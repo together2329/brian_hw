@@ -62,6 +62,33 @@ Phase bands group the 14 stages by domain semantics, not by status:
 - **VERIFY** — `sim`, `coverage`, `sim-debug`, `goal-audit` (truth-check + blame routing)
 - **SIGN-OFF** — `syn`, `sta`, `pnr`, `sta-post` (collapsed by default; rarely run for educational IPs)
 
+## State derivation (DB-first, FS-fallback)
+
+Per-stage `state` (idle / running / passed / failed / blocked / stale /
+locked) is computed from these signals, in priority order:
+
+1. **In-flight job** (`/api/jobs` snapshot) → `running`.
+2. **`workflow_runs` row** for `(workspace_id, ip_id, workflow_name)`,
+   most recent → `running` / `passed` (`status=completed`) /
+   `failed` (`status in {error, blocked, cancelled}`). DB is the
+   source of truth here, surviving filesystem moves and
+   `ATLAS_PROJECT_ROOT` changes.
+3. **Filesystem evidence** (`_job_artifact_recovery`) → `passed`.
+   Used only when no DB row exists, covering hand-placed artifacts
+   (e.g., `cp -R old_run/<ip>/ .`).
+4. **Dependency check** (`_PIPELINE_STAGE_DEPS`) → `ready` if all
+   upstream stages are `passed`, else `locked`. Locked cards
+   carry a `locked_reason` like `"needs ssot"` so the UI can render
+   `(needs ssot)` instead of just `LOCKED`.
+5. **`<ip>/rtl/rtl_blocked.json`** non-empty → `blocked`.
+
+The response includes a `source` field on each stage:
+`"db"` / `"fs"` / `"none"`, so callers know where the verdict came
+from. KPI numerics (the 3-5 dot scoresheet — compile_rc, lint_errors,
+sim_mismatches, etc.) are still read from on-disk JSON because the DB
+schema does not yet store them; see [[atlas-pipeline-db-state]] for
+the migration plan.
+
 ## Live data contract
 
 `GET /api/pipeline/state?ip=<ip>` returns:

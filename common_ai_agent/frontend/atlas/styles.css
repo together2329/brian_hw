@@ -2327,24 +2327,62 @@ code,
     var(--bg);
 }
 .pipe-node {
-  transition: stroke-width .12s, opacity .12s;
+  transition: stroke-width .12s, opacity .12s, fill .12s, stroke .12s;
+  stroke: var(--line);
+  stroke-width: 1.2;
+  fill: var(--bg);
+}
+.pipe-node[data-state="idle"] {
+  stroke: var(--line);
+  stroke-dasharray: 2 2;
+  fill: var(--bg);
+}
+.pipe-node[data-state="ready"] {
+  stroke: var(--accent);
+  fill: color-mix(in oklch, var(--accent) 8%, var(--bg-2));
 }
 .pipe-node[data-state="passed"],
 .pipe-node[data-state="ok"] {
   stroke: var(--ok);
-  fill: color-mix(in oklch, var(--ok) 10%, var(--bg-2));
+  stroke-width: 1.6;
+  fill: color-mix(in oklch, var(--ok) 18%, var(--bg-2));
 }
 .pipe-node[data-state="failed"],
 .pipe-node[data-state="err"] {
   stroke: var(--err);
-  fill: color-mix(in oklch, var(--err) 14%, var(--bg-2));
+  stroke-width: 1.8;
+  fill: color-mix(in oklch, var(--err) 22%, var(--bg-2));
 }
-.pipe-node[data-state="locked"] { opacity: 0.4; }
+.pipe-node[data-state="blocked"] {
+  stroke: var(--warn);
+  stroke-dasharray: 4 2;
+  fill: color-mix(in oklch, var(--warn) 14%, var(--bg-2));
+}
+.pipe-node[data-state="stale"] {
+  stroke: var(--warn);
+  stroke-dasharray: 3 3;
+  fill: transparent;
+}
+.pipe-node[data-state="locked"] {
+  stroke: var(--line);
+  fill: var(--bg-2);
+  opacity: 0.45;
+}
 .pipe-node-running {
   animation: pipe-pulse-ring 1.4s infinite;
   stroke: var(--cyan);
-  fill: color-mix(in oklch, var(--cyan) 18%, var(--bg-2));
+  stroke-width: 1.8;
+  fill: color-mix(in oklch, var(--cyan) 22%, var(--bg-2));
 }
+/* Glyph text inside the node — match the state. Default = subdued fg. */
+.pipe-node-glyph { fill: var(--fg); font-weight: 500; }
+.pipe-node-glyph[data-state="passed"], .pipe-node-glyph[data-state="ok"] { fill: var(--ok); font-weight: 600; }
+.pipe-node-glyph[data-state="failed"], .pipe-node-glyph[data-state="err"] { fill: var(--err); font-weight: 600; }
+.pipe-node-glyph[data-state="running"] { fill: var(--cyan); font-weight: 600; }
+.pipe-node-glyph[data-state="locked"] { fill: var(--fg-mute); }
+.pipe-node-glyph[data-state="blocked"], .pipe-node-glyph[data-state="stale"] { fill: var(--warn); }
+.pipe-node-glyph[data-state="ready"] { fill: var(--accent); font-weight: 600; }
+.pipe-node-glyph[data-state="idle"] { fill: var(--fg-mute); }
 
 /* ── Stage grid + cards ─────────────────────────────────────────── */
 .pipe-stage-grid-wrap {
@@ -2417,7 +2455,48 @@ code,
 .pipe-stage-card[data-state="err"] {
   border-left: 3px solid var(--err);
 }
-.pipe-stage-card[data-state="locked"] { opacity: 0.45; }
+.pipe-stage-card[data-state="locked"] { opacity: 0.55; }
+.pipe-stage-card[data-state="passed"],
+.pipe-stage-card[data-state="ok"] {
+  border-left: 3px solid var(--ok);
+}
+.pipe-stage-card[data-state="blocked"] {
+  border-left: 3px solid var(--warn);
+}
+.pipe-stage-card[data-state="stale"] {
+  border-left: 3px dashed var(--warn);
+}
+/* "Start here" highlight: the SSOT card on a fresh IP needs to be the
+   obvious first click. Strong border + accent colored RUN button + a
+   small banner on top. */
+.pipe-stage-card[data-start="true"] {
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--accent) 16%, transparent);
+}
+.pipe-stage-card[data-start="true"]::after {
+  content: "▶ Start here — click run to seed SSOT";
+  position: absolute;
+  top: -10px; left: 8px;
+  padding: 1px 6px;
+  background: var(--accent);
+  color: var(--bg);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+.pipe-stage-card[data-start="true"] .pipe-stage-run {
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+}
+/* Locked-reason chip rendered inside the card row1: "(needs ssot)". */
+.pipe-stage-locked-why {
+  font-size: 10px;
+  color: var(--fg-mute);
+  font-style: italic;
+}
 .pipe-stage-card-flash {
   animation: pipe-card-flash 1.4s ease-out;
 }

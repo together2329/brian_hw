@@ -77,5 +77,105 @@ def test_pipeline_state_passed_when_ssot_present(tmp_path: Path, monkeypatch) ->
     data = resp.json()
     ssot_stage = data["stages"]["ssot"]
     assert ssot_stage["state"] == "passed", f"expected passed, got {ssot_stage['state']}"
-    assert ssot_stage["scoresheet"][0] == "pass"
+    # scoresheet entries are now labeled dicts: {state, label, evidence_path}
+    first_dot = ssot_stage["scoresheet"][0]
+    assert isinstance(first_dot, dict)
+    assert first_dot["state"] == "pass"
+    assert first_dot["label"]  # non-empty
+    assert "ssot" in first_dot["evidence_path"]
     assert ssot_stage["top"] != ""
+    assert ssot_stage["source"] == "fs"  # came from filesystem (no DB row)
+
+
+def test_pipeline_state_db_row_overrides_filesystem(tmp_path: Path, monkeypatch) -> None:
+    """A workflow_runs row in the DB should make stage='passed' even with NO
+    on-disk evidence, and 'failed' when status='error'. This is the DB-first
+    state derivation that lets the UI reflect runs even after artifact moves."""
+    import os
+    from core.atlas_db import AtlasDB
+
+    ip = "db_state_ip"
+    (tmp_path / ip).mkdir()  # IP dir exists, but no rtl/ artifacts
+
+    # Pre-create the DB and insert a completed rtl-gen run for this IP.
+    db_path = tmp_path / "atlas.db"
+    os.environ["ATLAS_DB_PATH"] = str(db_path)
+    with AtlasDB(str(db_path)) as db:
+        ws = db.upsert_workspace(tmp_path.name or "default", local_path=str(tmp_path))
+        ipb = db.upsert_ip_block(ws["id"], ip)
+        run = db.start_workflow_run(
+            session_id="default",
+            workspace_id=ws["id"],
+            ip_id=ipb["id"],
+            workflow="rtl-gen",
+            mode="pipeline",
+            model_profile="gpt-5.3-codex",
+            reasoning_effort="high",
+            trigger="test",
+        )
+        db.finish_workflow_run(run["id"], status="completed")
+
+    client = _make_client(tmp_path, monkeypatch)
+    resp = client.get(f"/api/pipeline/state?ip={ip}")
+    assert resp.status_code == 200, resp.text
+
+    data = resp.json()
+    rtl_stage = data["stages"]["rtl"]
+    # No rtl/*.sv on disk, but DB has a completed rtl-gen run → state must
+    # come from the DB and be 'passed'.
+    assert rtl_stage["state"] == "passed", f"expected passed (DB-first), got {rtl_stage['state']}"
+    assert rtl_stage["source"] == "db"
+
+
+def test_pipeline_state_db_failed_propagates_error_summary(tmp_path: Path, monkeypatch) -> None:
+    """A workflow_runs row with status=error should map to state=failed
+    and surface error_summary in the response."""
+    import os
+    from core.atlas_db import AtlasDB
+
+    ip = "db_failed_ip"
+    (tmp_path / ip).mkdir()
+
+    db_path = tmp_path / "atlas.db"
+    os.environ["ATLAS_DB_PATH"] = str(db_path)
+    with AtlasDB(str(db_path)) as db:
+        ws = db.upsert_workspace(tmp_path.name or "default", local_path=str(tmp_path))
+        ipb = db.upsert_ip_block(ws["id"], ip)
+        run = db.start_workflow_run(
+            session_id="default",
+            workspace_id=ws["id"],
+            ip_id=ipb["id"],
+            workflow="lint",
+            mode="pipeline",
+            model_profile="gpt-5.3-codex",
+            reasoning_effort="medium",
+            trigger="test",
+        )
+        db.finish_workflow_run(run["id"], status="error", error_summary="lint produced 7 errors")
+
+    client = _make_client(tmp_path, monkeypatch)
+    resp = client.get(f"/api/pipeline/state?ip={ip}")
+    assert resp.status_code == 200, resp.text
+
+    data = resp.json()
+    lint_stage = data["stages"]["lint"]
+    assert lint_stage["state"] == "failed", f"expected failed, got {lint_stage['state']}"
+    assert lint_stage["error_summary"] == "lint produced 7 errors"
+    assert lint_stage["source"] == "db"
+
+
+def test_pipeline_state_locked_reason_names_missing_upstream(tmp_path: Path, monkeypatch) -> None:
+    """A locked stage should populate locked_reason like 'needs ssot'."""
+    ip = "locked_ip"
+    (tmp_path / ip).mkdir()
+
+    client = _make_client(tmp_path, monkeypatch)
+    resp = client.get(f"/api/pipeline/state?ip={ip}")
+    assert resp.status_code == 200, resp.text
+
+    data = resp.json()
+    # fl-model depends on ssot; with no ssot artifact and no DB row, fl-model
+    # should be locked with reason 'needs ssot'.
+    fl = data["stages"]["fl-model"]
+    assert fl["state"] == "locked", f"expected locked, got {fl['state']}"
+    assert fl["locked_reason"] and "ssot" in fl["locked_reason"], fl["locked_reason"]

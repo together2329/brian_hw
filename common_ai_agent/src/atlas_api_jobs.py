@@ -1153,23 +1153,62 @@ def register_jobs_routes(
         ip_dir = pr / ip
 
         try:
-            from src.workflow_stage_surface import compute_kpi_dots
+            from src.workflow_stage_surface import compute_kpi_dots, compute_kpi_dots_labeled
         except ModuleNotFoundError:
-            from workflow_stage_surface import compute_kpi_dots
+            from workflow_stage_surface import compute_kpi_dots, compute_kpi_dots_labeled
 
-        # latest rtl_version_id from DB (best-effort; None when DB absent)
+        # latest rtl_version_id + DB-first state snapshot from workflow_runs.
+        # DB is the source of truth for state (idle/running/passed/failed);
+        # filesystem is consulted only as a fallback for hand-placed artifacts.
         rtl_version_id: str | None = None
+        db_state_by_workflow: dict[str, dict[str, Any]] = {}
         try:
             import os as _os
             db_path = _os.environ.get("ATLAS_DB_PATH", str(pr / "atlas.db"))
             from core.atlas_db import AtlasDB
             with AtlasDB(db_path) as _db:
                 versions = _db.list_rtl_versions()
+                # workspace + ip_block lookup (creates rows if missing — same
+                # pattern as register_rtl_version in this file)
+                try:
+                    _ws = _db.upsert_workspace(pr.name or "default", local_path=str(pr))
+                    _ipb = _db.upsert_ip_block(_ws["id"], ip)
+                    _runs = _db._fetchall(
+                        """
+                        SELECT workflow, status, error_summary, started_at, ended_at
+                        FROM workflow_runs
+                        WHERE workspace_id = ? AND ip_id = ?
+                        ORDER BY started_at DESC
+                        """,
+                        (_ws["id"], _ipb["id"]),
+                    )
+                    # First (latest) row per workflow wins.
+                    for _r in _runs:
+                        wf = _r["workflow"]
+                        if wf not in db_state_by_workflow:
+                            db_state_by_workflow[wf] = dict(_r)
+                except Exception:
+                    pass
             ip_versions = [v for v in versions if v.get("ip") == ip or v.get("ip_id")]
             if ip_versions:
                 rtl_version_id = ip_versions[-1].get("version") or ip_versions[-1].get("id")
         except Exception:
             pass
+
+        def _state_from_db(workflow_name: str) -> tuple[str | None, str | None]:
+            """Return (state, error_summary) from the latest workflow_runs
+            row for this IP+workflow, or (None, None) when no row exists."""
+            row = db_state_by_workflow.get(workflow_name)
+            if not row:
+                return (None, None)
+            st = (row.get("status") or "").lower()
+            if st == "running":
+                return ("running", None)
+            if st in ("completed", "success", "ok"):
+                return ("passed", None)
+            if st in ("error", "failed", "blocked", "cancelled"):
+                return ("failed", row.get("error_summary"))
+            return (None, None)
 
         # snapshot of running jobs for this ip
         with _jobs_lock:
@@ -1292,12 +1331,15 @@ def register_jobs_routes(
             running_job = _running_job_for(sid)
             last_job = _latest_completed_job(sid)
 
-            # determine state
+            # determine state — DB-first, FS-fallback
             state: str
+            db_state, db_error = _state_from_db(stage["workflow"])
             if running_job:
                 state = "running"
+            elif db_state is not None:
+                state = db_state  # DB is source of truth for completed runs
             elif sid in passed_stages:
-                state = "passed"
+                state = "passed"  # FS evidence without a DB row (hand-placed)
             elif sid == "rtl" and _rtl_blocked:
                 state = "blocked"
             else:
@@ -1309,6 +1351,15 @@ def register_jobs_routes(
                     state = "ready"
                 else:
                     state = "locked"
+
+            # locked-reason: name the missing upstream so the card can say
+            # "(needs ssot)" instead of just "LOCKED".
+            locked_reason: str | None = None
+            if state == "locked":
+                deps = _PIPELINE_STAGE_DEPS.get(sid, ())
+                missing = [d for d in deps if d not in passed_stages]
+                if missing:
+                    locked_reason = "needs " + " + ".join(missing)
 
             # running iter info
             iter_str: str | None = None
@@ -1345,7 +1396,7 @@ def register_jobs_routes(
                 if (ip_dir / rel).exists():
                     evidence_paths.append(f"{ip}/{rel}")
 
-            scoresheet = compute_kpi_dots(ip, sid, root=pr)
+            scoresheet = compute_kpi_dots_labeled(ip, sid, root=pr)
             top, secondary = _stage_top_secondary(sid, ip_dir, ip)
 
             stage_blame: str | None = None
@@ -1370,6 +1421,9 @@ def register_jobs_routes(
                 "effort": effort,
                 "history": _stage_history(sid),
                 "blame": stage_blame,
+                "locked_reason": locked_reason,
+                "error_summary": db_error if state == "failed" else None,
+                "source": "db" if db_state is not None else ("fs" if sid in passed_stages else "none"),
             }
 
         return JSONResponse({
