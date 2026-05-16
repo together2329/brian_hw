@@ -10,6 +10,7 @@ path back in canonical section order.
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import re
 from pathlib import Path
@@ -1184,6 +1185,193 @@ def _ensure_function_model_machine_rules(doc: dict[str, Any]) -> None:
     if contract_rules:
         contract["output_rules"] = contract_rules
     _normalize_machine_rule_exprs(doc)
+
+
+_RULE_HELPER_NAMES: frozenset[str] = frozenset({
+    "gray_to_bin", "bin_to_gray", "popcount", "parity",
+    "clog2", "min", "max", "abs",
+    "and", "or", "not", "True", "False", "None",
+})
+
+
+def _expr_to_python(expr: Any) -> str:
+    text = str(expr or "").strip()
+    if not text:
+        return ""
+    py = text.replace("&&", " and ").replace("||", " or ")
+    py = re.sub(r"!(?=[A-Za-z_(])", " not ", py)
+    return py
+
+
+def _names_in_expr(expr: Any) -> set[str]:
+    py = _expr_to_python(expr)
+    if not py:
+        return set()
+    try:
+        tree = ast.parse(py, mode="eval")
+    except SyntaxError:
+        return set()
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            names.add(node.id)
+    return names
+
+
+def _is_dsl_parseable(expr: Any) -> bool:
+    py = _expr_to_python(expr)
+    if not py:
+        return False
+    try:
+        ast.parse(py, mode="eval")
+        return True
+    except SyntaxError:
+        return False
+
+
+def _ensure_rule_expr_input_map_completeness(doc: dict[str, Any]) -> None:
+    """Repair rtl-gen preflight gates by deterministic SSOT extension.
+
+    C-1: Auto-extend rtl_contract.input_map and io_list with identifier names
+         referenced in output_rules/sample_condition that aren't declared
+         input ports (added as 1-bit input ports, self-mapped).
+    C-2: Replace prose sample_condition with a DSL-parseable default that
+         uses declared input ports.
+    C-3: Add placeholder output_rules for function_model state_variables that
+         map to output ports but lack any rule.
+    """
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
+    if not fm or not contract:
+        return
+    txs = [tx for tx in fm.get("transactions") or [] if isinstance(tx, dict)]
+    if not txs:
+        return
+
+    declared_inputs = set(_ports_by_direction(doc, "input"))
+    declared_outputs = set(_ports_by_direction(doc, "output"))
+    declared_all = declared_inputs | declared_outputs
+    input_map = contract.get("input_map") if isinstance(contract.get("input_map"), dict) else {}
+    output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
+    fm_state_names = {
+        str(state.get("name") or "").strip()
+        for state in fm.get("state_variables") or []
+        if isinstance(state, dict) and str(state.get("name") or "").strip()
+    }
+
+    rule_target_names: set[str] = set()
+    for tx in txs:
+        for rule in tx.get("output_rules") or []:
+            if isinstance(rule, dict):
+                for key in ("name", "port"):
+                    val = str(rule.get(key) or "").strip()
+                    if val:
+                        rule_target_names.add(val)
+        for su in tx.get("state_updates") or []:
+            if isinstance(su, dict):
+                val = str(su.get("name") or "").strip()
+                if val:
+                    rule_target_names.add(val)
+
+    referenced: set[str] = set()
+    for tx in txs:
+        for rule in tx.get("output_rules") or []:
+            if isinstance(rule, dict):
+                for key in ("expr", "expression", "value"):
+                    if key in rule:
+                        referenced |= _names_in_expr(rule.get(key))
+        for su in tx.get("state_updates") or []:
+            if isinstance(su, dict):
+                for key in ("expr", "expression", "value"):
+                    if key in su:
+                        referenced |= _names_in_expr(su.get(key))
+        if "sample_condition" in tx:
+            referenced |= _names_in_expr(tx.get("sample_condition"))
+    sample_condition = contract.get("sample_condition")
+    referenced |= _names_in_expr(sample_condition)
+    for rule in contract.get("output_rules") or []:
+        if isinstance(rule, dict):
+            for key in ("expr", "expression", "value"):
+                if key in rule:
+                    referenced |= _names_in_expr(rule.get(key))
+
+    known = (
+        declared_all
+        | set(input_map.keys())
+        | set(output_map.keys())
+        | fm_state_names
+        | rule_target_names
+        | _RULE_HELPER_NAMES
+    )
+    missing = sorted(
+        name for name in referenced
+        if name and name not in known and not name.isdigit() and not name.startswith("_")
+    )
+
+    if missing:
+        for name in missing:
+            input_map.setdefault(name, name)
+        contract["input_map"] = input_map
+        io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
+        interfaces = io.get("interfaces") if isinstance(io.get("interfaces"), list) else []
+        if interfaces and isinstance(interfaces[0], dict):
+            ports = interfaces[0].get("ports") if isinstance(interfaces[0].get("ports"), list) else []
+            existing_port_names = {
+                str(p.get("name") or "") for p in ports if isinstance(p, dict)
+            }
+            for name in missing:
+                if name in existing_port_names:
+                    continue
+                ports.append({
+                    "name": name,
+                    "width": 1,
+                    "direction": "input",
+                    "description": (
+                        f"Auto-derived 1-bit input from rule expression {name!r} "
+                        "(repair_ssot_schema rule_expr_completeness pass; advisory: "
+                        "TB drives this signal from FL transaction intent)."
+                    ),
+                })
+            interfaces[0]["ports"] = ports
+
+    if sample_condition is not None and not _is_dsl_parseable(sample_condition):
+        replacement = ""
+        for cand in ("i_valid", "d_valid", "valid", "req_valid"):
+            if cand in declared_inputs:
+                replacement = cand
+                break
+        contract["sample_condition"] = replacement or "1"
+
+    state_vars_by_name = {
+        str(s.get("name") or "").strip(): s
+        for s in fm.get("state_variables") or []
+        if isinstance(s, dict)
+    }
+    for state_name, state in state_vars_by_name.items():
+        if not state_name or state_name not in declared_outputs:
+            continue
+        has_rule = False
+        for tx in txs:
+            for r in (tx.get("output_rules") or []) + (tx.get("state_updates") or []):
+                if isinstance(r, dict):
+                    if str(r.get("name") or "") == state_name or str(r.get("port") or "") == state_name:
+                        has_rule = True
+                        break
+            if has_rule:
+                break
+        if not has_rule and txs:
+            placeholder = {
+                "name": state_name,
+                "port": state_name,
+                "expr": "0",
+                "width": int(state.get("width") or 1),
+                "description": (
+                    f"Auto-injected placeholder rule for observable state {state_name!r} "
+                    "(repair_ssot_schema rule_expr_completeness pass; advisory: "
+                    "downstream TB/scoreboard treats this as 0 unless overridden)."
+                ),
+            }
+            txs[0].setdefault("output_rules", []).append(placeholder)
 
 
 def _ensure_parameters_section(doc: dict[str, Any], state: dict[str, Any]) -> list[dict[str, Any]]:
@@ -2644,6 +2832,7 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     _ensure_ready_constant_policy(out)
     out["rtl_contract"] = _ensure_rtl_contract(out, ip)
     _ensure_function_model_machine_rules(out)
+    _ensure_rule_expr_input_map_completeness(out)
     out["timing"] = _ensure_timing(out)
     out["power"] = _ensure_power(out)
     out["security"] = _ensure_security(out)

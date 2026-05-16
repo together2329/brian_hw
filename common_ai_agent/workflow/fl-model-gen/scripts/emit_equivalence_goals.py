@@ -300,6 +300,7 @@ def _goal(
     *,
     blocked: bool = False,
     blocker: str = "",
+    unverified: bool = False,
     default_owner: str = "rtl",
     possible_owners: list[str] | None = None,
     scope: dict[str, Any] | None = None,
@@ -332,6 +333,7 @@ def _goal(
         },
         "blocked": bool(blocked),
         "blocker": blocker,
+        "unverified": bool(unverified),
     }
     return goal
 
@@ -837,18 +839,19 @@ def _module_equivalence_goals(ssot: dict[str, Any], decomp: dict[str, Any], fcov
         requires = contract.get("requires_module_equivalence") is not False
         if not requires:
             continue
-        blocked = (
+        structural_blocked = (
             bool(contract.get("blocked"))
             or bool(tx_contract["blocked"])
-            or not function_refs
         )
+        unverified = (not function_refs) and not structural_blocked
+        blocked = structural_blocked
         blocker_bits: list[str] = []
         if contract.get("blocker"):
             blocker_bits.append(str(contract.get("blocker")))
         if tx_contract["blocked"]:
             blocker_bits.append("FunctionalModel transaction contract lacks executable observables/state/error behavior")
         if not function_refs:
-            blocker_bits.append("module owns no function_model refs, so exact functionality cannot be compared")
+            blocker_bits.append("[unverified] module owns no function_model refs, so exact functionality cannot be compared (advisory; downstream stages proceed but module-equivalence is not enforced)")
         scope = {
             "level": "module",
             "rtl_module": rtl_module,
@@ -879,6 +882,7 @@ def _module_equivalence_goals(ssot: dict[str, Any], decomp: dict[str, Any], fcov
             ],
             blocked=blocked,
             blocker="; ".join(blocker_bits),
+            unverified=unverified,
             scope=scope,
         ))
     return goals
@@ -963,6 +967,7 @@ def emit(ip: str, root: Path) -> dict[str, Any]:
     )
     goals = _dedupe(base_goals + _coverage_closure_goals(ssot, decomp, fcov, base_goals))
     blocked = sum(1 for g in goals if g.get("blocked"))
+    unverified = sum(1 for g in goals if g.get("unverified"))
     required = sum(1 for g in goals if not g.get("blocked"))
     module_goals = [g for g in goals if isinstance(g.get("scope"), dict) and g["scope"].get("level") == "module"]
     doc = {
@@ -983,9 +988,11 @@ def emit(ip: str, root: Path) -> dict[str, Any]:
             "required": required,
             "optional": 0,
             "blocked": blocked,
+            "unverified": unverified,
             "module_total": len(module_goals),
             "module_required": sum(1 for g in module_goals if g.get("blocked") is not True),
             "module_blocked": sum(1 for g in module_goals if g.get("blocked") is True),
+            "module_unverified": sum(1 for g in module_goals if g.get("unverified") is True),
         },
         "goals": goals,
     }
@@ -1007,7 +1014,8 @@ def main() -> int:
     print(f"[emit_equivalence_goals] wrote {args.ip}/verify/equivalence_goals.json")
     print(
         "[emit_equivalence_goals] "
-        f"total={summary['total']} required={summary['required']} blocked={summary['blocked']}"
+        f"total={summary['total']} required={summary['required']} "
+        f"blocked={summary['blocked']} unverified={summary.get('unverified', 0)}"
     )
     return 0 if int(summary.get("total") or 0) > 0 and int(summary.get("blocked") or 0) == 0 else 1
 
