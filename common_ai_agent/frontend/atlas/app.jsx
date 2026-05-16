@@ -880,12 +880,7 @@ const App = () => {
   const [screen, setScreen] = React.useState(() => {
     try {
       const saved = localStorage.atlasScreen;
-      if (saved === 'architect' || saved === 'pipeline') {
-        if (saved === 'architect') {
-          try { localStorage.atlasScreen = 'pipeline'; } catch (_) {}
-        }
-        return 'pipeline';
-      }
+      if (saved === 'pipeline' || saved === 'architect') return saved;
       return 'workspace';
     } catch (_) { return 'workspace'; }
   });
@@ -1219,6 +1214,9 @@ const App = () => {
         <button className={`dir-btn ${screen === 'pipeline' ? 'active' : ''}`}
                 title="Live pipeline dispatcher · stage situation board"
                 onClick={() => setScreen('pipeline')}>◫ Pipeline</button>
+        <button className={`dir-btn ${screen === 'architect' ? 'active' : ''}`}
+                title="SoC structure · per-module status grid · block diagram (rich progress view)"
+                onClick={() => setScreen('architect')}>◇ Architect</button>
         <PipelineRunningChip onClick={() => setScreen('pipeline')} />
         <span style={{ width: 12 }} />
         <label className="dir-select-wrap" title="Change UI font family">
@@ -1297,7 +1295,9 @@ const App = () => {
         <div style={{ flex: 1, overflow: 'hidden' }}>
           {screen === 'pipeline' && window.AtlasPipeline
             ? <ErrorBoundary label="Pipeline"><window.AtlasPipeline /></ErrorBoundary>
-            : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} /></ErrorBoundary>}
+            : screen === 'architect' && window.SocArchitect
+              ? <ErrorBoundary label="Architect"><window.SocArchitect /></ErrorBoundary>
+              : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} /></ErrorBoundary>}
         </div>
         {/* App-level StatusBar removed — model / tokens / iter / rate /
             SAFE chips were duplicated by the right-side AgentStatusPanel,

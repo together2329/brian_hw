@@ -718,8 +718,44 @@ window.AtlasPipeline = function AtlasPipeline() {
         <span className="rb-spacer" />
         <span className="rb-meta">
           <span>stages <b>{Object.keys(stagesState).length || 15}</b></span>
+          {ip && (
+            <button className="rb-btn"
+                    title="Open this IP in the Architect screen for the rich Status / Diagram view"
+                    onClick={() => {
+                      try {
+                        localStorage.setItem('atlasScreen', 'architect');
+                        window.location.reload();
+                      } catch (_) {}
+                    }}>◇ Open in Architect ▸</button>
+          )}
         </span>
       </div>
+      {!ip && (
+        <div className="pipe-empty-state" style={{
+          padding: '14px 18px',
+          margin: '0 18px',
+          marginTop: 10,
+          border: '1px dashed var(--line)',
+          background: 'var(--bg-2)',
+          color: 'var(--fg-mute)',
+          fontFamily: 'var(--mono)',
+          fontSize: 11.5,
+          lineHeight: 1.55,
+        }}>
+          <div style={{ color: 'var(--fg)', marginBottom: 6 }}>
+            <b>No IP selected.</b> Pick one from the IP list on the left to see live per-stage situation.
+          </div>
+          <div>
+            Pipeline boards an IP through 14 canonical stages
+            (ssot → fl/cl → equiv → rtl → lint/tb/syn → sim → coverage → sta → pnr).
+            Each card will show 3-5 KPI dots, the latest evidence file path, and a <code>[▶ run]</code> button.
+            Until you pick an IP, the cards stay idle.
+          </div>
+          <div style={{ marginTop: 8, color: 'var(--fg-dim)' }}>
+            Need the SoC structure / module status grid / block diagram instead? Click <b>◇ Architect</b> at the top.
+          </div>
+        </div>
+      )}
 
       <div className="pipe-board">
         <div className="pipe-col-left">
