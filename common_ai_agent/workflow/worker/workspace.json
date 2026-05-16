@@ -1,11 +1,12 @@
 {
   "name": "worker",
-  "description": "Worker agent server workflow — runs as HTTP API to accept and execute tasks from other agents",
+  "description": "Worker agent server workflow \u2014 runs as HTTP API to accept and execute tasks from other agents",
   "env": {
     "MAX_ITERATIONS": "60",
     "AGENT_SERVER_VERBOSE": "true",
     "ENABLE_WEB_TOOLS": "false",
-    "ENABLE_VERILOG_TOOLS": "false"
+    "ENABLE_VERILOG_TOOLS": "false",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
   },
   "skills": {
     "force_activate": [],

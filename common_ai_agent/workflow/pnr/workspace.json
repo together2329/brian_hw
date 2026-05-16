@@ -1,16 +1,19 @@
 {
   "name": "pnr",
-  "description": "Place & Route workspace — OpenROAD floorplan → place → CTS → route → SPEF for sky130",
+  "description": "Place & Route workspace \u2014 OpenROAD floorplan \u2192 place \u2192 CTS \u2192 route \u2192 SPEF for sky130",
   "env": {
     "MAX_ITERATIONS": "120",
     "ENABLE_MARKDOWN_RENDER": "true",
     "PNR_TOOL": "openroad",
     "PNR_PDK": "sky130_fd_sc_hd",
     "PNR_LEF_NAME": "sky130_fd_sc_hd_merged.lef",
-    "PNR_TLEF_NAME": "sky130_fd_sc_hd.tlef"
+    "PNR_TLEF_NAME": "sky130_fd_sc_hd.tlef",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
   },
   "skills": {
-    "force_activate": ["verilog-expert"],
+    "force_activate": [
+      "verilog-expert"
+    ],
     "disable": []
   },
   "system_prompt_mode": "prepend",

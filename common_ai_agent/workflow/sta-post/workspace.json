@@ -1,16 +1,19 @@
 {
   "name": "sta-post",
-  "description": "Post-route sign-off STA — OpenSTA on routed.v + routed.spef + SDC (parasitic-aware)",
+  "description": "Post-route sign-off STA \u2014 OpenSTA on routed.v + routed.spef + SDC (parasitic-aware)",
   "env": {
     "MAX_ITERATIONS": "60",
     "ENABLE_MARKDOWN_RENDER": "true",
     "STA_TOOL": "sta",
     "STA_PDK": "sky130_fd_sc_hd",
     "STA_LIB_NAME": "sky130_fd_sc_hd__ss_100C_1v40.lib",
-    "STA_MODE": "post_route"
+    "STA_MODE": "post_route",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
   },
   "skills": {
-    "force_activate": ["verilog-expert"],
+    "force_activate": [
+      "verilog-expert"
+    ],
     "disable": []
   },
   "system_prompt_mode": "prepend",

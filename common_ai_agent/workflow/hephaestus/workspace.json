@@ -1,22 +1,19 @@
 {
   "_schema": "workspace v1",
-  "_comment": "Hephaestus deep-worker behavior layer. Domain-agnostic. Persistence, exploration-first, root-cause bias, three-attempt protocol, evidence-based completion. Model-agnostic — pick any model (gpt-*, glm-*, deepseek-*, claude-*, qwen-*, ...). Resolution order: (1) --model CLI flag if given, (2) else LLM_BASE_NAME env, (3) else fall through to common_ai_agent defaults. This workspace intentionally leaves env empty so model selection is never overridden here.",
-
+  "_comment": "Hephaestus deep-worker behavior layer. Domain-agnostic. Persistence, exploration-first, root-cause bias, three-attempt protocol, evidence-based completion. Model-agnostic \u2014 pick any model (gpt-*, glm-*, deepseek-*, claude-*, qwen-*, ...). Resolution order: (1) --model CLI flag if given, (2) else LLM_BASE_NAME env, (3) else fall through to common_ai_agent defaults. This workspace intentionally leaves env empty so model selection is never overridden here.",
   "meta": {
     "name": "hephaestus",
     "description": "Deep-worker guardrails layered on top of base agent. Tool-neutral, model-agnostic. Forges code with persistence, root-cause bias, and evidence-based completion.",
     "version": "1.0"
   },
-
   "env": {
-    "_comment": "Empty by design. Do NOT pin a model here. Model resolution order: --model CLI flag > LLM_BASE_NAME env > common_ai_agent defaults. Add only domain-neutral runtime knobs if needed (e.g. MAX_ITERATIONS)."
+    "_comment": "Empty by design. Do NOT pin a model here. Model resolution order: --model CLI flag > LLM_BASE_NAME env > common_ai_agent defaults. Add only domain-neutral runtime knobs if needed (e.g. MAX_ITERATIONS).",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
   },
-
   "prompt": {
     "system_prompt_mode": "prepend",
     "plan_prompt_mode": "append"
   },
-
   "skills": {
     "force_activate": [],
     "disable": []

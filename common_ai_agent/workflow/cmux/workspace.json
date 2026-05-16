@@ -1,9 +1,10 @@
 {
   "name": "cmux",
-  "description": "cmux terminal multiplexer — manage surfaces, panes, and worker servers via cmux CLI",
+  "description": "cmux terminal multiplexer \u2014 manage surfaces, panes, and worker servers via cmux CLI",
   "env": {
     "CMUX_ENABLE": "true",
-    "MAX_ITERATIONS": "40"
+    "MAX_ITERATIONS": "40",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
   },
   "skills": {
     "force_activate": [],

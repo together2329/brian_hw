@@ -1,15 +1,18 @@
 {
   "name": "sta",
-  "description": "Static timing analysis workspace — OpenSTA on synthesized netlist with sky130 SS Liberty",
+  "description": "Static timing analysis workspace \u2014 OpenSTA on synthesized netlist with sky130 SS Liberty",
   "env": {
     "MAX_ITERATIONS": "80",
     "ENABLE_MARKDOWN_RENDER": "true",
     "STA_TOOL": "sta",
     "STA_PDK": "sky130_fd_sc_hd",
-    "STA_LIB_NAME": "sky130_fd_sc_hd__ss_100C_1v40.lib"
+    "STA_LIB_NAME": "sky130_fd_sc_hd__ss_100C_1v40.lib",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
   },
   "skills": {
-    "force_activate": ["verilog-expert"],
+    "force_activate": [
+      "verilog-expert"
+    ],
     "disable": []
   },
   "system_prompt_mode": "prepend",

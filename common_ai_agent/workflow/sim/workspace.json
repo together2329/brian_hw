@@ -1,12 +1,15 @@
 {
   "name": "sim",
-  "description": "Simulation workspace — compile, run, debug, coverage, generate sim_report.txt",
+  "description": "Simulation workspace \u2014 compile, run, debug, coverage, generate sim_report.txt",
   "env": {
     "MAX_ITERATIONS": "150",
-    "ENABLE_MARKDOWN_RENDER": "true"
+    "ENABLE_MARKDOWN_RENDER": "true",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
   },
   "skills": {
-    "force_activate": ["verilog-expert"],
+    "force_activate": [
+      "verilog-expert"
+    ],
     "disable": []
   },
   "system_prompt_mode": "prepend",

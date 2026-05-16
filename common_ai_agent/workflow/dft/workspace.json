@@ -1,15 +1,18 @@
 {
   "name": "dft",
-  "description": "Design-For-Test workspace — OpenROAD scan insertion (optional Fault ATPG) on synthesized netlist",
+  "description": "Design-For-Test workspace \u2014 OpenROAD scan insertion (optional Fault ATPG) on synthesized netlist",
   "env": {
     "MAX_ITERATIONS": "60",
     "ENABLE_MARKDOWN_RENDER": "true",
     "DFT_TOOL": "openroad",
     "DFT_BACKEND": "openroad_internal",
-    "DFT_ATPG_TOOL": "fault"
+    "DFT_ATPG_TOOL": "fault",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
   },
   "skills": {
-    "force_activate": ["verilog-expert"],
+    "force_activate": [
+      "verilog-expert"
+    ],
     "disable": []
   },
   "system_prompt_mode": "prepend",
