@@ -498,7 +498,7 @@ def run_agent_session(
                         from tool_dispatcher import dispatch_tool as _dispatch
                         observation = _dispatch(
                             tool_name, args_str,
-                            available_tools=tools_module.AVAILABLE_TOOLS,
+                            available_tools=tools_module.filtered_available_tools(),
                             global_timeout=300,
                         )
                 except Exception as e:

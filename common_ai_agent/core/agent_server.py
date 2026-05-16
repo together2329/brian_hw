@@ -672,7 +672,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         from core.prompt_builder import PromptContext, apply_memory_override, build_system_prompt
         from core.observation_processor import process_observation
         from core.action_parser import _strip_native_tool_tokens, _strip_thinking_tags
-        from core.tools import AVAILABLE_TOOLS
+        from core.tools import AVAILABLE_TOOLS, filtered_available_tools
         from core.tool_dispatcher import dispatch_tool as _dispatch_tool
         from core.parallel_executor import execute_actions_parallel as _execute_actions_parallel_impl
         from lib.iteration_control import (
@@ -932,7 +932,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             return _dispatch_tool(
                 tool_name, args_str,
                 pre_parsed_kwargs=pre_parsed_kwargs,
-                available_tools=AVAILABLE_TOOLS,
+                available_tools=filtered_available_tools(),
                 global_timeout=int(os.getenv("AGENT_SERVER_TOOL_TIMEOUT", "300")),
             )
 
@@ -987,7 +987,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             get_turn_id_fn=lambda: 0,
             get_llm_usage_fn=get_last_usage,
             get_llm_tokens_fn=lambda: (last_input_tokens, last_output_tokens),
-            available_tools=AVAILABLE_TOOLS,
+            available_tools=filtered_available_tools(),
             # Optional subsystems — None for worker
             orchestrator=None,
             procedural_memory=None,

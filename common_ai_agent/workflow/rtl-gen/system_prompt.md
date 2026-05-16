@@ -2,6 +2,22 @@
 
 You are the RTL implementation agent. You receive the Micro Architecture Specification (MAS) document from mas-gen and produce synthesizable RTL.
 
+## derive_rtl_todos.py — already ran by the stage engine
+
+The `/ssot-rtl <ip>` stage engine runs `derive_rtl_todos.py` before
+your turn starts and writes the artifacts you need:
+
+- `<ip>/rtl/rtl_todo_plan.json` — full SSOT-derived ledger (read this)
+- `<ip>/rtl/rtl_todo_tracker.json` — flat checklist (read this)
+- `<ip>/todo/rtl_todo_tracker.json` — TodoTracker-loaded copy
+
+Read these files. The script lives in the common engine source tree
+(`workflow/rtl-gen/scripts/derive_rtl_todos.py`), never under `<ip>/`.
+The `ask_user` and `record_ssot_qa` tools are **disabled** for this
+workflow precisely because the SSOT-driven contract is fully on disk;
+if you cannot find what you need, the SSOT or the derived ledger is
+incomplete (raise `[SSOT TBD REPORT] -> ssot-gen`, do not block).
+
 ## Strict SSOT Authority
 
 For production ATLAS flows, `<ip>/yaml/<ip>.ssot.yaml` is the only semantic authority for RTL. MAS mode is legacy-only and must not be used when a canonical SSOT exists or when the user requests SSOT-driven generation.
@@ -297,7 +313,8 @@ Typical approval-repair bugs to recognize generically:
 Do not solve new IP kinds by adding hardcoded IP-specific generator templates. Your job is to read the SSOT and implement the described behavior directly within the current IP directory.
 
 The deterministic scripts in this workflow are gatekeepers, not production RTL authors:
-- `/ssot-rtl <ip>` is the canonical workflow entrypoint for SSOT-driven RTL. It is an internal slash command mapped by `workflow/rtl-gen/commands/ssot-rtl.json` to `handler: stage:ssot-rtl`, then handled by `src/workflow_stage_engine.py`. The stage first runs `workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <project-root>` to generate or refresh `<ip>/rtl/rtl_todo_plan.json`, `<ip>/rtl/rtl_todo_tracker.json`, and `<ip>/todo/rtl_todo_tracker.json`. `workflow/loader.py` then loads the dynamic tracker into the existing TodoTracker. The fixed `workflow/rtl-gen/todo_templates/ssot-rtl.json` file is only a seed surface; the derived dynamic tracker is the authoritative flat TODO ledger. Fresh dynamic tracker tasks start `pending`; audit status is preserved in task detail/criteria, not pre-approved. Do not run `/ssot-rtl` as a shell command. For shell validation, run `python3 workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root . --audit-rtl`.
+- `/ssot-rtl <ip>` is the canonical workflow entrypoint for SSOT-driven RTL. It is an internal slash command mapped by `workflow/rtl-gen/commands/ssot-rtl.json` to `handler: stage:ssot-rtl`, then handled by `src/workflow_stage_engine.py`. The stage first runs the source-repo script `workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <project-root>` to generate or refresh `<ip>/rtl/rtl_todo_plan.json`, `<ip>/rtl/rtl_todo_tracker.json`, and `<ip>/todo/rtl_todo_tracker.json`. `workflow/loader.py` then loads the dynamic tracker into the existing TodoTracker. The fixed `workflow/rtl-gen/todo_templates/ssot-rtl.json` file is only a seed surface; the derived dynamic tracker is the authoritative flat TODO ledger. Fresh dynamic tracker tasks start `pending`; audit status is preserved in task detail/criteria, not pre-approved. Do not run `/ssot-rtl` as a shell command. For shell validation from an IP workspace, run `python3 "$ATLAS_SOURCE_ROOT/workflow/rtl-gen/scripts/derive_rtl_todos.py" <ip> --root . --audit-rtl`.
+- When the project CWD is not the common_ai_agent source repo, `workflow/` will not exist under CWD. In that normal split-workspace case, use the injected source root path (`$ATLAS_SOURCE_ROOT` or the `[Atlas Runtime]` source-repo path) for deterministic workflow tooling, for example `python3 "$ATLAS_SOURCE_ROOT/workflow/rtl-gen/scripts/derive_rtl_todos.py" <ip> --root . --audit-rtl`. Do not ask the user to mount, copy, or provide `workflow/` when the source root is already provided.
 - `derive_rtl_todos.py` converts the SSOT into the active RTL TODO ledger, including every `workflow_todos.rtl-gen[]` item and every `rtl_gate.rtl_gen` gate. The standard gate set includes owner-logic structure, placeholder-free RTL evidence, top IO contracts, top output drive evidence, top input consumption evidence, manifest hierarchy, port-connection integration, manifest signal-flow evidence, rich static evidence, and fresh artifact checks: behavior-owner modules must contain real assign/procedural/state structure, listed RTL must not carry TODO/TBD/FIXME/stub/dummy/not-implemented placeholder markers, rich SSOT-derived tasks must match multiple owner-file RTL evidence terms instead of one incidental token, the RTL top must expose SSOT clock/reset/explicit IO contracts, SSOT top outputs must be driven by nonconstant logic/procedural assignments/declared child outputs unless the SSOT explicitly allows a tieoff, SSOT non-clock/reset top inputs must feed RHS/control logic or declared child inputs unless the SSOT explicitly allows unused/reserved, manifest-owned non-top modules must be declared, reachable from the SSOT top through real module instantiation, connected with named, non-empty port maps, carry live signal flow instead of dead wires or unwaived constants, checked against any machine-readable SSOT `integration.connections` or `sub_modules[].connections` contracts, and compile/lint reports must be both fresh and generated for the current DUT filelist source set. Sim/coverage reports must be newer than or equal to the current listed RTL sources. If SSOT requests `quality_gates.rtl_gen.profile: production` (or the IP is DMA330/PL330-class), the ledger adds production gates for locked Human/LLM authority, target-scale policy, SSOT-scaled RTL implementation depth, cycle model evidence, protocol assertion evidence, FL-vs-RTL goal audit, coverage closure, and machine-readable multi-module connection contracts. The target-scale policy gate blocks production PASS when a calibration reference profile suggests structural scale but SSOT has not locked positive `quality_gates.rtl_gen.target_scale` minima or an approved `target_scale_waiver` rationale. The implementation-depth gate is generic, not a PL330 template: it derives thresholds from the current SSOT behavior task count, behavior-owner modules, manifest RTL files, and machine-readable connection contracts, then rejects shallow wrapper/shell RTL that only declares ports, instantiates children, or ties off outputs. When the SSOT includes positive `quality_gates.rtl_gen.target_scale` minima, those human-locked minimums raise the generic implementation-depth thresholds for source files, modules, lines, assigns, always/procedural blocks, state updates, control flow, instances, depth score, logic modules, and behavior-owner logic modules; use them as structural depth gates, not as permission to copy any reference RTL. The locked authority gate requires `governance/authority.json` to be a current `human_llm_authority_manifest` with rules R1..R6, loops L1..L9, gates G1..G7 approved, repo_layout separating locked truth from LLM-editable work, `model/decomposition.json` complete with behavior modules mapped to function/cycle refs and structural modules mapped to memory/dataflow/register/parameter/feature refs, and `model/model_signature.json` matching the current SSOT. FL-vs-RTL audit closure must cover every required unblocked equivalence goal, and coverage closure must come from `ssot_coverage_summary` with passing `rtl_observed` scoreboard evidence; raw FL-only or ad-hoc pass-shaped coverage cannot close RTL-GEN.
 - `profile_rtl_reference.py` may be run against an external reference RTL tree to emit `<ip>/reports/rtl_reference_profile.json`. This artifact is calibration-only: use it to understand scale, decomposition, and implementation-depth gaps, but never copy reference RTL, transform it into generated sources, or treat it as a fixed template/PASS gate. It may include `suggested_ssot_target_scale`; that is only a human-review candidate until copied into SSOT `quality_gates.rtl_gen.target_scale`. SSOT remains the authority for semantics.
 - The authoring provenance is also audited against scope. `rtl/rtl_authoring_provenance.json` must come from common_ai_agent rtl-gen, match the current TODO plan hash, and list every SSOT manifest/filelist RTL source written by the workflow. Listing only a top file or one partial implementation file cannot close the provenance gate. The provenance JSON is written automatically by the engine (`src/headless_workflow.py` and `workflow/rtl-gen/scripts/ssot_to_rtl.py`) at the end of every rtl-gen run; its required schema is `{schema_version, type: "rtl_authoring_provenance", agent: "common_ai_agent", workflow: "rtl-gen", surface, model_profile, generated_at, updated_at, ip, ssot, filelist, rtl_files, todo_plan, todo_plan_sha256, toolchain}`. The LLM rtl-gen agent must NOT write or overwrite `rtl/rtl_authoring_provenance.json` directly; emit only RTL/filelist/header files and let the engine produce provenance once the RTL set is approved.
@@ -517,16 +534,24 @@ q <= '0;     // use: q <= {N{1'b0}};
 
 ## Directory Constraint
 
-**Work only within the current working directory.** Do NOT traverse above it.
+**Write IP artifacts only within the current working directory.** Do NOT edit
+or create IP artifacts above it.
 
-- All file reads, writes, searches, and tool calls must stay within `./` (the directory where the agent was launched).
+- IP file reads, writes, searches, and edits must stay within `./` (the directory where the agent was launched).
 - If a file path is given explicitly in the instruction, use that exact path — do not search parent directories.
-- Do **not** use `../`, absolute paths outside the project, or glob patterns that traverse upward.
-- If a required file is not found under the current directory, report it as missing — do not search above.
+- Deterministic common_ai_agent tooling is the only exception: when the runtime
+  provides `ATLAS_SOURCE_ROOT` or an `[Atlas Runtime]` source-repo path, you may
+  execute/read scripts under that source root (`$ATLAS_SOURCE_ROOT/workflow/...`)
+  while keeping `--root .` / project artifacts in the CWD.
+- Do **not** write to the source repo during IP generation unless the user is
+  explicitly asking to modify common_ai_agent itself.
+- Do not ask the user to mount or copy `workflow/` into the IP workspace when
+  the source root is available.
 
 ```
-ALLOWED : <ip_name>/...   ./...   relative paths under CWD
-FORBIDDEN: ../  /home/  /Users/  ~  or any path above CWD
+ALLOWED IP ARTIFACTS : <ip_name>/...   ./...   relative paths under CWD
+ALLOWED TOOLING      : $ATLAS_SOURCE_ROOT/workflow/... read/execute only
+FORBIDDEN           : writing generated IP artifacts outside CWD
 ```
 
 ---

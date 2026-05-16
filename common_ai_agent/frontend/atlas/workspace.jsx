@@ -6250,6 +6250,7 @@ const SSOT_DIGEST_VIEWS = [
   { id: 'dataflow', label: 'Dataflow', keys: ['dataflow'] },
   { id: 'clocking', label: 'CDC / Reset', keys: ['clock_reset_domains', 'cdc_requirements', 'rdc_requirements'] },
   { id: 'review_gaps', label: 'Review Gaps', keys: ['workflow_todos', 'quality_gates', 'traceability', 'top_module', 'features', 'sub_modules', 'io_list', 'registers', 'dataflow', 'function_model', 'cycle_model'] },
+  { id: 'gates', label: 'Gates', keys: [] },
   { id: 'raw_yaml', label: 'Raw YAML', keys: [] },
 ];
 
@@ -6955,6 +6956,96 @@ const DigestList = ({ items, limit = 8 }) => {
     <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.45 }}>
       {rows.map((item, idx) => <li key={`${item}-${idx}`}>{item}</li>)}
     </ul>
+  );
+};
+
+const GATE_STATUS_GLYPH = {
+  pass: { glyph: '✓', color: 'var(--ok, #4caf50)' },
+  fail: { glyph: '✗', color: 'var(--err, #e53935)' },
+  blocked: { glyph: '⚠', color: 'var(--warn, #f9a825)' },
+  unverified: { glyph: '○', color: 'var(--mute, #999)' },
+  skip: { glyph: '–', color: 'var(--fg-mute, #888)' },
+};
+
+const GateRow = ({ item, isStage = false }) => {
+  const sk = String(item.status || 'skip').toLowerCase();
+  const g = GATE_STATUS_GLYPH[sk] || GATE_STATUS_GLYPH.skip;
+  const label = isStage ? item.stage : item.label;
+  const tools = isStage ? (item.scripts || []) : (item.helper ? [item.helper] : []);
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '24px minmax(140px, 1.2fr) minmax(0, 2fr) 1fr',
+      gap: 10, alignItems: 'baseline',
+      padding: '4px 0', borderBottom: '1px dashed var(--line)',
+      fontSize: 12, fontFamily: 'var(--mono)',
+    }}>
+      <span style={{ color: g.color, fontWeight: 800, textAlign: 'center' }}>{g.glyph}</span>
+      <span style={{ color: 'var(--fg)' }}>{label}</span>
+      <span style={{ color: 'var(--fg-mute)' }}>{item.summary || ''}</span>
+      <span className="mute" style={{ fontSize: 10, wordBreak: 'break-all' }}>
+        {(item.evidence || []).slice(0, 2).join(' · ')}
+        {tools.length ? <>{(item.evidence||[]).length ? <br/> : null}<span style={{opacity: 0.6}}>{tools[0]}</span></> : null}
+      </span>
+    </div>
+  );
+};
+
+const GatesPanel = ({ ip }) => {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const fetchGates = React.useCallback(() => {
+    if (!ip) return;
+    setLoading(true);
+    fetch(`/api/ssot-gates/${encodeURIComponent(ip)}`)
+      .then(r => r.json())
+      .then(j => { setData(j); setError(j.error || ''); })
+      .catch(e => setError(String(e)))
+      .finally(() => setLoading(false));
+  }, [ip]);
+  React.useEffect(() => { fetchGates(); }, [fetchGates]);
+  if (!ip) return <DigestEmpty text="No IP selected" />;
+  if (error) return <div style={{ padding: 12, color: 'var(--err)' }}>{error}</div>;
+  if (!data && loading) return <div style={{ padding: 12, color: 'var(--fg-mute)' }}>loading gates…</div>;
+  if (!data) return <DigestEmpty text="No gates data" />;
+  const q = data.ssot_quality || { items: [], passed: 0, total: 0 };
+  const s = data.stages || { items: [], passed: 0, total: 0 };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+        <span style={{ color: 'var(--accent)', fontWeight: 800, fontSize: 12 }}>
+          Gates · {ip}
+        </span>
+        <span className="mute" style={{ fontSize: 10, fontFamily: 'var(--mono)' }}>
+          SSOT {q.passed}/{q.total} ✓ · Stages {s.passed}/{s.total} ✓
+        </span>
+        <span className="mute" style={{ fontSize: 10, marginLeft: 'auto', fontFamily: 'var(--mono)' }}>
+          {data.generated_at}
+        </span>
+        <button onClick={fetchGates} disabled={loading} style={{
+          background: 'transparent', border: '1px solid var(--line)',
+          color: 'var(--fg)', padding: '2px 10px', cursor: 'pointer',
+          fontFamily: 'var(--mono)', fontSize: 11,
+        }}>{loading ? '…' : 'refresh'}</button>
+      </div>
+      <DigestCard title={`SSOT Quality (${q.items.length} dims)`} meta={`${q.passed}/${q.total} pass`}>
+        <div style={{ display: 'grid', gridTemplateColumns: '24px minmax(140px, 1.2fr) minmax(0, 2fr) 1fr',
+          gap: 10, padding: '4px 0', borderBottom: '1px solid var(--line)',
+          fontSize: 10, color: 'var(--fg-mute)', fontFamily: 'var(--mono)' }}>
+          <span></span><span>dimension</span><span>summary</span><span>evidence · checker</span>
+        </div>
+        {q.items.map(item => <GateRow key={item.id} item={item} />)}
+      </DigestCard>
+      <DigestCard title={`Per-stage Checkers (${s.items.length} stages)`} meta={`${s.passed}/${s.total} pass`}>
+        <div style={{ display: 'grid', gridTemplateColumns: '24px minmax(140px, 1.2fr) minmax(0, 2fr) 1fr',
+          gap: 10, padding: '4px 0', borderBottom: '1px solid var(--line)',
+          fontSize: 10, color: 'var(--fg-mute)', fontFamily: 'var(--mono)' }}>
+          <span></span><span>stage</span><span>summary</span><span>evidence · scripts</span>
+        </div>
+        {s.items.map(item => <GateRow key={item.stage} item={item} isStage={true} />)}
+      </DigestCard>
+    </div>
   );
 };
 
@@ -9026,6 +9117,23 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     );
   };
 
+  const renderGates = () => {
+    const ipFromPath = (() => {
+      const p = String(selected || '').trim();
+      if (!p) return '';
+      const seg = p.split('/').filter(Boolean);
+      return seg[0] || '';
+    })();
+    return (
+      <>
+        {header}
+        <div style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '10px 12px' }}>
+          <GatesPanel ip={ipFromPath} />
+        </div>
+      </>
+    );
+  };
+
   const renderGeneric = (title, sourceSections) => (
     <>
       {header}
@@ -9047,13 +9155,14 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   else if (view.id === 'dataflow') body = renderDataflow();
   else if (view.id === 'clocking') body = renderClocking();
   else if (view.id === 'review_gaps') body = renderReviewGaps();
+  else if (view.id === 'gates') body = renderGates();
   else if (view.id === 'raw_yaml') body = renderRawYaml();
   else body = renderGeneric(view.label, sourceSections);
 
   return (
     <>
       {body}
-      {!['architecture', 'overview', 'review_gaps', 'raw_yaml'].includes(view.id) ? (
+      {!['architecture', 'overview', 'review_gaps', 'raw_yaml', 'gates'].includes(view.id) ? (
         <DigestSourceSections view={view} sections={sections} statusByKey={statusByKey} t={t} />
       ) : null}
     </>

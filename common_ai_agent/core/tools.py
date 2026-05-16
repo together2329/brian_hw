@@ -6292,6 +6292,26 @@ AVAILABLE_TOOLS = {
     "dispatch_workflow": dispatch_workflow,
 }
 
+
+def filtered_available_tools(extra_disable=None):
+    """Return AVAILABLE_TOOLS minus any entries listed in the
+    WORKFLOW_DISABLED_TOOLS env var (comma-separated). Workflows set
+    this via workspace.json `env` to remove tools that don't make sense
+    for their stage (e.g., rtl-gen disables ask_user / record_ssot_qa
+    because the stage engine already auto-runs derive_rtl_todos.py and
+    the agent should consult on-disk artifacts instead of pinging the
+    user). Optional `extra_disable` is merged in for callers that want
+    to filter beyond the env var.
+    """
+    import os as _os
+    raw = _os.environ.get("WORKFLOW_DISABLED_TOOLS", "")
+    disabled = {x.strip() for x in raw.split(",") if x.strip()}
+    if extra_disable:
+        disabled.update(extra_disable)
+    if not disabled:
+        return AVAILABLE_TOOLS
+    return {k: v for k, v in AVAILABLE_TOOLS.items() if k not in disabled}
+
 # Import and register Verilog analysis tools
 try:
     import tools_verilog
