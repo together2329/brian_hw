@@ -2,6 +2,140 @@
 
 ## 2026-05-16
 
+- Review of [[orchestrator-worker-handoff]] captured at
+  [[orchestrator-worker-handoff-review]]. Gap audit against
+  `src/atlas_api_jobs.py`, `core/delegate_runner.py`, `core/atlas_db.py`,
+  `frontend/atlas/pipeline.jsx`, and `src/headless_workflow.py`: the
+  orchestrator-mode switches (`ATLAS_ORCHESTRATOR_MODE`, gateway flag,
+  path-prefix `/api/workers/<wf>` route), handoff JSON queue,
+  `worker_leases` table, `/take` CLI, and orchestrator fields in
+  `/api/pipeline/state` are all doc-only today. Already shipped: 2 s
+  poll + `/api/pipeline/dispatch`, single-endpoint `WORKER_URL_*` worker
+  dispatch (`localhost:8001` default, no gateway). Highest-value fix is a
+  "Status: design spec" banner at the top of
+  `orchestrator-worker-handoff.md`; remaining nits (port mismatch, missing
+  `workspace_id` isolation key, ambiguous `last_heartbeat_at: "UTC"`,
+  schema-version pointer, line-416/433 wording tension) are incremental.
+- Review response applied: [[orchestrator-worker-handoff]] now starts with a
+  design-spec status banner, marks orchestrator API/gateway/`/take` behavior as
+  target design rather than shipped behavior, removes the unsupported
+  `ORCHESTRATOR_MODE=1` alias, adds `workspace_id` to isolation scope, switches
+  heartbeat examples to ISO-8601 UTC timestamps, marks `workflow_handoff.v1` as
+  schema TBD, and narrows the worker helper exception.
+- Second-pass review response: renamed the durable run identifier in
+  [[orchestrator-worker-handoff]] to `pipeline_run_id` with a note flagging the
+  collision risk against the existing in-memory `pipeline_id` in
+  `src/atlas_api_jobs.py`; added `workspace_id` to the ownership chain ASCII
+  tree; moved the shipped-port-per-worker disclaimer to the top of the Worker
+  Ports section; defined the `<owner>` placeholder for Review Decision Needed
+  filenames; clarified that offline workers omit `last_heartbeat_at`.
+- Shipped the StageCard action UX (review finding #5 completion): three
+  new HTTP endpoints `GET /api/handoff/list`, `POST /api/handoff/save`,
+  `POST /api/handoff/take`, all scope-filtered by the authenticated user
+  and clearing `_state_cache` on writes. `/api/pipeline/state` per-stage
+  payload now carries `workflow` and `handoffs:{pending,claimed,done,
+  review,latest}` so the StageCard renders `⇄ take N` and `📬 save handoff`
+  buttons without threading the whole pipeline state down. Frontend
+  buttons in `frontend/atlas/pipeline.jsx` post to the new endpoints and
+  fire `atlas:pipeline-poll` for immediate refresh. End-to-end verified
+  on `simple_gpio_lite` (12-step flow with cross-user `alice/bob`
+  isolation) and `arm_m0_min` (7-step coverage→tb-gen flow with cross-IP
+  isolation against `simple_gpio_lite`). 6 new pytest regression tests in
+  `tests/test_atlas_api_pipeline_state.py` push the touched-file suite to
+  79/79 passing. See [[orchestrator-worker-handoff-review]] "Fifth pass
+  applied".
+- Deep^6 adversarial test sweep against the orchestrator/handoff stack —
+  60 stress scenarios across 6 rounds (happy path, scale, security, races,
+  cross-process, multi-user) + 74 pytest cases. Caught and permanently fixed
+  5 real bugs not surfaced by the original review:
+  1. `claim_next` ignored `scope_filter` → multi-user CLI take could grab
+     another user's older handoff. Added kwarg + regression test.
+  2. Oversize `handoff_id` (>200 chars) leaked raw `OSError [Errno 63]`
+     `File name too long`. Validator now rejects with a typed `ValueError`.
+  3. Two threads rewriting the same JSON file raced on `os.replace`. Per-thread
+     unique `.tmp.{pid}.{tid}.{uuid}` suffix in both `handoff_queue._write_json`
+     and `review_decisions._atomic_write_json`.
+  4. `/api/pipeline/state` cache key was `(ip,)` only and `_orchestrator_block`
+     ignored auth — user_a polling the shared-IP endpoint saw user_b's
+     handoffs. Cache key now `(ip, user_id)`; scope filter derived from
+     `request.scope["user"]`.
+  5. Oversize `ip` query param (e.g., 500 chars) also caused `OSError [Errno 63]`
+     at downstream `stat()`. 64-char cap in the validator.
+  Performance baseline established: 1549 writes/sec, `summary_by_workflow` on
+  5000 records in 386 ms, 4-subprocess `--stages take` race with zero
+  double-claims. See [[orchestrator-worker-handoff-review]] "Fourth pass applied".
+- Implementation pass against the [[orchestrator-worker-handoff-review]] gap
+  audit. Five slices landed (36 tests passing total):
+  1. `src/handoff_queue.py` — durable `<ip>/handoff/{suggested,pending,claimed,
+     done,review}/*.json` state machine with atomic moves and schema validation
+     (`workflow_handoff.v1`).
+  2. `src/review_decisions.py` — pipeline-level Review Decision Needed writer
+     for `<ip>/review/decision_needed_pipeline_repeated_<owner>[_<signature>]_mismatch.json`
+     with idempotent updates and `resolve_decision`.
+  3. `ATLAS_ORCHESTRATOR_MODE` flag wired into `/api/pipeline/state`. New
+     payload keys `orchestrator{enabled, mode, pending_handoffs, claimed_handoffs,
+     review_decisions, decisions_needed, workers}` and `handoffs_by_workflow{}`
+     are always emitted; counts read from disk regardless of flag, only
+     `enabled`/`mode` toggle on env. Gateway/worker capacity is not built so
+     `workers` stays empty and `mode` reports `json` when enabled.
+  4. `python3 src/headless_workflow.py --stages take --workflow <wf>` claims
+     the oldest pending handoff FIFO, runs the owner workflow once, completes
+     on pass or releases the claim on fail/error. `--workflow` is required for
+     the take path.
+  5. Pipeline run-bar chips: `orchestrator: json`, `⇄ N pending`, `△ K review`
+     render next to the running chip when the new payload reports them.
+  Out of scope and deferred: gateway path-prefix routing (`/api/workers/<wf>`),
+  `worker_leases` table + per-user lease isolation, in-memory `pipeline_id` to
+  durable `pipeline_run_id` rename in `atlas_api_jobs.py`, dispatch/`take`/`view
+  evidence` action buttons inside StageCards.
+- New wiki page [[orchestrator-worker-handoff]] captures the control-plane
+  contract: an orchestrator agent manages workflow workers, dispatches repair
+  feedback in real time when worker mode is available, and otherwise writes
+  durable `<ip>/handoff/pending/*.json` packets for another workspace to claim
+  with `/take`. This keeps Workspace one-stage-at-a-time while pipeline mode
+  can still coordinate owner-classified repair loops.
+- Follow-up decision captured in [[orchestrator-worker-handoff]] and
+  `.omx/plans/prd-orchestrator-worker-handoff.md`: cross-workflow routing is
+  orchestrator-centered. Workers may write `suggested_handoff` records, but
+  only the orchestrator dispatches to another workflow worker. UI integration
+  is through the existing Pipeline screen: `/api/pipeline/state` exposes
+  orchestrator mode plus handoff counts, StageCards show pending handoffs and
+  owner repair actions, and Workspace resumes JSON handoffs through `/take`.
+- Orchestrator UI contract refined: `ATLAS_ORCHESTRATOR_MODE=1` makes Pipeline
+  the control plane and Workspace/Workflow screens detail surfaces only.
+  Workflow tab changes do not stop running workers in this mode; non-
+  orchestrator mode keeps the existing stop-before-switch prompt for a local
+  running agent. Orchestrator may receive user input, but it records answers as
+  durable Review/Pipeline Decisions and routes them to owner workflows rather
+  than keeping them only in chat/Q&A history. Pipeline state should also show
+  worker runtime status (`running`, `idle`, `blocked`, `stale`, `offline`,
+  `done`) with current task, elapsed time, and heartbeat when available.
+  Worker port rule: ATLAS should expose one Orchestrator/Gateway port; workflow
+  workers are addressed by paths such as `/api/workers/rtl-gen`, and scheduling
+  uses gateway capacity metadata rather than URL count. Do not make users manage
+  one port per workflow.
+- Multi-user feasibility clarified in [[orchestrator-worker-handoff]]:
+  existing ATLAS already has DB users/sessions/IP permissions, user-filtered
+  session APIs, chat permission tests, and `.session/<session>/<ip>/<workflow>/`
+  scoping. Production orchestrator mode still needs per
+  user-assigned orchestrators, per `session_id/pipeline_id` run contexts,
+  scoped worker leases, gateway output filtering, and permission-gated admin
+  aggregation.
+- Captured [[gpio-serial-pipeline-run]]: `simple_gpio_lite` now reaches
+  clean RTL compile/lint/todo closure, then stops at `tb-gen` human gate
+  because 32 required equivalence goals carry FunctionalModel
+  `ssot_question` markers. Fixed the common scoreboard self-check so this
+  condition writes `tb/cocotb/tb_blocked.json` and blocks before sim, rather
+  than allowing `tb-gen PASS` followed by 32 soft FL-vs-RTL mismatches.
+- Tightened the upstream SSOT gate for the same GPIO finding. `check_ssot_disk.sh`
+  now requires every non-reset `function_model.transactions[]` item to have
+  executable `output_rules` or `state_updates`, while
+  `repair_ssot_schema.py --strict-downstream` reports
+  `SSOT_FM_MACHINE_RULES_MISSING_*` blockers in
+  `req/ssot_downstream_blockers.json`. This is general-IP validation, not a
+  GPIO template: a temp-copy `simple_gpio_lite` run now blocks at ssot-gen with
+  six missing machine-rule transactions (`FM1`-`FM6`) before FL/RTL/TB token
+  spend.
 - New top-level ATLAS screen: [[atlas-pipeline-screen]] (`◫ Pipeline`,
   branch `feature_pipeline_ui`). Replaces the mock `◫ Architect`
   screen. Each of the 14 canonical stages becomes a click on a stage
@@ -73,3 +207,9 @@
 - `workflow/ssot-gen/system_prompt.md` now has a "DOWNSTREAM READINESS" section that tells the ssot-gen LLM the DSL rules, the no-output-cycle rule, the SV fill literal rule, the sub_module ownership refs rule, and the helper reserved names. Goal: catch the same gaps during authoring instead of waiting for rtl-gen preflight.
 - SSOT Q&A Workbench UI contract added: `ssot-gen` now starts on Q&A Session, hides the old QA history panel, uses the full center card for ask_user, exposes Import / Deep Interview(`/grill-me`) / To SSOT(`/to-ssot`) buttons, and shows remaining SSOT requirement decisions. Verified by targeted pytest and ATLAS browser smoke.
 - RTL-GEN split-workspace guidance fix: `rtl-gen` now treats `workflow/` as source-repo tooling under `ATLAS_SOURCE_ROOT`, not as an IP-workspace artifact that must exist in CWD. This prevents UI ask_user cards that ask the user to mount/copy `workflow/rtl-gen/scripts/derive_rtl_todos.py` when the source root is already injected.
+- Parallel TODO worker dispatcher landed: `core/parallel_todo_dispatcher.py` + `parallel_todo_dispatch` tool in `core/tools.py`. The main agent can hand a TODO batch to `parallel_todo_dispatch(todos=[...], max_workers=3, models=None)` and the dispatcher fans the chunk out to N background sub-agent workers, each in clean ReAct mode with its own provider (auto-picks from `cursor-cli` / `claude-cli` / `gpt-5.3-codex` / `glm-5.1` / `deepseek-v4-pro` / `kimi-*` by available credentials and cheapest cost). Worker artefacts land under `.workers/ptd_<id>/`; aggregated `wait()` returns `completed` / `partial` / `partial_error` / `timeout`. Phase 1 ships clean+prompt only; `fork=True` is reserved for Phase 2. See [[parallel-todo-sub-agent-workers]].
+- Companion R2 cosmetic in `frontend/atlas/workspace.jsx`: agent's `todo_update` / `todo_note` / `todo_write` calls render in the chat tool cards as `step_update` / `step_note` / `step_write` so users do not conflate agent session working-memory indexes (`#2`, `#3`) with the workflow tracker's stable `RTL-XXXX` IDs that still surface in the right-side TODO panel.
+- Deep test sweep (32/32) on the dispatcher: structural correctness, profile env snapshot/restore, round-robin determinism, timeout/error handling, 1000-UUID uniqueness, 10-thread concurrent dispatch contention, 1 MiB worker return value, mixed valid/empty/None TODO inputs, JSON round-trip of the aggregated wait() output. Lives at `_runspaces/dispatcher_deep_test.py`. Real end-to-end across 6 providers (`claude-cli`, `cursor-cli`, `gpt-5.3-codex`, `glm-5.1`, `kimi-2.6`, `deepseek-v4-pro`) — all returned the requested word with their own tool use; dispatcher wall-time = the slowest worker.
+- Two bugs uncovered + fixed during the real end-to-end. (1) `_thread_runtime` was a `threading.local()` — `ThreadPoolExecutor` worker threads start with empty locals, so `scoped_model_runtime("claude-cli")` never propagated `CLAUDE_CLI_ENABLE=True` into the inner LLM-call thread; replaced with a `contextvars.ContextVar`-backed proxy so the existing `_thread_runtime.stack` accessor still works. (2) `core/agent_runner.py:385` submits the LLM call to an inner `ThreadPoolExecutor` — Python does NOT auto-propagate ContextVar across that boundary, so the inner thread also has to be wrapped in `contextvars.copy_context().run(call_llm_raw, ...)`. After both fixes `claude-cli` / `cursor-cli` / `gpt-5.3-codex` honour their per-worker model runtime instead of falling back to the process-default profile.
+- Granted Claude Code's built-in tools per dispatch: new `claude_tools="WebSearch,WebFetch"` and generic `extra_overrides={...}` arguments on `parallel_todo_dispatch`. Internally uses a new `config.scoped_runtime_extra(payload)` context manager that pushes an arbitrary dict (any `_THREAD_RUNTIME_KEYS` key) onto the thread-local stack for just this job's workers. The dispatcher also auto-flips `CLAUDE_CLI_PERMISSION_MODE="bypassPermissions"` when `claude_tools` is set so the headless worker doesn't stall on confirm-each-tool prompts. Verified: `claude-cli` worker with `claude_tools="WebSearch,WebFetch"` actually returned a live GitHub stars count (98.2k for tiangolo/fastapi) instead of the knowledge-cutoff refusal it produced without the grant.
+- `core/tools_web.py` `web_search` / `web_fetch` got an `engine` argument with fallback chain (`auto` → firecrawl → claude-cli → cursor-cli). New `_search_via_claude_cli` / `_fetch_via_claude_cli` / `_search_via_cursor_cli` / `_fetch_via_cursor_cli` helpers call the CLIs directly (one-shot, not via the parallel dispatcher) with `permission_mode="bypassPermissions"` (claude) or `yolo=True` (cursor). Lets any agent run web search even without Firecrawl, and lets `glm` / `kimi` / `deepseek` agents reach the web indirectly through this tool dispatch (since their own backends do not have native browsing).

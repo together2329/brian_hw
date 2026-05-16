@@ -1,5 +1,9 @@
 import os
 import sys
+import contextvars
+import threading
+import types
+from contextlib import contextmanager
 from pathlib import Path
 
 # Keep top-level `config` and package `src.config` as one live module. The
@@ -850,6 +854,219 @@ def is_opencode_model(name: str) -> bool:
     if n.startswith("openai/"):
         n = n.split("/", 1)[1]
     return n.startswith("gpt-5") or ("gpt" in n and "codex" in n)
+
+
+_THREAD_RUNTIME_KEYS = frozenset({
+    "BASE_URL",
+    "API_KEY",
+    "LLM_PROVIDER",
+    "MODEL_NAME",
+    "USE_RESPONSES_API",
+    "USE_OPENCODE_OAUTH",
+    "OPENCODE_ACCOUNT_ID",
+    "CURSOR_AGENT_ENABLE",
+    "CURSOR_AGENT_MODEL",
+    "CURSOR_AGENT_YOLO",
+    "CURSOR_AGENT_MODE",
+    "CURSOR_AGENT_WORKSPACE",
+    "CURSOR_AGENT_ACTIVE_MODE",
+    "CLAUDE_CLI_ENABLE",
+    "CLAUDE_CLI_MODEL",
+    "CLAUDE_CLI_PERMISSION_MODE",
+    "CLAUDE_CLI_TOOLS",
+    "CLAUDE_CLI_WORKSPACE",
+    "CLAUDE_CLI_NO_SESSION_PERSISTENCE",
+    "CLAUDE_CLI_OUTPUT_FORMAT",
+    "CLAUDE_CLI_TIMEOUT_SEC",
+    "ENABLE_NATIVE_TOOL_CALLS",
+})
+# Model/profile runtime overrides for the current execution context.
+#
+# Was `threading.local()`. That broke parallel sub-agent workers because
+# `ThreadPoolExecutor.submit()` runs the callable in a fresh thread whose
+# local storage is empty — so `scoped_model_runtime("claude-cli")` in the
+# dispatcher thread had no effect inside the LLM call. ContextVar fixes
+# this: Python's executors automatically propagate the *context* (and
+# therefore every ContextVar) from the submitting frame to the worker
+# frame, so child threads inherit the active overrides.
+#
+# `_thread_runtime` is kept as a thin adapter so the existing
+# `_thread_runtime.stack` accessor (used by the module __getattribute__
+# override below) still works without touching every consumer.
+_thread_runtime_stack: "contextvars.ContextVar[tuple]" = contextvars.ContextVar(
+    "_atlas_thread_runtime_stack", default=()
+)
+
+
+class _ThreadRuntimeProxy:
+    """Backwards-compatible accessor: `.stack` reads/writes the ContextVar."""
+    __slots__ = ()
+
+    @property
+    def stack(self):
+        return list(_thread_runtime_stack.get())
+
+    @stack.setter
+    def stack(self, value):
+        _thread_runtime_stack.set(tuple(value or ()))
+
+
+_thread_runtime = _ThreadRuntimeProxy()
+
+
+def _profile_name_for_model(model: str) -> str:
+    wanted = (model or "").strip().lower()
+    if not wanted:
+        return ""
+    for profile_name in list_profiles():
+        profile = get_profile(profile_name)
+        profile_model = str(profile.get("model") or "").strip().lower()
+        if profile_model == wanted:
+            return profile_name
+    for prefix in ("glm", "deepseek", "kimi"):
+        if wanted.startswith(prefix) and get_profile(prefix):
+            return prefix
+    return ""
+
+
+def model_runtime_overrides(name: str) -> dict:
+    """Return thread-local provider settings for a model/profile name.
+
+    This is intentionally non-mutating. It mirrors set_active_profile() and
+    activate_cli_backend() closely enough for concurrent sub-agent workers,
+    without rewriting process-wide globals or os.environ.
+    """
+    requested = str(name or "").strip()
+    if not requested:
+        return {}
+
+    overrides = {
+        "CURSOR_AGENT_ENABLE": False,
+        "CLAUDE_CLI_ENABLE": False,
+    }
+
+    parsed = _parse_cli_backend_model(requested)
+    if parsed is not None:
+        backend, requested_model = parsed
+        overrides.update({
+            "MODEL_NAME": f"{backend}-cli" if backend in ("cursor", "claude") else requested,
+            "USE_RESPONSES_API": False,
+            "ENABLE_NATIVE_TOOL_CALLS": False,
+            "USE_OPENCODE_OAUTH": False,
+        })
+        if backend == "cursor":
+            overrides.update({
+                "MODEL_NAME": "cursor-cli",
+                "CURSOR_AGENT_ENABLE": True,
+                "CURSOR_AGENT_MODEL": requested_model or os.getenv("CURSOR_AGENT_MODEL", globals().get("CURSOR_AGENT_MODEL", "auto")) or "auto",
+                "CLAUDE_CLI_ENABLE": False,
+            })
+        else:
+            overrides.update({
+                "MODEL_NAME": "claude-cli",
+                "CLAUDE_CLI_ENABLE": True,
+                "CLAUDE_CLI_MODEL": requested_model or os.getenv("CLAUDE_CLI_MODEL", globals().get("CLAUDE_CLI_MODEL", "sonnet")) or "sonnet",
+                "CURSOR_AGENT_ENABLE": False,
+            })
+        return overrides
+
+    profile_name = requested if get_profile(requested) else _profile_name_for_model(requested)
+    if profile_name:
+        profile = get_profile(profile_name)
+        overrides.update({
+            "BASE_URL": profile.get("base_url") or globals().get("BASE_URL", ""),
+            "API_KEY": profile.get("api_key") or globals().get("API_KEY", ""),
+            "MODEL_NAME": profile.get("model") or requested,
+            "USE_OPENCODE_OAUTH": False,
+            "USE_RESPONSES_API": False,
+        })
+        return overrides
+
+    if is_opencode_model(requested):
+        try:
+            from src.opencode_backend import get_credentials, CODEX_BASE_URL
+            cred = get_credentials("openai")
+        except Exception:
+            cred = None
+            CODEX_BASE_URL = globals().get("BASE_URL", "")
+        if cred and cred.get("access"):
+            overrides.update({
+                "BASE_URL": CODEX_BASE_URL,
+                "API_KEY": cred["access"],
+                "LLM_PROVIDER": "openai",
+                "MODEL_NAME": requested.split("/", 1)[1] if requested.startswith("openai/") else requested,
+                "USE_RESPONSES_API": True,
+                "USE_OPENCODE_OAUTH": True,
+                "OPENCODE_ACCOUNT_ID": cred.get("accountId", "") or "",
+                "ENABLE_NATIVE_TOOL_CALLS": False,
+            })
+            return overrides
+
+    overrides["MODEL_NAME"] = requested
+    return overrides
+
+
+@contextmanager
+def scoped_model_runtime(name: str):
+    """Apply model/profile settings only in the current thread."""
+    stack = list(getattr(_thread_runtime, "stack", []))
+    stack.append(model_runtime_overrides(name))
+    _thread_runtime.stack = stack
+    try:
+        yield
+    finally:
+        stack = list(getattr(_thread_runtime, "stack", []))
+        if stack:
+            stack.pop()
+        _thread_runtime.stack = stack
+
+
+def current_thread_model_runtime() -> dict:
+    """Merged runtime overrides active in this thread, for tests/diagnostics."""
+    merged = {}
+    for layer in getattr(_thread_runtime, "stack", []):
+        merged.update(layer)
+    return dict(merged)
+
+
+@contextmanager
+def scoped_runtime_extra(extra: dict):
+    """Push an arbitrary dict of runtime overrides onto the thread-local
+    stack for the duration of the with-block. Used by sub-agent
+    dispatchers to grant additional powers (e.g. CLAUDE_CLI_TOOLS=
+    "WebSearch,WebFetch") to a single worker without mutating
+    process-wide config.
+    """
+    payload = {str(k): v for k, v in (extra or {}).items() if k}
+    if not payload:
+        yield
+        return
+    stack = list(getattr(_thread_runtime, "stack", []))
+    stack.append(payload)
+    _thread_runtime.stack = stack
+    try:
+        yield
+    finally:
+        stack = list(getattr(_thread_runtime, "stack", []))
+        if stack:
+            stack.pop()
+        _thread_runtime.stack = stack
+
+
+class _ThreadRuntimeConfigModule(types.ModuleType):
+    def __getattribute__(self, name):
+        if name in _THREAD_RUNTIME_KEYS:
+            try:
+                stack = types.ModuleType.__getattribute__(self, "__dict__").get("_thread_runtime").stack
+            except Exception:
+                stack = []
+            for layer in reversed(stack):
+                if name in layer:
+                    return layer[name]
+        return types.ModuleType.__getattribute__(self, name)
+
+
+sys.modules[__name__].__class__ = _ThreadRuntimeConfigModule
 
 
 if USE_OPENCODE_OAUTH and not (CURSOR_AGENT_ENABLE or CLAUDE_CLI_ENABLE):

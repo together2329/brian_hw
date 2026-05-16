@@ -115,124 +115,242 @@ def _truncate_result(data: dict, max_chars: int = _MAX_RESULT_CHARS) -> str:
 
 
 # ---------------------------------------------------------------------------
+# CLI engines — Claude Code (`claude-cli`) and Cursor Agent (`cursor-cli`)
+# act as alternative WebSearch / WebFetch backends when Firecrawl is not
+# available (no API key, server down). They use the LLM CLI's built-in
+# WebSearch / WebFetch tools and return the answer text directly.
+# ---------------------------------------------------------------------------
+
+def _cli_available(binary: str) -> bool:
+    import shutil
+    return bool(shutil.which(binary))
+
+
+def _search_via_claude_cli(query: str, limit: int = 5, timeout_sec: int = 120) -> str:
+    try:
+        from src.claude_cli_backend import claude_cli_call
+    except ModuleNotFoundError:
+        from claude_cli_backend import claude_cli_call  # type: ignore
+    prompt = (
+        f"Use WebSearch to find up to {limit} results for: {query}\n"
+        "Return the top results as a concise list with title + URL + 1-line snippet each."
+    )
+    return claude_cli_call(
+        messages=[{"role": "user", "content": prompt}],
+        model="sonnet",
+        permission_mode="bypassPermissions",
+        tools="WebSearch,WebFetch",
+        no_session_persistence=True,
+        output_format="json",
+        timeout_sec=timeout_sec,
+    )
+
+
+def _fetch_via_claude_cli(url: str, timeout_sec: int = 120) -> str:
+    try:
+        from src.claude_cli_backend import claude_cli_call
+    except ModuleNotFoundError:
+        from claude_cli_backend import claude_cli_call  # type: ignore
+    prompt = (
+        f"Use WebFetch to retrieve and summarize the content at: {url}\n"
+        "Return the main content as markdown."
+    )
+    return claude_cli_call(
+        messages=[{"role": "user", "content": prompt}],
+        model="sonnet",
+        permission_mode="bypassPermissions",
+        tools="WebFetch,WebSearch",
+        no_session_persistence=True,
+        output_format="json",
+        timeout_sec=timeout_sec,
+    )
+
+
+def _search_via_cursor_cli(query: str, limit: int = 5) -> str:
+    try:
+        from src.cursor_agent_backend import cursor_agent_call
+    except ModuleNotFoundError:
+        from cursor_agent_backend import cursor_agent_call  # type: ignore
+    prompt = (
+        f"Search the web for up to {limit} results for: {query}\n"
+        "Return the top results as a concise list with title + URL + 1-line snippet each."
+    )
+    return cursor_agent_call(
+        messages=[{"role": "user", "content": prompt}],
+        model="auto",
+        yolo=True,
+    )
+
+
+def _fetch_via_cursor_cli(url: str) -> str:
+    try:
+        from src.cursor_agent_backend import cursor_agent_call
+    except ModuleNotFoundError:
+        from cursor_agent_backend import cursor_agent_call  # type: ignore
+    prompt = (
+        f"Fetch the content of this URL and summarize the main body as markdown: {url}"
+    )
+    return cursor_agent_call(
+        messages=[{"role": "user", "content": prompt}],
+        model="auto",
+        yolo=True,
+    )
+
+
+def _engine_fallback_chain(engine: str) -> list[str]:
+    """Resolve ``engine`` argument to an ordered try-list."""
+    e = (engine or "auto").strip().lower()
+    if e == "firecrawl":
+        return ["firecrawl"]
+    if e in ("claude", "claude-cli"):
+        return ["claude-cli"]
+    if e in ("cursor", "cursor-cli", "cursor-agent"):
+        return ["cursor-cli"]
+    # "auto" — prefer Firecrawl (cheapest), then the CLI backends.
+    chain = ["firecrawl"]
+    if _cli_available("claude"):
+        chain.append("claude-cli")
+    if _cli_available("cursor-agent"):
+        chain.append("cursor-cli")
+    return chain
+
+
+# ---------------------------------------------------------------------------
 # Tool: web_search
 # ---------------------------------------------------------------------------
 
-def web_search(query: str, limit: int = 5, lang: str = "en", tbs: str = "") -> str:
+def web_search(query: str, limit: int = 5, lang: str = "en", tbs: str = "", engine: str = "auto") -> str:
     """
-    Search the web using Firecrawl Search API. Returns scraped content
-    (markdown) for each result.
+    Search the web. Tries the requested ``engine`` in order, falling back
+    to the next on failure. Default ``auto`` prefers Firecrawl (cheapest)
+    then the LLM CLI backends (``claude-cli``, ``cursor-cli``) when their
+    binaries are installed.
 
     Args:
         query: Search query string
         limit: Maximum number of results (1-20, default: 5)
-        lang:  Language code (default: 'en', use 'ko' for Korean)
+        lang:  Language code (default: 'en', use 'ko' for Korean) — Firecrawl only
         tbs:   Time filter — 'qdr:d' (day), 'qdr:w' (week),
-               'qdr:m' (month), 'qdr:y' (year), '' (any time)
+               'qdr:m' (month), 'qdr:y' (year), '' (any time) — Firecrawl only
+        engine: "auto" | "firecrawl" | "claude-cli" | "cursor-cli"
 
     Returns:
-        JSON string with search results (title, url, content for each)
+        JSON-formatted Firecrawl results, or the CLI's text answer.
     """
     limit = max(1, min(20, int(limit)))
-
-    payload = {
-        "query": query,
-        "limit": limit,
-        "scrapeOptions": {
-            "formats": ["markdown"],
-        },
-    }
-    if lang:
-        payload["lang"] = lang
-    if tbs:
-        payload["tbs"] = tbs
-
-    try:
-        result = _firecrawl_request("/v1/search", payload)
-    except RuntimeError as e:
-        return f"Error: {e}"
-
-    # Format results for readability
-    if not result.get("success", True):
-        return f"Search failed: {result.get('error', 'Unknown error')}"
-
-    data = result.get("data", [])
-    if not data:
-        return f"No results found for query: '{query}'"
-
-    formatted = []
-    for i, item in enumerate(data, 1):
-        entry = {
-            "index": i,
-            "title": item.get("metadata", {}).get("title", ""),
-            "url": item.get("metadata", {}).get("sourceURL", item.get("url", "")),
-            "content": item.get("markdown", item.get("content", ""))[:2000],
-        }
-        formatted.append(entry)
-
-    return _truncate_result({"results": formatted, "total": len(formatted)})
+    errors: list[str] = []
+    for backend in _engine_fallback_chain(engine):
+        try:
+            if backend == "firecrawl":
+                payload = {
+                    "query": query,
+                    "limit": limit,
+                    "scrapeOptions": {"formats": ["markdown"]},
+                }
+                if lang:
+                    payload["lang"] = lang
+                if tbs:
+                    payload["tbs"] = tbs
+                result = _firecrawl_request("/v1/search", payload)
+                if not result.get("success", True):
+                    raise RuntimeError(f"firecrawl: {result.get('error', 'unknown')}")
+                data = result.get("data", [])
+                if not data:
+                    if engine == "firecrawl":
+                        return f"No results found for query: '{query}'"
+                    raise RuntimeError("firecrawl: empty results")
+                formatted = []
+                for i, item in enumerate(data, 1):
+                    formatted.append({
+                        "index": i,
+                        "title": item.get("metadata", {}).get("title", ""),
+                        "url": item.get("metadata", {}).get("sourceURL", item.get("url", "")),
+                        "content": item.get("markdown", item.get("content", ""))[:2000],
+                    })
+                return _truncate_result({"engine": "firecrawl", "results": formatted, "total": len(formatted)})
+            if backend == "claude-cli":
+                return _search_via_claude_cli(query, limit=limit)
+            if backend == "cursor-cli":
+                return _search_via_cursor_cli(query, limit=limit)
+        except Exception as exc:
+            errors.append(f"{backend}: {exc}")
+            continue
+    return "web_search failed — tried " + "; ".join(errors) if errors else (
+        f"web_search: no backend available for engine={engine!r}"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Tool: web_fetch
 # ---------------------------------------------------------------------------
 
-def web_fetch(url: str, formats: str = "markdown", wait_for: int = 3000) -> str:
+def web_fetch(url: str, formats: str = "markdown", wait_for: int = 3000, engine: str = "auto") -> str:
     """
-    Fetch and scrape content from a specific URL using Firecrawl Scrape API.
+    Fetch and scrape content from a specific URL. Tries ``engine`` in
+    order, falling back to the next on failure. Default ``auto`` prefers
+    Firecrawl (full HTML/markdown) and falls back to the LLM CLI
+    backends (``claude-cli`` / ``cursor-cli``) when their binaries are
+    installed.
 
     Args:
         url:      URL to scrape
-        formats:  Output format — 'markdown' (default), 'html', or 'rawHtml'
-        wait_for: Milliseconds to wait for JavaScript rendering (default: 3000)
+        formats:  Output format — 'markdown' (default), 'html', or 'rawHtml' — Firecrawl only
+        wait_for: Milliseconds to wait for JavaScript rendering — Firecrawl only
+        engine:   "auto" | "firecrawl" | "claude-cli" | "cursor-cli"
 
     Returns:
-        Scraped content in requested format
+        Markdown / HTML payload from Firecrawl, or the CLI's text summary.
     """
-    payload = {
-        "url": url,
-        "formats": [formats] if isinstance(formats, str) else formats,
-    }
-    if wait_for > 0:
-        payload["waitFor"] = int(wait_for)
-
-    try:
-        result = _firecrawl_request("/v0/scrape", payload)
-    except RuntimeError as e:
-        return f"Error: {e}"
-
-    if not result.get("success", True):
-        return f"Fetch failed: {result.get('error', 'Unknown error')}"
-
-    data = result.get("data", {})
-
-    # Extract content in requested format
-    content = ""
-    if formats == "html" or formats == ["html"]:
-        content = data.get("html", "")
-    elif formats == "rawHtml" or formats == ["rawHtml"]:
-        content = data.get("rawHtml", "")
-    else:
-        content = data.get("markdown", "")
-
-    if not content:
-        return f"No content retrieved from: {url}"
-
-    metadata = data.get("metadata", {})
-    header = {
-        "title": metadata.get("title", ""),
-        "url": url,
-        "description": metadata.get("description", ""),
-    }
-
-    response = {
-        "metadata": header,
-        "content": content[:6000],
-    }
-    if len(content) > 6000:
-        response["truncated"] = f"Content truncated from {len(content)} to 6000 chars. Use web_extract for specific data."
-
-    return _truncate_result(response)
+    errors: list[str] = []
+    for backend in _engine_fallback_chain(engine):
+        try:
+            if backend == "firecrawl":
+                payload = {
+                    "url": url,
+                    "formats": [formats] if isinstance(formats, str) else formats,
+                }
+                if wait_for > 0:
+                    payload["waitFor"] = int(wait_for)
+                result = _firecrawl_request("/v0/scrape", payload)
+                if not result.get("success", True):
+                    raise RuntimeError(f"firecrawl: {result.get('error', 'unknown')}")
+                data = result.get("data", {})
+                if formats in ("html", ["html"]):
+                    content = data.get("html", "")
+                elif formats in ("rawHtml", ["rawHtml"]):
+                    content = data.get("rawHtml", "")
+                else:
+                    content = data.get("markdown", "")
+                if not content:
+                    if engine == "firecrawl":
+                        return f"No content retrieved from: {url}"
+                    raise RuntimeError("firecrawl: empty body")
+                metadata = data.get("metadata", {})
+                response = {
+                    "engine": "firecrawl",
+                    "metadata": {
+                        "title": metadata.get("title", ""),
+                        "url": url,
+                        "description": metadata.get("description", ""),
+                    },
+                    "content": content[:6000],
+                }
+                if len(content) > 6000:
+                    response["truncated"] = (
+                        f"Content truncated from {len(content)} to 6000 chars. "
+                        "Use web_extract for specific data."
+                    )
+                return _truncate_result(response)
+            if backend == "claude-cli":
+                return _fetch_via_claude_cli(url)
+            if backend == "cursor-cli":
+                return _fetch_via_cursor_cli(url)
+        except Exception as exc:
+            errors.append(f"{backend}: {exc}")
+            continue
+    return "web_fetch failed — tried " + "; ".join(errors) if errors else (
+        f"web_fetch: no backend available for engine={engine!r}"
+    )
 
 
 # ---------------------------------------------------------------------------

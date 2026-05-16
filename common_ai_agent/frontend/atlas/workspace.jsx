@@ -29,6 +29,22 @@ const TOOL_THEME = {
 };
 const _toolTheme = (name) => TOOL_THEME[name] || TOOL_THEME.__default;
 
+// Agent meta-cognition tools (todo_*) drive the LLM's session-local working
+// memory — completely separate from the workflow's stage TODO tracker
+// (RTL-XXXX in rtl_todo_tracker.json, surfaced in the right-side panel).
+// Render them as `step_*` in chat so users do NOT conflate agent step
+// counters (#2, #3) with the workflow tracker's stable IDs (RTL-0060).
+// The underlying tool name is unchanged; only the chat label is swapped.
+const _TOOL_CHAT_ALIAS = {
+  todo_update: 'step_update',
+  todo_note:   'step_note',
+  todo_write:  'step_write',
+  todo_add:    'step_add',
+  todo_remove: 'step_remove',
+  todo_status: 'step_status',
+};
+const _toolDisplay = (name) => _TOOL_CHAT_ALIAS[name] || name || '?';
+
 // Direct workflow/slash results also arrive as `slash_output`, which is the
 // user-facing Markdown surface. Keep their mirrored `tool_result` event for
 // data refresh subscribers, but do not render it again as a plain obs block.
@@ -4389,7 +4405,7 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
         title={headClickable ? (obsOpen ? 'click to collapse' : 'click to expand') : undefined}
       >
         <span className="tool-card-glyph" style={{ color: 'var(--fg)' }}>{theme.glyph}</span>
-        <span className="tool-card-tool">{tool || '?'}</span>
+        <span className="tool-card-tool">{_toolDisplay(tool)}</span>
         {argsText && (
           <span
             className={`tool-card-args${showArgsExpanded ? '' : ' trunc'}`}

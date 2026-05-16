@@ -382,7 +382,17 @@ def run_agent_session(
             _log(f"LLM call (model={model})...")
             try:
                 import concurrent.futures
+                import contextvars as _contextvars
+                # Propagate the caller's context to the worker thread so
+                # config.scoped_model_runtime() overrides (CLAUDE_CLI_ENABLE,
+                # CURSOR_AGENT_ENABLE, MODEL_NAME, BASE_URL, API_KEY, ...)
+                # set by the dispatcher are visible inside call_llm_raw.
+                # Without copy_context() ThreadPoolExecutor.submit() runs
+                # the callable in a fresh thread whose ContextVar defaults
+                # are empty, defeating per-worker model routing.
+                _ctx_for_llm = _contextvars.copy_context()
                 _llm_future = concurrent.futures.ThreadPoolExecutor(max_workers=1).submit(
+                    _ctx_for_llm.run,
                     call_llm_raw,
                     prompt="",
                     messages=messages,

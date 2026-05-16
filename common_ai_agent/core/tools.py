@@ -4244,6 +4244,89 @@ def background_list():
         return f"Error listing background tasks: {e}"
 
 
+def parallel_todo_dispatch(
+    todos=None,
+    max_workers=3,
+    models=None,
+    timeout_s=1800,
+    claude_tools=None,
+    extra_overrides=None,
+):
+    """
+    Dispatch a batch of TODOs to background sub-agent workers and wait for results.
+
+    Args:
+        todos: List of TODO strings/dicts, or a JSON/list-like string.
+        max_workers: Auto-discovery worker cap when models is omitted.
+        models: Optional explicit model/profile list. One worker is launched
+                per listed model, capped by TODO count.
+        timeout_s: Seconds to wait for all launched workers.
+        claude_tools: Comma-separated tool names to grant to claude-cli
+                workers (e.g. "WebSearch,WebFetch"). Empty/None keeps the
+                default behaviour of disabling Claude Code's built-in
+                tools so common_ai_agent stays the single executor.
+        extra_overrides: Dict of additional thread-local config overrides
+                (any key from src.config._THREAD_RUNTIME_KEYS) applied to
+                every worker for this job — for advanced use cases.
+
+    Returns:
+        Aggregated worker results as JSON.
+    """
+    try:
+        from core.parallel_todo_dispatcher import ParallelTodoDispatcher
+
+        def _coerce_list(value):
+            if value is None or value == "":
+                return None
+            if isinstance(value, list):
+                return value
+            if isinstance(value, tuple):
+                return list(value)
+            if isinstance(value, str):
+                text = value.strip()
+                if not text:
+                    return None
+                try:
+                    parsed = json.loads(text)
+                    if isinstance(parsed, list):
+                        return parsed
+                except Exception:
+                    pass
+                return [part.strip() for part in re.split(r"[\n,]+", text) if part.strip()]
+            return [value]
+
+        def _coerce_dict(value):
+            if value is None or value == "":
+                return None
+            if isinstance(value, dict):
+                return value
+            if isinstance(value, str):
+                text = value.strip()
+                if not text:
+                    return None
+                try:
+                    parsed = json.loads(text)
+                    if isinstance(parsed, dict):
+                        return parsed
+                except Exception:
+                    return None
+            return None
+
+        dispatcher = ParallelTodoDispatcher()
+        job_id = dispatcher.dispatch(
+            todos=_coerce_list(todos) or [],
+            max_workers=_as_int(max_workers, 3) or 3,
+            models=_coerce_list(models),
+            claude_tools=str(claude_tools) if claude_tools else None,
+            extra_overrides=_coerce_dict(extra_overrides),
+        )
+        result = dispatcher.wait(job_id, timeout_s=_as_int(timeout_s, 1800) or 1800)
+        return json.dumps(result, ensure_ascii=False, indent=2)
+    except Exception as e:
+        import traceback
+        return f"Error in parallel_todo_dispatch: {e}\n{traceback.format_exc()}"
+
+
 # ============================================================
 # Workflow Orchestration Tools
 # ============================================================
@@ -6260,6 +6343,7 @@ AVAILABLE_TOOLS = {
     "background_output": background_output,
     "background_cancel": background_cancel,
     "background_list": background_list,
+    "parallel_todo_dispatch": parallel_todo_dispatch,
     # cursor-agent tool (delegates to cursor-agent CLI)
     "cursor_agent": cursor_agent,
     # Workflow Orchestration Tools
