@@ -1167,7 +1167,13 @@ def create_app():
     PROJECT_ROOT = _PROJECT_ROOT
     MAX_READ_BYTES = 256 * 1024
     SKIP_DIRS = {".git", "__pycache__", "node_modules", ".session",
-                 "ATLAS", "vendor", ".venv", ".pytest_cache"}
+                 "ATLAS", "vendor", ".venv", ".pytest_cache",
+                 # Internal workflow scaffolding — generated for the LLM as
+                 # authoring inputs, not user-facing artifacts. Keep on disk
+                 # (workflow scripts still read them) but hide from the file
+                 # tree so `rtl/` only surfaces real RTL (.sv/.v) plus the
+                 # canonical compile/lint evidence JSONs.
+                 "authoring_packets", "stage_engine"}
 
     def _safe(rel_path):
         rel = (rel_path or "").lstrip("/")
