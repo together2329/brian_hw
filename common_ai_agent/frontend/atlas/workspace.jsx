@@ -9174,10 +9174,15 @@ const chooseSsotFile = (files, preferredPath = '') => {
   if (preferredPath && (paths.includes(preferredPath) || isSsotYamlPath(preferredPath))) return preferredPath;
   const scope = String(window.SCOPE_PATH || '').split('/').filter(Boolean).pop() || '';
   const sessionIp = ssotIpFromSession(window.ACTIVE_SESSION || '');
-  const ip = sessionIp || scope;
-  return paths.find(p => ip && (p === `${ip}.ssot.yaml` || p.includes(`${ip}/`) || p.includes(`/${ip}.`)))
-    || paths.find(p => /\.ssot\.ya?ml$/i.test(p))
-    || paths[0]
+  const explicitIp = String(window.ACTIVE_IP || '').trim();
+  // When IP context is the literal `default` placeholder (or empty),
+  // do NOT auto-pick the first SSOT in the workspace — that misleads
+  // the user into thinking the current session owns that IP. Show the
+  // empty/default-workspace state instead and let them pick an IP.
+  const ipFromContext = sessionIp || (explicitIp && explicitIp !== 'default' ? explicitIp : '') || scope;
+  const isDefault = !ipFromContext || ipFromContext === 'default';
+  if (isDefault) return '';
+  return paths.find(p => p === `${ipFromContext}.ssot.yaml` || p.includes(`${ipFromContext}/`) || p.includes(`/${ipFromContext}.`))
     || '';
 };
 
