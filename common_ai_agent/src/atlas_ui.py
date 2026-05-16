@@ -8691,6 +8691,25 @@ def create_app():
             )
             return True
 
+        # ATLAS_RTL_BLOCKER_AUTO_SKIP=1 → never surface SSOT QA cards from
+        # rtl_blocked.json. The blocker JSON is still written on disk so
+        # `/resolve-rtl-blockers <ip>` and ssot-gen can still address them
+        # on demand, but the agent stops popping 8+ Q&A cards at the user
+        # mid-flight. Matches the user's "SSOT-GEN 만 QA" policy: rtl-gen
+        # writing blockers is fine, but auto-promoting them into SSOT QA
+        # is the part that became spam.
+        if os.environ.get("ATLAS_RTL_BLOCKER_AUTO_SKIP", "").strip() in {"1", "true", "yes", "on"}:
+            msg = (
+                f"[RTL BLOCKER] {len(cards)} blocker(s) for {ip} recorded to "
+                f"{_rtl_blocker_path(ip).relative_to(PROJECT_ROOT)}\n"
+                "QA card promotion suppressed by ATLAS_RTL_BLOCKER_AUTO_SKIP.\n"
+                f"Run `/resolve-rtl-blockers {ip}` to address them on demand."
+            )
+            _append_session_message(_canonical_session_string(ip), "assistant", msg)
+            _append_workflow_history("ssot-gen", "assistant", msg)
+            _emit_workflow_result(msg, "resolve-rtl-blockers")
+            return True
+
         ctx_ip, ctx_session = _active_ssot_qa_context()
         ssot_session = ctx_session if ctx_ip == ip and ctx_session else _canonical_session_string(ip)
         qa_write_session = ssot_session if client_session is not None else None
