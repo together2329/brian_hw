@@ -75,6 +75,12 @@ _PIPELINE_STAGE_DEPS: dict[str, tuple[str, ...]] = {
     "pnr": ("syn",),
     "sta-post": ("pnr",),
 }
+_PIPELINE_ALLOWED_FAILED_DEPS: dict[str, tuple[str, ...]] = {
+    # sim-debug is the diagnostic consumer for failed simulation evidence.
+    # A sim error caused by scoreboard/FL-vs-RTL mismatch must route into
+    # sim-debug instead of blocking the very classifier that owns repair routing.
+    "sim-debug": ("sim",),
+}
 _RTL_VERSION_DOWNSTREAM_STAGES = {
     "lint", "tb", "sim", "coverage", "sim-debug",
     "syn", "sta", "pnr", "sta-post", "goal-audit",
@@ -127,6 +133,13 @@ def _pipeline_stage_dependencies(
     return ordered
 
 
+def _job_allows_failed_dependency(candidate: dict[str, Any], dependency: dict[str, Any]) -> bool:
+    if dependency.get("status") != "error":
+        return False
+    allowed = _PIPELINE_ALLOWED_FAILED_DEPS.get(str(candidate.get("stage_id") or ""), ())
+    return str(dependency.get("stage_id") or "") in allowed
+
+
 def _resolve_pipeline_schedule(requested_schedule: str, stages: list[dict[str, str]]) -> str:
     if requested_schedule in {"dag", "serial"}:
         return requested_schedule
@@ -146,12 +159,21 @@ def _mark_downstream_blocked_locked(pipeline_id: str, failed_job_id: str, reason
     changed = True
     while changed:
         changed = False
+        jobs_by_id = {
+            str(j.get("job_id")): j
+            for j in _jobs.values()
+            if j.get("pipeline_id") == pipeline_id
+        }
         for queued in _jobs.values():
             if queued.get("pipeline_id") != pipeline_id:
                 continue
             if queued.get("status") not in {"queued", "pending"}:
                 continue
-            if not any(dep in blocked_ids for dep in _job_dependency_ids(queued)):
+            blocking_deps = [
+                dep for dep in _job_dependency_ids(queued)
+                if dep in blocked_ids and not _job_allows_failed_dependency(queued, jobs_by_id.get(dep, {}))
+            ]
+            if not blocking_deps:
                 continue
             queued["status"] = "blocked"
             queued["error"] = reason
@@ -751,10 +773,12 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
         reason = f"blocked by {job.get('workflow')} {job.get('status')}"
         with _jobs_lock:
             _mark_downstream_blocked_locked(pipeline_id, job.get("job_id", ""), reason)
+        if job.get("status") != "error":
+            return
+    elif job.get("status") != "completed":
         return
-    if job.get("status") != "completed":
-        return
-    _ensure_stage_artifact_version_for_job(job, Path(job.get("project_root") or ".").resolve())
+    else:
+        _ensure_stage_artifact_version_for_job(job, Path(job.get("project_root") or ".").resolve())
     ready_jobs: list[dict[str, Any]] = []
     with _jobs_lock:
         jobs_by_id = {
@@ -766,13 +790,26 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
         candidates.sort(key=lambda j: j.get("pipeline_index", 0))
         for candidate in candidates:
             deps = _job_dependency_ids(candidate)
-            dep_statuses = [jobs_by_id.get(dep, {}).get("status", "") for dep in deps]
-            if any(status in {"error", "cancelled", "blocked"} for status in dep_statuses):
+            dep_jobs = [jobs_by_id.get(dep, {}) for dep in deps]
+            dep_statuses = [dep_job.get("status", "") for dep_job in dep_jobs]
+            blocked_by_dependency = False
+            for dep_job in dep_jobs:
+                status = dep_job.get("status", "")
+                if status not in {"error", "cancelled", "blocked"}:
+                    continue
+                if _job_allows_failed_dependency(candidate, dep_job):
+                    continue
+                blocked_by_dependency = True
+                break
+            if blocked_by_dependency:
                 candidate["status"] = "blocked"
                 candidate["error"] = "blocked by failed dependency"
                 candidate["finished_at"] = time.time()
                 continue
-            if all(status == "completed" for status in dep_statuses):
+            if deps and all(
+                status == "completed" or _job_allows_failed_dependency(candidate, dep_job)
+                for status, dep_job in zip(dep_statuses, dep_jobs)
+            ):
                 for dep in deps:
                     upstream = jobs_by_id.get(dep, {})
                     if upstream:
@@ -787,6 +824,55 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
                 ready_jobs.append(candidate)
     for ready_job in ready_jobs:
         _dispatch_job_to_worker(ready_job)
+
+
+def _orchestrator_mode_enabled() -> bool:
+    return _truthy_env("ATLAS_ORCHESTRATOR_MODE")
+
+
+def _orchestrator_block(
+    ip_dir: Path,
+    *,
+    scope_filter: dict | None = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Compute the `orchestrator` and `handoffs_by_workflow` payload sections.
+
+    Shape matches `doc/wiki/orchestrator-worker-handoff.md` §UI Contract.
+    Counts are always read from disk so the UI shows accurate queue state
+    even when `ATLAS_ORCHESTRATOR_MODE` is off (orchestrator.enabled=False).
+
+    `scope_filter` is forwarded to the queue readers so multi-user callers
+    only see their own handoffs. Pipeline-level Review Decision Needed
+    records are NOT scope-aware today (the file format predates the scope
+    contract), so `decisions_needed` remains a global count.
+    """
+    try:
+        from src.handoff_queue import queue_totals, summary_by_workflow
+        from src.review_decisions import count_open_decisions
+    except ModuleNotFoundError:
+        from handoff_queue import queue_totals, summary_by_workflow  # type: ignore[no-redef]
+        from review_decisions import count_open_decisions  # type: ignore[no-redef]
+
+    totals = queue_totals(ip_dir, scope_filter=scope_filter)
+    open_decisions = count_open_decisions(ip_dir)
+    handoffs = summary_by_workflow(ip_dir, scope_filter=scope_filter)
+
+    enabled = _orchestrator_mode_enabled()
+    # Mode resolution: a gateway/lease layer is not built yet, so we cannot
+    # detect "worker" or "mixed" — when the env flag is on we report "json"
+    # (durable queue path) until the gateway lands.
+    mode = "json" if enabled else None
+
+    orchestrator = {
+        "enabled": enabled,
+        "mode": mode,
+        "pending_handoffs": totals["pending_handoffs"],
+        "claimed_handoffs": totals["claimed_handoffs"],
+        "review_decisions": totals["review_decisions"],
+        "decisions_needed": open_decisions,
+        "workers": {},
+    }
+    return orchestrator, handoffs
 
 
 def _public_job(job: dict[str, Any]) -> dict[str, Any]:
@@ -1152,13 +1238,25 @@ def register_jobs_routes(
     _STATE_CACHE_TTL = 2.0
 
     @app.get("/api/pipeline/state")
-    async def api_pipeline_state(ip: str = ""):
+    async def api_pipeline_state(request: Request, ip: str = ""):
         ip = ip.strip()
-        if not ip or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+        # Strict length cap so a 500-char ip can't cascade into raw
+        # OSError [Errno 63: file name too long] at downstream stat() calls.
+        # Surfaced by deep^6 round T44.
+        if not ip or len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
 
+        # Multi-user isolation: derive the scope from the authenticated user
+        # so user_a polling the same IP cannot see user_b's handoffs. The
+        # state cache key is also (ip, user_id) so cached payloads don't
+        # leak across users either. Surfaced by deep^6 round T41.
+        scoped_user = request.scope.get("user") or {}
+        user_id = str(scoped_user.get("username") or scoped_user.get("id") or "")
+        scope_filter = {"user_id": user_id} if user_id else None
+        cache_key = (ip, user_id)
+
         import time as _t
-        cached = _state_cache.get(ip)
+        cached = _state_cache.get(cache_key)
         if cached and (_t.monotonic() - cached[0]) < _STATE_CACHE_TTL:
             return JSONResponse(cached[1])
 
@@ -1338,6 +1436,14 @@ def register_jobs_routes(
             if ok:
                 passed_stages.add(sid)
 
+        # Compute the orchestrator block once up front so each stage card can
+        # carry its own per-workflow handoff summary (avoids a second loop
+        # and lets the frontend StageCard render [take] / [save handoff] /
+        # pending-count without threading the whole pipeline state down).
+        orchestrator_block, handoffs_by_workflow = _orchestrator_block(
+            ip_dir, scope_filter=scope_filter,
+        )
+
         stages_out: dict[str, Any] = {}
         for stage in _PIPELINE_STAGES:
             sid = stage["id"]
@@ -1419,6 +1525,11 @@ def register_jobs_routes(
             model = (running_job or last_job or {}).get("model") or None
             effort = (running_job or last_job or {}).get("effort") or None
 
+            stage_workflow = stage["workflow"]
+            stage_handoffs = handoffs_by_workflow.get(
+                stage_workflow,
+                {"pending": 0, "claimed": 0, "done": 0, "review": 0, "latest": None},
+            )
             stages_out[sid] = {
                 "state": state,
                 "glyph": _GLYPHS.get(state, "◯"),
@@ -1437,6 +1548,8 @@ def register_jobs_routes(
                 "locked_reason": locked_reason,
                 "error_summary": db_error if state == "failed" else None,
                 "source": "db" if db_state is not None else ("fs" if sid in passed_stages else "none"),
+                "workflow": stage_workflow,
+                "handoffs": stage_handoffs,
             }
 
         payload = {
@@ -1445,7 +1558,9 @@ def register_jobs_routes(
             "mode": "pipeline",
             "stages": stages_out,
         }
-        _state_cache[ip] = (_t.monotonic(), payload)
+        payload["orchestrator"] = orchestrator_block
+        payload["handoffs_by_workflow"] = handoffs_by_workflow
+        _state_cache[cache_key] = (_t.monotonic(), payload)
         return JSONResponse(payload)
 
     # ── /api/pipeline/dispatch ─────────────────────────────────────
@@ -1516,6 +1631,172 @@ def register_jobs_routes(
             "stages":      resolved,
             "jobs":        jobs,
         })
+
+    # ── /api/pipeline/orchestrator_mode ───────────────────────────
+
+    @app.get("/api/pipeline/orchestrator_mode")
+    async def api_pipeline_orchestrator_mode_get():
+        enabled = _orchestrator_mode_enabled()
+        return JSONResponse({"enabled": enabled, "mode": "json" if enabled else None})
+
+    @app.post("/api/pipeline/orchestrator_mode")
+    async def api_pipeline_orchestrator_mode_set(request: Request):
+        try:
+            body = await request.json()
+        except Exception as e:
+            return JSONResponse({"error": f"bad json: {e}"}, status_code=400)
+        if not isinstance(body, dict) or "enabled" not in body:
+            return JSONResponse({"error": "expected JSON body with 'enabled' bool"}, status_code=400)
+        if not isinstance(body["enabled"], bool):
+            return JSONResponse({"error": "'enabled' must be a JSON bool"}, status_code=400)
+        os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1" if body["enabled"] else "0"
+        # Bust the /api/pipeline/state micro-cache for every (ip, user_id)
+        # so each user's next poll reflects the new mode immediately
+        # instead of waiting up to 2 s.
+        _state_cache.clear()
+        enabled = _orchestrator_mode_enabled()
+        return JSONResponse({"enabled": enabled, "mode": "json" if enabled else None})
+
+    # ── /api/handoff/* ─────────────────────────────────────────────
+    # User-driven actions for the orchestrator/handoff queue. Each request
+    # is scope-filtered by the authenticated user so user_a cannot list,
+    # claim, or write into user_b's queue.
+
+    def _handoff_modules():
+        try:
+            from src import handoff_queue as _hq
+        except ModuleNotFoundError:
+            import handoff_queue as _hq  # type: ignore[no-redef]
+        return _hq
+
+    def _request_scope(request: Request) -> dict:
+        u = request.scope.get("user") or {}
+        return {
+            "user_id": str(u.get("username") or u.get("id") or ""),
+            "session_id": str(u.get("session_id") or "default"),
+            "pipeline_run_id": str(u.get("pipeline_run_id") or "default"),
+        }
+
+    def _scope_filter_from(scope: dict) -> dict | None:
+        uid = scope.get("user_id") or ""
+        return {"user_id": uid} if uid else None
+
+    def _resolve_ip_dir(ip: str) -> Path | None:
+        if not ip or len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+            return None
+        return project_root() / ip
+
+    @app.get("/api/handoff/list")
+    async def api_handoff_list(request: Request, ip: str = "", workflow: str = ""):
+        ip_dir = _resolve_ip_dir(ip)
+        if ip_dir is None:
+            return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
+        hq = _handoff_modules()
+        scope = _request_scope(request)
+        sf = _scope_filter_from(scope)
+
+        def _filter_workflow(rows):
+            if workflow:
+                return [r for r in rows if r.get("to_workflow") == workflow]
+            return rows
+
+        def _filter_scope(rows):
+            if not sf:
+                return rows
+            return [r for r in rows if all(r.get("scope", {}).get(k) == v for k, v in sf.items())]
+
+        return JSONResponse({
+            "ip": ip,
+            "workflow": workflow or None,
+            "scope": scope,
+            "pending": _filter_scope(_filter_workflow(hq.list_state(ip_dir, "pending"))),
+            "claimed": _filter_scope(_filter_workflow(hq.list_state(ip_dir, "claimed"))),
+            "done":    _filter_scope(_filter_workflow(hq.list_state(ip_dir, "done"))),
+            "review":  _filter_scope(_filter_workflow(hq.list_state(ip_dir, "review"))),
+        })
+
+    @app.post("/api/handoff/save")
+    async def api_handoff_save(request: Request):
+        """Write a new pending handoff. The orchestrator-driven equivalent of
+        the StageCard `[ save handoff ]` button. Required body fields:
+        `ip`, `from_workflow`, `to_workflow`. Optional: `reason`, `goal_ids`,
+        `evidence`, `suffix`."""
+        try:
+            body = await request.json()
+        except Exception as e:
+            return JSONResponse({"error": f"bad json: {e}"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected JSON object"}, status_code=400)
+        ip = str(body.get("ip") or "").strip()
+        ip_dir = _resolve_ip_dir(ip)
+        if ip_dir is None:
+            return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
+        from_workflow = str(body.get("from_workflow") or "").strip()
+        to_workflow   = str(body.get("to_workflow") or "").strip()
+        if not from_workflow or not to_workflow:
+            return JSONResponse(
+                {"error": "from_workflow and to_workflow are required"},
+                status_code=400,
+            )
+        suffix = str(body.get("suffix") or body.get("reason") or "user").strip()
+        hq = _handoff_modules()
+        scope = _request_scope(request)
+        record = {
+            "schema": hq.SCHEMA,
+            "handoff_id": hq.make_handoff_id(ip, from_workflow, to_workflow, suffix),
+            "ip": ip,
+            "from_workflow": from_workflow,
+            "to_workflow": to_workflow,
+            "scope": scope,
+            "reason": str(body.get("reason") or "user-saved handoff"),
+            "goal_ids": list(body.get("goal_ids") or []),
+            "evidence": dict(body.get("evidence") or {}),
+        }
+        try:
+            path = hq.write_pending(ip_dir, record)
+        except ValueError as e:
+            return JSONResponse({"error": str(e)}, status_code=400)
+        # Invalidate per-(ip,user) state cache so the next poll reflects the new pending.
+        for k in list(_state_cache.keys()):
+            if isinstance(k, tuple) and k[0] == ip:
+                _state_cache.pop(k, None)
+        return JSONResponse({
+            "ok": True,
+            "handoff_id": record["handoff_id"],
+            "state": "pending",
+            "path": str(path.relative_to(project_root())) if path.is_relative_to(project_root()) else str(path),
+        })
+
+    @app.post("/api/handoff/take")
+    async def api_handoff_take(request: Request):
+        """Claim the oldest pending handoff for the given workflow within the
+        authenticated user's scope. StageCard `[ take ]` button. Body:
+        {ip, workflow}."""
+        try:
+            body = await request.json()
+        except Exception as e:
+            return JSONResponse({"error": f"bad json: {e}"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected JSON object"}, status_code=400)
+        ip = str(body.get("ip") or "").strip()
+        ip_dir = _resolve_ip_dir(ip)
+        if ip_dir is None:
+            return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
+        workflow = str(body.get("workflow") or "").strip()
+        if not workflow:
+            return JSONResponse({"error": "workflow is required"}, status_code=400)
+        hq = _handoff_modules()
+        scope = _request_scope(request)
+        sf = _scope_filter_from(scope)
+        scoped_user = request.scope.get("user") or {}
+        claimant = f"ui-{scoped_user.get('username') or 'anon'}"
+        record = hq.claim_next(ip_dir, workflow, claimant=claimant, scope_filter=sf)
+        for k in list(_state_cache.keys()):
+            if isinstance(k, tuple) and k[0] == ip:
+                _state_cache.pop(k, None)
+        if record is None:
+            return JSONResponse({"ok": True, "status": "none_available"})
+        return JSONResponse({"ok": True, "status": "claimed", "handoff": record})
 
     # ── /api/jobs ──────────────────────────────────────────────────
 

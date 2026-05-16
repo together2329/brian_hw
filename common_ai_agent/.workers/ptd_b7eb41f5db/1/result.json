@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_b7eb41f5db",
+  "worker_idx": 1,
+  "model": "gpt-5.3-codex",
+  "requested_model": "gpt-5.3-codex",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "Say exactly the word OK."
+    }
+  ],
+  "todos_done": [
+    "todo-2"
+  ],
+  "result": "Error calling LLM: HTTP Error 400: Bad Request",
+  "error": "",
+  "started_at": 1778928933.525562,
+  "completed_at": 1778928934.3672519,
+  "duration_s": 0.8416910171508789
+}

@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_b78329d795",
+  "worker_idx": 0,
+  "model": "claude-cli",
+  "requested_model": "claude-cli",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Say the word ALPHA."
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "ALPHA\n\n**Result:**\n- `todo-1` — DONE. Said the word: **ALPHA**",
+  "error": "",
+  "started_at": 1778931032.219498,
+  "completed_at": 1778931042.1104379,
+  "duration_s": 9.89094090461731
+}

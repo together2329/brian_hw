@@ -1,0 +1,1545 @@
+{
+  "schema_version": 1,
+  "type": "dut_lint",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "pyslang+verilator",
+  "command": "pyslang rtl/rv32i_min_if.sv rtl/rv32i_min_idex.sv rtl/rv32i_min_memwb.sv rtl/rv32i_min_regfile.sv rtl/rv32i_min_core.sv rtl/rv32i_min.sv && verilator --lint-only -Wall -Irtl -f list/rv32i_min.f --top-module rv32i_min",
+  "cwd": "rv32i_min",
+  "top": "rv32i_min",
+  "filelist": "rv32i_min/list/rv32i_min.f",
+  "rtl_files": [
+    "rtl/rv32i_min_if.sv",
+    "rtl/rv32i_min_idex.sv",
+    "rtl/rv32i_min_memwb.sv",
+    "rtl/rv32i_min_regfile.sv",
+    "rtl/rv32i_min_core.sv",
+    "rtl/rv32i_min.sv"
+  ],
+  "timestamp": "2026-05-16T04:35:14.163670+00:00",
+  "returncode": 1,
+  "errors": 4,
+  "warnings": 196,
+  "waived_warnings": 0,
+  "tool_results": [
+    {
+      "tool": "pyslang",
+      "available": true,
+      "command": "pyslang rtl/rv32i_min_if.sv rtl/rv32i_min_idex.sv rtl/rv32i_min_memwb.sv rtl/rv32i_min_regfile.sv rtl/rv32i_min_core.sv rtl/rv32i_min.sv",
+      "returncode": 1,
+      "errors": 2,
+      "warnings": 99,
+      "diagnostics": [
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min_idex.sv",
+          "line": 148,
+          "message": "implicit conversion changes signedness from 'logic signed[31:0]' to 'logic[31:0]'"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min_idex.sv",
+          "line": 149,
+          "message": "implicit conversion changes signedness from 'logic signed[31:0]' to 'logic[31:0]'"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'run_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'hold_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'fault_block_retire_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'branch_valid_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'branch_taken_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'branch_imm_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'jump_valid_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'jump_is_jalr_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'jump_rs1_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'jump_imm_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'is_ecall_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'is_ebreak_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'illegal_shamt_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'misaligned_access_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'd_rdata' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'd_addr' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'd_wdata' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'd_we' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'd_be' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'd_valid' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'excpt_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'pc_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'next_pc_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'if_pc_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'if_instr_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'if_valid_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'pc_align_fault_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'is_branch_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'branch_taken_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'branch_imm_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'is_jump_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'is_jalr_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'jump_rs1_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 64,
+          "message": "port 'jump_imm_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'valid_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'instr_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'pc_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'rs1_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'rs2_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'imm_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'gpr_wr_en_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'gpr_rd_en_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'gpr_addr_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'gpr_wdata_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'gpr_rdata_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'valid_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'rd_idx_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'wb_data_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'wb_we_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'alu_result_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'is_branch_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'branch_taken_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'branch_imm_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'is_jump_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'is_jalr_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'jump_target_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'is_system_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'is_fence_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'is_ecall_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'is_ebreak_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'illegal_shamt_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'excpt_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'pc_state_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'next_pc_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 74,
+          "message": "port 'bubble_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'stage_valid_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'is_load' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'is_store' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'funct3' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'effective_addr' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'rs2' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'rd_idx_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'rd_write_i' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'misaligned_access' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'wb_rd_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'wb_data_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'wb_we_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'retire_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 81,
+          "message": "port 'excpt_o' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'rs1_idx' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'rs2_idx' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'rd_idx' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'rd_wen' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'rd_wdata' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'misaligned_access' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'jalr_target' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'rs1_rdata' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'rs2_rdata' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'regfile_x0' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'no_retire' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 94,
+          "message": "port 'jalr_target_lsb' has no connection"
+        },
+        {
+          "severity": "error",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 101,
+          "message": "parameter 'RESET_PC' does not exist in 'rv32i_min_core'"
+        },
+        {
+          "severity": "error",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 102,
+          "message": "parameter 'INST_ALIGN' does not exist in 'rv32i_min_core'"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 103,
+          "message": "port 'id_ex_reg_d' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 103,
+          "message": "port 'id_ex_reg_we' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 103,
+          "message": "port 'id_ex_reg_q' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 103,
+          "message": "port 'ex_mem_wb_reg_d' has no connection"
+        },
+        {
+          "severity": "warning",
+          "file": "rv32i_min/rtl/rv32i_min.sv",
+          "line": 103,
+          "message": "port 'ex_mem_wb_reg_we' has no connection"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "tool": "verilator",
+      "available": true,
+      "command": "verilator --lint-only -Wall -Irtl -f list/rv32i_min.f --top-module rv32i_min",
+      "returncode": 1,
+      "errors": 2,
+      "warnings": 97,
+      "diagnostics": [
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'run_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'hold_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'fault_block_retire_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'branch_valid_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'branch_taken_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'branch_imm_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'jump_valid_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'jump_is_jalr_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'jump_rs1_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'jump_imm_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_ecall_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_ebreak_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'illegal_shamt_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'misaligned_access_i'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'd_rdata'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'd_addr'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'd_wdata'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'd_we'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'd_be'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'd_valid'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'excpt_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'pc_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'next_pc_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'if_pc_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'if_instr_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'if_valid_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'pc_align_fault_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_branch_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'branch_taken_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'branch_imm_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_jump_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_jalr_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'jump_rs1_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 64,
+          "column": 7,
+          "message": "Instance has missing pin: 'jump_imm_o'",
+          "source": "    ) u_rv32i_min_if ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'valid_i'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'instr_i'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'pc_i'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'rs1_i'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'rs2_i'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'imm_i'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'gpr_wr_en_i'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'gpr_rd_en_i'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'gpr_addr_i'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'gpr_wdata_i'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'gpr_rdata_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'valid_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'rd_idx_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'wb_data_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'wb_we_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'alu_result_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_branch_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'branch_taken_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'branch_imm_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_jump_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_jalr_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'jump_target_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_system_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_fence_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_ecall_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_ebreak_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'illegal_shamt_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'excpt_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'pc_state_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'next_pc_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 74,
+          "column": 7,
+          "message": "Instance has missing pin: 'bubble_o'",
+          "source": "    ) u_rv32i_min_idex ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'stage_valid_i'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_load'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'is_store'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'funct3'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'effective_addr'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'rs2'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'rd_idx_i'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'rd_write_i'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'misaligned_access'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'wb_rd_o'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'wb_data_o'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'wb_we_o'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'retire_o'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 81,
+          "column": 7,
+          "message": "Instance has missing pin: 'excpt_o'",
+          "source": "    ) u_rv32i_min_memwb ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'rs1_idx'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'rs2_idx'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'rd_idx'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'rd_wen'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'rd_wdata'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'misaligned_access'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'jalr_target'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'rs1_rdata'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'rs2_rdata'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'regfile_x0'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'no_retire'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 94,
+          "column": 7,
+          "message": "Instance has missing pin: 'jalr_target_lsb'",
+          "source": "    ) u_rv32i_min_regfile ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 103,
+          "column": 7,
+          "message": "Instance has missing pin: 'id_ex_reg_d'",
+          "source": "    ) u_rv32i_min_core ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 103,
+          "column": 7,
+          "message": "Instance has missing pin: 'id_ex_reg_we'",
+          "source": "    ) u_rv32i_min_core ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 103,
+          "column": 7,
+          "message": "Instance has missing pin: 'id_ex_reg_q'",
+          "source": "    ) u_rv32i_min_core ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 103,
+          "column": 7,
+          "message": "Instance has missing pin: 'ex_mem_wb_reg_d'",
+          "source": "    ) u_rv32i_min_core ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 103,
+          "column": 7,
+          "message": "Instance has missing pin: 'ex_mem_wb_reg_we'",
+          "source": "    ) u_rv32i_min_core ("
+        },
+        {
+          "severity": "warning",
+          "rule": "PINMISSING",
+          "file": "rtl/rv32i_min.sv",
+          "line": 103,
+          "column": 7,
+          "message": "Instance has missing pin: 'ex_mem_wb_reg_q'",
+          "source": "    ) u_rv32i_min_core ("
+        },
+        {
+          "severity": "error",
+          "rule": "PINNOTFOUND",
+          "file": "rtl/rv32i_min.sv",
+          "line": 101,
+          "column": 10,
+          "message": "Parameter not found: 'RESET_PC'",
+          "source": "        .RESET_PC(RESET_PC),"
+        },
+        {
+          "severity": "error",
+          "rule": "PINNOTFOUND",
+          "file": "rtl/rv32i_min.sv",
+          "line": 102,
+          "column": 10,
+          "message": "Parameter not found: 'INST_ALIGN'",
+          "source": "        .INST_ALIGN(INST_ALIGN)"
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "suppression_violation_count": 0,
+  "suppression_violations": [],
+  "style_violation_count": 0,
+  "style_violations": [],
+  "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
+  "passed": false
+}

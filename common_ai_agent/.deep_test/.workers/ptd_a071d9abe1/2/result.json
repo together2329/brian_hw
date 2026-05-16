@@ -1,0 +1,25 @@
+{
+  "job_id": "ptd_a071d9abe1",
+  "worker_idx": 2,
+  "model": "m3",
+  "requested_model": "m3",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "third with text key",
+      "raw": {
+        "text": "third with text key"
+      }
+    }
+  ],
+  "todos_done": [
+    "todo-3"
+  ],
+  "result": "ok(m3)",
+  "error": "",
+  "started_at": 1778920137.194116,
+  "completed_at": 1778920137.1954181,
+  "duration_s": 0.0013027191162109375
+}

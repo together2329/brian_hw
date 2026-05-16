@@ -1,0 +1,48 @@
+{
+  "job_id": "ptd_cfa913dc26",
+  "requested_worker_count": 2,
+  "worker_count": 2,
+  "models": [
+    {
+      "requested_model": "concur-A",
+      "resolved_model": "concur-A",
+      "pricing_model": "concur-A",
+      "reason": ""
+    },
+    {
+      "requested_model": "concur-B",
+      "resolved_model": "concur-B",
+      "pricing_model": "concur-B",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "a1"
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "a2"
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "a1"
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "a2"
+      }
+    ]
+  ],
+  "created_at": 1778925156.850136
+}

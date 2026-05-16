@@ -1267,7 +1267,10 @@ class WorkflowStageEngine:
         ]
         self._append_artifacts(lines, artifacts)
         if blocked_doc:
-            lines += ["", "next: ATLAS opened an SSOT decision Q&A card for the RTL blocker."]
+            if llm_only_blocked:
+                lines += ["", "next: queued rtl-gen authoring loop with dynamic TODO packet evidence."]
+            else:
+                lines += ["", "next: ATLAS opened an SSOT decision Q&A card for the RTL blocker."]
         elif status == "pass":
             lines += ["", "next: run /tb, /sim, /sim-debug, and /goal-audit to prove FL-vs-RTL behavior."]
         elif runs[0].returncode == 0:

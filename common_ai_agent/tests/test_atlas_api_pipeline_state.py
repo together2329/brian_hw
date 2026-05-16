@@ -179,3 +179,348 @@ def test_pipeline_state_locked_reason_names_missing_upstream(tmp_path: Path, mon
     fl = data["stages"]["fl-model"]
     assert fl["state"] == "locked", f"expected locked, got {fl['state']}"
     assert fl["locked_reason"] and "ssot" in fl["locked_reason"], fl["locked_reason"]
+
+
+def test_pipeline_state_includes_orchestrator_block_disabled_by_default(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """The orchestrator/handoffs_by_workflow keys are always present in the
+    response, but enabled=False until ATLAS_ORCHESTRATOR_MODE is set."""
+    monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    ip = "orch_off_ip"
+    (tmp_path / ip).mkdir()
+    client = _make_client(tmp_path, monkeypatch)
+    data = client.get(f"/api/pipeline/state?ip={ip}").json()
+
+    assert "orchestrator" in data
+    assert "handoffs_by_workflow" in data
+    orch = data["orchestrator"]
+    assert orch["enabled"] is False
+    assert orch["mode"] is None
+    assert orch["pending_handoffs"] == 0
+    assert orch["claimed_handoffs"] == 0
+    assert orch["review_decisions"] == 0
+    assert orch["decisions_needed"] == 0
+    assert data["handoffs_by_workflow"] == {}
+
+
+def test_pipeline_state_orchestrator_mode_json_when_enabled(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    ip = "orch_on_ip"
+    (tmp_path / ip).mkdir()
+    client = _make_client(tmp_path, monkeypatch)
+    data = client.get(f"/api/pipeline/state?ip={ip}").json()
+
+    orch = data["orchestrator"]
+    assert orch["enabled"] is True
+    # Gateway not built yet → durable JSON-queue path is the only mode.
+    assert orch["mode"] == "json"
+
+
+def test_pipeline_state_counts_handoffs_from_disk(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """A pending handoff on disk should be reflected in the API counts."""
+    from src import handoff_queue as hq
+
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    ip = "counts_ip"
+    ip_dir = tmp_path / ip
+    ip_dir.mkdir()
+    record = {
+        "schema": hq.SCHEMA,
+        "handoff_id": hq.make_handoff_id(ip, "sim-debug", "rtl-gen", "EQ_A"),
+        "ip": ip,
+        "from_workflow": "sim-debug",
+        "to_workflow": "rtl-gen",
+        "scope": hq.make_scope(user_id="u", session_id="S", pipeline_run_id="P"),
+        "reason": "FL-vs-RTL mismatch",
+        "goal_ids": ["EQ_A"],
+    }
+    hq.write_pending(ip_dir, record)
+
+    client = _make_client(tmp_path, monkeypatch)
+    # The /api/pipeline/state endpoint uses a 2s micro-cache keyed by ip; a
+    # fresh client with the same ip is a cache miss so this read sees disk.
+    data = client.get(f"/api/pipeline/state?ip={ip}").json()
+
+    orch = data["orchestrator"]
+    assert orch["pending_handoffs"] == 1
+    assert orch["claimed_handoffs"] == 0
+
+    rtl = data["handoffs_by_workflow"]["rtl-gen"]
+    assert rtl["pending"] == 1
+    assert rtl["claimed"] == 0
+    assert rtl["latest"]["handoff_id"] == record["handoff_id"]
+    assert rtl["latest"]["from_workflow"] == "sim-debug"
+    assert rtl["latest"]["goal_ids"] == ["EQ_A"]
+
+
+def test_pipeline_state_counts_review_decisions_from_disk(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from src import review_decisions as rd
+
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    ip = "decisions_ip"
+    ip_dir = tmp_path / ip
+    ip_dir.mkdir()
+    rd.write_repeated_mismatch_decision(
+        ip_dir, ip=ip, owner="rtl-gen", signature="EQ_X", retry_attempts=3
+    )
+
+    client = _make_client(tmp_path, monkeypatch)
+    data = client.get(f"/api/pipeline/state?ip={ip}").json()
+    assert data["orchestrator"]["decisions_needed"] == 1
+
+
+def test_orchestrator_mode_get_reflects_env(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    client = _make_client(tmp_path, monkeypatch)
+    data = client.get("/api/pipeline/orchestrator_mode").json()
+    assert data == {"enabled": True, "mode": "json"}
+
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "0")
+    data = client.get("/api/pipeline/orchestrator_mode").json()
+    assert data == {"enabled": False, "mode": None}
+
+
+def test_orchestrator_mode_post_toggles_env_and_state_payload(
+    tmp_path: Path, monkeypatch
+) -> None:
+    import os
+
+    monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    ip = "toggle_ip"
+    (tmp_path / ip).mkdir()
+    client = _make_client(tmp_path, monkeypatch)
+
+    # baseline: off
+    base = client.get(f"/api/pipeline/state?ip={ip}").json()
+    assert base["orchestrator"]["enabled"] is False
+
+    # toggle on
+    r = client.post("/api/pipeline/orchestrator_mode", json={"enabled": True})
+    assert r.status_code == 200
+    assert r.json() == {"enabled": True, "mode": "json"}
+    assert os.environ.get("ATLAS_ORCHESTRATOR_MODE") == "1"
+
+    # /api/pipeline/state must reflect the new mode on the next call
+    # (the endpoint clears the 2 s micro-cache so this is immediate).
+    on = client.get(f"/api/pipeline/state?ip={ip}").json()
+    assert on["orchestrator"]["enabled"] is True
+    assert on["orchestrator"]["mode"] == "json"
+
+    # toggle off
+    r = client.post("/api/pipeline/orchestrator_mode", json={"enabled": False})
+    assert r.status_code == 200
+    assert r.json() == {"enabled": False, "mode": None}
+    off = client.get(f"/api/pipeline/state?ip={ip}").json()
+    assert off["orchestrator"]["enabled"] is False
+    assert off["orchestrator"]["mode"] is None
+
+
+def test_orchestrator_mode_post_rejects_bad_body(tmp_path: Path, monkeypatch) -> None:
+    client = _make_client(tmp_path, monkeypatch)
+
+    r = client.post("/api/pipeline/orchestrator_mode", json={})
+    assert r.status_code == 400
+    assert "enabled" in r.json()["error"]
+
+    r = client.post("/api/pipeline/orchestrator_mode", json={"enabled": "yes"})
+    assert r.status_code == 400
+    assert "bool" in r.json()["error"]
+
+    r = client.post(
+        "/api/pipeline/orchestrator_mode",
+        content=b"not-json",
+        headers={"Content-Type": "application/json"},
+    )
+    assert r.status_code == 400
+
+
+def test_pipeline_state_rejects_oversize_ip(tmp_path: Path, monkeypatch) -> None:
+    """A 500-char ip used to crash with `OSError [Errno 63] File name too long`
+    at downstream stat() calls. Validator now caps at 64 chars. Surfaced by
+    deep^6 round T44."""
+    client = _make_client(tmp_path, monkeypatch)
+    long_ip = "a" * 500
+    r = client.get(f"/api/pipeline/state?ip={long_ip}")
+    assert r.status_code == 400
+    assert "invalid or missing ip" in r.json()["error"]
+
+
+def test_pipeline_state_isolates_handoffs_by_authenticated_user(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Two different authenticated users polling the same IP must not see
+    each other's handoffs. Pre-fix, _state_cache was keyed by (ip,) only and
+    _orchestrator_block returned ALL handoffs regardless of user. Surfaced
+    by deep^6 round T41."""
+    from src import handoff_queue as hq
+
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    ip = "iso_ip"
+    ip_dir = tmp_path / ip
+    ip_dir.mkdir()
+
+    # Seed one handoff per user
+    for user in ("u_alice", "u_bob"):
+        rec = {
+            "schema": hq.SCHEMA,
+            "handoff_id": hq.make_handoff_id(ip, "sim-debug", "rtl-gen", user.upper()),
+            "ip": ip,
+            "from_workflow": "sim-debug",
+            "to_workflow": "rtl-gen",
+            "scope": hq.make_scope(user_id=user, session_id="S", pipeline_run_id="P"),
+        }
+        hq.write_pending(ip_dir, rec)
+
+    client = _make_client(tmp_path, monkeypatch)
+    # The fixture's user is named "u" — register an alice user so we can
+    # exercise the per-user cache key from two distinct sessions.
+    client.post("/api/auth/register", json={"username": "u_alice", "password": "pw"})
+    client.post("/api/auth/register", json={"username": "u_bob", "password": "pw"})
+
+    # Log in as u_alice and poll
+    client.post("/api/auth/login", json={"username": "u_alice", "password": "pw"})
+    data_alice = client.get(f"/api/pipeline/state?ip={ip}").json()
+    # Log in as u_bob and poll
+    client.post("/api/auth/login", json={"username": "u_bob", "password": "pw"})
+    data_bob = client.get(f"/api/pipeline/state?ip={ip}").json()
+
+    pending_alice = data_alice["orchestrator"]["pending_handoffs"]
+    pending_bob = data_bob["orchestrator"]["pending_handoffs"]
+    # Each user sees only their own handoff (1 each), not the global total (2)
+    assert pending_alice == 1, f"alice saw {pending_alice} handoffs (expected 1)"
+    assert pending_bob == 1, f"bob saw {pending_bob} handoffs (expected 1)"
+    # And handoffs_by_workflow agrees
+    assert data_alice["handoffs_by_workflow"]["rtl-gen"]["pending"] == 1
+    assert data_bob["handoffs_by_workflow"]["rtl-gen"]["pending"] == 1
+
+
+def test_stage_carries_workflow_and_handoffs_count(tmp_path: Path, monkeypatch) -> None:
+    """Each stage object in the response must expose its workflow name and a
+    per-workflow handoff count so the StageCard can render [take] without
+    threading the full pipeline state down."""
+    from src import handoff_queue as hq
+
+    ip = "stage_handoffs_ip"
+    ip_dir = tmp_path / ip
+    ip_dir.mkdir()
+    hq.write_pending(ip_dir, {
+        "schema": hq.SCHEMA,
+        "handoff_id": hq.make_handoff_id(ip, "sim-debug", "rtl-gen", "Q"),
+        "ip": ip,
+        "from_workflow": "sim-debug",
+        "to_workflow": "rtl-gen",
+        "scope": hq.make_scope(user_id="u", session_id="S", pipeline_run_id="P"),
+    })
+
+    client = _make_client(tmp_path, monkeypatch)
+    data = client.get(f"/api/pipeline/state?ip={ip}").json()
+    rtl = data["stages"]["rtl"]
+    assert rtl["workflow"] == "rtl-gen"
+    assert rtl["handoffs"]["pending"] == 1
+    # A stage with no handoffs still has the field, zero-filled
+    ssot = data["stages"]["ssot"]
+    assert ssot["workflow"] == "ssot-gen"
+    assert ssot["handoffs"] == {"pending": 0, "claimed": 0, "done": 0, "review": 0, "latest": None}
+
+
+def test_handoff_list_returns_pending_for_user(tmp_path: Path, monkeypatch) -> None:
+    from src import handoff_queue as hq
+
+    ip = "list_ip"
+    ip_dir = tmp_path / ip
+    ip_dir.mkdir()
+    hq.write_pending(ip_dir, {
+        "schema": hq.SCHEMA,
+        "handoff_id": hq.make_handoff_id(ip, "sim-debug", "rtl-gen", "L1"),
+        "ip": ip,
+        "from_workflow": "sim-debug",
+        "to_workflow": "rtl-gen",
+        "scope": hq.make_scope(user_id="u", session_id="S", pipeline_run_id="P"),
+    })
+
+    client = _make_client(tmp_path, monkeypatch)
+    r = client.get(f"/api/handoff/list?ip={ip}&workflow=rtl-gen")
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data["pending"]) == 1
+    assert data["pending"][0]["to_workflow"] == "rtl-gen"
+    assert data["claimed"] == []
+    # filter param honored
+    r2 = client.get(f"/api/handoff/list?ip={ip}&workflow=tb-gen")
+    assert r2.json()["pending"] == []
+
+
+def test_handoff_save_writes_pending_and_busts_cache(tmp_path: Path, monkeypatch) -> None:
+    ip = "save_ip"
+    (tmp_path / ip).mkdir()
+    client = _make_client(tmp_path, monkeypatch)
+    # Seed cache
+    base = client.get(f"/api/pipeline/state?ip={ip}").json()
+    assert base["orchestrator"]["pending_handoffs"] == 0
+
+    r = client.post("/api/handoff/save", json={
+        "ip": ip,
+        "from_workflow": "sim-debug",
+        "to_workflow": "rtl-gen",
+        "reason": "user-driven test",
+        "suffix": "TEST",
+    })
+    assert r.status_code == 200, r.text
+    payload = r.json()
+    assert payload["ok"] is True
+    assert payload["state"] == "pending"
+    assert payload["handoff_id"]
+
+    # Cache should be busted — immediate next poll sees pending=1
+    after = client.get(f"/api/pipeline/state?ip={ip}").json()
+    assert after["orchestrator"]["pending_handoffs"] == 1
+
+
+def test_handoff_save_rejects_missing_fields(tmp_path: Path, monkeypatch) -> None:
+    ip = "save_bad_ip"
+    (tmp_path / ip).mkdir()
+    client = _make_client(tmp_path, monkeypatch)
+    r = client.post("/api/handoff/save", json={"ip": ip})
+    assert r.status_code == 400
+    assert "from_workflow" in r.json()["error"]
+
+
+def test_handoff_take_claims_oldest_pending(tmp_path: Path, monkeypatch) -> None:
+    from src import handoff_queue as hq
+
+    ip = "take_ip"
+    ip_dir = tmp_path / ip
+    ip_dir.mkdir()
+    for suffix, ts in (("OLD", "2026-05-16T08:00:00Z"), ("NEW", "2026-05-16T12:00:00Z")):
+        rec = {
+            "schema": hq.SCHEMA,
+            "handoff_id": hq.make_handoff_id(ip, "sim-debug", "rtl-gen", suffix),
+            "ip": ip,
+            "from_workflow": "sim-debug",
+            "to_workflow": "rtl-gen",
+            "scope": hq.make_scope(user_id="u", session_id="S", pipeline_run_id="P"),
+            "created_at": ts,
+        }
+        hq.write_pending(ip_dir, rec)
+
+    client = _make_client(tmp_path, monkeypatch)
+    r = client.post("/api/handoff/take", json={"ip": ip, "workflow": "rtl-gen"})
+    assert r.status_code == 200, r.text
+    payload = r.json()
+    assert payload["ok"] is True
+    assert payload["status"] == "claimed"
+    assert payload["handoff"]["handoff_id"].endswith("__OLD")
+    assert payload["handoff"]["claimed_by"].startswith("ui-")
+    # Second take gets NEW
+    r2 = client.post("/api/handoff/take", json={"ip": ip, "workflow": "rtl-gen"})
+    assert r2.json()["handoff"]["handoff_id"].endswith("__NEW")
+    # Third take gets none_available
+    r3 = client.post("/api/handoff/take", json={"ip": ip, "workflow": "rtl-gen"})
+    assert r3.json()["status"] == "none_available"

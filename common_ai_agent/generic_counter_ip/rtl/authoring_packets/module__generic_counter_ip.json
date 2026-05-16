@@ -1,0 +1,654 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 11,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/generic_counter_ip.sv",
+      "name": "generic_counter_ip",
+      "refs": [
+        "top_module",
+        "function_model",
+        "cycle_model"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/generic_counter_ip.sv",
+        "name": "generic_counter_ip",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "data_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "data_in",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "result_out_value",
+          "value"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "value",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "9"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "generic_counter_ip",
+  "kind": "module",
+  "owner_file": "rtl/generic_counter_ip.sv",
+  "owner_module": "generic_counter_ip",
+  "packet_id": "module__generic_counter_ip",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.latency": 1,
+      "equivalence.module": 1,
+      "features.item": 1,
+      "function_model.output": 1,
+      "function_model.transaction": 1,
+      "io_list.port": 4,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 11,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 11,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "function_model.transactions.FM_PRIMARY",
+      "function_model.transactions.FM_PRIMARY.outputs.output_0",
+      "cycle_model.latency",
+      "features.double_value",
+      "sub_modules.generic_counter_ip.module_equivalence",
+      "io_list.clock_domains.main.ports.clk",
+      "io_list.resets.rst_n.ports.rst_n",
+      "io_list.interfaces.data_in.ports.data_in",
+      "io_list.interfaces.result_out.ports.value"
+    ],
+    "status_counts": {
+      "pass": 11
+    },
+    "task_count": 11
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/generic_counter_ip.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/generic_counter_ip.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.\nSSOT item context: value=generic_counter_ip.",
+      "evidence_terms": [
+        "generic",
+        "generic_counter_ip",
+        "ip"
+      ],
+      "id": "RTL-0002",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "generic_counter_ip"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_PRIMARY",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY",
+        "Primary implementation evidence is in rtl/generic_counter_ip.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_PRIMARY.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via function_model.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior.",
+      "evidence_terms": [],
+      "id": "RTL-0024",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY",
+      "ssot_context": {
+        "id": "FM_PRIMARY",
+        "name": "primary_behavior"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PRIMARY: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.outputs.output_0",
+        "Primary implementation evidence is in rtl/generic_counter_ip.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.outputs.output_0.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via function_model.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior; signal=[\"value\"].",
+      "evidence_terms": [
+        "value"
+      ],
+      "id": "RTL-0025",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_PRIMARY",
+        "name": "primary_behavior",
+        "signal": "[\"value\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "value"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "value"
+        ],
+        "source_scope": "rtl/generic_counter_ip.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/generic_counter_ip.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via cycle_model.\nSSOT item context: value=1.",
+      "evidence_terms": [],
+      "id": "RTL-0026",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {
+        "value": "1"
+      },
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature double_value",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.double_value",
+        "Primary implementation evidence is in rtl/generic_counter_ip.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.double_value.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via single_owner.\nSSOT item context: name=double_value.",
+      "evidence_terms": [],
+      "id": "RTL-0027",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.double_value",
+      "ssot_context": {
+        "name": "double_value"
+      },
+      "ssot_refs": [
+        "features.double_value"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module generic_counter_ip is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.generic_counter_ip.module_equivalence",
+        "Primary implementation evidence is in rtl/generic_counter_ip.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.generic_counter_ip.module_equivalence.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0028",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.generic_counter_ip.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.generic_counter_ip.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port clk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.main.ports.clk",
+        "Primary implementation evidence is in rtl/generic_counter_ip.sv",
+        "clk width matches SSOT value 1",
+        "clk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.main.ports.clk.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via single_owner.\nSSOT item context: name=clk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0020",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.main.ports.clk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "clk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.main.ports.clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rst_n",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.rst_n.ports.rst_n",
+        "Primary implementation evidence is in rtl/generic_counter_ip.sv",
+        "rst_n width matches SSOT value 1",
+        "rst_n port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.rst_n.ports.rst_n.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via single_owner.\nSSOT item context: name=rst_n; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0021",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.rst_n.ports.rst_n",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rst_n",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.rst_n.ports.rst_n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port data_in",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.data_in.ports.data_in",
+        "Primary implementation evidence is in rtl/generic_counter_ip.sv",
+        "data_in width matches SSOT value 8",
+        "data_in port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_in.ports.data_in.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via single_owner.\nSSOT item context: name=data_in; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0022",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.data_in.ports.data_in",
+      "ssot_context": {
+        "direction": "input",
+        "name": "data_in",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.data_in.ports.data_in"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port value",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.result_out.ports.value",
+        "Primary implementation evidence is in rtl/generic_counter_ip.sv",
+        "value width matches SSOT value 9",
+        "value port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.result_out.ports.value.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via single_owner.\nSSOT item context: name=value; width=9; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0023",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.result_out.ports.value",
+      "ssot_context": {
+        "direction": "output",
+        "name": "value",
+        "width": "9"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.result_out.ports.value"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "6085059178e14479206db427a5c4c939e11c365a2211f88d153c9c2417e23573",
+  "top": "generic_counter_ip",
+  "type": "rtl_authoring_packet"
+}

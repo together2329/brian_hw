@@ -1,0 +1,30 @@
+{
+  "job_id": "ptd_0bf7bbe583",
+  "requested_worker_count": 1,
+  "worker_count": 1,
+  "models": [
+    {
+      "requested_model": "m1",
+      "resolved_model": "m1",
+      "pricing_model": "m1",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "t"
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "t"
+      }
+    ]
+  ],
+  "created_at": 1778925109.994175
+}

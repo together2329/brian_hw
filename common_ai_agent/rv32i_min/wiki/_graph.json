@@ -1,0 +1,42 @@
+{
+  "schema_version": "ip_wiki_graph.v1",
+  "generated_at": "2026-05-16T01:14:56Z",
+  "root": "rv32i_min/wiki",
+  "node_count": 1,
+  "edge_count": 0,
+  "tags": {
+    "artifact": [
+      "ssot"
+    ],
+    "ssot": [
+      "ssot"
+    ]
+  },
+  "types": {
+    "reference": [
+      "ssot"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "ssot",
+      "title": "rv32i_min SSOT",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-16T00:56:35Z",
+      "summary": "sections=36 size=32522B",
+      "status": "present",
+      "digest": "sections=36 size=32522B",
+      "path": "rv32i_min/yaml/rv32i_min.ssot.yaml",
+      "size_bytes": 32522
+    }
+  ],
+  "ip": "rv32i_min"
+}

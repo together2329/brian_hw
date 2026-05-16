@@ -49,6 +49,86 @@
     { id: 'SIGN-OFF',      stages: ['syn', 'sta', 'pnr', 'sta-post'] },
   ];
 
+  // Graph-first Pipeline layout. Coordinates are SVG viewBox units for a
+  // 1200×620 map; CSS scales the whole map to the available viewport.
+  window.PIPELINE_SWIMLANES = [
+    { id: 'req',    title: 'REQUIREMENTS / SSOT', x: 55,   width: 170 },
+    { id: 'model',  title: 'MODELS / GOALS',      x: 250,  width: 185 },
+    { id: 'build',  title: 'RTL / TB AUTHORING',  x: 462,  width: 200 },
+    { id: 'verify', title: 'VERIFY / DEBUG',      x: 696,  width: 210 },
+    { id: 'eda',    title: 'EDA SIGNOFF',         x: 938,  width: 150 },
+    { id: 'orch',   title: 'ORCHESTRATOR',        x: 1106, width: 150 },
+  ];
+  window.PIPELINE_VIRTUAL_NODES = {
+    orchestrator: { label: 'Orchestrator', sub: 'route / retry / stale', state: 'virtual' },
+    handoff:      { label: 'Handoff JSON', sub: 'pending / claimed', state: 'virtual' },
+    take:         { label: '/take',        sub: 'workspace claim', state: 'virtual' },
+    worker:       { label: 'Worker',       sub: 'workflow lease', state: 'virtual' },
+  };
+  window.PIPELINE_NODE_LAYOUT = {
+    ssot:         { lane: 'req',    y: 276 },
+    'fl-model':  { lane: 'model',  y: 178 },
+    'cl-model':  { lane: 'model',  y: 276 },
+    equivalence: { lane: 'model',  y: 374 },
+    rtl:          { lane: 'build',  y: 276 },
+    lint:         { lane: 'build',  y: 168 },
+    tb:           { lane: 'build',  y: 384 },
+    sim:          { lane: 'verify', y: 276 },
+    coverage:     { lane: 'verify', y: 168 },
+    'sim-debug':  { lane: 'verify', y: 384 },
+    'goal-audit': { lane: 'verify', y: 492 },
+    syn:          { lane: 'eda',    y: 150 },
+    sta:          { lane: 'eda',    y: 250 },
+    pnr:          { lane: 'eda',    y: 350 },
+    'sta-post':   { lane: 'eda',    y: 450 },
+    orchestrator: { lane: 'orch',   y: 178 },
+    handoff:      { lane: 'orch',   y: 278 },
+    take:         { lane: 'orch',   y: 378 },
+    worker:       { lane: 'orch',   y: 478 },
+  };
+  window.PIPELINE_FLOW_DEFS = [
+    {
+      id: 'full',
+      name: 'Full IP pipeline',
+      summary: 'SSOT through model, RTL, verification, coverage, and signoff audit.',
+      stages: ['ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb', 'sim', 'coverage', 'sim-debug', 'goal-audit'],
+    },
+    {
+      id: 'rtl-repair',
+      name: 'RTL repair loop',
+      summary: 'Owner-classified sim-debug mismatch returns to RTL and revalidates downstream evidence.',
+      stages: ['sim-debug', 'orchestrator', 'handoff', 'worker', 'rtl', 'lint', 'tb', 'sim', 'coverage', 'sim-debug'],
+    },
+    {
+      id: 'tb-sim',
+      name: 'TB / sim loop',
+      summary: 'Scoreboard or testbench repair loop without changing RTL authority.',
+      stages: ['sim-debug', 'orchestrator', 'handoff', 'worker', 'tb', 'sim', 'coverage', 'sim-debug'],
+    },
+    {
+      id: 'coverage',
+      name: 'Coverage closure',
+      summary: 'Coverage gap drives model/goal/TB updates, then reruns sim and coverage.',
+      stages: ['coverage', 'orchestrator', 'handoff', 'tb', 'sim', 'coverage', 'goal-audit'],
+    },
+    {
+      id: 'ppa',
+      name: 'PPA signoff',
+      summary: 'RTL implementation enters synthesis, timing, place-route, and post-route STA.',
+      stages: ['rtl', 'syn', 'sta', 'pnr', 'sta-post'],
+    },
+    {
+      id: 'json-take',
+      name: 'JSON handoff / take',
+      summary: 'No live worker: save durable handoff, then a workspace claims it later.',
+      stages: ['sim-debug', 'orchestrator', 'handoff', 'take', 'worker', 'rtl'],
+    },
+  ];
+  window.pipelineActualStages = function pipelineActualStages(stages) {
+    const real = new Set(window.PIPELINE_STAGES || []);
+    return (stages || []).filter(s => real.has(s));
+  };
+
   // ── Color / glyph map for state badges ──────────────────────────
   // Backend states from /api/pipeline/state contract (see plan).
   // Falls back to generic 'idle' if the value isn't recognised.
@@ -210,6 +290,197 @@ window.DagMap = function DagMap({ state, onNodeClick }) {
           );
         })}
       </svg>
+    </div>
+  );
+};
+
+// ─── PipelineFlowMap ──────────────────────────────────────────────
+//
+// Graph-first replacement for the old small DAG strip. This renders the
+// IP pipeline as a full canvas with swimlanes, muted global context, and
+// an amber selected route with numbered handoff/order badges.
+window.PipelineFlowMap = function PipelineFlowMap({
+  state,
+  selectedFlowId,
+  selectedStage,
+  onSelectFlow,
+  onSelectStage,
+}) {
+  const labels = window.PIPELINE_LABEL || {};
+  const deps = window.PIPELINE_STAGE_DEPS || {};
+  const stagesState = (state && state.stages) || {};
+  const flows = window.PIPELINE_FLOW_DEFS || [];
+  const flow = flows.find(f => f.id === selectedFlowId) || flows[0] || { stages: [] };
+  const flowStages = flow.stages || [];
+  const flowSet = new Set(flowStages);
+  const flowEdges = new Set();
+  for (let i = 0; i < flowStages.length - 1; i += 1) {
+    flowEdges.add(`${flowStages[i]}->${flowStages[i + 1]}`);
+  }
+
+  const laneById = {};
+  (window.PIPELINE_SWIMLANES || []).forEach(l => { laneById[l.id] = l; });
+  const nodeLayout = window.PIPELINE_NODE_LAYOUT || {};
+  const virtualNodes = window.PIPELINE_VIRTUAL_NODES || {};
+  const actualStages = window.PIPELINE_STAGES || [];
+  const nodeIds = [...actualStages, ...Object.keys(virtualNodes)];
+  const BOX_W = 168;
+  const BOX_H = 58;
+  const W = 1280;
+  const H = 670;
+
+  const pos = {};
+  nodeIds.forEach(id => {
+    const layout = nodeLayout[id];
+    if (!layout) return;
+    const lane = laneById[layout.lane];
+    if (!lane) return;
+    pos[id] = {
+      x: lane.x + lane.width / 2,
+      y: layout.y,
+      lane: layout.lane,
+    };
+  });
+
+  const baseEdges = [];
+  actualStages.forEach(child => {
+    (deps[child] || []).forEach(parent => {
+      if (pos[parent] && pos[child]) baseEdges.push([parent, child]);
+    });
+  });
+  const selectedEdges = [];
+  for (let i = 0; i < flowStages.length - 1; i += 1) {
+    const a = flowStages[i], b = flowStages[i + 1];
+    if (pos[a] && pos[b]) selectedEdges.push([a, b, i + 1]);
+  }
+
+  const pathFor = (aId, bId) => {
+    const a = pos[aId], b = pos[bId];
+    if (!a || !b) return '';
+    const startX = a.x + (b.x >= a.x ? BOX_W / 2 : -BOX_W / 2);
+    const endX = b.x - (b.x >= a.x ? BOX_W / 2 : -BOX_W / 2);
+    const startY = a.y;
+    const endY = b.y;
+    const dx = Math.max(55, Math.abs(endX - startX) * 0.45);
+    const c1x = startX + (b.x >= a.x ? dx : -dx);
+    const c2x = endX - (b.x >= a.x ? dx : -dx);
+    return `M ${startX} ${startY} C ${c1x} ${startY}, ${c2x} ${endY}, ${endX} ${endY}`;
+  };
+
+  const midpoint = (aId, bId) => {
+    const a = pos[aId], b = pos[bId];
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  };
+
+  const nodeState = (id) => {
+    if (virtualNodes[id]) return 'virtual';
+    return (stagesState[id] && stagesState[id].state) || 'idle';
+  };
+  const nodeLabel = (id) => {
+    if (virtualNodes[id]) return virtualNodes[id].label;
+    return labels[id] || id;
+  };
+  const nodeSub = (id) => {
+    if (virtualNodes[id]) return virtualNodes[id].sub;
+    const data = stagesState[id] || {};
+    return data.top || data.locked_reason || data.secondary || id;
+  };
+
+  return (
+    <div className="pipe-flow-map">
+      <div className="pipe-flow-head">
+        <div>
+          <div className="pipe-flow-title">ATLAS IP Flow Map</div>
+          <div className="pipe-flow-sub">
+            Select a flow above. The bright route is what the orchestrator will run, repair, or hand off.
+          </div>
+        </div>
+        <div className="pipe-flow-legend">
+          <span><i className="pipe-leg-active" /> selected route</span>
+          <span><i className="pipe-leg-running" /> running</span>
+          <span><i className="pipe-leg-muted" /> context</span>
+        </div>
+      </div>
+      <div className="pipe-flow-canvas">
+        <svg className="pipe-flow-svg" viewBox={`0 0 ${W} ${H}`} role="img"
+             aria-label="ATLAS pipeline flow graph">
+          <defs>
+            <marker id="pipe-flow-arrow-muted" viewBox="0 0 8 8" refX="7" refY="4"
+                    markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" className="pipe-flow-arrow-muted" />
+            </marker>
+            <marker id="pipe-flow-arrow-active" viewBox="0 0 8 8" refX="7" refY="4"
+                    markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" className="pipe-flow-arrow-active" />
+            </marker>
+          </defs>
+
+          {(window.PIPELINE_SWIMLANES || []).map(lane => (
+            <g key={lane.id} className="pipe-flow-lane">
+              <rect x={lane.x} y="76" width={lane.width} height="542" rx="8" />
+              <text x={lane.x + 12} y="102">{lane.title}</text>
+            </g>
+          ))}
+
+          {baseEdges.map(([a, b]) => {
+            const key = `${a}->${b}`;
+            const active = flowEdges.has(key);
+            if (active) return null;
+            return (
+              <path key={key}
+                    d={pathFor(a, b)}
+                    className="pipe-flow-edge-muted"
+                    markerEnd="url(#pipe-flow-arrow-muted)" />
+            );
+          })}
+
+          {selectedEdges.map(([a, b, step]) => {
+            const key = `${a}->${b}`;
+            const mid = midpoint(a, b);
+            return (
+              <g key={`sel-${key}`}>
+                <path d={pathFor(a, b)}
+                      className="pipe-flow-edge-active"
+                      markerEnd="url(#pipe-flow-arrow-active)" />
+                <circle cx={mid.x} cy={mid.y} r="14" className="pipe-flow-step-dot" />
+                <text x={mid.x} y={mid.y + 4} className="pipe-flow-step-num">{step}</text>
+              </g>
+            );
+          })}
+
+          {nodeIds.map(id => {
+            const p = pos[id];
+            if (!p) return null;
+            const stateName = nodeState(id);
+            const isActual = actualStages.indexOf(id) >= 0;
+            const inFlow = flowSet.has(id);
+            const selected = selectedStage === id;
+            const running = stateName === 'running' || stateName === 'run';
+            const klass = [
+              'pipe-flow-node',
+              inFlow ? 'in-flow' : 'context',
+              selected ? 'selected' : '',
+              running ? 'running' : '',
+            ].filter(Boolean).join(' ');
+            return (
+              <g key={id}
+                 className={klass}
+                 data-state={stateName}
+                 transform={`translate(${p.x - BOX_W / 2}, ${p.y - BOX_H / 2})`}
+                 onClick={() => {
+                   if (typeof onSelectStage === 'function') onSelectStage(id);
+                   if (!inFlow && isActual && typeof onSelectFlow === 'function') onSelectFlow('full');
+                 }}>
+                <rect width={BOX_W} height={BOX_H} rx="7" />
+                <text x="12" y="20" className="pipe-flow-node-title">{nodeLabel(id)}</text>
+                <text x="12" y="36" className="pipe-flow-node-sub">{String(nodeSub(id) || '').slice(0, 32)}</text>
+                {running && <circle cx={BOX_W - 14} cy="14" r="4" className="pipe-flow-node-running-dot" />}
+                <title>{`${nodeLabel(id)} · ${stateName}`}</title>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
     </div>
   );
 };
@@ -453,6 +724,52 @@ window.StageCard = function StageCard({ stageId, info, ip, onChain }) {
                 onClick={(e) => { e.stopPropagation(); dispatchOne(); }}>
           {isRunning ? '⏹ running' : '▶ run'}
         </button>
+        {data.handoffs && data.handoffs.pending > 0 && (
+          <button className="pipe-stage-take rb-btn"
+                  disabled={!ip}
+                  title={`Claim the oldest pending handoff for ${data.workflow}`}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      const r = await fetch('/api/handoff/take', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ip, workflow: data.workflow }),
+                      });
+                      const j = await r.json().catch(() => ({}));
+                      if (!r.ok) console.error('[handoff] take failed', j.error || r.status);
+                      try { window.dispatchEvent(new CustomEvent('atlas:pipeline-poll')); } catch (_) {}
+                    } catch (err) { console.error('[handoff] take error', err); }
+                  }}>
+            ⇄ take {data.handoffs.pending}
+          </button>
+        )}
+        {isFailed && data.blame && data.blame.owner_workflow && (
+          <button className="pipe-stage-save rb-btn"
+                  disabled={!ip}
+                  title="Write a pending handoff JSON for the owning workflow"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      const r = await fetch('/api/handoff/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          ip,
+                          from_workflow: data.workflow || stageId,
+                          to_workflow: data.blame.owner_workflow,
+                          reason: data.error_summary || `${stageId} failed; routed to ${data.blame.owner_workflow}`,
+                          evidence: { stage: stageId, blame: data.blame },
+                        }),
+                      });
+                      const j = await r.json().catch(() => ({}));
+                      if (!r.ok) console.error('[handoff] save failed', j.error || r.status);
+                      try { window.dispatchEvent(new CustomEvent('atlas:pipeline-poll')); } catch (_) {}
+                    } catch (err) { console.error('[handoff] save error', err); }
+                  }}>
+            📬 save handoff
+          </button>
+        )}
       </div>
     </div>
   );
@@ -528,9 +845,275 @@ window.DispatchRail = function DispatchRail({ ip, chain, onClearChain, onRemove 
   );
 };
 
+// ─── FlowInspector ────────────────────────────────────────────────
+//
+// Right-side panel inspired by the reference screenshots: selectable flows on
+// top, numbered steps below, and a focused stage detail/action area.
+window.FlowInspector = function FlowInspector({
+  ip,
+  state,
+  selectedFlowId,
+  onSelectFlow,
+  selectedStage,
+  onSelectStage,
+  onChain,
+}) {
+  const [busyFlow, setBusyFlow] = React.useState('');
+  const flows = window.PIPELINE_FLOW_DEFS || [];
+  const labels = window.PIPELINE_LABEL || {};
+  const actualSet = new Set(window.PIPELINE_STAGES || []);
+  const stagesState = (state && state.stages) || {};
+  const flow = flows.find(f => f.id === selectedFlowId) || flows[0] || { stages: [] };
+  const selectedInfo = actualSet.has(selectedStage) ? stagesState[selectedStage] : null;
+
+  const dispatchFlow = async () => {
+    const stages = window.pipelineActualStages(flow.stages || []);
+    if (!ip || !stages.length || busyFlow) return;
+    setBusyFlow(flow.id);
+    try {
+      const r = await fetch('/api/pipeline/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip, stages, schedule: 'auto', prompt: '' }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        console.error('[pipeline] flow dispatch failed', j.error || r.status);
+      } else {
+        try {
+          window.dispatchEvent(new CustomEvent('atlas:pipeline-dispatched', {
+            detail: { stage: flow.id, ip, jobs: j.jobs || [] },
+          }));
+        } catch (_) {}
+      }
+    } catch (e) {
+      console.error('[pipeline] flow dispatch error', e);
+    } finally {
+      setBusyFlow('');
+    }
+  };
+
+  const flowCounts = (stages) => {
+    const real = window.pipelineActualStages(stages || []);
+    const counts = { running: 0, passed: 0, failed: 0, blocked: 0, locked: 0 };
+    real.forEach(s => {
+      const st = (stagesState[s] && stagesState[s].state) || 'idle';
+      if (st === 'running' || st === 'run') counts.running += 1;
+      if (st === 'passed' || st === 'ok') counts.passed += 1;
+      if (st === 'failed' || st === 'err') counts.failed += 1;
+      if (st === 'blocked' || st === 'stale') counts.blocked += 1;
+      if (st === 'locked') counts.locked += 1;
+    });
+    return counts;
+  };
+
+  const stepLabel = (id) => {
+    if ((window.PIPELINE_VIRTUAL_NODES || {})[id]) return window.PIPELINE_VIRTUAL_NODES[id].label;
+    return labels[id] || id;
+  };
+  const stepState = (id) => {
+    if ((window.PIPELINE_VIRTUAL_NODES || {})[id]) return 'handoff';
+    return (stagesState[id] && stagesState[id].state) || 'idle';
+  };
+  const stepDetail = (id) => {
+    const virtual = (window.PIPELINE_VIRTUAL_NODES || {})[id];
+    if (virtual) return virtual.sub;
+    const data = stagesState[id] || {};
+    return data.top || data.secondary || data.locked_reason || 'no evidence yet';
+  };
+
+  return (
+    <div className="pipe-flow-inspector">
+      <section className="pipe-inspector-section">
+        <div className="pipe-inspector-title">Flows</div>
+        <div className="pipe-flow-list">
+          {flows.map(f => {
+            const counts = flowCounts(f.stages);
+            return (
+              <button key={f.id}
+                      className={`pipe-flow-choice ${f.id === flow.id ? 'sel' : ''}`}
+                      onClick={() => {
+                        if (typeof onSelectFlow === 'function') onSelectFlow(f.id);
+                        const firstActual = window.pipelineActualStages(f.stages || [])[0];
+                        if (firstActual && typeof onSelectStage === 'function') onSelectStage(firstActual);
+                      }}>
+                <span className="pipe-flow-choice-name">{f.name}</span>
+                <span className="pipe-flow-choice-summary">{f.summary}</span>
+                <span className="pipe-flow-choice-meta">
+                  {counts.running ? `running ${counts.running} · ` : ''}
+                  {counts.failed ? `failed ${counts.failed} · ` : ''}
+                  {counts.blocked ? `blocked ${counts.blocked} · ` : ''}
+                  passed {counts.passed}/{window.pipelineActualStages(f.stages || []).length}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <button className="rb-btn primary pipe-flow-run"
+                disabled={!ip || busyFlow || !window.pipelineActualStages(flow.stages || []).length}
+                onClick={dispatchFlow}>
+          {busyFlow ? 'dispatching…' : `Run ${flow.name}`}
+        </button>
+      </section>
+
+      <section className="pipe-inspector-section pipe-steps-section">
+        <div className="pipe-inspector-title">Steps</div>
+        <div className="pipe-step-list">
+          {(flow.stages || []).map((id, idx) => {
+            const stateName = stepState(id);
+            return (
+              <button key={`${id}-${idx}`}
+                      className={`pipe-step-card ${selectedStage === id ? 'sel' : ''}`}
+                      data-state={stateName}
+                      onClick={() => typeof onSelectStage === 'function' && onSelectStage(id)}>
+                <span className="pipe-step-index">{idx + 1}</span>
+                <span className="pipe-step-body">
+                  <span className="pipe-step-name">{stepLabel(id)}</span>
+                  <span className="pipe-step-detail">{stepDetail(id)}</span>
+                </span>
+                <span className="pipe-step-state">{stateName}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="pipe-inspector-section">
+        <div className="pipe-inspector-title">Selected</div>
+        {selectedInfo ? (
+          <window.StageCard
+            stageId={selectedStage}
+            info={selectedInfo}
+            ip={ip}
+            onChain={onChain} />
+        ) : (
+          <div className="pipe-virtual-detail">
+            <b>{stepLabel(selectedStage || 'orchestrator')}</b>
+            <span>{stepDetail(selectedStage || 'orchestrator')}</span>
+            <span className="mute">This is an orchestrator control-plane step, not a workflow artifact owner.</span>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+};
+
+// ─── PipelineFlowControl ──────────────────────────────────────────
+//
+// Top-center flow selector. The user asked for flow/step controls not to sit
+// under the graph; keep them in the center header so the map remains primary.
+window.PipelineFlowControl = function PipelineFlowControl({
+  ip,
+  state,
+  selectedFlowId,
+  onSelectFlow,
+  selectedStage,
+  onSelectStage,
+}) {
+  const [busyFlow, setBusyFlow] = React.useState('');
+  const flows = window.PIPELINE_FLOW_DEFS || [];
+  const labels = window.PIPELINE_LABEL || {};
+  const stagesState = (state && state.stages) || {};
+  const flow = flows.find(f => f.id === selectedFlowId) || flows[0] || { stages: [] };
+
+  const flowCounts = (stages) => {
+    const real = window.pipelineActualStages(stages || []);
+    const counts = { running: 0, passed: 0, failed: 0, blocked: 0 };
+    real.forEach(s => {
+      const st = (stagesState[s] && stagesState[s].state) || 'idle';
+      if (st === 'running' || st === 'run') counts.running += 1;
+      if (st === 'passed' || st === 'ok') counts.passed += 1;
+      if (st === 'failed' || st === 'err') counts.failed += 1;
+      if (st === 'blocked' || st === 'stale' || st === 'locked') counts.blocked += 1;
+    });
+    counts.total = real.length;
+    return counts;
+  };
+
+  const stepLabel = (id) => {
+    if ((window.PIPELINE_VIRTUAL_NODES || {})[id]) return window.PIPELINE_VIRTUAL_NODES[id].label;
+    return labels[id] || id;
+  };
+  const stepState = (id) => {
+    if ((window.PIPELINE_VIRTUAL_NODES || {})[id]) return 'handoff';
+    return (stagesState[id] && stagesState[id].state) || 'idle';
+  };
+
+  const dispatchFlow = async () => {
+    const stages = window.pipelineActualStages(flow.stages || []);
+    if (!ip || !stages.length || busyFlow) return;
+    setBusyFlow(flow.id);
+    try {
+      const r = await fetch('/api/pipeline/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip, stages, schedule: 'auto', prompt: '' }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        console.error('[pipeline] flow dispatch failed', j.error || r.status);
+      } else {
+        try {
+          window.dispatchEvent(new CustomEvent('atlas:pipeline-dispatched', {
+            detail: { stage: flow.id, ip, jobs: j.jobs || [] },
+          }));
+        } catch (_) {}
+      }
+    } catch (e) {
+      console.error('[pipeline] flow dispatch error', e);
+    } finally {
+      setBusyFlow('');
+    }
+  };
+
+  return (
+    <div className="pipe-flow-control">
+      <div className="pipe-flow-control-top">
+        <div>
+          <div className="pipe-flow-control-title">Pipeline Flows</div>
+          <div className="pipe-flow-control-summary">{flow.summary || ''}</div>
+        </div>
+        <button className="rb-btn primary pipe-flow-run-inline"
+                disabled={!ip || busyFlow || !window.pipelineActualStages(flow.stages || []).length}
+                onClick={dispatchFlow}>
+          {busyFlow ? 'dispatching...' : `Run ${flow.name || 'flow'}`}
+        </button>
+      </div>
+      <div className="pipe-flow-chip-row">
+        {flows.map(f => {
+          const counts = flowCounts(f.stages);
+          return (
+            <button key={f.id}
+                    className={`pipe-flow-tab ${f.id === flow.id ? 'sel' : ''}`}
+                    onClick={() => {
+                      if (typeof onSelectFlow === 'function') onSelectFlow(f.id);
+                      const firstActual = window.pipelineActualStages(f.stages || [])[0];
+                      if (firstActual && typeof onSelectStage === 'function') onSelectStage(firstActual);
+                    }}>
+              <span>{f.name}</span>
+              <b>{counts.passed}/{counts.total}</b>
+            </button>
+          );
+        })}
+      </div>
+      <div className="pipe-flow-step-row">
+        {(flow.stages || []).map((id, idx) => (
+          <button key={`${id}-${idx}`}
+                  className={`pipe-flow-step-pill ${selectedStage === id ? 'sel' : ''}`}
+                  data-state={stepState(id)}
+                  onClick={() => typeof onSelectStage === 'function' && onSelectStage(id)}>
+            <span>{idx + 1}</span>
+            {stepLabel(id)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ─── Internal: HierarchyList ───────────────────────────────────────
 //
-// Left column lists every IP discovered via /api/workspace/list. Selecting
+// Left column lists every IP discovered via /api/ip/list. Selecting
 // one updates the AtlasPipeline `ip` state. Falls back to a single-row
 // list with the active IP if the workspace endpoint is missing.
 function HierarchyList({ activeIp, onSelect }) {
@@ -539,13 +1122,16 @@ function HierarchyList({ activeIp, onSelect }) {
     let dead = false;
     (async () => {
       try {
-        const r = await fetch('/api/workspace/list');
+        const sessionId = window.ATLAS_USER_SESSION_ID || (window.ACTIVE_SESSION || '').split('/')[0] || '';
+        const url = sessionId ? `/api/ip/list?session_id=${encodeURIComponent(sessionId)}` : '/api/ip/list';
+        const r = await fetch(url);
         const j = await r.json().catch(() => ({}));
         if (dead) return;
-        const list = Array.isArray(j.ips) ? j.ips
+        const list = Array.isArray(j.items) ? j.items
+                   : Array.isArray(j.ips) ? j.ips
                    : Array.isArray(j.workspaces) ? j.workspaces
                    : [];
-        setIps(list.map(x => typeof x === 'string' ? x : (x.ip || x.name || '')).filter(Boolean));
+        setIps(list.map(x => typeof x === 'string' ? x : (x.ip || x.name || x.id || '')).filter(Boolean));
       } catch (_) {
         if (!dead && activeIp) setIps([activeIp]);
       }
@@ -574,6 +1160,221 @@ function HierarchyList({ activeIp, onSelect }) {
         <div>✓ passed · ▶ running · ! failed</div>
         <div>⏸ blocked · ⊘ stale · ◯ idle</div>
       </div>
+    </div>
+  );
+}
+
+function RunToGreenCard({ summary, ip, onSelectStage }) {
+  const [busy, setBusy] = React.useState(false);
+  const data = summary || {};
+  const state = data.state || 'not_started';
+  const percent = Math.max(0, Math.min(100, Number(data.percent || 0)));
+  const rawSteps = Array.isArray(data.next_steps) ? data.next_steps : [];
+  const nextSteps = rawSteps.length ? rawSteps : [{
+    stage: 'ssot',
+    label: 'Create or import SSOT',
+    owner: 'user',
+    reason: 'SSOT is the source of truth for every downstream step.',
+    status: 'pending',
+  }];
+  const stageFor = (stage) => {
+    if (stage === 'req') return 'ssot';
+    if (stage === 'equivalence_goals') return 'equivalence';
+    if (stage === 'goal_audit') return 'goal-audit';
+    if (stage === 'sim_debug') return 'sim-debug';
+    if (stage === 'fl_model') return 'fl-model';
+    if (stage === 'fl_decomp' || stage === 'fcov_plan') return 'fl-model';
+    return stage || 'ssot';
+  };
+  const focusStage = (stage) => {
+    const sid = stageFor(stage || data.next_stage);
+    if (typeof onSelectStage === 'function') onSelectStage(sid);
+    try {
+      window.dispatchEvent(new CustomEvent('atlas:pipeline-focus-stage', {
+        detail: { stage: sid },
+      }));
+    } catch (_) {}
+  };
+  const runToGreen = async () => {
+    if (!ip || busy) return;
+    const flow = (window.PIPELINE_FLOW_DEFS || []).find(f => f.id === 'full') || { stages: [] };
+    const stages = window.pipelineActualStages(flow.stages || []);
+    if (!stages.length) return;
+    setBusy(true);
+    try {
+      const r = await fetch('/api/pipeline/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip, stages, schedule: 'auto', prompt: '' }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        console.error('[pipeline] run-to-green failed', j.error || r.status);
+      } else {
+        try {
+          window.dispatchEvent(new CustomEvent('atlas:pipeline-dispatched', {
+            detail: { stage: 'full', ip, jobs: j.jobs || [] },
+          }));
+          window.dispatchEvent(new CustomEvent('atlas:pipeline-poll'));
+        } catch (_) {}
+      }
+    } catch (e) {
+      console.error('[pipeline] run-to-green error', e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const primary = data.primary_action || {};
+  const primaryKind = primary.kind || 'run_pipeline';
+  const primaryLabel = busy ? 'Starting...' : (primary.label || 'Run to Green');
+  return (
+    <div className="pipe-green-card" data-state={state}>
+      <div className="pipe-green-top">
+        <span className="pipe-green-kicker">GREEN READINESS</span>
+        <span className="pipe-green-percent">{percent}%</span>
+      </div>
+      <div className="pipe-green-headline">{data.headline || 'Start the IP pipeline'}</div>
+      <div className="pipe-green-message">
+        {data.message || 'Run the flow and ATLAS will show the next simple action here.'}
+      </div>
+      <div className="pipe-green-bar" aria-label={`green readiness ${percent}%`}>
+        <div className="pipe-green-bar-fill" style={{ width: `${percent}%` }} />
+      </div>
+      <div className="pipe-green-actions">
+        <button className="rb-btn primary pipe-green-primary"
+                disabled={!ip || busy}
+                onClick={() => primaryKind === 'run_pipeline'
+                  ? runToGreen()
+                  : focusStage(primary.stage || data.next_stage)}>
+          {primaryLabel}
+        </button>
+        {data.next_stage && (
+          <button className="rb-btn pipe-green-secondary"
+                  onClick={() => focusStage(data.next_stage)}>
+            Open Next
+          </button>
+        )}
+      </div>
+      <div className="pipe-green-next">
+        {nextSteps.length ? nextSteps.map((step, idx) => (
+          <button key={`${step.stage || idx}-${idx}`}
+                  className="pipe-green-step"
+                  onClick={() => focusStage(step.stage)}>
+            <span className="pipe-green-step-index">{idx + 1}</span>
+            <span className="pipe-green-step-main">
+              <span className="pipe-green-step-label">{step.label || step.stage}</span>
+              <span className="pipe-green-step-reason">{step.reason || step.status || ''}</span>
+            </span>
+            <span className="pipe-green-owner">{step.owner || 'atlas'}</span>
+          </button>
+        )) : (
+          <div className="pipe-green-empty">No open step found.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Internal: StageStatusRail ─────────────────────────────────────
+//
+// Left column: status is now the primary left-hand object. IP selection stays
+// compact at the top, then every workflow stage is visible without scrolling
+// the graph or opening a bottom inspector.
+function StageStatusRail({ activeIp, onSelectIp, state, simpleSummary, selectedStage, onSelectStage }) {
+  const labels = window.PIPELINE_LABEL || {};
+  const stages = window.PIPELINE_STAGES || [];
+  const stagesState = (state && state.stages) || {};
+  const [ips, setIps] = React.useState([]);
+
+  React.useEffect(() => {
+    let dead = false;
+    (async () => {
+      try {
+        const sessionId = window.ATLAS_USER_SESSION_ID || (window.ACTIVE_SESSION || '').split('/')[0] || '';
+        const url = sessionId ? `/api/ip/list?session_id=${encodeURIComponent(sessionId)}` : '/api/ip/list';
+        const r = await fetch(url);
+        const j = await r.json().catch(() => ({}));
+        if (dead) return;
+        const list = Array.isArray(j.items) ? j.items
+                   : Array.isArray(j.ips) ? j.ips
+                   : Array.isArray(j.workspaces) ? j.workspaces
+                   : [];
+        setIps(list.map(x => typeof x === 'string' ? x : (x.ip || x.name || x.id || '')).filter(Boolean));
+      } catch (_) {
+        if (!dead && activeIp) setIps([activeIp]);
+      }
+    })();
+    return () => { dead = true; };
+  }, [activeIp]);
+
+  const summarize = (info) => {
+    if (!info) return 'no evidence yet';
+    return info.top || info.secondary || info.locked_reason || info.latest_evidence || 'no evidence yet';
+  };
+
+  return (
+    <div className="pipe-stage-rail">
+      <div className="pipe-stage-rail-head">
+        <div>
+          <div className="pipe-stage-rail-kicker">IP</div>
+          <div className="pipe-stage-rail-ip">{activeIp || 'no IP'}</div>
+        </div>
+        <select className="pipe-stage-rail-select"
+                value={activeIp || ''}
+                onChange={e => onSelectIp && onSelectIp(e.currentTarget.value)}>
+          {(ips.length ? ips : (activeIp ? [activeIp] : [])).map(ip => (
+            <option key={ip} value={ip}>{ip}</option>
+          ))}
+        </select>
+      </div>
+      <RunToGreenCard
+        summary={simpleSummary}
+        ip={activeIp}
+        onSelectStage={onSelectStage} />
+      <div className="pipe-stage-rail-title">Stage Status</div>
+      <div className="pipe-stage-rail-list">
+        {stages.map(stageId => {
+          const info = stagesState[stageId] || {};
+          const stateName = info.state || 'idle';
+          const meta = window.pipelineStateMeta(stateName);
+          return (
+            <button key={stageId}
+                    className={`pipe-stage-rail-row ${selectedStage === stageId ? 'sel' : ''}`}
+                    data-state={stateName}
+                    onClick={() => onSelectStage && onSelectStage(stageId)}>
+              <span className="pipe-stage-rail-glyph" style={{ color: meta.color }}>{meta.glyph}</span>
+              <span className="pipe-stage-rail-main">
+                <span className="pipe-stage-rail-name">{labels[stageId] || stageId}</span>
+                <span className="pipe-stage-rail-sub">{summarize(info)}</span>
+              </span>
+              <span className="pipe-stage-rail-state">{meta.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="pipe-stage-rail-legend">
+        ✓ passed · ▶ running · ! failed · ⏸ blocked · ⊘ stale
+      </div>
+    </div>
+  );
+}
+
+function PipelineOrchestratorChatPanel({ ip }) {
+  if (!window.ArchitectChat) {
+    return (
+      <div className="pipe-orch-chat-fallback">
+        <b>orchestrator chat</b>
+        <span className="mute">ArchitectChat is not loaded yet.</span>
+      </div>
+    );
+  }
+  return (
+    <div className="pipe-orch-chat-shell">
+      <window.ArchitectChat
+        view="pipeline"
+        selModule={ip ? { name: ip } : null}
+        selCluster={null}
+        onDiagramPlan={null} />
     </div>
   );
 }
@@ -629,12 +1430,15 @@ function PhaseGroup({ phase, stagesState, ip, onChain, defaultCollapsed }) {
 // unavailable" rather than blowing up the entire screen.
 window.AtlasPipeline = function AtlasPipeline() {
   const [pipelineState, setPipelineState] = React.useState(null);
+  const [progressSummary, setProgressSummary] = React.useState(null);
   const [fetchError, setFetchError]   = React.useState('');
   const initialIp = (typeof window.ACTIVE_IP === 'string' && window.ACTIVE_IP.trim())
     || (() => { try { return localStorage.getItem('atlasActiveIp') || ''; } catch (_) { return ''; } })()
     || 'arm_m0_min';
   const [ip, setIp] = React.useState(initialIp);
   const [chain, setChain] = React.useState([]);
+  const [selectedFlowId, setSelectedFlowId] = React.useState('full');
+  const [selectedStage, setSelectedStage] = React.useState('ssot');
 
   // Poll loop + WS subscription. Re-runs when ip changes.
   React.useEffect(() => {
@@ -670,10 +1474,56 @@ window.AtlasPipeline = function AtlasPipeline() {
       }
     } catch (_) {}
 
+    // UI components (e.g. the orchestrator toggle button) can request an
+    // immediate poll after mutating server state. The handler debounces
+    // bursts the same way the backend subscription does.
+    const onForcePoll = () => {
+      clearTimeout(window.__pipelinePushPoll);
+      window.__pipelinePushPoll = setTimeout(poll, 50);
+    };
+    window.addEventListener('atlas:pipeline-poll', onForcePoll);
+
     return () => {
       dead = true;
       if (timer) clearInterval(timer);
       try { if (unsub) unsub(); } catch (_) {}
+      window.removeEventListener('atlas:pipeline-poll', onForcePoll);
+    };
+  }, [ip]);
+
+  React.useEffect(() => {
+    let dead = false;
+    let timer = null;
+
+    const pollProgress = async () => {
+      if (!ip) {
+        if (!dead) setProgressSummary(null);
+        return;
+      }
+      try {
+        const r = await fetch(`/api/progress?scope=${encodeURIComponent(ip)}`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        const selected = (j && j.selected) || {};
+        const signoff = selected.signoff || {};
+        const summary = selected.simple_summary || signoff.simple_summary || null;
+        if (!dead) setProgressSummary(summary);
+      } catch (_) {
+        if (!dead) setProgressSummary(null);
+      }
+    };
+
+    pollProgress();
+    timer = setInterval(pollProgress, 5000);
+    const onForcePoll = () => {
+      clearTimeout(window.__pipelineProgressPoll);
+      window.__pipelineProgressPoll = setTimeout(pollProgress, 120);
+    };
+    window.addEventListener('atlas:pipeline-poll', onForcePoll);
+    return () => {
+      dead = true;
+      if (timer) clearInterval(timer);
+      window.removeEventListener('atlas:pipeline-poll', onForcePoll);
     };
   }, [ip]);
 
@@ -713,13 +1563,6 @@ window.AtlasPipeline = function AtlasPipeline() {
   const runningCount = Object.values(stagesState).filter(v =>
     v && (v.state === 'running' || v.state === 'run')).length;
 
-  // Collapse SIGN-OFF when every back-end stage is idle/locked.
-  const signoffStages = ['syn', 'sta', 'pnr', 'sta-post'];
-  const signoffCollapsed = signoffStages.every(s => {
-    const st = (stagesState[s] && stagesState[s].state) || 'idle';
-    return st === 'idle' || st === 'locked' || st === 'pending' || st === 'ready';
-  });
-
   return (
     <div className="pipe-screen arch-screen">
       <div className="run-bar pipe-runbar">
@@ -734,6 +1577,44 @@ window.AtlasPipeline = function AtlasPipeline() {
           {runningCount > 0 && (
             <span className="rb-btn pipe-running-chip" title="running stages">
               ▶ {runningCount} running
+            </span>
+          )}
+          {pipelineState && pipelineState.orchestrator && (
+            <button className={`rb-btn pipe-orch-chip${pipelineState.orchestrator.enabled ? ' pipe-orch-chip-on' : ''}`}
+                    title={`Toggle orchestrator mode. ON = enable durable JSON handoff queue under <ip>/handoff/.\nCurrently: ${pipelineState.orchestrator.enabled ? pipelineState.orchestrator.mode || 'on' : 'off'}`}
+                    onClick={async () => {
+                      const target = !pipelineState.orchestrator.enabled;
+                      try {
+                        await fetch('/api/pipeline/orchestrator_mode', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ enabled: target }),
+                        });
+                      } catch (e) {
+                        console.error('[pipeline] orchestrator toggle failed', e);
+                      }
+                      // The state endpoint micro-cache was cleared server-side;
+                      // force an immediate poll instead of waiting up to 2 s.
+                      try { window.dispatchEvent(new CustomEvent('atlas:pipeline-poll')); } catch (_) {}
+                    }}>
+              orchestrator: <b>{pipelineState.orchestrator.enabled
+                ? (pipelineState.orchestrator.mode || 'on')
+                : 'off'}</b>
+            </button>
+          )}
+          {pipelineState && pipelineState.orchestrator && pipelineState.orchestrator.pending_handoffs > 0 && (
+            <span className="rb-btn pipe-handoff-chip"
+                  title="Pending JSON handoffs waiting for /take">
+              ⇄ {pipelineState.orchestrator.pending_handoffs} pending
+              {pipelineState.orchestrator.claimed_handoffs > 0
+                ? ` (${pipelineState.orchestrator.claimed_handoffs} claimed)`
+                : ''}
+            </span>
+          )}
+          {pipelineState && pipelineState.orchestrator && (pipelineState.orchestrator.decisions_needed > 0 || pipelineState.orchestrator.review_decisions > 0) && (
+            <span className="rb-btn pipe-review-chip"
+                  title="Review Decision Needed records under <ip>/review/">
+              △ {pipelineState.orchestrator.decisions_needed || pipelineState.orchestrator.review_decisions} review
             </span>
           )}
           {fetchError && !pipelineState && (
@@ -784,36 +1665,35 @@ window.AtlasPipeline = function AtlasPipeline() {
 
       <div className="pipe-board">
         <div className="pipe-col-left">
-          <HierarchyList activeIp={ip} onSelect={setIp} />
+          <StageStatusRail
+            activeIp={ip}
+            onSelectIp={setIp}
+            state={pipelineState}
+            simpleSummary={progressSummary}
+            selectedStage={selectedStage}
+            onSelectStage={setSelectedStage} />
         </div>
         <div className="pipe-col-center">
-          <window.DagMap state={pipelineState}
-                          onNodeClick={(stageId) => {
-                            try {
-                              window.dispatchEvent(new CustomEvent('atlas:pipeline-focus-stage', {
-                                detail: { stage: stageId },
-                              }));
-                            } catch (_) {}
-                          }} />
-          <div className="pipe-stage-grid-wrap">
-            {window.PIPELINE_PHASES.map(phase => (
-              <PhaseGroup key={phase.id}
-                          phase={phase}
-                          stagesState={stagesState}
-                          ip={ip}
-                          onChain={addToChain}
-                          defaultCollapsed={phase.id === 'SIGN-OFF' && signoffCollapsed} />
-            ))}
-          </div>
+          <window.PipelineFlowControl
+            ip={ip}
+            state={pipelineState}
+            selectedFlowId={selectedFlowId}
+            onSelectFlow={setSelectedFlowId}
+            selectedStage={selectedStage}
+            onSelectStage={setSelectedStage} />
+          <window.PipelineFlowMap
+            state={pipelineState}
+            selectedFlowId={selectedFlowId}
+            selectedStage={selectedStage}
+            onSelectFlow={setSelectedFlowId}
+            onSelectStage={setSelectedStage} />
           <window.DispatchRail ip={ip}
                                 chain={chain}
                                 onClearChain={() => setChain([])}
                                 onRemove={removeFromChain} />
         </div>
         <div className="pipe-col-right">
-          {window.ArchitectChat
-            ? <window.ArchitectChat view="pipeline" selModule={null} selCluster={null} />
-            : <div className="mute" style={{ padding: 12 }}>chat panel unavailable</div>}
+          <PipelineOrchestratorChatPanel ip={ip} />
         </div>
       </div>
     </div>

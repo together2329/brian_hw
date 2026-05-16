@@ -908,6 +908,135 @@ def _normalize_machine_rule_exprs(doc: dict[str, Any]) -> None:
                 rule[expr_key] = _normalize_rule_expr(rule.get(expr_key))
 
 
+def _fm_list(fm: dict[str, Any], key: str) -> list[Any]:
+    value = fm.get(key)
+    if not isinstance(value, list):
+        value = []
+        fm[key] = value
+    return value
+
+
+def _add_or_update_derived_signal(
+    fm: dict[str, Any],
+    *,
+    name: str,
+    expr: str,
+    width: int,
+    description: str,
+) -> None:
+    items = _fm_list(fm, "derived_signals")
+    for item in items:
+        if isinstance(item, dict) and str(item.get("name") or item.get("signal") or item.get("id") or "") == name:
+            item["expr"] = expr
+            item["width"] = width
+            item.setdefault("description", description)
+            item.setdefault("source", "repair_ssot_schema.apb_helper")
+            return
+    items.append({
+        "name": name,
+        "expr": expr,
+        "width": width,
+        "description": description,
+        "source": "repair_ssot_schema.apb_helper",
+    })
+
+
+def _ensure_apb_helper_signals(doc: dict[str, Any], fm: dict[str, Any]) -> None:
+    """Make common APB phase predicates explicit SSOT-derived signals.
+
+    LLM SSOT drafts often use names such as ``apb_valid_write`` inside
+    function/output rules.  Those are not top-level ports and should not become
+    user-facing questions when APB pins already make the meaning mechanical.
+    """
+
+    inputs = set(_ports_by_direction(doc, "input"))
+    if not {"psel", "penable"}.issubset(inputs):
+        return
+    _add_or_update_derived_signal(
+        fm,
+        name="apb_access",
+        expr="psel and penable",
+        width=1,
+        description="APB access phase helper derived from psel and penable.",
+    )
+    if "pwrite" in inputs:
+        _add_or_update_derived_signal(
+            fm,
+            name="apb_valid_write",
+            expr="psel and penable and pwrite",
+            width=1,
+            description="APB write access helper derived from psel, penable, and pwrite.",
+        )
+        _add_or_update_derived_signal(
+            fm,
+            name="apb_valid_read",
+            expr="psel and penable and not pwrite",
+            width=1,
+            description="APB read access helper derived from psel, penable, and pwrite.",
+        )
+    if "paddr" in inputs:
+        _add_or_update_derived_signal(
+            fm,
+            name="addr",
+            expr="paddr",
+            width=int(_port_widths(doc).get("paddr") or 32),
+            description="Register address helper derived from the APB paddr input.",
+        )
+
+
+def _rewrite_self_referential_output_defaults(doc: dict[str, Any]) -> None:
+    """Remove output self-feedback fallbacks from observable rules.
+
+    ``pready = 1 if apb_valid_write else pready`` is a common model draft
+    artifact.  In SSOT transaction rules the precondition/sample condition owns
+    when the rule is observed; feeding the output port back into its own
+    same-cycle expression creates an artificial RTL_OUTPUT_DEP blocker.
+    """
+
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
+    output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
+
+    def rewrite(rule: dict[str, Any]) -> None:
+        expr_key = next((key for key in ("expr", "expression", "value") if key in rule), "")
+        if not expr_key:
+            return
+        expr = str(rule.get(expr_key) or "").strip()
+        if not expr:
+            return
+        self_names = {
+            str(rule.get("name") or "").strip(),
+            str(rule.get("port") or "").strip(),
+        }
+        for key in tuple(self_names):
+            if key in output_map:
+                self_names.add(str(output_map.get(key) or "").strip())
+        self_names = {name for name in self_names if name}
+        match = re.fullmatch(
+            r"(?P<then>.+?)\s+if\s+(?P<cond>.+?)\s+else\s+(?P<otherwise>\(?\s*[A-Za-z_][A-Za-z0-9_]*\s*\)?)",
+            expr,
+        )
+        if not match:
+            return
+        otherwise = _strip_outer_parens(match.group("otherwise").strip())
+        if otherwise in self_names:
+            rule[expr_key] = match.group("then").strip()
+            rule.setdefault(
+                "repair_note",
+                "Removed self-referential output fallback; transaction precondition/sample_condition owns rule applicability.",
+            )
+
+    for tx in fm.get("transactions") or []:
+        if not isinstance(tx, dict):
+            continue
+        for rule in tx.get("output_rules") or []:
+            if isinstance(rule, dict):
+                rewrite(rule)
+    for rule in contract.get("output_rules") or []:
+        if isinstance(rule, dict):
+            rewrite(rule)
+
+
 def _ensure_ready_constant_policy(doc: dict[str, Any]) -> None:
     """Record explicit SSOT allowance for always-ready interfaces.
 
@@ -1264,6 +1393,9 @@ def _ensure_rule_expr_input_map_completeness(doc: dict[str, Any]) -> None:
     txs = [tx for tx in fm.get("transactions") or [] if isinstance(tx, dict)]
     if not txs:
         return
+
+    _ensure_apb_helper_signals(doc, fm)
+    _rewrite_self_referential_output_defaults(doc)
 
     input_map = contract.get("input_map") if isinstance(contract.get("input_map"), dict) else {}
     output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}

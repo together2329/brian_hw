@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "type": "cl_functional_coverage_plan",
+  "ip": "rv32i_min",
+  "source": "rv32i_min/yaml/rv32i_min.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "cl",
+  "summary": {
+    "total_bins": 25,
+    "by_class": {
+      "protocol_handshake": 4,
+      "latency_bin": 21
+    }
+  },
+  "bins": [
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "handshake_0"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "handshake_1"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "description": "handshake_2"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[3]",
+      "description": "handshake_3"
+    },
+    {
+      "id": "latency_fetch_to_decode_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fetch_to_decode",
+      "description": "fetch_to_decode latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_fetch_to_decode_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fetch_to_decode",
+      "description": "fetch_to_decode latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fetch_to_decode_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fetch_to_decode",
+      "description": "fetch_to_decode latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fetch_to_decode_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fetch_to_decode",
+      "description": "fetch_to_decode latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_alu_ops_retire_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.alu_ops_retire",
+      "description": "alu_ops_retire latency < 3 cycles",
+      "bucket": "<min",
+      "threshold": 3
+    },
+    {
+      "id": "latency_alu_ops_retire_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.alu_ops_retire",
+      "description": "alu_ops_retire latency == 3 cycles",
+      "bucket": "min",
+      "cycles": 3
+    },
+    {
+      "id": "latency_alu_ops_retire_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.alu_ops_retire",
+      "description": "alu_ops_retire latency == 3 cycles",
+      "bucket": "max",
+      "cycles": 3
+    },
+    {
+      "id": "latency_alu_ops_retire_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.alu_ops_retire",
+      "description": "alu_ops_retire latency > 3 cycles",
+      "bucket": ">max",
+      "threshold": 3
+    },
+    {
+      "id": "latency_load_retire_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.load_retire",
+      "description": "load_retire latency < 3 cycles",
+      "bucket": "<min",
+      "threshold": 3
+    },
+    {
+      "id": "latency_load_retire_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.load_retire",
+      "description": "load_retire latency == 3 cycles",
+      "bucket": "min",
+      "cycles": 3
+    },
+    {
+      "id": "latency_load_retire_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.load_retire",
+      "description": "load_retire latency == 3 cycles",
+      "bucket": "max",
+      "cycles": 3
+    },
+    {
+      "id": "latency_load_retire_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.load_retire",
+      "description": "load_retire latency > 3 cycles",
+      "bucket": ">max",
+      "threshold": 3
+    },
+    {
+      "id": "latency_store_issue_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.store_issue",
+      "description": "store_issue latency < 2 cycles",
+      "bucket": "<min",
+      "threshold": 2
+    },
+    {
+      "id": "latency_store_issue_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.store_issue",
+      "description": "store_issue latency == 2 cycles",
+      "bucket": "min",
+      "cycles": 2
+    },
+    {
+      "id": "latency_store_issue_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.store_issue",
+      "description": "store_issue latency ~mid (2 cycles)",
+      "bucket": "mid",
+      "cycles": 2
+    },
+    {
+      "id": "latency_store_issue_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.store_issue",
+      "description": "store_issue latency == 3 cycles",
+      "bucket": "max",
+      "cycles": 3
+    },
+    {
+      "id": "latency_store_issue_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.store_issue",
+      "description": "store_issue latency > 3 cycles",
+      "bucket": ">max",
+      "threshold": 3
+    },
+    {
+      "id": "latency_fence_penalty_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fence_penalty",
+      "description": "fence_penalty latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_fence_penalty_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fence_penalty",
+      "description": "fence_penalty latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fence_penalty_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fence_penalty",
+      "description": "fence_penalty latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fence_penalty_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fence_penalty",
+      "description": "fence_penalty latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    }
+  ]
+}

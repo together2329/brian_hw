@@ -35,6 +35,7 @@ be loaded on a different machine and inspected without recreating the DB.
 
 - [[arm-m0-min-pipeline-run]] — minimal ARMv6-M Thumb CPU, full ssot→lint pipeline with green compile/lint/sim/coverage; first CPU-class run on the new DB operating mode (2026-05-15).
 - [[gpio-serial-pipeline-run]] — `simple_gpio_lite` serial smoke run; RTL clean, tb-gen blocks on prose-only FunctionalModel `ssot_question` gaps, and ssot-gen now catches the same missing machine-rule transactions before downstream token spend (2026-05-16).
+- [[gpio-orchestrator-multiworker-run]] — `gpio_orch_scratch` Atlas orchestrator plus author/verify worker run; tracks current RTL gate/tool-evidence bugs and UI run-status gaps (2026-05-16).
 
 ## Hard Rules
 

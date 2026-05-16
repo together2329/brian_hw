@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_a3edc204c0",
+  "worker_idx": 0,
+  "model": "concur-C",
+  "requested_model": "concur-C",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "b1"
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "ok(concur-C)",
+  "error": "",
+  "started_at": 1778920137.565575,
+  "completed_at": 1778920137.718098,
+  "duration_s": 0.15252304077148438
+}

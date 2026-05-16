@@ -1259,6 +1259,158 @@ def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = N
     return {"module": "", "file": "", "matched_ref": ""}
 
 
+def _normalize_owner_file_for_ip(owner_file: Any, ip: str) -> str:
+    rel = str(owner_file or "").strip()
+    if not rel:
+        return ""
+    rel = rel.replace("\\", "/")
+    prefix = f"{ip}/"
+    if rel.startswith(prefix):
+        rel = rel[len(prefix):]
+    return rel.lstrip("/")
+
+
+def _rtl_contract_owner_overrides(ip_dir: Path, ip: str, modules: list[dict[str, Any]]) -> dict[str, dict[str, str]]:
+    """Read rtl-gen-owned owner resolutions from rtl_contract.json.
+
+    Some production packets are intentionally emitted as RTL contract metadata
+    first, then the TODO derivation step decides which owner module packet
+    should receive the concrete RTL edit.  Without this bridge those tasks stay
+    permanently "unowned" and the LLM keeps reopening a human gate.
+    """
+    path = ip_dir / "rtl" / "rtl_contract.json"
+    report = _safe_read_json(path)
+    if not report:
+        return {}
+
+    module_by_name = {str(module.get("name") or ""): module for module in modules}
+    module_by_file = {
+        str(module.get("file") or "").replace("\\", "/"): module
+        for module in modules
+        if str(module.get("file") or "").strip()
+    }
+
+    overrides: dict[str, dict[str, str]] = {}
+    rows: list[Any] = []
+    for key in ("ownership_updates", "owner_resolution", "owner_resolutions", "source_ref_ownership"):
+        value = report.get(key)
+        if isinstance(value, list):
+            rows.extend(value)
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        source_ref = str(row.get("source_ref") or row.get("ssot_ref") or "").strip()
+        if not source_ref:
+            continue
+        owner_module = str(row.get("owner_module") or row.get("module") or "").strip()
+        owner_file = _normalize_owner_file_for_ip(row.get("owner_file") or row.get("file"), ip)
+        manifest = module_by_name.get(owner_module) if owner_module else None
+        if manifest is None and owner_file:
+            manifest = module_by_file.get(owner_file)
+        if manifest is None:
+            continue
+        manifest_name = str(manifest.get("name") or owner_module).strip()
+        manifest_file = str(manifest.get("file") or owner_file).strip()
+        if not manifest_name or not manifest_file:
+            continue
+        overrides[source_ref] = {
+            "module": manifest_name,
+            "file": manifest_file,
+            "matched_ref": "rtl_contract.owner_resolution",
+        }
+    return overrides
+
+
+def _apply_rtl_contract_owner_overrides(
+    tasks: list[dict[str, Any]],
+    owner_overrides: dict[str, dict[str, str]],
+) -> None:
+    if not owner_overrides:
+        return
+    for task in tasks:
+        if not isinstance(task, dict):
+            continue
+        if task.get("owner_module") or task.get("owner_file"):
+            continue
+        source_ref = str(task.get("source_ref") or "").strip()
+        owner = owner_overrides.get(source_ref)
+        if not owner:
+            continue
+        task["owner_module"] = owner.get("module") or ""
+        task["owner_file"] = owner.get("file") or ""
+        task["owner_match"] = owner.get("matched_ref") or "rtl_contract.owner_resolution"
+
+
+def _task_mentions_name(task: dict[str, Any], name: str) -> bool:
+    needle = str(name or "").strip().lower()
+    if not needle:
+        return False
+    fields = [
+        task.get("source_ref"),
+        task.get("content"),
+        task.get("detail"),
+        task.get("evidence_terms"),
+        task.get("ssot_context"),
+        task.get("ssot_refs"),
+    ]
+    return needle in json.dumps(fields, sort_keys=True, default=str).lower()
+
+
+def _apply_memory_owner_from_function_tasks(tasks: list[dict[str, Any]]) -> None:
+    """Assign unowned SSOT memory flops to the FunctionModel task that updates them."""
+
+    owner_tasks = [
+        task
+        for task in tasks
+        if isinstance(task, dict)
+        and str(task.get("category") or "").startswith("function_model.")
+        and (task.get("owner_module") or task.get("owner_file"))
+    ]
+    category_weight = {
+        "function_model.state_update": 50,
+        "function_model.output_rule": 35,
+        "function_model.input": 30,
+        "function_model.state_variable": 20,
+        "function_model.transaction": 10,
+    }
+    for task in tasks:
+        if not isinstance(task, dict) or str(task.get("category") or "") != "memory.instances":
+            continue
+        if task.get("owner_module") or task.get("owner_file"):
+            continue
+        ctx = task.get("ssot_context") if isinstance(task.get("ssot_context"), dict) else {}
+        name = str(ctx.get("name") or str(task.get("source_ref") or "").rsplit(".", 1)[-1]).strip()
+        if not name:
+            continue
+        candidates: list[tuple[int, str, str, dict[str, Any]]] = []
+        for other in owner_tasks:
+            if not _task_mentions_name(other, name):
+                continue
+            category = str(other.get("category") or "")
+            score = category_weight.get(category, 1)
+            source_ref = str(other.get("source_ref") or "")
+            if name in source_ref:
+                score += 20
+            if f"{name}_next" in source_ref:
+                score += 20
+            owner_module = str(other.get("owner_module") or "")
+            owner_file = str(other.get("owner_file") or "")
+            candidates.append((score, owner_module, owner_file, other))
+        if not candidates:
+            continue
+        candidates.sort(key=lambda row: row[0], reverse=True)
+        top_score = candidates[0][0]
+        top = [row for row in candidates if row[0] == top_score]
+        top_owners = {(row[1], row[2]) for row in top}
+        if len(top_owners) != 1:
+            continue
+        _score, owner_module, owner_file, owner_task = top[0]
+        task["owner_module"] = owner_module
+        task["owner_file"] = owner_file
+        task["owner_match"] = f"function_model_memory_owner:{owner_task.get('source_ref')}"
+
+
 def _looks_like_design_token(token: str) -> bool:
     text = str(token or "").strip()
     if len(text) <= 1:
@@ -1324,6 +1476,35 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
     terms: set[str] = set()
     protocol_alias_seen = False
 
+    def add_identifier_terms(value: Any) -> None:
+        """Add explicit SSOT identifiers such as ports/states/registers.
+
+        These are not prose, so lowercase SystemVerilog-style names like
+        ``prdata`` and ``paddr`` are valid evidence terms even though they do
+        not contain underscores or uppercase characters.
+        """
+        if value is None:
+            return
+        if isinstance(value, dict):
+            for item in value.values():
+                add_identifier_terms(item)
+            return
+        if isinstance(value, list):
+            for item in value:
+                add_identifier_terms(item)
+            return
+        text = str(value)
+        raw_tokens = re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text)
+        if not raw_tokens:
+            return
+        for token in raw_tokens:
+            lower = token.lower()
+            if lower in EVIDENCE_STOPWORDS or lower in REFERENCE_STOPWORDS:
+                continue
+            if len(raw_tokens) == 1 or _looks_like_design_token(token):
+                terms.update(_split_design_token(token))
+                terms.add(token)
+
     def add_protocol_aliases(text: str) -> None:
         nonlocal protocol_alias_seen
         lower = text.lower()
@@ -1342,13 +1523,15 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
         if isinstance(value, dict):
             identity_keys = ("field", "signal", "port", "state", "output", "event", "stage", "register", "from", "to")
             if category in NAME_EVIDENCE_CATEGORIES:
-                identity_keys = ("id", *identity_keys)
+                identity_keys = ("id", "name", *identity_keys)
             if category == "cycle_model.pipeline":
                 identity_keys = ("clock", "action", "signal", "port", "event", "condition", "expr", "expression")
             if category == "workflow_todo.rtl_gen":
                 identity_keys = ("id", "source_refs", "owner_module", "owner_file", *identity_keys)
             for key in identity_keys:
                 if _present(value.get(key)):
+                    if key in {"id", "name", "field", "signal", "port", "state", "output", "event", "register", "from", "to"}:
+                        add_identifier_terms(value.get(key))
                     visit(value.get(key))
             for key in ("expr", "expression", "condition"):
                 if isinstance(value.get(key), str):
@@ -1387,6 +1570,60 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
                 terms.update(_split_design_token(token))
     terms = {term for term in terms if term.lower() not in EVIDENCE_STOPWORDS | REFERENCE_STOPWORDS}
     return sorted(terms)[:16]
+
+
+def _function_leaf_evidence_value(tx: dict[str, Any], key: str, sub: Any) -> Any:
+    if key not in {"inputs", "outputs", "side_effects", "error_cases"}:
+        return sub
+    output_ports: list[Any] = []
+    for rule in _as_list(tx.get("output_rules")):
+        if isinstance(rule, dict):
+            output_ports.append(rule.get("port") or rule.get("name"))
+    state_names: list[Any] = []
+    for update in _as_list(tx.get("state_updates")):
+        if isinstance(update, dict):
+            state_names.append(update.get("name") or update.get("state"))
+    return {
+        "id": tx.get("id"),
+        "name": tx.get("name"),
+        "signal": [sub, *(_as_list(tx.get("required_fields")))],
+        "port": output_ports,
+        "state": state_names,
+        "condition": tx.get("sample_condition"),
+    }
+
+
+def _function_invariant_evidence_value(fm: dict[str, Any], item: Any) -> Any:
+    raw_terms = _owner_token_set(item)
+    states: list[Any] = []
+    for state in _as_list(fm.get("state_variables")):
+        if not isinstance(state, dict):
+            continue
+        state_terms = _owner_token_set({
+            "name": state.get("name"),
+            "source": state.get("source"),
+            "description": state.get("description"),
+        })
+        if raw_terms & state_terms:
+            states.append(state.get("name"))
+
+    ports: list[Any] = []
+    for tx in _as_list(fm.get("transactions")):
+        if not isinstance(tx, dict):
+            continue
+        tx_terms = _owner_token_set(tx)
+        if not (raw_terms & tx_terms):
+            continue
+        ports.extend(_as_list(tx.get("required_fields")))
+        for rule in _as_list(tx.get("output_rules")):
+            if isinstance(rule, dict):
+                ports.append(rule.get("port") or rule.get("name"))
+
+    return {
+        "signal": item,
+        "state": states,
+        "port": ports,
+    }
 
 
 def _short_text(value: Any, limit: int = 120) -> str:
@@ -2116,6 +2353,7 @@ def _add_function_model_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], 
             for sub_idx, sub in enumerate(_as_list(tx.get(key))):
                 sub_name = _item_name(sub, sub_idx, label.replace(" ", "_"))
                 ref = f"{base}.{key}.{_slug(sub_name, 'entry')}"
+                evidence_value = _function_leaf_evidence_value(tx, key, sub)
                 _task(
                     tasks,
                     category=category,
@@ -2127,12 +2365,13 @@ def _add_function_model_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], 
                         "Reset/enable/error behavior is consistent with the parent transaction",
                         "Downstream equivalence/coverage can observe this behavior",
                     ],
-                    owner=_owner_for(ref, modules, top, value=sub),
-                    value=sub,
+                    owner=_owner_for(ref, modules, top, value=evidence_value),
+                    value=evidence_value,
                 )
     for idx, item in enumerate(_as_list(fm.get("invariants"))):
         name = _item_name(item, idx, "invariant")
         ref = f"function_model.invariants.{_slug(name)}"
+        evidence_value = _function_invariant_evidence_value(fm, item)
         _task(
             tasks,
             category="function_model.invariant",
@@ -2144,8 +2383,8 @@ def _add_function_model_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], 
                 "If the invariant is verification-only, the SSOT names that evidence owner",
                 "Coverage/equivalence references this invariant when observable",
             ],
-            owner=_owner_for(ref, modules, top, value=item),
-            value=item,
+            owner=_owner_for(ref, modules, top, value=evidence_value),
+            value=evidence_value,
         )
 
 
@@ -2307,7 +2546,7 @@ def _add_section_list_tasks(
                     "Behavior is not represented only by comments or TB code",
                     "Downstream verification can observe or justify the item",
                 ],
-                owner=_owner_for(ref, modules, top),
+                owner=_owner_for(ref, modules, top, value=item),
                 value=item,
             )
 
@@ -5529,10 +5768,14 @@ def _module_logic_metrics(body: str) -> dict[str, Any]:
 
 def _audit_owner_logic_structure(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
     sources = _read_rtl_sources(ip_dir)
-    modules_by_source: dict[str, dict[str, str]] = {
-        rel: _sv_module_bodies(text)
-        for rel, text in sources.items()
-    }
+    modules_by_source: dict[str, dict[str, str]] = {}
+    ip_prefix = ip_dir.name + "/"
+    for rel, text in sources.items():
+        bodies = _sv_module_bodies(text)
+        norm_rel = rel.replace("\\", "/")
+        modules_by_source[norm_rel] = bodies
+        if norm_rel.startswith(ip_prefix):
+            modules_by_source[norm_rel[len(ip_prefix):]] = bodies
     summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
     owners = summary.get("owner_modules") if isinstance(summary.get("owner_modules"), list) else []
     top = str(plan.get("top") or ip_dir.name)
@@ -6935,7 +7178,16 @@ def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
             continue
         checked += 1
         terms = [term for term in task.get("evidence_terms") or [] if len(str(term)) > 1]
-        tokens, source_scope = _source_tokens_for_owner(source_tokens, str(task.get("owner_file") or ""))
+        owner_file = str(task.get("owner_file") or "")
+        if (
+            str(task.get("category") or "") == "function_model.invariant"
+            and str(task.get("owner_match") or "") in {"", "control_owner_fallback", "top_fallback"}
+        ):
+            # Invariants can span multiple owner modules.  When ownership is
+            # only a fallback, require live RTL evidence somewhere in the DUT
+            # rather than falsely pinning the invariant to a control module.
+            owner_file = ""
+        tokens, source_scope = _source_tokens_for_owner(source_tokens, owner_file)
         lower_tokens = {token.lower() for token in tokens}
         matched = sorted({term for term in terms if term in tokens or term.lower() in lower_tokens})
         required_match_count = _required_static_match_count(str(task.get("category") or ""), terms)
@@ -7508,6 +7760,11 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
     _add_section_list_tasks(tasks, doc, modules, top, section="synthesis", keys=("constraints", "ppa_targets", "dont_touch"), label="synthesis item")
     _add_module_equivalence_tasks(tasks, modules, top)
     _add_test_coverage_tasks(tasks, doc, modules, top)
+    _apply_rtl_contract_owner_overrides(
+        tasks,
+        _rtl_contract_owner_overrides(ip_dir, ip, modules),
+    )
+    _apply_memory_owner_from_function_tasks(tasks)
 
     for key in ("function_model", "cycle_model"):
         if not _present(doc.get(key)):

@@ -530,13 +530,19 @@ def audit(ip: str, root: Path) -> dict[str, Any]:
     rtl_observed_status = str(rtl_observed.get("status") or "").lower()
     missing_rtl_bins = rtl_observed.get("missing_bins") if isinstance(rtl_observed.get("missing_bins"), list) else []
     invalid_rtl_rows = rtl_observed.get("invalid_rows") if isinstance(rtl_observed.get("invalid_rows"), list) else []
+    function_domain = coverage.get("function_coverage") if isinstance(coverage.get("function_coverage"), dict) else {}
+    cycle_domain = coverage.get("cycle_coverage") if isinstance(coverage.get("cycle_coverage"), dict) else {}
+    function_domain_ok = function_domain.get("meets_target") is not False
+    cycle_domain_ok = cycle_domain.get("meets_target") is not False
     coverage_ok = (
         coverage.get("source") == "ssot_coverage_summary"
-        and coverage.get("status") in {"pass", "passed", "ok"}
+        and coverage.get("status") not in {"fail", "failed", "error"}
         and not missing_cov_refs
         and not missing_rtl_bins
         and not invalid_rtl_rows
         and rtl_observed_status in {"pass", "passed", "ok"}
+        and function_domain_ok
+        and cycle_domain_ok
         and (pct >= 100.0 or not required_cov_refs)
     )
     _check(
@@ -547,9 +553,10 @@ def audit(ip: str, root: Path) -> dict[str, Any]:
         evidence=_rel(coverage_path, root),
         owner="tb-gen",
         detail=coverage_error or (
-            f"source={coverage.get('source')} pct={pct} required_refs={len(required_cov_refs)} "
+            f"source={coverage.get('source')} status={coverage.get('status')} pct={pct} required_refs={len(required_cov_refs)} "
             f"missing_refs={missing_cov_refs[:8]} missing_rtl_bins={missing_rtl_bins[:8]} "
-            f"invalid_rows={invalid_rtl_rows[:4]} rtl_observed_status={rtl_observed_status}"
+            f"invalid_rows={invalid_rtl_rows[:4]} rtl_observed_status={rtl_observed_status} "
+            f"function_domain_ok={function_domain_ok} cycle_domain_ok={cycle_domain_ok}"
         ),
         next_action="rerun /coverage after /sim; coverage must be proven by passing scoreboard rows with real rtl_observed signals",
     )

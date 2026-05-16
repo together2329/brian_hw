@@ -1,26 +1,33 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-16T00:42:03Z",
+  "generated_at": "2026-05-16T12:24:59Z",
   "root": "doc/wiki",
-  "node_count": 18,
-  "edge_count": 86,
+  "node_count": 25,
+  "edge_count": 135,
   "tags": {},
   "types": {
     "reference": [
       "arm-m0-min-pipeline-run",
+      "atlas-pipeline-db-state",
       "atlas-pipeline-screen",
       "common-ai-agent-map",
       "deterministic-emit-stages",
       "full-flow-pipeline",
       "golden-todo-evidence",
+      "gpio-orchestrator-multiworker-run",
+      "gpio-serial-pipeline-run",
       "human-review-and-escalation",
       "index",
       "karpathy-llm-wiki-pattern",
       "log",
+      "orchestrator-worker-handoff",
+      "orchestrator-worker-handoff-review",
+      "parallel-todo-sub-agent-workers",
       "provider-and-llm-call-accounting",
       "rtl-gen-ssot-contract",
       "rtl-version-run-history",
       "ssot-qa-workbench",
+      "triple-llm-rv32i-experiment",
       "ui-design-references",
       "wiki-curation-policy",
       "workflow-feedback-and-scheduling",
@@ -50,13 +57,37 @@
         "full-flow-pipeline",
         "index",
         "log",
-        "rtl-version-run-history"
+        "rtl-version-run-history",
+        "triple-llm-rv32i-experiment"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "End-to-end run of common_ai_agent on a minimal ARMv6-M Thumb CPU, `SSOT → fl-model-gen → rtl-gen → tb-gen → sim → lint`. This page is the **reference run** for CPU-class IPs and the first IP-on-DB-stack run captured in the wiki. Detailed run report lives at [`arm_m0_min/PIPELINE_SUMMARY.md`](../../arm_m0_min/PIPELINE_SUMMARY.md).",
       "path": "doc/wiki/arm-m0-min-pipeline-run.md",
       "size_bytes": 7510
+    },
+    {
+      "id": "atlas-pipeline-db-state",
+      "title": "ATLAS Pipeline — DB-vs-Filesystem State",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "atlas-pipeline-screen",
+        "full-flow-pipeline",
+        "golden-todo-evidence",
+        "workflow-feedback-and-scheduling",
+        "ui-design-references"
+      ],
+      "incoming": [
+        "atlas-pipeline-screen",
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "How the `◫ Pipeline` screen decides what to show, and what is stored where in `~/.common_ai_agent/atlas.db` vs the filesystem under `<repo>/<ip>/`.",
+      "path": "doc/wiki/atlas-pipeline-db-state.md",
+      "size_bytes": 5955
     },
     {
       "id": "atlas-pipeline-screen",
@@ -70,9 +101,11 @@
         "ui-design-references",
         "workflow-ownership-and-boundaries",
         "workflow-feedback-and-scheduling",
-        "deterministic-emit-stages"
+        "deterministic-emit-stages",
+        "atlas-pipeline-db-state"
       ],
       "incoming": [
+        "atlas-pipeline-db-state",
         "index",
         "log",
         "ui-design-references"
@@ -81,7 +114,7 @@
       "updated": "",
       "summary": "`◫ Pipeline` is a top-level ATLAS screen that turns the 14-stage common_ai_agent flow into a click-to-run + glance-to-read situation board. It replaced the mock `◫ Architect` screen on 2026-05-16 (see [[log]] entry).",
       "path": "doc/wiki/atlas-pipeline-screen.md",
-      "size_bytes": 10107
+      "size_bytes": 17532
     },
     {
       "id": "common-ai-agent-map",
@@ -123,6 +156,7 @@
       ],
       "incoming": [
         "atlas-pipeline-screen",
+        "gpio-serial-pipeline-run",
         "index",
         "karpathy-llm-wiki-pattern",
         "log",
@@ -142,6 +176,7 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "orchestrator-worker-handoff",
         "arm-m0-min-pipeline-run",
         "common-ai-agent-map",
         "workflow-ownership-and-boundaries",
@@ -150,15 +185,21 @@
       ],
       "incoming": [
         "arm-m0-min-pipeline-run",
+        "atlas-pipeline-db-state",
         "atlas-pipeline-screen",
         "common-ai-agent-map",
         "deterministic-emit-stages",
         "golden-todo-evidence",
+        "gpio-orchestrator-multiworker-run",
+        "gpio-serial-pipeline-run",
         "human-review-and-escalation",
         "index",
+        "orchestrator-worker-handoff",
+        "parallel-todo-sub-agent-workers",
         "provider-and-llm-call-accounting",
         "rtl-gen-ssot-contract",
         "ssot-qa-workbench",
+        "triple-llm-rv32i-experiment",
         "ui-design-references",
         "workflow-ownership-and-boundaries"
       ],
@@ -166,7 +207,7 @@
       "updated": "",
       "summary": "requirement -> ssot-gen -> {fl-model-gen, cl-model-gen} -> equiv-goals -> rtl-gen -> {lint, tb-gen, syn}",
       "path": "doc/wiki/full-flow-pipeline.md",
-      "size_bytes": 2614
+      "size_bytes": 3201
     },
     {
       "id": "golden-todo-evidence",
@@ -180,9 +221,12 @@
       ],
       "incoming": [
         "arm-m0-min-pipeline-run",
+        "atlas-pipeline-db-state",
         "common-ai-agent-map",
         "deterministic-emit-stages",
         "full-flow-pipeline",
+        "gpio-orchestrator-multiworker-run",
+        "gpio-serial-pipeline-run",
         "human-review-and-escalation",
         "index",
         "provider-and-llm-call-accounting",
@@ -194,6 +238,54 @@
       "summary": "The todo list is not a prompt checklist. It is a contract between SSOT, generated artifacts, and evidence.",
       "path": "doc/wiki/golden-todo-evidence.md",
       "size_bytes": 1368
+    },
+    {
+      "id": "gpio-orchestrator-multiworker-run",
+      "title": "GPIO Orchestrator Multi-Worker Run",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "orchestrator-worker-handoff",
+        "full-flow-pipeline",
+        "rtl-gen-ssot-contract",
+        "golden-todo-evidence",
+        "gpio-serial-pipeline-run",
+        "rtl-version-run-history"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Status: active debug log for the `gpio_orch_scratch` scratch run on 2026-05-16.",
+      "path": "doc/wiki/gpio-orchestrator-multiworker-run.md",
+      "size_bytes": 4908
+    },
+    {
+      "id": "gpio-serial-pipeline-run",
+      "title": "simple_gpio_lite — Serial Pipeline Iteration (2026-05-16)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "full-flow-pipeline",
+        "workflow-ownership-and-boundaries",
+        "golden-todo-evidence",
+        "rtl-gen-ssot-contract",
+        "deterministic-emit-stages",
+        "human-review-and-escalation"
+      ],
+      "incoming": [
+        "gpio-orchestrator-multiworker-run",
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "GPIO smoke run used to validate that the common engine blocks on real evidence gaps instead of reporting a green result from a soft cocotb pass.",
+      "path": "doc/wiki/gpio-serial-pipeline-run.md",
+      "size_bytes": 6401
     },
     {
       "id": "human-review-and-escalation",
@@ -209,7 +301,9 @@
       "incoming": [
         "arm-m0-min-pipeline-run",
         "common-ai-agent-map",
+        "gpio-serial-pipeline-run",
         "index",
+        "orchestrator-worker-handoff",
         "ssot-qa-workbench",
         "workflow-ownership-and-boundaries"
       ],
@@ -232,6 +326,9 @@
         "full-flow-pipeline",
         "rtl-gen-ssot-contract",
         "workflow-feedback-and-scheduling",
+        "orchestrator-worker-handoff",
+        "orchestrator-worker-handoff-review",
+        "parallel-todo-sub-agent-workers",
         "rtl-version-run-history",
         "golden-todo-evidence",
         "provider-and-llm-call-accounting",
@@ -240,8 +337,11 @@
         "karpathy-llm-wiki-pattern",
         "wiki-curation-policy",
         "atlas-pipeline-screen",
+        "atlas-pipeline-db-state",
         "ui-design-references",
-        "arm-m0-min-pipeline-run"
+        "arm-m0-min-pipeline-run",
+        "gpio-serial-pipeline-run",
+        "gpio-orchestrator-multiworker-run"
       ],
       "incoming": [
         "karpathy-llm-wiki-pattern",
@@ -251,7 +351,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 3842
+      "size_bytes": 5097
     },
     {
       "id": "karpathy-llm-wiki-pattern",
@@ -268,6 +368,8 @@
       "incoming": [
         "index",
         "log",
+        "parallel-todo-sub-agent-workers",
+        "triple-llm-rv32i-experiment",
         "wiki-curation-policy"
       ],
       "broken_refs": [],
@@ -283,6 +385,9 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "orchestrator-worker-handoff",
+        "orchestrator-worker-handoff-review",
+        "gpio-serial-pipeline-run",
         "atlas-pipeline-screen",
         "workflow-ownership-and-boundaries",
         "ui-design-references",
@@ -290,7 +395,8 @@
         "rtl-version-run-history",
         "deterministic-emit-stages",
         "karpathy-llm-wiki-pattern",
-        "wiki-curation-policy"
+        "wiki-curation-policy",
+        "parallel-todo-sub-agent-workers"
       ],
       "incoming": [
         "arm-m0-min-pipeline-run",
@@ -301,9 +407,83 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- New top-level ATLAS screen: [[atlas-pipeline-screen]] (`◫ Pipeline`, branch `feature_pipeline_ui`). Replaces the mock `◫ Architect` screen. Each of the 14 canonical stages becomes a click on a stage card with a 3-5 dot KPI scoresheet read from on-disk evidence JSON; the DAG MAP at the top shows token-flow animation along edges from running stages. Failed…",
+      "summary": "- Review of [[orchestrator-worker-handoff]] captured at [[orchestrator-worker-handoff-review]]. Gap audit against `src/atlas_api_jobs.py`, `core/delegate_runner.py`, `core/atlas_db.py`, `frontend/atlas/pipeline.jsx`, and `src/headless_workflow.py`: the orchestrator-mode switches (`ATLAS_ORCHESTRATOR_MODE`, gateway flag, path-prefix `/api/workers/<wf>`…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 11421
+      "size_bytes": 24688
+    },
+    {
+      "id": "orchestrator-worker-handoff",
+      "title": "Orchestrator Worker Handoff",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "orchestrator-worker-handoff-review",
+        "full-flow-pipeline",
+        "workflow-feedback-and-scheduling",
+        "workflow-ownership-and-boundaries",
+        "rtl-version-run-history",
+        "human-review-and-escalation"
+      ],
+      "incoming": [
+        "full-flow-pipeline",
+        "gpio-orchestrator-multiworker-run",
+        "index",
+        "log",
+        "orchestrator-worker-handoff-review",
+        "parallel-todo-sub-agent-workers",
+        "workflow-feedback-and-scheduling"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "This page defines the control-plane concept for cross-workflow repair and pipeline execution.",
+      "path": "doc/wiki/orchestrator-worker-handoff.md",
+      "size_bytes": 20995
+    },
+    {
+      "id": "orchestrator-worker-handoff-review",
+      "title": "Orchestrator Worker Handoff — Spec vs Shipped Audit (2026-05-16)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "orchestrator-worker-handoff",
+        "workflow-feedback-and-scheduling",
+        "workflow-ownership-and-boundaries"
+      ],
+      "incoming": [
+        "index",
+        "log",
+        "orchestrator-worker-handoff"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Review notes for [[orchestrator-worker-handoff]]. Captures the gap between what the page declares as current behavior and what the codebase actually implements, so the doc is not misread as \"as-built\". Each row of the gap table doubles as a TODO for the orchestrator/gateway build-out.",
+      "path": "doc/wiki/orchestrator-worker-handoff-review.md",
+      "size_bytes": 18860
+    },
+    {
+      "id": "parallel-todo-sub-agent-workers",
+      "title": "Parallel TODO Sub-Agent Workers",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "orchestrator-worker-handoff",
+        "workflow-feedback-and-scheduling",
+        "karpathy-llm-wiki-pattern",
+        "full-flow-pipeline",
+        "wiki-curation-policy"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Background worker fanout that lets the main agent hand a *batch* of TODOs to `parallel_todo_dispatch(...)` and wait for aggregated results, instead of walking the workflow TODO tracker one item at a time.",
+      "path": "doc/wiki/parallel-todo-sub-agent-workers.md",
+      "size_bytes": 9201
     },
     {
       "id": "provider-and-llm-call-accounting",
@@ -319,7 +499,8 @@
         "arm-m0-min-pipeline-run",
         "common-ai-agent-map",
         "deterministic-emit-stages",
-        "index"
+        "index",
+        "triple-llm-rv32i-experiment"
       ],
       "broken_refs": [],
       "updated": "",
@@ -341,6 +522,8 @@
       "incoming": [
         "arm-m0-min-pipeline-run",
         "deterministic-emit-stages",
+        "gpio-orchestrator-multiworker-run",
+        "gpio-serial-pipeline-run",
         "index"
       ],
       "broken_refs": [],
@@ -360,8 +543,10 @@
       ],
       "incoming": [
         "arm-m0-min-pipeline-run",
+        "gpio-orchestrator-multiworker-run",
         "index",
-        "log"
+        "log",
+        "orchestrator-worker-handoff"
       ],
       "broken_refs": [],
       "updated": "",
@@ -390,6 +575,26 @@
       "size_bytes": 1576
     },
     {
+      "id": "triple-llm-rv32i-experiment",
+      "title": "Triple-LLM `rv32i_min` Experiment",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "arm-m0-min-pipeline-run",
+        "full-flow-pipeline",
+        "provider-and-llm-call-accounting",
+        "wiki-curation-policy",
+        "karpathy-llm-wiki-pattern"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Reference page for the side-by-side test of three LLM providers running the same SSOT input through the entire common_ai_agent pipeline (`ssot-gen → fl-model-gen → cl-model-gen → equiv-goals → rtl-gen → tb-gen → sim → sim-debug → lint → coverage → goal-audit`).",
+      "path": "doc/wiki/triple-llm-rv32i-experiment.md",
+      "size_bytes": 8814
+    },
+    {
       "id": "ui-design-references",
       "title": "UI Design References",
       "type": "reference",
@@ -403,6 +608,7 @@
         "deterministic-emit-stages"
       ],
       "incoming": [
+        "atlas-pipeline-db-state",
         "atlas-pipeline-screen",
         "index",
         "log"
@@ -427,7 +633,9 @@
       ],
       "incoming": [
         "index",
-        "log"
+        "log",
+        "parallel-todo-sub-agent-workers",
+        "triple-llm-rv32i-experiment"
       ],
       "broken_refs": [],
       "updated": "",
@@ -441,19 +649,25 @@
       "type": "reference",
       "tags": [],
       "related": [],
-      "outgoing": [],
+      "outgoing": [
+        "orchestrator-worker-handoff"
+      ],
       "incoming": [
         "arm-m0-min-pipeline-run",
+        "atlas-pipeline-db-state",
         "atlas-pipeline-screen",
         "full-flow-pipeline",
         "index",
+        "orchestrator-worker-handoff-review",
+        "orchestrator-worker-handoff",
+        "parallel-todo-sub-agent-workers",
         "ui-design-references"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "This page defines how common_ai_agent should run multiple IP workflows without turning the system into either a slow serial script or an unsafe free-for-all.",
       "path": "doc/wiki/workflow-feedback-and-scheduling.md",
-      "size_bytes": 7132
+      "size_bytes": 7662
     },
     {
       "id": "workflow-ownership-and-boundaries",
@@ -473,10 +687,13 @@
         "deterministic-emit-stages",
         "full-flow-pipeline",
         "golden-todo-evidence",
+        "gpio-serial-pipeline-run",
         "human-review-and-escalation",
         "index",
         "karpathy-llm-wiki-pattern",
         "log",
+        "orchestrator-worker-handoff-review",
+        "orchestrator-worker-handoff",
         "rtl-gen-ssot-contract",
         "ssot-qa-workbench",
         "ui-design-references"

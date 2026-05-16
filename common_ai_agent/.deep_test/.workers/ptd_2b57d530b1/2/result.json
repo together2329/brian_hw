@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_2b57d530b1",
+  "worker_idx": 2,
+  "model": "fake-C",
+  "requested_model": "fake-C",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "safe-2"
+    }
+  ],
+  "todos_done": [
+    "todo-3"
+  ],
+  "result": "ok(fake-C)",
+  "error": "",
+  "started_at": 1778918545.791956,
+  "completed_at": 1778918545.792301,
+  "duration_s": 0.00034499168395996094
+}

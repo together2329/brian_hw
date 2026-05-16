@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_b7eb41f5db",
+  "worker_idx": 0,
+  "model": "cursor-cli",
+  "requested_model": "cursor-cli",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Say exactly the word DONE."
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "Error calling LLM: HTTP Error 400: Bad Request",
+  "error": "",
+  "started_at": 1778928933.525386,
+  "completed_at": 1778928934.3669682,
+  "duration_s": 0.8415820598602295
+}

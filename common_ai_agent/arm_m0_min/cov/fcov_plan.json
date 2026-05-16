@@ -4,67 +4,17 @@
   "ip": "arm_m0_min",
   "source": "arm_m0_min/yaml/arm_m0_min.ssot.yaml",
   "planned_before_rtl": true,
-  "authority_contract": {
-    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
-    "general_evaluation_criteria": [
-      "traceability: every generated artifact traces to SSOT refs",
-      "functional_equivalence: RTL observables match FunctionalModel results",
-      "module_equivalence: behavior-owning modules have module-boundary evidence",
-      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
-      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
-      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
-      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
-      "performance_cycle: cycle/performance targets are measured or escalated",
-      "debug_observability: waveform/probe evidence is inspectable",
-      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
-      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
-    ],
-    "locked_artifacts": [
-      "arm_m0_min/req/",
-      "arm_m0_min/yaml/arm_m0_min.ssot.yaml",
-      "arm_m0_min/model/functional_model.py",
-      "arm_m0_min/cov/fcov_plan.json",
-      "arm_m0_min/yaml/arm_m0_min.ssot.yaml#io_list",
-      "arm_m0_min/yaml/arm_m0_min.ssot.yaml#cycle_model"
-    ],
-    "llm_editable_artifacts": [
-      "arm_m0_min/rtl/",
-      "arm_m0_min/tb/",
-      "arm_m0_min/sim/",
-      "arm_m0_min/vectors/",
-      "arm_m0_min/reports/"
-    ],
-    "loopable_evidence_points": [
-      "traceability gap",
-      "FL expected vs RTL actual diff",
-      "module FL expected vs RTL boundary actual diff",
-      "coverage goal vs coverage result gap",
-      "lint/compile diagnostic",
-      "interface/cycle assertion failure",
-      "CL target vs measured performance gap",
-      "minimal regression reproducer",
-      "report/root-cause evidence gap"
-    ],
-    "loopable_oracles": [
-      "traceability gap",
-      "FL expected vs RTL actual diff",
-      "module FL expected vs RTL boundary actual diff",
-      "coverage goal vs coverage result gap",
-      "lint/compile diagnostic",
-      "interface/cycle assertion failure",
-      "CL target vs measured performance gap",
-      "minimal regression reproducer",
-      "report/root-cause evidence gap"
-    ],
-    "human_gate_required_for": [
-      "requirement intent/scope change",
-      "SSOT behavior or waiver change",
-      "FunctionalModel golden semantic change",
-      "coverage goal change",
-      "interface contract change",
-      "performance target/tradeoff change",
-      "final signoff"
-    ]
+  "level": "union",
+  "summary": {
+    "total_bins": 30,
+    "by_class": {
+      "scenario": 5,
+      "transaction_type": 2,
+      "state_transition": 8,
+      "error": 2,
+      "protocol_handshake": 3,
+      "latency_bin": 10
+    }
   },
   "bins": [
     {
@@ -103,252 +53,172 @@
       "description": "Bus error to fault-halt"
     },
     {
-      "id": "fcov_tx_decode_exec",
-      "class": "transaction",
-      "coverage_domain": "function",
-      "source": "function_model.transactions.TX_DECODE_EXEC",
-      "source_ref": "function_model.transactions.TX_DECODE_EXEC",
-      "description": "ALU/compare/branch transaction observed"
-    },
-    {
-      "id": "fcov_tx_load_store",
-      "class": "transaction",
-      "coverage_domain": "function",
-      "source": "function_model.transactions.TX_LOAD_STORE",
-      "source_ref": "function_model.transactions.TX_LOAD_STORE",
-      "description": "Load/store transaction observed"
-    },
-    {
-      "id": "ccov_if_stall",
-      "class": "stall",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.backpressure",
-      "source_ref": "cycle_model.backpressure",
-      "description": "IF backpressure observed"
-    },
-    {
-      "id": "ccov_mem_stall",
-      "class": "stall",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules",
-      "source_ref": "cycle_model.handshake_rules",
-      "description": "MEM backpressure observed"
-    },
-    {
-      "id": "ccov_pipeline_order",
-      "class": "ordering",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.ordering",
-      "source_ref": "cycle_model.ordering",
-      "description": "In-order commit observed"
-    },
-    {
       "id": "function_alu_compare_branch",
       "class": "transaction_type",
-      "coverage_domain": "function",
       "source": "function_model.transactions[0]",
-      "source_ref": "function_model.transactions.tx_decode_exec",
       "description": "alu_compare_branch"
     },
     {
       "id": "function_single_transfer_memory_access",
       "class": "transaction_type",
-      "coverage_domain": "function",
       "source": "function_model.transactions[1]",
-      "source_ref": "function_model.transactions.tx_load_store",
       "description": "single_transfer_memory_access"
-    },
-    {
-      "id": "cycle_handshake_0",
-      "class": "protocol",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[0]",
-      "source_ref": "cycle_model.handshake_rules[0]",
-      "description": "{'signal': 'i_htrans', 'rule': 'IF keeps transfer intent stable until i_hready handshake occurs'}"
-    },
-    {
-      "id": "cycle_handshake_1",
-      "class": "protocol",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[1]",
-      "source_ref": "cycle_model.handshake_rules[1]",
-      "description": "{'signal': 'd_htrans', 'rule': 'EX keeps active transfer until d_hready indicates completion'}"
-    },
-    {
-      "id": "cycle_handshake_2",
-      "class": "protocol",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[2]",
-      "source_ref": "cycle_model.handshake_rules[2]",
-      "description": "{'signal': 'd_hwdata', 'rule': 'For STR, write data remains stable while waiting for d_hready'}"
-    },
-    {
-      "id": "cycle_latency_fetch_accept",
-      "class": "latency",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.latency.fetch_accept",
-      "source_ref": "cycle_model.latency.fetch_accept",
-      "description": "{'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}"
-    },
-    {
-      "id": "cycle_latency_alu_instr",
-      "class": "latency",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.latency.alu_instr",
-      "source_ref": "cycle_model.latency.alu_instr",
-      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}"
-    },
-    {
-      "id": "cycle_latency_load_store_instr",
-      "class": "latency",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.latency.load_store_instr",
-      "source_ref": "cycle_model.latency.load_store_instr",
-      "description": "{'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}"
-    },
-    {
-      "id": "cycle_pipeline_if",
-      "class": "pipeline_stage",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.pipeline[0]",
-      "source_ref": "cycle_model.pipeline[0]",
-      "description": "Drive instruction address/control and capture instruction on ready"
-    },
-    {
-      "id": "cycle_pipeline_id",
-      "class": "pipeline_stage",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.pipeline[1]",
-      "source_ref": "cycle_model.pipeline[1]",
-      "description": "Decode instruction and read source operands"
-    },
-    {
-      "id": "cycle_pipeline_ex",
-      "class": "pipeline_stage",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.pipeline[2]",
-      "source_ref": "cycle_model.pipeline[2]",
-      "description": "Execute/branch/load-store and commit results"
-    },
-    {
-      "id": "cycle_ordering_0",
-      "class": "ordering",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.ordering[0]",
-      "source_ref": "cycle_model.ordering[0]",
-      "description": "Program-order retirement: instruction i commits before i+1."
-    },
-    {
-      "id": "cycle_ordering_1",
-      "class": "ordering",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.ordering[1]",
-      "source_ref": "cycle_model.ordering[1]",
-      "description": "Branch redirection affects subsequent fetch only after branch evaluation reaches commit boundary."
-    },
-    {
-      "id": "cycle_backpressure_0",
-      "class": "backpressure",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.backpressure[0]",
-      "source_ref": "cycle_model.backpressure[0]",
-      "description": "i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state."
-    },
-    {
-      "id": "cycle_backpressure_1",
-      "class": "backpressure",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.backpressure[1]",
-      "source_ref": "cycle_model.backpressure[1]",
-      "description": "d_hready=0 stalls memory operation in EX; no duplicate commit allowed."
     },
     {
       "id": "fsm_core_reset_to_run_0",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.core.transitions[0]",
-      "source_ref": "fsm.core.transitions[0]",
       "description": "rst deasserted"
     },
     {
       "id": "fsm_core_run_to_stall_if_1",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.core.transitions[1]",
-      "source_ref": "fsm.core.transitions[1]",
       "description": "i_hready==0"
     },
     {
       "id": "fsm_core_stall_if_to_run_2",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.core.transitions[2]",
-      "source_ref": "fsm.core.transitions[2]",
       "description": "i_hready==1"
     },
     {
       "id": "fsm_core_run_to_stall_mem_3",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.core.transitions[3]",
-      "source_ref": "fsm.core.transitions[3]",
       "description": "active load/store && d_hready==0"
     },
     {
       "id": "fsm_core_stall_mem_to_run_4",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.core.transitions[4]",
-      "source_ref": "fsm.core.transitions[4]",
       "description": "d_hready==1 && d_hresp==OKAY"
     },
     {
       "id": "fsm_core_run_to_fault_halt_5",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.core.transitions[5]",
-      "source_ref": "fsm.core.transitions[5]",
       "description": "i_hresp==ERROR || d_hresp==ERROR"
     },
     {
       "id": "fsm_core_stall_mem_to_fault_halt_6",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.core.transitions[6]",
-      "source_ref": "fsm.core.transitions[6]",
       "description": "d_hresp==ERROR"
     },
     {
       "id": "fsm_core_fault_halt_to_reset_7",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.core.transitions[7]",
-      "source_ref": "fsm.core.transitions[7]",
       "description": "rst asserted"
     },
     {
       "id": "error_i_bus_error",
       "class": "error",
-      "coverage_domain": "function",
       "source": "error_handling.error_sources[0]",
-      "source_ref": "error_handling.error_sources[0]",
       "description": "{'name': 'I_BUS_ERROR', 'detect': 'i_hresp==ERROR when instruction transfer completes', 'effect': 'enter FAULT_HALT'}"
     },
     {
       "id": "error_d_bus_error",
       "class": "error",
-      "coverage_domain": "function",
       "source": "error_handling.error_sources[1]",
-      "source_ref": "error_handling.error_sources[1]",
       "description": "{'name': 'D_BUS_ERROR', 'detect': 'd_hresp==ERROR when data transfer completes', 'effect': 'enter FAULT_HALT'}"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "handshake_0"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "handshake_1"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "description": "handshake_2"
+    },
+    {
+      "id": "latency_fetch_accept_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fetch_accept",
+      "description": "fetch_accept latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_fetch_accept_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fetch_accept",
+      "description": "fetch_accept latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fetch_accept_unbounded",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fetch_accept",
+      "description": "fetch_accept latency unbounded (no max_cycles)",
+      "bucket": "unbounded"
+    },
+    {
+      "id": "latency_alu_instr_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.alu_instr",
+      "description": "alu_instr latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_alu_instr_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.alu_instr",
+      "description": "alu_instr latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_alu_instr_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.alu_instr",
+      "description": "alu_instr latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_alu_instr_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.alu_instr",
+      "description": "alu_instr latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_load_store_instr_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.load_store_instr",
+      "description": "load_store_instr latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_load_store_instr_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.load_store_instr",
+      "description": "load_store_instr latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_load_store_instr_unbounded",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.load_store_instr",
+      "description": "load_store_instr latency unbounded (no max_cycles)",
+      "bucket": "unbounded"
     }
-  ],
-  "summary": {
-    "total_bins": 35,
-    "scenario_bins": 5,
-    "transaction_bins": 2,
-    "protocol_bins": 3,
-    "state_transition_bins": 8,
-    "error_bins": 2
-  }
+  ]
 }

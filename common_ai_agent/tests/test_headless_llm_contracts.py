@@ -85,10 +85,35 @@ def _run_check_ssot(root: Path, ip: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def _run_repair_ssot(root: Path, ip: str) -> subprocess.CompletedProcess[str]:
+def _run_repair_ssot(root: Path, ip: str, extra_args: list[str] | None = None) -> subprocess.CompletedProcess[str]:
     script = Path(__file__).resolve().parents[1] / "workflow" / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
     return subprocess.run(
+        ["python3", str(script), ip, "--root", str(root), *(extra_args or [])],
+        cwd=str(Path(__file__).resolve().parents[1]),
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+
+
+def _run_ssot_to_rtl(root: Path, ip: str) -> subprocess.CompletedProcess[str]:
+    script = Path(__file__).resolve().parents[1] / "workflow" / "rtl-gen" / "scripts" / "ssot_to_rtl.py"
+    return subprocess.run(
         ["python3", str(script), ip, "--root", str(root)],
+        cwd=str(Path(__file__).resolve().parents[1]),
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+
+
+def _run_derive_rtl_todos(root: Path, ip: str, *, audit_rtl: bool = False) -> subprocess.CompletedProcess[str]:
+    script = Path(__file__).resolve().parents[1] / "workflow" / "rtl-gen" / "scripts" / "derive_rtl_todos.py"
+    args = ["python3", str(script), ip, "--root", str(root)]
+    if audit_rtl:
+        args.append("--audit-rtl")
+    return subprocess.run(
+        args,
         cwd=str(Path(__file__).resolve().parents[1]),
         text=True,
         capture_output=True,
@@ -339,6 +364,55 @@ def test_check_ssot_disk_requires_executable_function_model_output_rules(tmp_pat
     assert "function_model.transactions[] must include at least one executable output_rules entry" in result.stdout
 
 
+def test_ssot_downstream_readiness_blocks_prose_only_function_transactions(tmp_path: Path):
+    ip = "prose_only_fm_ip"
+    doc = _base_ssot_doc(ip)
+    doc["function_model"]["transactions"].append(
+        {
+            "id": "FM_STATUS_POLL",
+            "name": "status_poll",
+            "preconditions": ["host reads status register"],
+            "outputs": ["status bus returns the current pending interrupt state"],
+            "side_effects": ["no architectural state change"],
+            "error_cases": ["none"],
+        }
+    )
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    result = _run_check_ssot(tmp_path, ip)
+
+    assert result.returncode != 0
+    assert "function_model.transactions[1] must include executable output_rules or state_updates" in result.stdout
+
+    repaired = _run_repair_ssot(tmp_path, ip, ["--strict-downstream"])
+
+    assert repaired.returncode == 2
+    blockers_path = tmp_path / ip / "req" / "ssot_downstream_blockers.json"
+    blockers = json.loads(blockers_path.read_text(encoding="utf-8"))
+    assert any(issue["id"] == "SSOT_FM_MACHINE_RULES_MISSING_FM_STATUS_POLL" for issue in blockers["issues"])
+
+
+def test_check_ssot_disk_allows_inout_output_rule_observable(tmp_path: Path):
+    ip = "inout_observable_ip"
+    doc = _base_ssot_doc(ip)
+    doc["io_list"]["interfaces"].append(
+        {
+            "name": "bidir_pad",
+            "type": "custom",
+            "clock_domain": "main",
+            "ports": [{"name": "gpio_pins", "direction": "inout", "width": 32, "description": "Bidirectional pad"}],
+            "protocol": {"drive": "Output-mode bits are driven; input-mode bits are observed."},
+        }
+    )
+    tx = doc["function_model"]["transactions"][0]
+    tx["output_rules"] = [{"name": "gpio_pins", "port": "gpio_pins", "expr": "data_in", "width": 32}]
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    result = _run_check_ssot(tmp_path, ip)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
 def test_repair_ssot_schema_infers_shift_output_rules_and_concrete_port_maps(tmp_path: Path):
     ip = "repair_shift_rules_ip"
     doc = _base_ssot_doc(ip)
@@ -417,6 +491,128 @@ def test_repair_ssot_schema_moves_internal_output_rules_to_state_updates(tmp_pat
     assert any(item["name"] == "int_status_q" for item in tx["state_updates"])
 
 
+def test_repair_ssot_schema_does_not_promote_rule_helpers_to_io(tmp_path: Path):
+    ip = "repair_rule_helper_ports_ip"
+    doc = _base_ssot_doc(ip)
+    iface_ports = doc["io_list"]["interfaces"][0]["ports"]
+    iface_ports.extend(
+        [
+            {
+                "name": "read_mux",
+                "width": 1,
+                "direction": "input",
+                "description": "Auto-derived 1-bit input from rule expression 'read_mux'",
+            },
+            {
+                "name": "edge_event",
+                "width": 1,
+                "direction": "input",
+                "description": "Auto-derived 1-bit input from rule expression 'edge_event'",
+            },
+        ]
+    )
+    doc["function_model"]["derived_signals"] = [
+        {"name": "edge_event", "expr": "status_q & enable_q", "width": 1}
+    ]
+    doc["function_model"]["state_variables"].extend(
+        [
+            {"name": "status_q", "reset": 0, "width": 8},
+            {"name": "enable_q", "reset": 0, "width": 8},
+        ]
+    )
+    tx = doc["function_model"]["transactions"][0]
+    tx["required_fields"] = ["paddr"]
+    tx["output_rules"] = [
+        {"name": "result", "port": "result", "expr": "read_mux(paddr)", "width": 9},
+        {"name": "result_valid", "port": "result_valid", "expr": "reduction_or(edge_event)", "width": 1},
+    ]
+    tx["state_updates"] = [{"name": "status_q", "expr": "status_q | edge_event", "width": 8}]
+    doc["rtl_contract"]["input_map"] = {
+        "paddr": "paddr",
+        "read_mux": "read_mux",
+        "edge_event": "edge_event",
+    }
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip)
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    port_names = {
+        port["name"]
+        for iface in loaded["io_list"]["interfaces"]
+        for port in iface.get("ports", [])
+    }
+    assert "read_mux" not in port_names
+    assert "edge_event" not in port_names
+    assert "paddr" not in loaded["rtl_contract"].get("unresolved_expression_refs", [])
+    assert "read_mux" not in loaded["rtl_contract"]["input_map"]
+    assert "edge_event" not in loaded["rtl_contract"]["input_map"]
+
+
+def test_repair_ssot_schema_derives_apb_helpers_and_breaks_output_self_dependencies(tmp_path: Path):
+    ip = "repair_apb_helpers_ip"
+    doc = _base_ssot_doc(ip)
+    doc["io_list"] = {
+        "clock_domains": [{"name": "bus", "ports": [{"name": "pclk", "direction": "input", "width": 1}]}],
+        "resets": [{"name": "presetn", "polarity": "active_low", "ports": [{"name": "presetn", "direction": "input", "width": 1}]}],
+        "interfaces": [
+            {
+                "name": "apb4",
+                "type": "apb4",
+                "role": "target",
+                "clock_domain": "bus",
+                "ports": [
+                    {"name": "paddr", "direction": "input", "width": 12},
+                    {"name": "psel", "direction": "input", "width": 1},
+                    {"name": "penable", "direction": "input", "width": 1},
+                    {"name": "pwrite", "direction": "input", "width": 1},
+                    {"name": "pwdata", "direction": "input", "width": 32},
+                    {"name": "pstrb", "direction": "input", "width": 4},
+                    {"name": "prdata", "direction": "output", "width": 32},
+                    {"name": "pready", "direction": "output", "width": 1},
+                    {"name": "pslverr", "direction": "output", "width": 1},
+                ],
+            }
+        ],
+    }
+    tx = doc["function_model"]["transactions"][0]
+    tx["id"] = "FM_APB_WRITE_RW"
+    tx["preconditions"] = ["apb_valid_write == 1", "addr == 0x00"]
+    tx["inputs"] = ["paddr", "pwdata", "pstrb"]
+    tx["output_rules"] = [
+        {"name": "apb_write_pready", "port": "pready", "width": 1, "expr": "1 if apb_valid_write else pready"},
+        {"name": "apb_write_pslverr", "port": "pslverr", "width": 1, "expr": "0 if apb_valid_write else pslverr"},
+    ]
+    doc["rtl_contract"] = {
+        "transaction": "FM_APB_WRITE_RW",
+        "clock": "pclk",
+        "reset": "presetn",
+        "sample_condition": "1",
+        "input_map": {"paddr": "paddr", "psel": "psel", "penable": "penable", "pwrite": "pwrite", "pwdata": "pwdata", "pstrb": "pstrb"},
+        "output_map": {"pready": "pready", "pslverr": "pslverr", "prdata": "prdata"},
+        "output_rules": list(tx["output_rules"]),
+    }
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip)
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    derived = {item["name"]: item for item in loaded["function_model"]["derived_signals"]}
+    assert derived["apb_valid_write"]["expr"] == "psel and penable and pwrite"
+    assert derived["apb_valid_read"]["expr"] == "psel and penable and not pwrite"
+    assert derived["addr"]["expr"] == "paddr"
+    tx = loaded["function_model"]["transactions"][0]
+    expr_by_port = {rule["port"]: rule["expr"] for rule in tx["output_rules"]}
+    assert expr_by_port["pready"] == "1"
+    assert expr_by_port["pslverr"] == "0"
+    preflight = _run_ssot_to_rtl(tmp_path, ip)
+    assert "RTL_INPUT_MAP_APB_VALID_WRITE" not in preflight.stdout
+    assert "RTL_OUTPUT_DEP_APB_WRITE_PREADY" not in preflight.stdout
+    assert "RTL_OUTPUT_DEP_APB_WRITE_PSLVERR" not in preflight.stdout
+
+
 def test_repair_ssot_schema_adds_register_write_effects(tmp_path: Path):
     ip = "repair_register_write_effect_ip"
     doc = _base_ssot_doc(ip)
@@ -473,6 +669,12 @@ def test_repair_ssot_schema_normalizes_verilog_rule_expressions(tmp_path: Path):
     ip = "repair_verilog_expr_ip"
     doc = _base_ssot_doc(ip)
     tx = doc["function_model"]["transactions"][0]
+    doc["io_list"]["interfaces"][0]["ports"].extend(
+        [
+            {"name": "running", "direction": "output", "width": 1},
+            {"name": "count", "direction": "output", "width": 16},
+        ]
+    )
     tx["output_rules"] = [
         {"name": "result", "port": "result", "expr": "({1'b0, data_in} << 1)", "width": 9},
         {"name": "result_valid", "port": "result_valid", "expr": "1'b1", "width": 1},
@@ -525,6 +727,65 @@ def test_repair_ssot_schema_assigns_decomposition_refs_to_monolithic_top(tmp_pat
     top_row = next(row for row in loaded["sub_modules"] if row["name"] == ip)
     assert "function_model.transactions.FM_PRIMARY" in top_row["function_model_refs"]
     assert "decomposition" in top_row["decomposition_refs"]
+
+
+def test_derive_rtl_todos_assigns_memory_owner_from_function_state_update(tmp_path: Path):
+    ip = "memory_owner_ip"
+    doc = _base_ssot_doc(ip)
+    doc["sub_modules"] = [
+        {
+            "name": f"{ip}_irq",
+            "file": f"rtl/{ip}_irq.sv",
+            "ownership": "manifest",
+            "function_model_refs": ["function_model.transactions.FM_EDGE_SET_IRQ_STATUS"],
+            "source_sections": ["function_model", "interrupts"],
+        },
+        {"name": ip, "file": f"rtl/{ip}.sv", "ownership": "manifest", "description": "top"},
+    ]
+    doc["memory"] = {
+        "instances": [
+            {
+                "name": "gpio_in_prev_core",
+                "type": "register",
+                "width": 8,
+                "depth": 1,
+                "latency": 0,
+            }
+        ]
+    }
+    doc["function_model"]["state_variables"] = [
+        {
+            "name": "gpio_in_prev_core",
+            "source": "memory.instances.gpio_in_prev_core",
+            "reset": 0,
+        }
+    ]
+    doc["function_model"]["transactions"] = [
+        {
+            "id": "FM_EDGE_SET_IRQ_STATUS",
+            "preconditions": ["core_sample_event == 1"],
+            "inputs": ["gpio_in_sync_core", "gpio_in_prev_core"],
+            "state_updates": [
+                {
+                    "name": "gpio_in_prev_core_next",
+                    "width": 8,
+                    "expr": "gpio_in_sync_core & 0xFF",
+                }
+            ],
+            "output_rules": [],
+        }
+    ]
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    derived = _run_derive_rtl_todos(tmp_path, ip)
+
+    assert derived.returncode in {0, 2}, derived.stdout + derived.stderr
+    plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    by_ref = {task["source_ref"]: task for task in plan["tasks"]}
+    memory_task = by_ref["memory.instances.gpio_in_prev_core"]
+    assert memory_task["owner_module"] == f"{ip}_irq"
+    assert memory_task["owner_file"] == f"rtl/{ip}_irq.sv"
+    assert memory_task["owner_match"].startswith("function_model_memory_owner:")
 
 
 def test_repair_ssot_schema_collapses_leaf_manifest_to_top_only(tmp_path: Path):
@@ -688,7 +949,7 @@ def test_headless_ssot_generation_canonicalizes_llm_ssot_before_pass(tmp_path: P
     assert "canonicalize_llm_ssot" in progress
 
 
-def test_cached_glm51_ssot_response_fails_with_exact_blocker(tmp_path: Path):
+def test_cached_glm51_ssot_response_repairs_missing_cycle_before_downstream(tmp_path: Path):
     ip = "cached_missing_cycle_ip"
     req = _write_req(tmp_path, ip)
     fixture = tmp_path / "fixtures" / "glm_5_1" / "missing_cycle"
@@ -720,11 +981,10 @@ def test_cached_glm51_ssot_response_fails_with_exact_blocker(tmp_path: Path):
     )
     result = runner.run(ip=ip, requirement_path=req, stages=["ssot-gen", "fl-model-gen"])
 
-    assert result.status == "blocked"
-    question = tmp_path / "work" / ip / "questions" / "ssot_gen_missing_contract.json"
-    assert question.is_file()
-    gate = json.loads(question.read_text(encoding="utf-8"))
-    assert "cycle_model" in gate["decision_needed"]
+    assert result.status == "pass"
+    ssot = yaml.safe_load((tmp_path / "work" / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    assert "cycle_model" in ssot
+    assert (tmp_path / "work" / ip / "logs" / "validators" / "repair_ssot_schema.log").is_file()
 
 
 def test_ssot_gen_repairs_invalid_yaml_before_human_gate(tmp_path: Path):
@@ -809,6 +1069,8 @@ def test_ssot_gen_uses_deterministic_schema_repair_before_llm_retry(tmp_path: Pa
             "name": "status_poll",
             "preconditions": ["status read is accepted under cycle_model rules"],
             "outputs": ["current status is observable without changing architectural state"],
+            "side_effects": ["status read preserves accepted_count"],
+            "state_updates": [{"name": "accepted_count", "expr": "accepted_count", "width": 8}],
         }
     )
     doc["cycle_model"].pop("performance", None)

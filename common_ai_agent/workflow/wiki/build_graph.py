@@ -467,9 +467,16 @@ def _ip_artifact_nodes(ip: str, ip_dir: Path, project_root: Path) -> dict[str, d
             related=["rtl", "fl_model"],
         )
 
-    sim_compare = _json_or_none(ip_dir / "sim" / "fl_rtl_compare.json")
-    sim_audit = _json_or_none(ip_dir / "sim" / "fl_rtl_goal_audit.json")
-    if sim_compare or sim_audit:
+    sim_dir = ip_dir / "sim"
+    sim_compare_path = sim_dir / "fl_rtl_compare.json"
+    sim_audit_path = sim_dir / "fl_rtl_goal_audit.json"
+    sim_result_path = sim_dir / "results.xml"
+    sim_scoreboard_path = sim_dir / "scoreboard_events.jsonl"
+    sim_report_path = sim_dir / "sim_report.txt"
+    sim_compare = _json_or_none(sim_compare_path)
+    sim_audit = _json_or_none(sim_audit_path)
+    sim_evidence_present = sim_result_path.is_file() or sim_scoreboard_path.is_file() or sim_report_path.is_file()
+    if sim_compare or sim_audit or sim_evidence_present:
         total = None
         passed = None
         mismatches = None
@@ -488,7 +495,7 @@ def _ip_artifact_nodes(ip: str, ip_dir: Path, project_root: Path) -> dict[str, d
                 bins_doc = sim_audit["bins"]
                 bins_hit = bins_doc.get("hit") or bins_doc.get("hit_count")
                 bins_total = bins_doc.get("total")
-        status = "unknown"
+        status = "present" if sim_evidence_present else "unknown"
         if isinstance(mismatches, int) and mismatches == 0 and (
             isinstance(sim_compare, dict)
             and (
@@ -506,15 +513,22 @@ def _ip_artifact_nodes(ip: str, ip_dir: Path, project_root: Path) -> dict[str, d
             digest_parts.append(f"mismatches={mismatches}")
         if bins_hit is not None:
             digest_parts.append(f"bins={bins_hit}/{bins_total}")
+        if sim_result_path.is_file():
+            digest_parts.append("results.xml=present")
+        if sim_scoreboard_path.is_file():
+            digest_parts.append("scoreboard_events=present")
         nodes["sim"] = _make_artifact_node(
             node_id="sim",
             title=f"{ip} Simulation",
             node_type="reference",
             status=status,
             digest=" ".join(digest_parts) or "sim evidence present",
-            path=ip_dir / "sim",
-            updated=_file_updated(ip_dir / "sim" / "fl_rtl_compare.json")
-            or _file_updated(ip_dir / "sim" / "fl_rtl_goal_audit.json"),
+            path=sim_dir,
+            updated=_file_updated(sim_compare_path)
+            or _file_updated(sim_audit_path)
+            or _file_updated(sim_result_path)
+            or _file_updated(sim_scoreboard_path)
+            or _file_updated(sim_report_path),
             project_root=project_root,
             extra_tags=["sim"],
             related=["rtl", "tb", "fl_model"],

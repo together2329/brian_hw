@@ -1,0 +1,26 @@
+{
+  "job_id": "ptd_c88160fac3",
+  "worker_idx": 2,
+  "model": "kimi-2.6",
+  "requested_model": "kimi",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "For IP parity_gen: RTL-0003: Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "raw": {
+        "id": "todo-3",
+        "content": "For IP parity_gen: RTL-0003: Gate: SSOT function_model and cycle_model are present before RTL generation"
+      }
+    }
+  ],
+  "todos_done": [
+    "todo-3"
+  ],
+  "result": "Thought: Worker 2's assigned TODO (todo-3) has been fully verified against the gate criteria. Both function_model and cycle_model sections exist and are non-empty in parity_gen/yaml/parity_gen.ssot.yaml before RTL generation. No further tool actions are needed; providing final answer.\n\nAction: run_command(command=\"exit 0\")\n\nFinal Answer:\nWorker 2 — Assigned TODOs Result\n\n- **todo-3 (RTL-0003)**: DONE\n  - **Content**: Gate: SSOT function_model and cycle_model are present before RTL generation\n  - **Evidence**:\n    - `parity_gen/yaml/parity_gen.ssot.yaml` contains `function_model` at line 112 (non-empty, with transactions, state variables, output rules, invariants)\n    - `parity_gen/yaml/parity_gen.ssot.yaml` contains `cycle_model` at line 151 (non-empty, with latency, handshake rules, pipeline stages, ordering)\n    - Python YAML parse confirmed both sections are truthy/non-empty\n    - `rtl/rtl_authoring_provenance.json` confirms RTL generation was driven from this SSOT file",
+  "error": "",
+  "started_at": 1778933893.585119,
+  "completed_at": 1778934016.2879438,
+  "duration_s": 122.70282483100891
+}

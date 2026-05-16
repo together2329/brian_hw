@@ -1,0 +1,30 @@
+{
+  "job_id": "ptd_32bcc40452",
+  "requested_worker_count": 1,
+  "worker_count": 1,
+  "models": [
+    {
+      "requested_model": "deepseek-v4-pro",
+      "resolved_model": "deepseek-v4-pro",
+      "pricing_model": "deepseek-v4-pro",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Say the word ZETA."
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "Say the word ZETA."
+      }
+    ]
+  ],
+  "created_at": 1778931977.859731
+}

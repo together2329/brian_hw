@@ -167,6 +167,16 @@ def _rule_items(value) -> list[dict]:
     return [item for item in value or [] if isinstance(item, dict)]
 
 
+def _derived_signal_items(fm: dict) -> list[dict]:
+    items: list[dict] = []
+    for key in ("derived_signals", "intermediate_signals", "internal_signals", "combinational_signals"):
+        raw = fm.get(key) if isinstance(fm, dict) else None
+        for item in _rule_items(raw):
+            if item not in items:
+                items.append(item)
+    return items
+
+
 def _param_items(value) -> list[dict]:
     if isinstance(value, dict):
         return [{"name": key, "default": default} for key, default in value.items()]
@@ -195,7 +205,22 @@ def _expr_names(expr: object) -> set[str]:
         node = _parse_rule_expr(expr)
     except Exception:
         return set()
-    return {item.id for item in ast.walk(node) if isinstance(item, ast.Name)}
+    names: set[str] = set()
+
+    class Visitor(ast.NodeVisitor):
+        def visit_Call(self, item: ast.Call) -> None:  # noqa: N802 - ast visitor API
+            # Direct helper/function names such as reduction_or(expr) are not
+            # transaction fields and must not become rtl_contract.input_map keys.
+            for arg in item.args:
+                self.visit(arg)
+            for keyword in item.keywords:
+                self.visit(keyword.value)
+
+        def visit_Name(self, item: ast.Name) -> None:  # noqa: N802 - ast visitor API
+            names.add(item.id)
+
+    Visitor().visit(node)
+    return names
 
 
 def _rtl_const(value: object) -> str:
@@ -294,6 +319,26 @@ def _ast_to_rtl_typed(
             raise ValueError(f"unsupported unary operator {type(node.op).__name__}")
         width = max(width, int(preferred_width or 0), 1)
         return f"({op}{_sv_width_cast(width, operand)})", width
+    if isinstance(node, ast.Subscript):
+        value, _value_w = _ast_to_rtl_typed(node.value, env, widths, None)
+        slice_node = node.slice
+        if isinstance(slice_node, ast.Constant):
+            index = _rtl_const(slice_node.value)
+            return f"{value}[{index}]", 1
+        if isinstance(slice_node, ast.UnaryOp) and isinstance(slice_node.op, (ast.UAdd, ast.USub)):
+            index, _index_w = _ast_to_rtl_typed(slice_node, env, widths, None)
+            return f"{value}[{index}]", 1
+        if isinstance(slice_node, ast.Slice):
+            if slice_node.lower is None or slice_node.upper is None or slice_node.step is not None:
+                raise ValueError("unsupported subscript slice")
+            low, _low_w = _ast_to_rtl_typed(slice_node.lower, env, widths, None)
+            high_exclusive, _high_w = _ast_to_rtl_typed(slice_node.upper, env, widths, None)
+            if not re.fullmatch(r"[0-9]+", low) or not re.fullmatch(r"[0-9]+", high_exclusive):
+                raise ValueError("unsupported dynamic subscript slice")
+            high = max(int(high_exclusive) - 1, int(low))
+            return f"{value}[{high}:{low}]", max(high - int(low) + 1, 1)
+        index, _index_w = _ast_to_rtl_typed(slice_node, env, widths, None)
+        return f"{value}[{index}]", 1
     if isinstance(node, ast.Compare):
         ops = {
             ast.Eq: "==",
@@ -321,6 +366,16 @@ def _ast_to_rtl_typed(
         other, other_w = _ast_to_rtl_typed(node.orelse, env, widths, preferred_width)
         width = max(body_w, other_w, int(preferred_width or 0), 1)
         return f"({_rtl_bool(test)} ? {_sv_width_cast(width, body)} : {_sv_width_cast(width, other)})", width
+    if isinstance(node, ast.Call):
+        func = node.func.id if isinstance(node.func, ast.Name) else ""
+        args = list(node.args)
+        if func in {"reduction_or", "reduce_or"} and len(args) == 1:
+            arg, arg_w = _ast_to_rtl_typed(args[0], env, widths, None)
+            return f"(|{_sv_width_cast(arg_w, arg)})", 1
+        if func == "parity" and len(args) == 1:
+            arg, arg_w = _ast_to_rtl_typed(args[0], env, widths, None)
+            return f"(^{_sv_width_cast(arg_w, arg)})", 1
+        raise ValueError(f"unsupported expression call {func or type(node.func).__name__}")
     raise ValueError(f"unsupported expression node {type(node).__name__}")
 
 
@@ -437,8 +492,8 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
         )]
 
     by_name = {p["name"]: p for p in ports}
-    output_ports = {p["name"] for p in ports if str(p.get("direction")).lower() == "output"}
-    input_ports = {p["name"] for p in ports if str(p.get("direction")).lower() == "input"}
+    output_ports = {p["name"] for p in ports if str(p.get("direction")).lower() in {"output", "inout"}}
+    input_ports = {p["name"] for p in ports if str(p.get("direction")).lower() in {"input", "inout"}}
     clock, reset, reset_active, clock_reset_questions = _find_clock_reset(ports, contract)
     questions.extend(clock_reset_questions)
 
@@ -496,6 +551,22 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
         sample_env[name] = name
         env_widths[name] = int(state_vars[name]["width"])
         sample_env_widths[name] = int(state_vars[name]["width"])
+
+    for item in _derived_signal_items(fm):
+        name = _ident(item.get("name") or item.get("signal") or item.get("id") or "")
+        raw_expr = item.get("expr", item.get("expression", item.get("value")))
+        if not name or raw_expr is None or str(raw_expr).strip() == "":
+            continue
+        width = max(_int_value(item.get("width"), 32), 1)
+        try:
+            expr = _ast_to_rtl_width(_parse_rule_expr(raw_expr), env, env_widths, width)
+        except Exception:
+            continue
+        casted = _sv_cast(width, expr)
+        env[name] = casted
+        sample_env[name] = casted
+        env_widths[name] = width
+        sample_env_widths[name] = width
 
     # Infer field-to-port bindings only when the SSOT uses the same name for
     # the transaction field and DUT input. Ambiguous names remain blockers.
@@ -1818,7 +1889,10 @@ def _dynamic_todo_blocker_ids(ip_dir: Path) -> set[str]:
         gate = task.get("gate_todo") if isinstance(task.get("gate_todo"), dict) else {}
         completion = task.get("todo_completion") if isinstance(task.get("todo_completion"), dict) else {}
         if gate.get("kind") == "target_scale_policy" and completion.get("status") != "pass":
-            ids.add("RTL_TARGET_SCALE_POLICY")
+            target_scale = plan.get("target_scale") if isinstance(plan.get("target_scale"), dict) else {}
+            waiver = plan.get("target_scale_waiver") if isinstance(plan.get("target_scale_waiver"), dict) else {}
+            if not target_scale and not (waiver.get("approved") is True and waiver.get("reason")):
+                ids.add("RTL_TARGET_SCALE_POLICY")
         if (
             gate.get("kind") == "manifest_connection_contract_evidence"
             and completion.get("status") != "pass"

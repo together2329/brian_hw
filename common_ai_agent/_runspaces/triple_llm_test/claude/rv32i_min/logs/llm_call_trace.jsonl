@@ -1,0 +1,1 @@
+{"elapsed_sec": 873.795, "error": "model output did not contain expected JSON object with files[] ssot-gen artifact", "log_stage": "ssot-gen", "model": "claude-cli", "stage": "ssot-gen", "status": "blocked", "ts": "2026-05-16T01:14:56Z", "usage": {}}

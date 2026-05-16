@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_a60a6fdcc1",
+  "worker_idx": 0,
+  "model": "claude-cli",
+  "requested_model": "claude-cli",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Use WebSearch to find the GitHub stars count for tiangolo/fastapi. Report just the number."
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "**DONE** — todo-1\n\nThe tiangolo/fastapi repository currently has **98.2k stars** (approximately 98,200).\n\nSources:\n- [GitHub - fastapi/fastapi](https://github.com/fastapi/fastapi)",
+  "error": "",
+  "started_at": 1778932523.290517,
+  "completed_at": 1778932550.481432,
+  "duration_s": 27.190916061401367
+}

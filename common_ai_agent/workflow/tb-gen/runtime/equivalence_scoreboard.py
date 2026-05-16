@@ -64,7 +64,22 @@ def _word_tokens(value: Any) -> set[str]:
 def _deep_equal(left: Any, right: Any) -> bool:
     if isinstance(left, dict) and isinstance(right, dict):
         return left == right
+    left_bin = _binary_string_to_int(left)
+    right_bin = _binary_string_to_int(right)
+    if isinstance(left, int) and right_bin is not None:
+        return left == right_bin
+    if isinstance(right, int) and left_bin is not None:
+        return left_bin == right
     return left == right
+
+
+def _binary_string_to_int(value: Any) -> int | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip().lower()
+    if not text or not re.fullmatch(r"[01xz]+", text):
+        return None
+    return int(text.replace("x", "0").replace("z", "0"), 2)
 
 
 def _dict_overlap_compare(expected: dict[str, Any], observed: dict[str, Any]) -> tuple[bool | None, str]:
@@ -184,6 +199,65 @@ def _rule_items(value: Any) -> list[dict[str, Any]]:
     if isinstance(value, dict):
         return [{"name": str(key), "expr": expr} for key, expr in value.items()]
     return [item for item in value or [] if isinstance(item, dict)]
+
+
+def _extract_ssot_questions(value: Any) -> list[str]:
+    """Return SSOT-question strings embedded in a model result tree."""
+    questions: list[str] = []
+
+    def visit(item: Any) -> None:
+        if isinstance(item, dict):
+            for key, val in item.items():
+                if str(key) == "ssot_question" and val:
+                    questions.append(str(val))
+                visit(val)
+        elif isinstance(item, list):
+            for val in item:
+                visit(val)
+
+    visit(value)
+    return questions
+
+
+def _write_self_check_blocker(scoreboard: "EquivalenceScoreboard", report: dict[str, Any]) -> Path:
+    """Persist a human/SSOT gate for self-check evidence gaps."""
+    questions: list[dict[str, str]] = []
+    for idx, gap in enumerate(report.get("contract_gaps") or [], start=1):
+        goal_id = str(gap.get("goal_id") or f"GOAL_{idx}")
+        kind = str(gap.get("kind") or "unknown")
+        evidence = str(gap.get("question") or gap.get("reason") or "missing comparable FunctionalModel contract")
+        questions.append({
+            "id": f"TB_SELF_CHECK_{idx:03d}",
+            "decision_needed": (
+                f"Provide structured output_rules/state_updates or an explicit observable mapping for {goal_id} "
+                f"({kind}) so tb-gen can compare FL expected values against RTL signals."
+            ),
+            "evidence": evidence,
+            "recommended_default": (
+                "Update the SSOT function_model transaction with structured output_rules/state_updates, "
+                "then rerun fl-model-gen, equiv-goals, tb-gen, and sim."
+            ),
+            "downstream_effect": (
+                "Without this contract, the generated scoreboard can run cocotb but cannot prove FL-vs-RTL equivalence."
+            ),
+        })
+
+    blocked = {
+        "reason": "SSOT/FunctionalModel contract is not concrete enough for FL-vs-RTL scoreboard comparison",
+        "next_action": "Repair SSOT function_model transaction rules or approve explicit observable mappings, then rerun /tb.",
+        "questions": questions,
+        "self_check": {
+            "checked": report.get("checked"),
+            "required_goals": report.get("required_goals"),
+            "ssot_questions": report.get("ssot_questions"),
+            "unsupported_transactions": report.get("unsupported_transactions"),
+            "model_errors": report.get("model_errors"),
+        },
+    }
+    path = scoreboard.ip_dir / "tb" / "cocotb" / "tb_blocked.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(blocked, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return path
 
 
 class EquivalenceScoreboard:
@@ -551,6 +625,8 @@ class EquivalenceScoreboard:
         checked = 0
         unsupported = 0
         model_errors = 0
+        ssot_question_count = 0
+        contract_gaps: list[dict[str, Any]] = []
         samples: list[dict[str, Any]] = []
         for gid in sorted(self.required_goal_ids):
             goal = self.goals[gid]
@@ -591,8 +667,22 @@ class EquivalenceScoreboard:
             result = expected.get("model_result")
             if isinstance(result, dict) and result.get("resp") == 2 and result.get("error") == "unsupported_transaction":
                 unsupported += 1
+                contract_gaps.append({
+                    "goal_id": gid,
+                    "kind": expected.get("transaction", {}).get("kind"),
+                    "reason": "FunctionalModel returned unsupported_transaction for a required equivalence goal",
+                })
             if expected.get("model_error"):
                 model_errors += 1
+            ssot_questions = _extract_ssot_questions(result)
+            if ssot_questions:
+                ssot_question_count += len(ssot_questions)
+                for question in ssot_questions:
+                    contract_gaps.append({
+                        "goal_id": gid,
+                        "kind": expected.get("transaction", {}).get("kind"),
+                        "question": question,
+                    })
             if len(samples) < 8:
                 samples.append({
                     "goal_id": gid,
@@ -607,9 +697,11 @@ class EquivalenceScoreboard:
             "checked": checked,
             "unsupported_transactions": unsupported,
             "model_errors": model_errors,
+            "ssot_questions": ssot_question_count,
+            "contract_gaps": contract_gaps[:20],
             "events_path": str(self.events_path),
             "sample": samples,
-            "passed": checked > 0 and model_errors == 0,
+            "passed": checked > 0 and model_errors == 0 and unsupported == 0 and ssot_question_count == 0,
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
 
@@ -625,7 +717,12 @@ def main() -> int:
     if args.self_check:
         report = scoreboard.self_check()
         print(json.dumps(report, indent=2, sort_keys=True))
-        return 0 if report.get("passed") else 1
+        if report.get("passed"):
+            return 0
+        if report.get("ssot_questions") or report.get("unsupported_transactions"):
+            _write_self_check_blocker(scoreboard, report)
+            return 2
+        return 1
     print(f"loaded {len(scoreboard.goals)} equivalence goals for {args.ip}")
     return 0
 

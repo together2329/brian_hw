@@ -358,6 +358,32 @@ def _kpi_tb(ip_dir: Path) -> List[_KPI_DOT]:
     return [top_present, scoreboard, tc_count, manifest]
 
 
+def _count_metric(value: object, default: int = -1) -> int:
+    """Normalize count-like JSON fields used by generated reports.
+
+    Older reports store `mismatches` as an integer. Newer scoreboard output may
+    store it as a list of mismatch rows. KPI rendering must be tolerant because
+    the Pipeline screen polls this path continuously.
+    """
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, list):
+        return len(value)
+    if isinstance(value, dict):
+        for key in ("count", "total", "mismatch_count", "num_mismatches"):
+            if key in value:
+                return _count_metric(value.get(key), default=default)
+        return len(value)
+    try:
+        return int(str(value).strip())
+    except Exception:
+        return default
+
+
 def _kpi_sim(ip_dir: Path) -> List[_KPI_DOT]:
     results_xml = ip_dir / "sim" / "results.xml"
     if not results_xml.is_file():
@@ -375,7 +401,10 @@ def _kpi_sim(ip_dir: Path) -> List[_KPI_DOT]:
             xml_pass = "warn"
     mismatches: _KPI_DOT = "idle"
     if compare_doc is not None:
-        mm = compare_doc.get("mismatches", compare_doc.get("mismatch_count", -1))
+        mm = _count_metric(
+            compare_doc.get("mismatch_count", compare_doc.get("mismatches")),
+            default=-1,
+        )
         mismatches = "pass" if mm == 0 else ("fail" if mm > 0 else "warn")
     vcd_files = list((ip_dir / "sim").rglob("*.vcd")) if (ip_dir / "sim").is_dir() else []
     vcd_present: _KPI_DOT = "pass" if vcd_files else "idle"

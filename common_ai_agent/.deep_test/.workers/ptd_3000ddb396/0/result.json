@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_3000ddb396",
+  "worker_idx": 0,
+  "model": "thread9-mA",
+  "requested_model": "thread9-mA",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "thread9-t1"
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "ok(thread9-mA)",
+  "error": "",
+  "started_at": 1778925111.81083,
+  "completed_at": 1778925111.8645031,
+  "duration_s": 0.05367302894592285
+}

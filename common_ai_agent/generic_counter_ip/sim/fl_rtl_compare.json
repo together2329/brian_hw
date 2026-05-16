@@ -1,0 +1,22 @@
+{
+  "ip": "generic_counter_ip",
+  "status": "fail",
+  "schema_version": 1,
+  "summary": {
+    "total": 1,
+    "goals_checked": 1,
+    "goals_passed": 0,
+    "goals_failed": 1,
+    "goals_blocked": 0
+  },
+  "results": [
+    {
+      "goal_id": "EQ_DOUBLE",
+      "status": "fail",
+      "mismatch": "value: expected=20 observed=19",
+      "fl_expected": {"value": 20},
+      "rtl_observed": {"value": 19},
+      "scoreboard_row": {"cycle": 23, "scenario_id": "SC_DOUBLE"}
+    }
+  ]
+}

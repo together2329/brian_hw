@@ -1,0 +1,249 @@
+{
+  "schema_version": "ip_wiki_graph.v1",
+  "generated_at": "2026-05-16T04:35:15Z",
+  "root": "rv32i_min/wiki",
+  "node_count": 8,
+  "edge_count": 8,
+  "tags": {
+    "artifact": [
+      "audit",
+      "cl_model",
+      "filelist",
+      "fl_model",
+      "last_run",
+      "lint",
+      "rtl",
+      "ssot"
+    ],
+    "cl-model-gen": [
+      "cl_model"
+    ],
+    "equiv-goals": [
+      "audit"
+    ],
+    "fl-model-gen": [
+      "fl_model"
+    ],
+    "lint": [
+      "lint"
+    ],
+    "rtl-gen": [
+      "filelist",
+      "rtl"
+    ],
+    "run-log": [
+      "last_run"
+    ],
+    "ssot": [
+      "ssot"
+    ]
+  },
+  "types": {
+    "log": [
+      "last_run"
+    ],
+    "reference": [
+      "audit",
+      "cl_model",
+      "filelist",
+      "fl_model",
+      "lint",
+      "rtl",
+      "ssot"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "audit",
+      "title": "rv32i_min Equivalence Goals",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "equiv-goals"
+      ],
+      "related": [
+        "fl_model",
+        "rtl"
+      ],
+      "outgoing": [
+        "fl_model",
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-16T03:44:01Z",
+      "summary": "goals=56 blocked=0",
+      "status": "pass",
+      "digest": "goals=56 blocked=0",
+      "path": "rv32i_min/verify/equivalence_goals.json",
+      "size_bytes": 130242
+    },
+    {
+      "id": "cl_model",
+      "title": "rv32i_min CycleModel",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "cl-model-gen"
+      ],
+      "related": [
+        "ssot"
+      ],
+      "outgoing": [
+        "ssot"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-16T01:06:44Z",
+      "summary": "cycle_model.py size=15098B",
+      "status": "present",
+      "digest": "cycle_model.py size=15098B",
+      "path": "rv32i_min/model/cycle_model.py",
+      "size_bytes": 15098
+    },
+    {
+      "id": "filelist",
+      "title": "rv32i_min filelist",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "rtl"
+      ],
+      "outgoing": [
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-16T04:35:10Z",
+      "summary": "rv32i_min.f size=129B",
+      "status": "present",
+      "digest": "rv32i_min.f size=129B",
+      "path": "rv32i_min/list/rv32i_min.f",
+      "size_bytes": 129
+    },
+    {
+      "id": "fl_model",
+      "title": "rv32i_min FunctionalModel",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "fl-model-gen"
+      ],
+      "related": [
+        "ssot"
+      ],
+      "outgoing": [
+        "ssot"
+      ],
+      "incoming": [
+        "rtl",
+        "audit"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-16T03:44:01Z",
+      "summary": "check=pass",
+      "status": "pass",
+      "digest": "check=pass",
+      "path": "rv32i_min/model/functional_model.py",
+      "size_bytes": 50756
+    },
+    {
+      "id": "last_run",
+      "title": "rv32i_min last run",
+      "type": "log",
+      "tags": [
+        "artifact",
+        "run-log"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-16T04:35:15Z",
+      "summary": "stages=2 last=rtl-gen:fail",
+      "status": "fail",
+      "digest": "stages=2 last=rtl-gen:fail",
+      "path": "rv32i_min/logs/headless_run.json",
+      "size_bytes": 6830
+    },
+    {
+      "id": "lint",
+      "title": "rv32i_min Lint",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "lint"
+      ],
+      "related": [
+        "rtl"
+      ],
+      "outgoing": [
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-16T04:35:14Z",
+      "summary": "errors=4 warnings=196",
+      "status": "fail",
+      "digest": "errors=4 warnings=196",
+      "path": "rv32i_min/lint/dut_lint.json",
+      "size_bytes": 47926
+    },
+    {
+      "id": "rtl",
+      "title": "rv32i_min RTL",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "ssot",
+        "fl_model"
+      ],
+      "outgoing": [
+        "ssot",
+        "fl_model"
+      ],
+      "incoming": [
+        "filelist",
+        "lint",
+        "audit"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-16T04:35:13Z",
+      "summary": "files=6 compile_errors=2 surface=headless_common_engine",
+      "status": "fail",
+      "digest": "files=6 compile_errors=2 surface=headless_common_engine",
+      "path": "rv32i_min/rtl",
+      "size_bytes": 608
+    },
+    {
+      "id": "ssot",
+      "title": "rv32i_min SSOT",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "fl_model",
+        "cl_model",
+        "rtl"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-16T04:22:54Z",
+      "summary": "sections=36 size=43482B",
+      "status": "present",
+      "digest": "sections=36 size=43482B",
+      "path": "rv32i_min/yaml/rv32i_min.ssot.yaml",
+      "size_bytes": 43482
+    }
+  ],
+  "ip": "rv32i_min"
+}

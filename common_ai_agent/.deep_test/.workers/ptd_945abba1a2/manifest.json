@@ -1,0 +1,66 @@
+{
+  "job_id": "ptd_945abba1a2",
+  "requested_worker_count": 3,
+  "worker_count": 3,
+  "models": [
+    {
+      "requested_model": "mA1",
+      "resolved_model": "mA1",
+      "pricing_model": "mA1",
+      "reason": ""
+    },
+    {
+      "requested_model": "mA2",
+      "resolved_model": "mA2",
+      "pricing_model": "mA2",
+      "reason": ""
+    },
+    {
+      "requested_model": "mA3",
+      "resolved_model": "mA3",
+      "pricing_model": "mA3",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "a1"
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "a2"
+    },
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "a3"
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "a1"
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "a2"
+      }
+    ],
+    [
+      {
+        "index": 2,
+        "id": "todo-3",
+        "content": "a3"
+      }
+    ]
+  ],
+  "created_at": 1778924816.872297
+}

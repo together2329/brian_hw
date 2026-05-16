@@ -1,0 +1,48 @@
+{
+  "job_id": "ptd_4848d6e185",
+  "requested_worker_count": 2,
+  "worker_count": 2,
+  "models": [
+    {
+      "requested_model": "thread9-mA",
+      "resolved_model": "thread9-mA",
+      "pricing_model": "thread9-mA",
+      "reason": ""
+    },
+    {
+      "requested_model": "thread9-mB",
+      "resolved_model": "thread9-mB",
+      "pricing_model": "thread9-mB",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "thread9-t1"
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "thread9-t2"
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "thread9-t1"
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "thread9-t2"
+      }
+    ]
+  ],
+  "created_at": 1778925159.87938
+}

@@ -1,0 +1,523 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "rv32i_min",
+  "source": "rv32i_min/yaml/rv32i_min.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "rv32i_min/req/",
+      "rv32i_min/yaml/rv32i_min.ssot.yaml",
+      "rv32i_min/model/functional_model.py",
+      "rv32i_min/cov/fcov_plan.json",
+      "rv32i_min/yaml/rv32i_min.ssot.yaml#io_list",
+      "rv32i_min/yaml/rv32i_min.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "rv32i_min/rtl/",
+      "rv32i_min/tb/",
+      "rv32i_min/sim/",
+      "rv32i_min/vectors/",
+      "rv32i_min/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "opcode sweep 37"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "branch taken and untaken"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "load store extension and byte enable"
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC05",
+      "description": "x0 immutable"
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC06",
+      "description": "FM_FETCH transaction"
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC07",
+      "description": "FM_ALU transaction"
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC08",
+      "description": "FM_BRANCH transaction"
+    },
+    {
+      "id": "SC09_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC09",
+      "description": "FM_JUMP transaction"
+    },
+    {
+      "id": "SC10_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC10",
+      "description": "FM_LOAD transaction"
+    },
+    {
+      "id": "SC11_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC11",
+      "description": "FM_STORE transaction"
+    },
+    {
+      "id": "SC12_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[11]",
+      "scenario": "SC12",
+      "description": "FM_SYSTEM transaction"
+    },
+    {
+      "id": "fcov_opcode_37",
+      "class": "opcode",
+      "coverage_domain": "function",
+      "source": "function_model.transactions",
+      "source_ref": "function_model.transactions",
+      "description": "All 37 required mnemonics observed"
+    },
+    {
+      "id": "fcov_branch_taken_untaken",
+      "class": "branch",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_BRANCH",
+      "source_ref": "function_model.transactions.FM_BRANCH",
+      "description": "Taken and untaken for each branch mnemonic"
+    },
+    {
+      "id": "fcov_load_sign_zero_ext",
+      "class": "data_transform",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_LOAD",
+      "source_ref": "function_model.transactions.FM_LOAD",
+      "description": "LB and LH sign-extension and LBU and LHU zero-extension"
+    },
+    {
+      "id": "fcov_store_byte_enable",
+      "class": "byte_enable",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_STORE",
+      "source_ref": "function_model.transactions.FM_STORE",
+      "description": "Store byte enable patterns for SB and SH and SW"
+    },
+    {
+      "id": "fcov_x0_immutable",
+      "class": "invariant",
+      "coverage_domain": "function",
+      "source": "function_model.invariants",
+      "source_ref": "function_model.invariants",
+      "description": "Writes to x0 are ignored"
+    },
+    {
+      "id": "fcov_jal_jalr_link",
+      "class": "jump_link",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_JUMP",
+      "source_ref": "function_model.transactions.FM_JUMP",
+      "description": "Link writeback and jalr bit0 clear"
+    },
+    {
+      "id": "fcov_misaligned_fault",
+      "class": "fault",
+      "coverage_domain": "function",
+      "source": "function_model.transactions",
+      "source_ref": "function_model.transactions",
+      "description": "Misaligned load or store raises pulse and no retirement"
+    },
+    {
+      "id": "fcov_ecall_ebreak",
+      "class": "system",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_SYSTEM",
+      "source_ref": "function_model.transactions.FM_SYSTEM",
+      "description": "ECALL and EBREAK pulse with pc advance"
+    },
+    {
+      "id": "ccov_if_id_ex_mem_wb",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline",
+      "source_ref": "cycle_model.pipeline",
+      "description": "Stage occupancy across IF ID_EX MEM_WB"
+    },
+    {
+      "id": "ccov_sync_bus_rules",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules",
+      "source_ref": "cycle_model.handshake_rules",
+      "description": "Synchronous bus stability and sampling rules"
+    },
+    {
+      "id": "ccov_fence_bubble",
+      "class": "bubble",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions",
+      "source_ref": "fsm.control.transitions",
+      "description": "One-cycle fence bubble transition"
+    },
+    {
+      "id": "ccov_exception_one_shot",
+      "class": "pulse",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules",
+      "source_ref": "cycle_model.handshake_rules",
+      "description": "excpt_o one-cycle pulse behavior"
+    },
+    {
+      "id": "function_fetch_and_default_advance",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_fetch",
+      "description": "fetch_and_default_advance"
+    },
+    {
+      "id": "function_alu_and_immediate_ops",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm_alu",
+      "description": "alu_and_immediate_ops"
+    },
+    {
+      "id": "function_conditional_branches",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.fm_branch",
+      "description": "conditional_branches"
+    },
+    {
+      "id": "function_jal_and_jalr",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[3]",
+      "source_ref": "function_model.transactions.fm_jump",
+      "description": "jal_and_jalr"
+    },
+    {
+      "id": "function_loads_with_extension",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[4]",
+      "source_ref": "function_model.transactions.fm_load",
+      "description": "loads_with_extension"
+    },
+    {
+      "id": "function_stores_with_byte_enable",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[5]",
+      "source_ref": "function_model.transactions.fm_store",
+      "description": "stores_with_byte_enable"
+    },
+    {
+      "id": "function_fence_ecall_ebreak",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[6]",
+      "source_ref": "function_model.transactions.fm_system",
+      "description": "fence_ecall_ebreak"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'i_valid', 'rule': 'i_valid == 1 implies i_addr is stable in the cycle'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'd_valid', 'rule': 'd_valid == 1 implies d_addr and d_we and d_be are stable in the cycle'}"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'signal': 'd_we', 'rule': 'd_we == 1 indicates store and d_we == 0 indicates load'}"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[3]",
+      "source_ref": "cycle_model.handshake_rules[3]",
+      "description": "{'signal': 'excpt_o', 'rule': 'excpt_o pulses for exactly one cycle per triggering instruction'}"
+    },
+    {
+      "id": "cycle_latency_fetch_to_decode",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.fetch_to_decode",
+      "source_ref": "cycle_model.latency.fetch_to_decode",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'IF to ID_EX transfer'}"
+    },
+    {
+      "id": "cycle_latency_alu_ops_retire",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.alu_ops_retire",
+      "source_ref": "cycle_model.latency.alu_ops_retire",
+      "description": "{'min_cycles': 3, 'max_cycles': 3, 'description': 'IF to ID_EX to MEM_WB retire path'}"
+    },
+    {
+      "id": "cycle_latency_load_retire",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.load_retire",
+      "source_ref": "cycle_model.latency.load_retire",
+      "description": "{'min_cycles': 3, 'max_cycles': 3, 'description': 'Single-cycle synchronous data return assumption'}"
+    },
+    {
+      "id": "cycle_latency_store_issue",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.store_issue",
+      "source_ref": "cycle_model.latency.store_issue",
+      "description": "{'min_cycles': 2, 'max_cycles': 3, 'description': 'Address and write data presented by MEM stage'}"
+    },
+    {
+      "id": "cycle_latency_fence_penalty",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.fence_penalty",
+      "source_ref": "cycle_model.latency.fence_penalty",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'Required one-cycle bubble'}"
+    },
+    {
+      "id": "cycle_pipeline_if",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Drive i_addr from pc and sample i_rdata"
+    },
+    {
+      "id": "cycle_pipeline_id_ex",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Decode and compute ALU or branch or target or effective address"
+    },
+    {
+      "id": "cycle_pipeline_mem_wb",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Perform load/store signaling and writeback and retire"
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "Retirement is in program order with at most one commit per cycle"
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "Faulting misaligned or illegal instruction does not retire"
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "Store side effects occur only on aligned non-faulting stores"
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "No explicit ready channels; interfaces are sampled synchronously each cycle"
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'max': 1, 'description': 'single in-flight architectural operation'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 3, 'queue_depth': 1, 'description': 'fixed three-stage in-order pipe'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "100"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_beats_per_cycle': 1, 'condition': 'synchronous memory response each cycle'}"
+    },
+    {
+      "id": "fsm_control_reset_to_run_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[0]",
+      "source_ref": "fsm.control.transitions[0]",
+      "description": "rst_n_deasserted"
+    },
+    {
+      "id": "fsm_control_run_to_fence_bubble_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[1]",
+      "source_ref": "fsm.control.transitions[1]",
+      "description": "decoded_fence"
+    },
+    {
+      "id": "fsm_control_fence_bubble_to_run_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[2]",
+      "source_ref": "fsm.control.transitions[2]",
+      "description": "bubble_done"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_MISALIGNED_DATA', 'condition': 'misaligned_data_access', 'architectural_effect': 'pulse excpt_o for one cycle and block retirement'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_ILLEGAL_SHIFT_IMM', 'condition': 'illegal_shamt', 'architectural_effect': 'pulse excpt_o for one cycle and block retirement'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[2]",
+      "source_ref": "error_handling.error_sources[2]",
+      "description": "{'id': 'ERR_ECALL_EBREAK', 'condition': 'is_ecall or is_ebreak', 'architectural_effect': 'pulse excpt_o for one cycle and advance pc by 4'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 57,
+    "scenario_bins": 12,
+    "transaction_bins": 7,
+    "protocol_bins": 4,
+    "state_transition_bins": 3,
+    "error_bins": 3
+  }
+}

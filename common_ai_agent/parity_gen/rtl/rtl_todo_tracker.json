@@ -29,7 +29,7 @@
     {
       "content": "RTL-0002: Implement top-level ports, reset, and filelist integration",
       "activeForm": "RTL-0002: Implement top-level ports, reset, and filelist integration",
-      "status": "pending",
+      "status": "done",
       "detail": "Ledger id: RTL-0002\nCategory: rtl_flow.top\nSource ref: io_list\nOwner module: parity_gen\nOwner file: rtl/parity_gen.sv\n\nThe top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: parity_gen in rtl/parity_gen.sv via top_module.\nSSOT item context: value=parity_gen.\n\nCurrent audit reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
       "criteria": "Top module name matches SSOT top_module\nEvery SSOT top-level port appears with matching direction and width\nFilelist contains all LLM-authored RTL sources and no stale sources\nTraceability keeps source_ref io_list\nPrimary implementation evidence is in rtl/parity_gen.sv\nLedger task RTL-0002 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
       "priority": "high"
@@ -53,7 +53,7 @@
     {
       "content": "RTL-0005: Gate: every SSOT-derived RTL behavior has an owner module",
       "activeForm": "RTL-0005: Gate: every SSOT-derived RTL behavior has an owner module",
-      "status": "pending",
+      "status": "done",
       "detail": "Ledger id: RTL-0005\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.owner_traceability\nOwner module: parity_gen\nOwner file: rtl/parity_gen.sv\n\nFunction-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.\nSSOT ref: quality_gates.rtl_gen.owner_traceability.\nOwner: parity_gen in rtl/parity_gen.sv via top_module.\n\nCurrent audit reason: Every required SSOT-derived RTL behavior has an owner module.\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
       "criteria": "No required function_model task is orphaned\nNo required cycle_model task is orphaned\nNo required register/dataflow/FSM task is orphaned\nOwner module and owner file are recorded in rtl_todo_plan.json\nTraceability keeps source_ref quality_gates.rtl_gen.owner_traceability\nPrimary implementation evidence is in rtl/parity_gen.sv\nLedger task RTL-0005 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.owner_traceability\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
       "priority": "critical"

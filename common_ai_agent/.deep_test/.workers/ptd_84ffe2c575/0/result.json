@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_84ffe2c575",
+  "worker_idx": 0,
+  "model": "thread8-mA",
+  "requested_model": "thread8-mA",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "thread8-t1"
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "ok(thread8-mA)",
+  "error": "",
+  "started_at": 1778925159.881633,
+  "completed_at": 1778925159.9389682,
+  "duration_s": 0.05733513832092285
+}

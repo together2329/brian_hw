@@ -19,10 +19,20 @@ all requested evidence -> goal-audit
 ATLAS Web UI, Textual UI, and headless tests must call the same common engine
 path. UI code renders and queues work; it does not own stage logic.
 
+The orchestrator agent owns multi-stage convergence. Workspace views can still
+run one workflow at a time, but pipeline mode routes owner-classified feedback
+across workflow boundaries. See [[orchestrator-worker-handoff]].
+
+Cross-workflow repair is orchestrator-centered. Workers may emit suggested
+handoffs, but they do not directly dispatch other workflow workers. The
+Pipeline UI renders orchestrator state from `/api/pipeline/state`; Workspace
+can claim JSON handoffs through `/take`.
+
 The UI pipeline scheduler defaults to `schedule: "auto"`:
 
 - one resolved worker URL -> serial execution
 - multiple resolved worker URLs -> DAG execution
+- no resolved worker -> write durable handoff JSON for `/take`
 
 Explicit `schedule: "dag"` and `schedule: "serial"` remain available for
 benchmark/debug runs.
@@ -69,4 +79,5 @@ owner-classified mismatch remains.
 - [[common-ai-agent-map]]
 - [[workflow-ownership-and-boundaries]]
 - [[workflow-feedback-and-scheduling]]
+- [[orchestrator-worker-handoff]]
 - [[golden-todo-evidence]]

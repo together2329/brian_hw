@@ -1,8 +1,8 @@
 {
   "schema_version": "ip_wiki_graph.v1",
-  "generated_at": "2026-05-15T22:27:00Z",
+  "generated_at": "2026-05-16T04:26:00Z",
   "root": "arm_m0_min/wiki",
-  "node_count": 10,
+  "node_count": 11,
   "edge_count": 14,
   "tags": {
     "artifact": [
@@ -11,6 +11,7 @@
       "coverage",
       "filelist",
       "fl_model",
+      "last_run",
       "lint",
       "rtl",
       "sim",
@@ -36,6 +37,9 @@
       "filelist",
       "rtl"
     ],
+    "run-log": [
+      "last_run"
+    ],
     "sim": [
       "sim"
     ],
@@ -47,6 +51,9 @@
     ]
   },
   "types": {
+    "log": [
+      "last_run"
+    ],
     "reference": [
       "audit",
       "cl_model",
@@ -102,7 +109,7 @@
       ],
       "incoming": [],
       "broken_refs": [],
-      "updated": "2026-05-15T21:44:22Z",
+      "updated": "2026-05-16T04:25:58Z",
       "summary": "cycle_model.py size=13356B",
       "status": "present",
       "digest": "cycle_model.py size=13356B",
@@ -125,12 +132,12 @@
       ],
       "incoming": [],
       "broken_refs": [],
-      "updated": "2026-05-15T11:43:41Z",
-      "summary": "reports=1",
+      "updated": "2026-05-16T04:26:00Z",
+      "summary": "reports=5",
       "status": "present",
-      "digest": "reports=1",
-      "path": "arm_m0_min/cov/coverage_functional.json",
-      "size_bytes": 6392
+      "digest": "reports=5",
+      "path": "arm_m0_min/cov/coverage.json",
+      "size_bytes": 76646
     },
     {
       "id": "filelist",
@@ -176,12 +183,31 @@
         "audit"
       ],
       "broken_refs": [],
-      "updated": "2026-05-15T21:44:22Z",
+      "updated": "2026-05-16T04:25:58Z",
       "summary": "check=pass",
       "status": "pass",
       "digest": "check=pass",
       "path": "arm_m0_min/model/functional_model.py",
-      "size_bytes": 39986
+      "size_bytes": 43313
+    },
+    {
+      "id": "last_run",
+      "title": "arm_m0_min last run",
+      "type": "log",
+      "tags": [
+        "artifact",
+        "run-log"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-16T04:26:00Z",
+      "summary": "stages=4 last=coverage:blocked",
+      "status": "blocked",
+      "digest": "stages=4 last=coverage:blocked",
+      "path": "arm_m0_min/logs/headless_run.json",
+      "size_bytes": 6788
     },
     {
       "id": "lint",

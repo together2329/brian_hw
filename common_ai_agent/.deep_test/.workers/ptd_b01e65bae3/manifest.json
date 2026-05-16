@@ -1,0 +1,66 @@
+{
+  "job_id": "ptd_b01e65bae3",
+  "requested_worker_count": 3,
+  "worker_count": 3,
+  "models": [
+    {
+      "requested_model": "fake-A",
+      "resolved_model": "fake-A",
+      "pricing_model": "fake-A",
+      "reason": ""
+    },
+    {
+      "requested_model": "fake-B",
+      "resolved_model": "fake-B",
+      "pricing_model": "fake-B",
+      "reason": ""
+    },
+    {
+      "requested_model": "fake-C",
+      "resolved_model": "fake-C",
+      "pricing_model": "fake-C",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "safe-1"
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "bomb"
+    },
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "safe-2"
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "safe-1"
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "bomb"
+      }
+    ],
+    [
+      {
+        "index": 2,
+        "id": "todo-3",
+        "content": "safe-2"
+      }
+    ]
+  ],
+  "created_at": 1778920034.265895
+}

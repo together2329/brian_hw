@@ -28,11 +28,13 @@
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Tool-evidence blockers:
+  - common_ai_agent_authoring: RTL authoring provenance is incomplete: todo_plan_sha256
   - dynamic_todo_closure: 7 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
-  - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
+  - fl_rtl_goal_audit: FL-vs-RTL goal audit is not clean.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
 - Tool-evidence runbook:
+  - common_ai_agent_authoring: stages=ssot-rtl; artifact=arm_m0_min/rtl/rtl_authoring_provenance.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=arm_m0_min/rtl/rtl_todo_plan.json
   - protocol_assertion_evidence: stages=ssot-protocol-assertions, sim; artifact=arm_m0_min/verify/protocol_assertions.sva
   - fl_rtl_goal_audit: stages=ssot-fl-model, ssot-equiv-goals, ssot-tb-cocotb, sim, goal-audit; artifact=arm_m0_min/sim/fl_rtl_goal_audit.json
@@ -58,13 +60,13 @@
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
+- Current reason: RTL authoring provenance is incomplete: todo_plan_sha256
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -171,7 +173,7 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
 - Detail: Passing compile/lint is not enough. The final RTL must be proven against FunctionalModel-derived equivalence goals using real RTL-observed evidence.
 SSOT ref: quality_gates.rtl_gen.fl_rtl_goal_audit.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
+- Current reason: FL-vs-RTL goal audit is not clean.
 - Criteria:
   - sim/fl_rtl_goal_audit.json exists
   - fl_rtl_goal_audit.json is newer than or equal to every listed DUT RTL source

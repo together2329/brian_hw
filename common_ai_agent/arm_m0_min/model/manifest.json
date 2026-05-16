@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "ip": "arm_m0_min",
-  "generated_at": "2026-05-15T09:47:39Z",
+  "generated_at": "2026-05-16T04:25:58Z",
   "emitter": "fl-model-gen",
   "produced": [
     "model/functional_model.py",

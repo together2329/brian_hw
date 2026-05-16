@@ -276,6 +276,7 @@ const App = () => {
     llm: 'pending',
   });
   const [bootHidden, setBootHidden] = React.useState(false);
+  const bootEverReadyRef = React.useRef(false);
 
   // Auth gate — mounts LoginScreen until /api/users/me returns 200.
   const [authState, setAuthState] = React.useState('checking');
@@ -348,7 +349,7 @@ const App = () => {
         ...s,
         health: 'pending', sessions: 'pending', llm: 'pending',
       }));
-      setBootHidden(false);
+      if (!bootEverReadyRef.current) setBootHidden(false);
       fetch('/healthz', { cache: 'no-store' })
         .then(r => mark('health', r.ok ? 'done' : 'fail'))
         .catch(() => mark('health', 'fail'));
@@ -388,14 +389,55 @@ const App = () => {
     runProbes();
     return () => { subs.forEach(u => { try { u && u(); } catch (_) {} }); };
   }, []);
-  const bootDone = Object.values(bootSteps).every(v => v === 'done');
-  const bootFailed = Object.values(bootSteps).some(v => v === 'fail');
   React.useEffect(() => {
-    if (bootDone) {
-      const t = setTimeout(() => setBootHidden(true), 1200);
-      return () => clearTimeout(t);
+    if (authState !== 'authed') return undefined;
+    const needsProbe = (
+      bootSteps.health !== 'done'
+      || bootSteps.sessions !== 'done'
+      || bootSteps.llm !== 'done'
+    );
+    if (!needsProbe) return undefined;
+    let cancelled = false;
+    const mark = (key, value) => {
+      if (cancelled) return;
+      setBootSteps(s => (s[key] === value ? s : { ...s, [key]: value }));
+    };
+    const t = setTimeout(() => {
+      fetch('/api/session/list', { cache: 'no-store' })
+        .then(r => mark('sessions', r.ok ? 'done' : 'fail'))
+        .catch(() => mark('sessions', 'fail'));
+      fetch('/healthz', { cache: 'no-store' })
+        .then(r => mark('health', r.ok ? 'done' : 'fail'))
+        .catch(() => mark('health', 'fail'));
+      fetch('/api/llm/ping', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(j => mark('llm', j && j.ok ? 'done' : 'fail'))
+        .catch(() => mark('llm', 'fail'));
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [authState, bootSteps.health, bootSteps.sessions, bootSteps.llm]);
+  const bootDone = Object.values(bootSteps).every(v => v === 'done');
+  const bootUsable = (
+    authState === 'authed'
+    && bootSteps.ws === 'done'
+    && bootSteps.hello === 'done'
+    && bootSteps.llm === 'done'
+    && bootSteps.health !== 'fail'
+    && bootSteps.sessions !== 'fail'
+  );
+  const bootDisplayDone = bootDone || bootUsable;
+  const bootFailed = !bootDisplayDone && Object.values(bootSteps).some(v => v === 'fail');
+  React.useEffect(() => {
+    if (bootDisplayDone) {
+      bootEverReadyRef.current = true;
+      setTimeout(() => {
+        if (bootEverReadyRef.current) setBootHidden(true);
+      }, 1200);
     }
-  }, [bootDone]);
+  }, [bootDisplayDone]);
 
   const currentWorkflow = React.useCallback(() => {
     return splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace).workflow
@@ -1088,16 +1130,16 @@ const App = () => {
           padding: '18px 22px',
           fontSize: 13, fontFamily: 'var(--mono)',
           background: 'var(--bg-2)',
-          border: '1px solid ' + (bootFailed ? 'var(--red, #ef4444)' : (bootDone ? 'var(--green, #22c55e)' : 'var(--accent)')),
+          border: '1px solid ' + (bootFailed ? 'var(--red, #ef4444)' : (bootDisplayDone ? 'var(--green, #22c55e)' : 'var(--accent)')),
           borderRadius: 8,
           boxShadow: '0 8px 32px color-mix(in oklch, var(--fg) 25%, transparent)',
           color: 'var(--fg)',
           display: 'flex', flexDirection: 'column', gap: 12,
           transition: 'opacity 250ms ease',
-          opacity: bootDone ? 0.94 : 1,
+          opacity: bootDisplayDone ? 0.94 : 1,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {!bootDone && !bootFailed && (
+            {!bootDisplayDone && !bootFailed && (
               <span style={{
                 display: 'inline-block',
                 width: 18, height: 18,
@@ -1108,10 +1150,10 @@ const App = () => {
                 flexShrink: 0,
               }} />
             )}
-            {bootDone && <span style={{ fontSize: 20, fontWeight: 700 }}>✓</span>}
+            {bootDisplayDone && <span style={{ fontSize: 20, fontWeight: 700 }}>✓</span>}
             {bootFailed && <span style={{ fontSize: 20, fontWeight: 700 }}>⚠</span>}
             <span style={{ fontWeight: 600 }}>
-              {bootDone ? 'Backend connected'
+              {bootDisplayDone ? 'Backend connected'
                 : bootFailed ? 'Connection problem'
                 : 'Connecting to backend…'}
             </span>

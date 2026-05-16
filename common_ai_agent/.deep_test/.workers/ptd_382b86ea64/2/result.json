@@ -1,0 +1,76 @@
+{
+  "job_id": "ptd_382b86ea64",
+  "worker_idx": 2,
+  "model": "m2",
+  "requested_model": "m2",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "todo-02"
+    },
+    {
+      "index": 7,
+      "id": "todo-8",
+      "content": "todo-07"
+    },
+    {
+      "index": 12,
+      "id": "todo-13",
+      "content": "todo-12"
+    },
+    {
+      "index": 17,
+      "id": "todo-18",
+      "content": "todo-17"
+    },
+    {
+      "index": 22,
+      "id": "todo-23",
+      "content": "todo-22"
+    },
+    {
+      "index": 27,
+      "id": "todo-28",
+      "content": "todo-27"
+    },
+    {
+      "index": 32,
+      "id": "todo-33",
+      "content": "todo-32"
+    },
+    {
+      "index": 37,
+      "id": "todo-38",
+      "content": "todo-37"
+    },
+    {
+      "index": 42,
+      "id": "todo-43",
+      "content": "todo-42"
+    },
+    {
+      "index": 47,
+      "id": "todo-48",
+      "content": "todo-47"
+    }
+  ],
+  "todos_done": [
+    "todo-3",
+    "todo-8",
+    "todo-13",
+    "todo-18",
+    "todo-23",
+    "todo-28",
+    "todo-33",
+    "todo-38",
+    "todo-43",
+    "todo-48"
+  ],
+  "result": "ok",
+  "error": "",
+  "started_at": 1778920137.47429,
+  "completed_at": 1778920137.5297658,
+  "duration_s": 0.05547690391540527
+}

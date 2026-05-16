@@ -210,6 +210,19 @@ def is_local_admin_mode() -> bool:
     return False
 
 
+def local_admin_user() -> Dict[str, Any]:
+    """Synthetic local admin identity for explicit passwordless local mode."""
+    return {
+        "id": "local-admin",
+        "username": "local-admin",
+        "display_name": "Local Admin",
+        "email": "",
+        "role": "admin",
+        "created_at": None,
+        "last_login_at": None,
+    }
+
+
 def admin_auth_mode() -> str:
     return "local" if is_local_admin_mode() else "db"
 
@@ -351,6 +364,8 @@ class GuestAuth:
 
     def ensure_bootstrap_role(self, user: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """Apply configured bootstrap admin role to an existing user."""
+        if not user and is_local_admin_mode():
+            return local_admin_user()
         if not user:
             return user
         expected_role = _bootstrap_role_for_username(str(user.get("username") or ""))
@@ -361,10 +376,15 @@ class GuestAuth:
 
 async def get_current_user(request: Request) -> dict:
     """FastAPI dependency that extracts user from cookie."""
+    scoped_user = request.scope.get("user")
+    if scoped_user is not None:
+        return scoped_user
     auth: Optional[GuestAuth] = getattr(request.app.state, "auth", None)
     if auth is None:
         raise HTTPException(status_code=401, detail="Authentication not configured")
     user = auth.get_user_from_cookie(request)
+    if user is None and is_local_admin_mode():
+        return local_admin_user()
     if user is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return user

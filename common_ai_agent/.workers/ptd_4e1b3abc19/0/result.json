@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_4e1b3abc19",
+  "worker_idx": 0,
+  "model": "claude-cli",
+  "requested_model": "claude-cli",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Say the word DONE and nothing else."
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "DONE",
+  "error": "",
+  "started_at": 1778930997.59225,
+  "completed_at": 1778931015.147018,
+  "duration_s": 17.554767847061157
+}

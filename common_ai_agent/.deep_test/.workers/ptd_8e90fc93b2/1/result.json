@@ -1,0 +1,28 @@
+{
+  "job_id": "ptd_8e90fc93b2",
+  "worker_idx": 1,
+  "model": "j3-m1",
+  "requested_model": "j3-m1",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "j3-todo-01"
+    },
+    {
+      "index": 11,
+      "id": "todo-12",
+      "content": "j3-todo-11"
+    }
+  ],
+  "todos_done": [
+    "todo-2",
+    "todo-12"
+  ],
+  "result": "ok(j3-m1):You are a parallel TODO worker.\nJob: ptd_8e90fc93b2\nWorker index: 1\n\nWork only on the TODO items assigned below. Decide your internal order and use available tools as needed. Return a concise result with DONE, FAILED, and evidence for each assigned item.\n\nAssigned TODOs:\n[\n  {\n    \"index\": 1,\n    \"id\": \"todo-2\",\n    \"content\": \"j3-todo-01\"\n  },\n  {\n    \"index\": 11,\n    \"id\": \"todo-12\",\n    \"content\": \"j3-todo-11\"\n  }\n]",
+  "error": "",
+  "started_at": 1778924817.3801,
+  "completed_at": 1778924817.404523,
+  "duration_s": 0.024422883987426758
+}

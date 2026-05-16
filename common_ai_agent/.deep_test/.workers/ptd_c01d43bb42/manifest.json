@@ -1,0 +1,86 @@
+{
+  "job_id": "ptd_c01d43bb42",
+  "requested_worker_count": 3,
+  "worker_count": 3,
+  "models": [
+    {
+      "requested_model": "fake-A",
+      "resolved_model": "fake-A",
+      "pricing_model": "fake-A",
+      "reason": ""
+    },
+    {
+      "requested_model": "fake-B",
+      "resolved_model": "fake-B",
+      "pricing_model": "fake-B",
+      "reason": ""
+    },
+    {
+      "requested_model": "fake-C",
+      "resolved_model": "fake-C",
+      "pricing_model": "fake-C",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "alpha"
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "beta"
+    },
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "gamma"
+    },
+    {
+      "index": 3,
+      "id": "todo-4",
+      "content": "delta"
+    },
+    {
+      "index": 4,
+      "id": "todo-5",
+      "content": "epsilon"
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "alpha"
+      },
+      {
+        "index": 3,
+        "id": "todo-4",
+        "content": "delta"
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "beta"
+      },
+      {
+        "index": 4,
+        "id": "todo-5",
+        "content": "epsilon"
+      }
+    ],
+    [
+      {
+        "index": 2,
+        "id": "todo-3",
+        "content": "gamma"
+      }
+    ]
+  ],
+  "created_at": 1778925155.1367989
+}

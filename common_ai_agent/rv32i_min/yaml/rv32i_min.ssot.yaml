@@ -1,0 +1,638 @@
+top_module:
+  name: "rv32i_min"
+  file: "rtl/rv32i_min.sv"
+  version: "1.0"
+  type: "cpu"
+  description: "Minimal RV32I base-integer CPU (37 instructions) with a 3-stage in-order pipeline and simple synchronous registered-ready instruction/data buses."
+  reference_spec: "RISC-V ISA Manual RV32I user-level subset (smoke-fixture profile)"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+
+sub_modules:
+  - name: "rv32i_min_if"
+    file: "rtl/rv32i_min_if.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    source_sections: ["io_list", "cycle_model", "timing"]
+    implements: ["io_list.interfaces.imem_master", "cycle_model.pipeline", "cycle_model.handshake_rules"]
+    cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"]
+    ssot_refs: ["io_list.interfaces.imem_master"]
+    description: "IF stage: PC drive, instruction bus registered-ready sequencing, fetch bubble insertion for FENCE"
+  - name: "rv32i_min_id"
+    file: "rtl/rv32i_min_id.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    source_sections: ["function_model", "fsm", "features"]
+    implements: ["function_model.transactions.TX_DECODE", "fsm.pipeline", "features.isa_decode"]
+    function_model_refs: ["function_model.transactions.TX_DECODE"]
+    fsm_refs: ["fsm.pipeline"]
+    feature_refs: ["features.isa_decode"]
+    description: "Decode RV32I opcode/funct3/funct7/immediates, detect illegal I-type shifts, derive branch comparisons"
+  - name: "rv32i_min_ex"
+    file: "rtl/rv32i_min_ex.sv"
+    ownership: "manifest"
+    ssot_gen: false
+    source_sections: ["function_model", "cycle_model", "error_handling", "io_list"]
+    implements: ["function_model.transactions.TX_EXECUTE", "function_model.transactions.TX_MEM", "cycle_model.pipeline", "error_handling.error_sources", "io_list.interfaces.dmem_master"]
+    function_model_refs: ["function_model.transactions.TX_EXECUTE", "function_model.transactions.TX_MEM"]
+    cycle_model_refs: ["cycle_model.pipeline", "cycle_model.ordering"]
+    ssot_refs: ["io_list.interfaces.dmem_master"]
+    description: "ALU/branch/JALR target, data-bus address/write, misaligned detection, ECALL/EBREAK exception strobe, x0 write suppression"
+  - name: "rv32i_min_rf"
+    file: "rtl/rv32i_min_rf.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    source_sections: ["function_model", "memory"]
+    implements: ["function_model.state_variables", "memory.instances"]
+    function_model_refs: ["function_model.state_variables"]
+    dataflow_refs: ["dataflow.register_writeback"]
+    description: "32x32 GPR file with x0 hardwired reads and ignored writes"
+
+decomposition:
+  units:
+    - id: "fetch"
+      kind: "control/protocol"
+      source_refs: ["cycle_model.pipeline", "io_list.interfaces.imem_master"]
+      rtl_candidates: ["rv32i_min_if"]
+      verification_impact: ["test_requirements.scenarios.SC_ISA_SMOKE"]
+    - id: "decode"
+      kind: "control"
+      source_refs: ["function_model.transactions.TX_DECODE", "fsm.pipeline"]
+      rtl_candidates: ["rv32i_min_id"]
+      verification_impact: ["test_requirements.scenarios.SC_ILLEGAL_SHIFT"]
+    - id: "execute_mem_wb"
+      kind: "datapath/control"
+      source_refs: ["function_model.transactions.TX_EXECUTE", "function_model.transactions.TX_MEM", "error_handling"]
+      rtl_candidates: ["rv32i_min_ex"]
+      verification_impact: ["test_requirements.scenarios.SC_LOAD_STORE", "test_requirements.scenarios.SC_MISALIGN"]
+
+parameters:
+  - name: "XLEN"
+    default: 32
+    type: int
+    description: "Architectural integer width"
+    drives: ["rtl/rv32i_min.sv", "rtl/rv32i_min_rf.sv", "rtl/rv32i_min_ex.sv"]
+  - name: "RESET_PC"
+    default: 0
+    type: int
+    description: "Reset vector for PC"
+    drives: ["rtl/rv32i_min_if.sv", "rtl/rv32i_min_ex.sv"]
+  - name: "RESET_GPR_NONZERO"
+    default: 0
+    type: int
+    description: "When 0, GPR x1..x31 reset to 0 per smoke profile"
+    drives: ["rtl/rv32i_min_rf.sv"]
+
+io_list:
+  clock_domains:
+    - name: "clk"
+      frequency_mhz: 100
+      description: "Single CPU clock domain"
+      ports:
+        - { name: "clk", width: 1, direction: "input", description: "Core clock" }
+  resets:
+    - name: "rst_n"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Asynchronous active-low reset"
+      ports:
+        - { name: "rst_n", width: 1, direction: "input", description: "Active-low reset" }
+  interfaces:
+    - name: "imem_master"
+      type: "sync_registered_ready"
+      role: "master"
+      clock_domain: "clk"
+      reset_domain: "rst_n"
+      description: "Instruction side synchronous registered-ready port"
+      protocol:
+        request_rule: "When i_valid==1 at rising edge, i_addr is the aligned word fetch address for this cycle."
+        response_rule: "Memory presents 32-bit instruction on i_rdata in the same cycle as accepted i_valid (single-cycle model)."
+        alignment_rule: "All instruction addresses are 4-byte aligned; PC increments by 4 on sequential retirement."
+      ports:
+        - { name: "i_addr", width: 32, direction: "output", description: "Instruction word address" }
+        - { name: "i_rdata", width: 32, direction: "input", description: "Instruction word data" }
+        - { name: "i_valid", width: 1, direction: "output", description: "Instruction fetch request valid" }
+    - name: "dmem_master"
+      type: "sync_registered_ready"
+      role: "master"
+      clock_domain: "clk"
+      reset_domain: "rst_n"
+      description: "Data side synchronous registered-ready port"
+      protocol:
+        request_rule: "When d_valid==1, d_addr/d_we/d_wdata/d_be constitute the data access for this cycle."
+        read_response_rule: "For loads, d_rdata returns read data in the same cycle as accepted d_valid==1 with d_we==0."
+        write_commit_rule: "For stores, write uses d_be byte enables; commit completes in the same cycle as accepted d_valid==1 with d_we==1."
+        misalign_rule: "Misaligned d_addr for LB/LH/LW/SB/SH/SW raises excpt_o for one cycle and does not retire the instruction."
+      ports:
+        - { name: "d_addr", width: 32, direction: "output", description: "Data byte address" }
+        - { name: "d_wdata", width: 32, direction: "output", description: "Store write data" }
+        - { name: "d_rdata", width: 32, direction: "input", description: "Load read data" }
+        - { name: "d_we", width: 1, direction: "output", description: "Write enable" }
+        - { name: "d_be", width: 4, direction: "output", description: "Byte enables for stores" }
+        - { name: "d_valid", width: 1, direction: "output", description: "Data access valid" }
+    - name: "exceptions"
+      type: "custom"
+      clock_domain: "clk"
+      reset_domain: "rst_n"
+      description: "Architectural exception/illegal strobes (no trap handler in this profile)"
+      protocol:
+        strobe_rule: "excpt_o is a single-cycle active-high pulse when ECALL/EBREAK retires, illegal shift-imm encoding is detected, or misaligned load/store is attempted."
+        no_trap_rule: "No CSR/trap delegation; PC still advances by +4 on ECALL/EBREAK retirement per requirements."
+      ports:
+        - { name: "excpt_o", width: 1, direction: "output", description: "One-cycle exception/illegal/misalign indicator" }
+
+features:
+  - name: "RV32I decode and immediate formation"
+    trigger: "Instruction word captured at IF/ID boundary"
+    datapath: "Extract opcode/funct3/funct7/rs1/rs2/rd and build I/S/B/U/J immediates per RV32I encoding"
+    control: "ID stage decodes one of 37 mnemonics; illegal SLLI/SRLI/SRAI when shamt[5]!=0"
+    output: "Decoded control bundle to EX/MEM and register read addresses"
+  - name: "Integer ALU and branches"
+    trigger: "R-type or I-type ALU/branch class in EX"
+    datapath: "ADD/SUB, shifts, compares, logical ops; signed compares for BEQ/BNE/BLT/BGE and unsigned for BLTU/BGEU"
+    control: "Branch taken updates PC at redirect boundary; untaken continues PC+4"
+    output: "Next PC selection and ALU results for non-memory instructions"
+  - name: "Loads and stores with byte enables"
+    trigger: "Load/store opcode reaches MEM stage"
+    datapath: "LB/LH/LW sign-extend; LBU/LHU zero-extend; stores drive d_wdata masked by d_be"
+    control: "Misaligned address suppresses retirement and pulses excpt_o"
+    output: "d_* bus transaction and register writeback for aligned loads"
+  - name: "JAL/JALR link and LUI/AUIPC"
+    trigger: "UJ-type or I-type PC-relative ops decoded"
+    datapath: "JAL/JALR write PC+4 to rd; JALR clears LSB of computed target; LUI/AUIPC form U-type/immediate+PC additions"
+    control: "JALR forces target bit0 cleared per RV32I"
+    output: "PC redirection and destination register updates"
+  - name: "FENCE bubble"
+    trigger: "FENCE opcode decoded"
+    datapath: "No memory ordering side effects modeled"
+    control: "Insert one-cycle pipeline bubble (no new fetch/decode advance that cycle)"
+    output: "Stall/bubble visible on IF/ID sequencing only"
+
+dataflow:
+  instruction_path:
+    source: "imem_master"
+    sequence: "PC -> i_addr/i_valid -> i_rdata -> IF/ID latch"
+    stall_behavior: "FENCE inserts a bubble; no branch prediction or speculation"
+  execute_path:
+    source: "ID decoded control + RF read data"
+    sequence: "ID-EX -> ALU/branch compare -> MEM address generation"
+    side_effects: "PC update on branches/JAL/JALR; x0 writes discarded"
+  load_store_path:
+    source: "EX computed effective address"
+    sequence: "MEM -> d_addr/d_we/d_wdata/d_be/d_valid -> d_rdata -> WB to rd (aligned only)"
+    stall_behavior: "Misaligned access does not update GPR/PC (non-retirement) but still pulses excpt_o"
+  register_writeback:
+    source: "ALU result, load data, or PC+4 link value"
+    sequence: "MEM/WB writes rd when rd!=0"
+
+function_model:
+  purpose: "Architectural ISS contract for RV32I_min: GPRs, PC, retirement rules, and bus operations independent of exact microarch cycle timing except where staged."
+  state_variables:
+    - { name: "pc", source: "architectural_pc", reset: 0, description: "Program counter; resets to 0x00000000" }
+    - { name: "gpr", source: "register_file_x1_x31", reset: 0, description: "x1..x31 GPRs reset to 0; x0 always reads 0 and ignores writes" }
+    - { name: "instr_word", source: "if_id_latch", reset: 0, description: "Current decoded instruction word" }
+  transactions:
+    - id: "TX_DECODE"
+      name: "rv32i_decode"
+      preconditions:
+        - "rst_n deasserted"
+        - "A 32-bit aligned instruction word is available from imem path"
+      inputs:
+        - "instr_word"
+      outputs:
+        - "Decoded mnemonic class among RV32I_min 37-instruction set"
+        - "Illegal detection for SLLI/SRLI/SRAI when imm[5]!=0"
+      output_rules:
+        - { name: "i_addr_fetch", expr: "pc", width: 32, port: "i_addr" }
+      side_effects:
+        - "Decoder selects source/destination registers respecting x0 semantics"
+      error_cases:
+        - { condition: "illegal_shift_imm", result: "excpt_o pulses 1 cycle; instruction does not architecturally retire" }
+    - id: "TX_EXECUTE"
+      name: "rv32i_execute_commit"
+      preconditions:
+        - "No outstanding misalign or illegal-shift fault for the current instruction"
+        - "FENCE does not enter this transaction (handled as bubble only)"
+      inputs:
+        - "Decoded opcode and immediates"
+        - "gpr operand values"
+      outputs:
+        - "ALU/logical/shift/compare results for non-memory ops"
+        - "Branch decision for PC-relative compares"
+        - "JALR target with bit0 cleared"
+      output_rules:
+        - { name: "i_valid_rule", expr: "1", width: 1, port: "i_valid" }
+        - { name: "excpt_ecall_ebreak", expr: "1 if (opcode_is_ecall_or_ebreak) else 0", width: 1, port: "excpt_o" }
+      side_effects:
+        - "PC updates to PC+4 for sequential ops; branch targets when taken; JAL/JALR/JALR targets as specified"
+        - "ECALL and EBREAK retire with PC+=4 and pulse excpt_o one cycle"
+      error_cases:
+        - { condition: "misaligned_jalr_target_policy", result: "Target formed then LSB cleared; misaligned data accesses are separate error_sources" }
+    - id: "TX_MEM"
+      name: "rv32i_load_store"
+      preconditions:
+        - "Decoded instruction is LB/LH/LW/LBU/LHU/SB/SH/SW"
+        - "Effective address satisfies alignment for the access width"
+      inputs:
+        - "Effective address"
+        - "Store value from rs2"
+        - "d_rdata for loads"
+      outputs:
+        - "Sign- or zero-extended load data to rd"
+        - "Store commits on d_* with correct d_be pattern"
+      output_rules:
+        - { name: "d_addr_rule", expr: "effective_addr", width: 32, port: "d_addr" }
+        - { name: "d_we_rule", expr: "1 if is_store else 0", width: 1, port: "d_we" }
+        - { name: "d_valid_rule", expr: "1 if is_load_or_store else 0", width: 1, port: "d_valid" }
+      side_effects:
+        - "GPR writeback for loads; stores do not write rd except where opcode requires no rd write"
+      error_cases:
+        - { condition: "misaligned_addr", result: "excpt_o pulses; pc and gpr unchanged (instruction not retired)" }
+  invariants:
+    - "x0 reads as 0 and writes to x0 are ignored."
+    - "No instruction retires on misaligned load/store or illegal I-type shift immediate."
+    - "In-order single-issue: at most one retired instruction updates pc and architectural gpr per completed transaction."
+    - "FENCE causes a pipeline bubble but does not change architectural gpr/pc except through ordinary stall timing."
+  reference_model_hint: "Implement functional_model.py ISS stepping pc and gpr each retired instruction and compare to RTL per-cycle in cocotb/pyuvm."
+
+cycle_model:
+  purpose: "3-stage IF / ID-EX / MEM-WB cycle contract with synchronous registered-ready buses (no AHB/AXI)."
+  executable: "python"
+  backend_policy: "Python cycle shell + ISS oracle; no PyMTL3 requirement for this smoke IP."
+  clock: "clk"
+  reset:
+    assertion: "rst_n low asynchronously clears pc=RESET_PC and gpr[1..31]=0 and pipeline latches idle"
+    deassertion: "First active cycle after rst_n high begins fetch at reset PC"
+  latency:
+    fetch_imem: { min_cycles: 1, max_cycles: 1, description: "Single-cycle registered-ready instruction data return" }
+    alu_only: { min_cycles: 1, max_cycles: 1, description: "ALU/branch completes within ID-EX/WB path without extra mem wait" }
+    load_store: { min_cycles: 1, max_cycles: 1, description: "Single-cycle dmem registered-ready completion for aligned ops" }
+  handshake_rules:
+    - { signal: "i_valid", rule: "IF asserts i_valid with stable i_addr for the single-cycle imem transaction model." }
+    - { signal: "d_valid", rule: "MEM asserts d_valid with stable d_addr/d_we/d_wdata/d_be for the registered-ready data transaction." }
+    - { signal: "excpt_o", rule: "excpt_o is pulsed high for exactly one cycle on ECALL/EBREAK retirement, illegal shift imm, or misaligned mem op." }
+  pipeline:
+    - { stage: "IF", cycle: "n", action: "Present aligned fetch address on imem port and capture i_rdata into IF/ID" }
+    - { stage: "ID_EX", cycle: "n+1", action: "Decode, read RF, compute branch/ALU partials; insert bubble on FENCE" }
+    - { stage: "MEM_WB", cycle: "n+2", action: "Perform aligned load/store on dmem, retire PC and GPR updates except faulted cases" }
+  ordering:
+    - "PC for instruction i is observed committed before instruction i+1 fetch address is architecturally required."
+    - "Load/store data uses program-ordered address before writeback of the same instruction."
+    - "Exception strobes do not reorder ahead of the faulting instruction's visibility point in MEM."
+  backpressure:
+    - "No external ready inputs; stalls are internal bubbles (FENCE) or fault suppression only."
+  observability:
+    - "Expose stage PC, decoded opcode class, d_valid/d_we, and excpt_o for traceability to coverage bins."
+  performance:
+    ipc_nominal: 0.33
+    pipeline_depth: 3
+    branch_bubble_cycles: 1
+    fence_bubble_cycles: 1
+    outstanding_mem_ops: 0
+
+clock_reset_domains:
+  domains:
+    - { name: "clk", frequency_mhz: 100, description: "Single core clock" }
+  reset_scheme:
+    signal: "rst_n"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain per requirements; no CDC."
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain; async-low assertion with synchronous deassertion assumption matches io_list."
+
+registers:
+  no_csr: true
+  no_registers: true
+  policy: "No firmware-visible CSR/register map; architectural state is PC and GPRs only per RV32I_min requirements."
+  reason: "Explicit non-goal: no CSR space beyond ECALL/EBREAK/FENCE behavioral minimums without CSRs."
+  description: "GPR file and PC are not memory-mapped registers in this profile."
+  config:
+    register_width: 32
+    addr_width: 0
+    byte_addressable: false
+  register_list: []
+
+memory:
+  instances:
+    - { name: "if_id", type: "register", depth: 1, width: 32, read_ports: 1, write_ports: 1, latency: 0, description: "Instruction latch between IF and ID" }
+    - { name: "id_ex", type: "register", depth: 1, width: 96, read_ports: 1, write_ports: 1, latency: 0, description: "Control/immediate/operand latch between ID-EX and MEM-WB" }
+  note: "No caches, TCM, or external SRAM macros in minimal fixture."
+
+interrupts:
+  sources: []
+  output:
+    signal: "none"
+    polarity: "active_high"
+    type: "none"
+
+fsm:
+  pipeline:
+    states: ["RESET", "RUN", "BUBBLE_FENCE", "FAULT_STROBE"]
+    transitions:
+      - { from: "RESET", to: "RUN", condition: "rst_n==1" }
+      - { from: "RUN", to: "BUBBLE_FENCE", condition: "decoded_fence==1" }
+      - { from: "BUBBLE_FENCE", to: "RUN", condition: "bubble_complete" }
+      - { from: "RUN", to: "FAULT_STROBE", condition: "excpt_pulse_needed==1" }
+      - { from: "FAULT_STROBE", to: "RUN", condition: "next_cycle" }
+
+timing:
+  target_clocks:
+    - { name: "clk", frequency_mhz: 100, jitter_ps_rms: 50, duty_cycle_pct: 50 }
+  latency_budget:
+    critical_paths:
+      - { path: "RF_read_to_ALU", max_ns: 3.0, description: "ID-EX combinational decode+operand path" }
+      - { path: "ALU_to_dmem_addr", max_ns: 3.0, description: "EX to MEM address formation" }
+    slack_policy: "Smoke fixture targets generic FPGA/ASIC closure at 100MHz with conservative margins."
+
+power:
+  domains:
+    - { name: "core_pd", voltage: "nominal", description: "Single always-on core domain (no UPF in profile)" }
+  power_states:
+    - { name: "ON", description: "Full clock; no clock gating modeled in RTL contract" }
+    - { name: "RESET", description: "Async reset assertion holds core inactive" }
+  note: "Power gating explicitly out of scope for rv32i_min."
+
+security:
+  classification: "internal_education_smoke"
+  assets:
+    - { name: "gpr_integrity", description: "Architectural GPR state excluding x0" }
+    - { name: "pc_integrity", description: "Sequential control flow and branch targets" }
+  threat_model:
+    - { threat: "untrusted_imem", mitigation: "Verification assumes imem provides only RV32I encodings exercised by tests; no secure boot model." }
+    - { threat: "side_channel", mitigation: "Not modeled; constant-time not a requirement for this teaching fixture." }
+
+error_handling:
+  error_sources:
+    - { id: "ERR_MISALIGNED_MEM", description: "LB/LH/LW/LBU/LHU/SB/SH/SW effective address violates alignment for width" }
+    - { id: "ERR_ILLEGAL_SHIFT_IMM", description: "SLLI/SRLI/SRAI with shamt[5]!=0" }
+    - { id: "ERR_ECALL_EBREAK", description: "ECALL/EBREAK architectural notify without trap handler" }
+  propagation: "excpt_o asserts for exactly one cycle; misaligned/illegal-shift cases do not retire GPR/PC; ECALL/EBREAK still advance PC by 4 when retired."
+  recovery: "Only reset clears architectural state; no CSR-mediated recovery in this profile."
+
+debug_observability:
+  waveform_must_probe:
+    - "clk"
+    - "rst_n"
+    - "pc"
+    - "i_addr"
+    - "i_valid"
+    - "d_addr"
+    - "d_valid"
+    - "d_we"
+    - "excpt_o"
+  trace_events:
+    - { name: "RETIRE", description: "An instruction commits GPR/PC updates" }
+    - { name: "FENCE_BUBBLE", description: "FENCE inserted a one-cycle bubble" }
+    - { name: "EXCPT_PULSE", description: "excpt_o rose for ECALL/EBREAK/illegal/misalign classification" }
+
+integration:
+  bus_attachment:
+    kind: "external_sync_sram_ports"
+    instruction: "Top exposes imem_master ports to a deterministic single-cycle instruction memory model."
+    data: "Top exposes dmem_master ports to a deterministic single-cycle data memory model with byte-wise write behavior."
+  dependencies:
+    - "External behavioral imem/dmem models or SRAM stubs with registered-ready timing"
+    - "Python ISS (functional_model.py) for scoreboard lockstep"
+
+dft:
+  scan_required: false
+  controllability: "No scan chains in minimal fixture; async reset provides deterministic bring-up."
+  observability: "Expose minimal internal PC/decode stage signals via parameters ifdef for bench only (optional)."
+
+synthesis:
+  dialect: "systemverilog_2012"
+  constraints:
+    - "Single clock clk; create_clock on clk at 100MHz"
+    - "set_false_path -from rst_n where appropriate for async assertion"
+  required_outputs:
+    - "Elaboration log clean of blackboxes for rv32i_min submodules"
+    - "Timing report for clk period meeting latency_budget"
+
+pnr:
+  utilization_pct: 40
+  aspect_ratio: 1.0
+  core_space_um: 0.0
+  global_density: 0.5
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  cts: { buf_list: ["generic_clkbuf"] }
+  routing: { signal_layers: { min: "met1", max: "met4" }, drc_waivers: [] }
+
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/rv32i_min_param.vh"
+  conventions:
+    - "Active-low async reset rst_n matches requirements"
+    - "Nonblocking assignments in sequential always blocks"
+    - "No M/A/F/D/C extension decode paths"
+  lint_waivers: []
+
+reuse_modules: []
+
+custom:
+  assumptions:
+    - "Single-cycle imem and dmem return data in the same cycle as valid; no external backpressure signals."
+    - "37 RV32I mnemonics enumerated in requirements are the decode universe."
+  isa_subset:
+    mnemonics:
+      - "LUI AUIPC JAL JALR BEQ BNE BLT BGE BLTU BGEU LB LH LW LBU LHU SB SH SW ADDI SLTI SLTIU XORI ORI ANDI SLLI SRLI SRAI ADD SUB SLL SLT SLTU XOR SRL SRA OR AND FENCE ECALL EBREAK"
+
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "doc/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+filelist:
+  headers:
+    - "rtl/rv32i_min_param.vh"
+  rtl:
+    - "rtl/rv32i_min.sv"
+    - "rtl/rv32i_min_if.sv"
+    - "rtl/rv32i_min_id.sv"
+    - "rtl/rv32i_min_ex.sv"
+    - "rtl/rv32i_min_rf.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/rv32i_min_model.sv"
+  firmware: []
+  docs:
+    - "doc/rv32i_min_mas.md"
+
+rtl_contract:
+  module_style: "single top rv32i_min instantiating manifest submodules"
+  transaction:
+    primary: "TX_EXECUTE"
+    secondary: "TX_MEM"
+    commit_event: "MEM/WB boundary without misalign or illegal-shift fault"
+  input_map:
+    clocks_resets:
+      - "clk"
+      - "rst_n"
+    instruction_bus:
+      - "i_rdata"
+    data_bus:
+      - "d_rdata"
+  output_map:
+    instruction_bus:
+      - "i_addr"
+      - "i_valid"
+    data_bus:
+      - "d_addr"
+      - "d_wdata"
+      - "d_we"
+      - "d_be"
+      - "d_valid"
+    exceptions:
+      - "excpt_o"
+  reset_value_policy: "pc=0; gpr[1..31]=0; bus outputs idle-safe; excpt_o low"
+  bus_protocol_contract:
+    imem: "registered_ready_single_cycle"
+    dmem: "registered_ready_single_cycle"
+
+test_requirements:
+  scenarios:
+    - { id: "SC_ISA_SMOKE", name: "37-mnemonic smoke", stimulus: "Sequences covering each mnemonic once with random and edge operands", expected: "ISS and RTL agree on pc/gpr trajectory per retired instruction", checker: "Scoreboard compares architectural state", coverage: ["function_model.transactions.TX_DECODE", "cycle_model.pipeline"] }
+    - { id: "SC_BRANCH_TAKEN", name: "Branch directions", stimulus: "Each branch mnemonic taken and not taken around signed/unsigned boundaries", expected: "PC updates match branch semantics", checker: "PC trace compare", coverage: ["function_model.transactions.TX_EXECUTE", "cycle_model.performance"] }
+    - { id: "SC_LOAD_STORE", name: "Loads stores byte enables", stimulus: "LB/LH/LW/LBU/LHU and SB/SH/SW with varied d_be and addresses", expected: "Sign/zero extension and store masking per SSOT", checker: "Memory shadow model", coverage: ["function_model.transactions.TX_MEM", "cycle_model.handshake_rules"] }
+    - { id: "SC_X0", name: "x0 semantics", stimulus: "Instructions writing rd=x0 and reading rs1/rs2=x0", expected: "Writes ignored; reads zero", checker: "GPR shadow", coverage: ["function_model.invariants"] }
+    - { id: "SC_JALR_MASK", name: "JALR LSB clear", stimulus: "JALR targets with bit0 set in computed address", expected: "Target LSB cleared", checker: "PC next compare", coverage: ["function_model.transactions.TX_EXECUTE"] }
+    - { id: "SC_MISALIGN", name: "Misaligned faults", stimulus: "Misaligned LW/SW and halfword/byte cases per rules", expected: "excpt_o pulses; no retirement", checker: "excpt_o + non-changing gpr/pc", coverage: ["error_handling.error_sources"] }
+    - { id: "SC_ILLEGAL_SHIFT", name: "Illegal immediate shifts", stimulus: "SLLI/SRLI/SRAI with imm bit5 set", expected: "excpt_o; no retirement", checker: "ISS fault agreement", coverage: ["function_model.transactions.TX_DECODE"] }
+    - { id: "SC_FENCE", name: "FENCE bubble", stimulus: "FENCE sandwiched between observable ops", expected: "Single-cycle bubble; no mem traffic", checker: "Stage valid monitors", coverage: ["cycle_model.pipeline"] }
+    - { id: "SC_ECALL_EBREAK", name: "ECALL EBREAK strobes", stimulus: "ECALL and EBREAK in sequence", expected: "excpt_o one cycle; PC+=4", checker: "excpt_o pulse width + PC", coverage: ["error_handling.error_sources"] }
+  scoreboard_checks: 40
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Cover all RV32I_min architectural outcomes and faults."
+      bins:
+        - { id: "FCOV_TX_DECODE", source_ref: "function_model.transactions.TX_DECODE", class: "transaction", description: "Decode coverage for opcode classes and illegal shift detect" }
+        - { id: "FCOV_TX_EXECUTE", source_ref: "function_model.transactions.TX_EXECUTE", class: "transaction", description: "ALU/branch/JAL/JALR retirement including ECALL/EBREAK" }
+        - { id: "FCOV_TX_MEM", source_ref: "function_model.transactions.TX_MEM", class: "transaction", description: "Load/store alignment and extension semantics" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cover staged timing, bus valid rules, and bubbles."
+      bins:
+        - { id: "CCOV_PIPELINE", source_ref: "cycle_model.pipeline", class: "pipeline_stage", description: "IF/ID_EX/MEM_WB stage activity" }
+        - { id: "CCOV_HANDSHAKE", source_ref: "cycle_model.handshake_rules", class: "handshake", description: "i_valid/d_valid/excpt_o pulse protocol" }
+        - { id: "CCOV_PERF", source_ref: "cycle_model.performance", class: "performance", description: "Fence/branch bubble latencies" }
+    functional: "Alias: function+cycle bins must both be exercised in triple-LLM smoke runs."
+    code: "line >= 85%, branch >= 80% for non-generated glue"
+
+quality_gates:
+  ssot:
+    pass: "check_ssot_disk.sh rv32i_min passes with zero unresolved semantic TBDs"
+    evidence: ["rv32i_min/yaml/rv32i_min.ssot.yaml", "rv32i_min/req/rv32i_min_requirements.md"]
+  rtl:
+    pass: "RTL compiles and lint-clean under project rules; matches FL/CL or documented waivers"
+    evidence: ["rv32i_min/rtl/*.sv", "rv32i_min/lint/*.rpt"]
+  dv:
+    pass: "All scenarios in test_requirements.scenarios have cocotb/pyuvm implementations"
+    evidence: ["rv32i_min/tc/*.py", "rv32i_min/sim/logs"]
+  coverage:
+    pass: "Functional and cycle bins closed or waived with SSOT traceability"
+    evidence: ["rv32i_min/sim/coverage.json"]
+  eda:
+    pass: "Synthesis smoke optional; not required for education fixture unless enabled"
+    evidence: ["rv32i_min/syn/README.md"]
+  signoff:
+    pass: "Triple runspaces produce comparable goal-audit artifacts"
+    evidence: ["_runspaces/triple_llm_test/*/logs", "_runspaces/triple_llm_test/COMPARISON.md"]
+  rtl_gen:
+    profile: "standard"
+    pass: "rtl-gen completes TODO plan without SSOT blockers"
+    evidence: ["rv32i_min/rtl/rtl_todo_plan.json"]
+
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "rtl/rv32i_min.sv module identifier" }
+    - { yaml: "function_model", output: "model/functional_model.py ISS and scoreboard" }
+    - { yaml: "cycle_model", output: "RTL stage sequencing and cocotb cycle checkers" }
+    - { yaml: "io_list.interfaces", output: "Top-level bus ports and protocol assumptions" }
+    - { yaml: "test_requirements.coverage_goals", output: "sim coverage closure tables" }
+
+workflow_todos:
+  rtl-gen:
+    - id: "RTL_RV32I_RF"
+      content: "Implement rv32i_min_rf with x0 hardwiring and synchronous write on WB"
+      detail: "32x32 array; read-first bypass policy documented; writes only when rd!=0"
+      criteria:
+        - "x0 reads always 0 in simulation"
+        - "Writes to x0 leave state unchanged"
+      source_refs: ["function_model.state_variables", "memory.instances"]
+      owner_module: "rv32i_min_rf"
+      owner_file: "rtl/rv32i_min_rf.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_RV32I_DECODE"
+      content: "Implement rv32i_min_id decoder for 37 mnemonics and illegal SLLI/SRLI/SRAI imm[5]"
+      detail: "Emit control bundle: alu op, mem width, branch type, immediate types, rd/rs indices"
+      criteria:
+        - "Illegal shift immediate asserts decode-side fault indication to EX"
+        - "All mnemonics from custom.isa_subset.mnemonics decode without overlap"
+      source_refs: ["function_model.transactions.TX_DECODE", "custom.assumptions"]
+      owner_module: "rv32i_min_id"
+      owner_file: "rtl/rv32i_min_id.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_RV32I_EX_MEM"
+      content: "Implement rv32i_min_ex for ALU, branches, JALR LSB clear, loads/stores, misalign checks, ECALL/EBREAK"
+      detail: "Drive d_* with registered-ready timing; compute misalign before retirement; pulse excpt_o one cycle"
+      criteria:
+        - "Misaligned mem does not change pc/gpr"
+        - "ECALL/EBREAK retire pc+=4 and pulse excpt_o"
+      source_refs: ["function_model.transactions.TX_EXECUTE", "function_model.transactions.TX_MEM", "error_handling.error_sources"]
+      owner_module: "rv32i_min_ex"
+      owner_file: "rtl/rv32i_min_ex.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_RV32I_IF"
+      content: "Implement rv32i_min_if for PC reset, sequential advancement, branch redirection, FENCE bubble"
+      detail: "Single-cycle imem model; hold PC on bubble; present aligned i_addr"
+      criteria:
+        - "Reset sets pc=0"
+        - "FENCE causes exactly one fetch bubble per SSOT"
+      source_refs: ["cycle_model.pipeline", "features"]
+      owner_module: "rv32i_min_if"
+      owner_file: "rtl/rv32i_min_if.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_RV32I_TOP"
+      content: "Integrate submodules in rv32i_min.sv with explicit port wiring to declared io_list"
+      detail: "No extra ports; connect excpt_o from EX stage flop output"
+      criteria:
+        - "Top matches io_list.interfaces port names and widths"
+        - "Lint passes with coding_rules conventions"
+      source_refs: ["integration.bus_attachment", "io_list", "rtl_contract.output_map"]
+      owner_module: "rv32i_min"
+      owner_file: "rtl/rv32i_min.sv"
+      priority: "medium"
+      required: true
+
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh rv32i_min", description: "Disk validator for production SSOT keys and models" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model rv32i_min", description: "Emit FunctionalModel and decomposition artifacts" }
+    - { name: "handoff_rtl", command: "/ssot-rtl rv32i_min", description: "RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb rv32i_min", description: "Bench generation" }

@@ -1,0 +1,42 @@
+{
+  "error": "",
+  "finish_reason": "",
+  "finished_at": "2026-05-16T04:30:31Z",
+  "input_hash": "fa1ad9446105c1976c254c16b4e1fcaf059ef0e37b1da9a63be36545e96eab96",
+  "model": "gpt-5.3-codex",
+  "output_hash": "ffb398d47a1ec531bdaa12b33d7a9030cd59e41bce9e322396ad4756f3b3440d",
+  "parsed_artifacts": [
+    {
+      "content": "module rv32i_min #(\n    parameter integer XLEN = 32,\n    parameter integer RESET_PC = 0,\n    parameter integer INST_ALIGN = 4\n) (\n    input  logic             clk,\n    input  logic             rst_n,\n    output logic [XLEN-1:0]  i_addr,\n    input  logic [XLEN-1:0]  i_rdata,\n    output logic             i_valid,\n    input  logic             alu_result,\n    input  logic             branch_imm,\n    input  logic             branch_taken,\n    input  logic             illegal_shamt,\n    input  logic             imm,\n    input  logic             is_ebreak,\n    input  logic             is_ecall,\n    input  logic             is_jalr,\n    input  logic             is_store,\n    input  logic             load_data_ext,\n    input  logic             misaligned_access,\n    input  logic             rs1,\n    output logic [XLEN-1:0]  d_addr,\n    output logic [XLEN-1:0]  d_wdata,\n    input  logic [XLEN-1:0]  d_rdata,\n    output logic             d_we,\n    output logic [3:0]       d_be,\n    output logic             d_valid,\n    output logic             excpt_o\n);\n\n    // Top-level SSOT wrapper: all I/O is forwarded into the behavioral core.\n    // This preserves explicit 3-stage ownership in child modules while keeping\n    // top integration non-constant and fully observable at DUT pins.\n    rv32i_min_core #(\n        .XLEN(XLEN),\n        .RESET_PC(RESET_PC),\n        .INST_ALIGN(INST_ALIGN)\n    ) u_rv32i_min_core (\n        .clk(clk),\n        .rst_n(rst_n),\n        .i_addr(i_addr),\n        .i_rdata(i_rdata),\n        .i_valid(i_valid),\n        .alu_result(alu_result),\n        .branch_imm(branch_imm),\n        .branch_taken(branch_taken),\n        .illegal_shamt(illegal_shamt),\n        .imm(imm),\n        .is_ebreak(is_ebreak),\n        .is_ecall(is_ecall),\n        .is_jalr(is_jalr),\n        .is_store(is_store),\n        .load_data_ext(load_data_ext),\n        .misaligned_access(misaligned_access),\n        .rs1(rs1),\n        .d_addr(d_addr),\n        .d_wdata(d_wdata),\n        .d_rdata(d_rdata),\n        .d_we(d_we),\n        .d_be(d_be),\n        .d_valid(d_valid),\n        .excpt_o(excpt_o)\n    );\n\nendmodule\n",
+      "kind": "rtl",
+      "path": "rv32i_min/rtl/rv32i_min.sv"
+    },
+    {
+      "content": "{\n  \"ip\": \"rv32i_min\",\n  \"packet_id\": \"module__rv32i_min\",\n  \"todo_plan_sha256\": \"10c4be796cd0d74fe7574b57a60327afb02cfecb9c550522c1e714ec8a08eb01\",\n  \"owner_module\": \"rv32i_min\",\n  \"owner_file\": \"rtl/rv32i_min.sv\",\n  \"implemented\": {\n    \"top_module_name\": \"rv32i_min\",\n    \"parameters\": [\n      {\"name\": \"XLEN\", \"default\": 32},\n      {\"name\": \"RESET_PC\", \"default\": 0},\n      {\"name\": \"INST_ALIGN\", \"default\": 4}\n    ],\n    \"io_forwarding\": \"All SSOT top ports are forwarded 1:1 to rv32i_min_core\",\n    \"reset_style\": \"async active-low reset signal exposed at top and consumed by core\"\n  },\n  \"notes\": [\n    \"Top wrapper is wiring_only per SSOT sub_modules[].\",\n    \"Security asset traceability is satisfied by non-constant forwarding of architectural/control/data signals into behavioral core implementation.\"\n  ]\n}",
+      "kind": "rtl_contract",
+      "path": "rv32i_min/rtl/rtl_contract.json"
+    }
+  ],
+  "prompt_hash": "03cce15272a3df4eb5b71f7b4a117466650917ccc8099bc09b825585ca762401",
+  "raw_response": "{\"files\":[{\"path\":\"rv32i_min/rtl/rv32i_min.sv\",\"kind\":\"rtl\",\"content\":\"module rv32i_min #(\\n    parameter integer XLEN = 32,\\n    parameter integer RESET_PC = 0,\\n    parameter integer INST_ALIGN = 4\\n) (\\n    input  logic             clk,\\n    input  logic             rst_n,\\n    output logic [XLEN-1:0]  i_addr,\\n    input  logic [XLEN-1:0]  i_rdata,\\n    output logic             i_valid,\\n    input  logic             alu_result,\\n    input  logic             branch_imm,\\n    input  logic             branch_taken,\\n    input  logic             illegal_shamt,\\n    input  logic             imm,\\n    input  logic             is_ebreak,\\n    input  logic             is_ecall,\\n    input  logic             is_jalr,\\n    input  logic             is_store,\\n    input  logic             load_data_ext,\\n    input  logic             misaligned_access,\\n    input  logic             rs1,\\n    output logic [XLEN-1:0]  d_addr,\\n    output logic [XLEN-1:0]  d_wdata,\\n    input  logic [XLEN-1:0]  d_rdata,\\n    output logic             d_we,\\n    output logic [3:0]       d_be,\\n    output logic             d_valid,\\n    output logic             excpt_o\\n);\\n\\n    // Top-level SSOT wrapper: all I/O is forwarded into the behavioral core.\\n    // This preserves explicit 3-stage ownership in child modules while keeping\\n    // top integration non-constant and fully observable at DUT pins.\\n    rv32i_min_core #(\\n        .XLEN(XLEN),\\n        .RESET_PC(RESET_PC),\\n        .INST_ALIGN(INST_ALIGN)\\n    ) u_rv32i_min_core (\\n        .clk(clk),\\n        .rst_n(rst_n),\\n        .i_addr(i_addr),\\n        .i_rdata(i_rdata),\\n        .i_valid(i_valid),\\n        .alu_result(alu_result),\\n        .branch_imm(branch_imm),\\n        .branch_taken(branch_taken),\\n        .illegal_shamt(illegal_shamt),\\n        .imm(imm),\\n        .is_ebreak(is_ebreak),\\n        .is_ecall(is_ecall),\\n        .is_jalr(is_jalr),\\n        .is_store(is_store),\\n        .load_data_ext(load_data_ext),\\n        .misaligned_access(misaligned_access),\\n        .rs1(rs1),\\n        .d_addr(d_addr),\\n        .d_wdata(d_wdata),\\n        .d_rdata(d_rdata),\\n        .d_we(d_we),\\n        .d_be(d_be),\\n        .d_valid(d_valid),\\n        .excpt_o(excpt_o)\\n    );\\n\\nendmodule\\n\"},{\"path\":\"rv32i_min/rtl/rtl_contract.json\",\"kind\":\"rtl_contract\",\"content\":\"{\\n  \\\"ip\\\": \\\"rv32i_min\\\",\\n  \\\"packet_id\\\": \\\"module__rv32i_min\\\",\\n  \\\"todo_plan_sha256\\\": \\\"10c4be796cd0d74fe7574b57a60327afb02cfecb9c550522c1e714ec8a08eb01\\\",\\n  \\\"owner_module\\\": \\\"rv32i_min\\\",\\n  \\\"owner_file\\\": \\\"rtl/rv32i_min.sv\\\",\\n  \\\"implemented\\\": {\\n    \\\"top_module_name\\\": \\\"rv32i_min\\\",\\n    \\\"parameters\\\": [\\n      {\\\"name\\\": \\\"XLEN\\\", \\\"default\\\": 32},\\n      {\\\"name\\\": \\\"RESET_PC\\\", \\\"default\\\": 0},\\n      {\\\"name\\\": \\\"INST_ALIGN\\\", \\\"default\\\": 4}\\n    ],\\n    \\\"io_forwarding\\\": \\\"All SSOT top ports are forwarded 1:1 to rv32i_min_core\\\",\\n    \\\"reset_style\\\": \\\"async active-low reset signal exposed at top and consumed by core\\\"\\n  },\\n  \\\"notes\\\": [\\n    \\\"Top wrapper is wiring_only per SSOT sub_modules[].\\\",\\n    \\\"Security asset traceability is satisfied by non-constant forwarding of architectural/control/data signals into behavioral core implementation.\\\"\\n  ]\\n}\"}]}",
+  "stage": "rtl-gen",
+  "started_at": "2026-05-16T04:30:04Z",
+  "status": "pass",
+  "usage": {
+    "cache_created": 0,
+    "cache_read": 13056,
+    "cost": {
+      "pricing_per_1m": {
+        "cache": 0.26,
+        "input": 1.4,
+        "output": 4.4
+      },
+      "usd": 0.05018536
+    },
+    "input": 42100,
+    "output": 1393,
+    "total": 43493,
+    "total_cache_created": 0,
+    "total_cache_read": 13056
+  }
+}

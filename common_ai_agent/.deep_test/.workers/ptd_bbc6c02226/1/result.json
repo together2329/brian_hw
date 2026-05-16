@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_bbc6c02226",
+  "worker_idx": 1,
+  "model": "MB",
+  "requested_model": "MB",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "taskB"
+    }
+  ],
+  "todos_done": [
+    "todo-2"
+  ],
+  "result": "ok-for-MB",
+  "error": "",
+  "started_at": 1778925109.5865018,
+  "completed_at": 1778925109.587411,
+  "duration_s": 0.0009090900421142578
+}

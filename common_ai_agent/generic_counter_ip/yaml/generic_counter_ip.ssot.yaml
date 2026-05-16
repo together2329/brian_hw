@@ -1,0 +1,43 @@
+top_module:
+  name: generic_counter_ip
+  file: rtl/generic_counter_ip.sv
+io_list:
+  clock_domains:
+    - name: main
+      ports:
+        - name: clk
+          direction: input
+          width: 1
+  resets:
+    - name: rst_n
+      active: low
+      ports:
+        - name: rst_n
+          direction: input
+          width: 1
+  interfaces:
+    - name: data_in
+      type: input
+      width: 8
+      ports:
+        - name: data_in
+          direction: input
+          width: 8
+    - name: result_out
+      type: output
+      width: 9
+      ports:
+        - name: value
+          direction: output
+          width: 9
+features:
+  - name: double_value
+    description: Output value is twice the input value.
+function_model:
+  transactions:
+    - id: FM_PRIMARY
+      name: primary_behavior
+      outputs:
+        - value
+cycle_model:
+  latency: 1

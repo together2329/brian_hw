@@ -1,0 +1,48 @@
+{
+  "job_id": "ptd_694d7b2168",
+  "requested_worker_count": 2,
+  "worker_count": 2,
+  "models": [
+    {
+      "requested_model": "cursor-cli",
+      "resolved_model": "cursor-cli",
+      "pricing_model": "cursor-cli",
+      "reason": ""
+    },
+    {
+      "requested_model": "kimi",
+      "resolved_model": "kimi-2.6",
+      "pricing_model": "kimi-2.6",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Say the word DELTA."
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "Say the word EPSILON."
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "Say the word DELTA."
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "Say the word EPSILON."
+      }
+    ]
+  ],
+  "created_at": 1778931446.728766
+}

@@ -496,6 +496,7 @@ def test_cocotb_template_normalizes_stimulus_to_port_width_before_scoreboard():
     }
     assert "def _stimulus_value_for_field" in tb.TEST_PY
     assert "def _named_windows" in tb.TEST_PY
+    assert "def _register_offset_for_goal" in tb.TEST_PY
     assert "def _address_value_for_goal" in tb.TEST_PY
     assert "def _outside_selected_window" in tb.TEST_PY
     assert 'replace("_", " ").replace("-", " ")' in tb.TEST_PY

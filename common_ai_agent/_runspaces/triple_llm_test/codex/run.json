@@ -1,0 +1,80 @@
+{
+  "ip": "rv32i_min",
+  "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex",
+  "run_log": "rv32i_min/logs/headless_run.json",
+  "stages": [
+    {
+      "artifacts": [
+        "rv32i_min/req/rv32i_min_requirements.md",
+        "rv32i_min/req/requirements.md"
+      ],
+      "blocker": "",
+      "message": "requirements copied",
+      "returncode": 0,
+      "stage": "req",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "rv32i_min/yaml/rv32i_min.ssot.yaml",
+        "rv32i_min/logs/llm/ssot-gen.json"
+      ],
+      "blocker": "",
+      "message": "SSOT contract valid",
+      "returncode": 0,
+      "stage": "ssot-gen",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "rv32i_min/model/functional_model.py",
+        "rv32i_min/model/decomposition.json",
+        "rv32i_min/model/fl_model_check.json",
+        "rv32i_min/cov/fcov_plan.json"
+      ],
+      "blocker": "",
+      "message": "[ssot-fl-model] generic SSOT-driven FL model stage\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py\nmodule: rv32i_min\nsource: rv32i_min/yaml/rv32i_min.ssot.yaml\nexit: 0\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py rv32i_min --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex/rv32i_min/model/functional_model.py\n[emit_fl_model] decomposition_units=13 fcov_bins=57 passed=True\n\nexpected artifacts:\n- rv32i_min/model/functional_model.py\n- rv32i_min/model/decomposition.json\n- rv32i_min/model/fl_model_check.json\n- rv32i_min/cov/fcov_plan.json",
+      "returncode": 0,
+      "stage": "fl-model-gen",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "rv32i_min/model/functional_model.py",
+        "rv32i_min/model/cycle_model.py when executable CL is required",
+        "rv32i_min/model/cl_model_check.json when executable CL is required"
+      ],
+      "blocker": "",
+      "message": "[ssot-cycle-model] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py\nmodule: rv32i_min\nsource: rv32i_min/yaml/rv32i_min.ssot.yaml\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py rv32i_min --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex/rv32i_min/model/functional_model.py\n[emit_fl_model] decomposition_units=13 fcov_bins=57 passed=True\n- emit_cycle_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py rv32i_min --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex\n  stdout:\n[emit_cycle_model] trigger fired: cycle_model.executable=pymtl3\n[emit_cycle_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex/rv32i_min/model/cycle_model.py\n[emit_cycle_model] CL self-check passed=True\n\nexpected artifacts:\n- rv32i_min/model/functional_model.py\n- rv32i_min/model/cycle_model.py when executable CL is required\n- rv32i_min/model/cl_model_check.json when executable CL is required",
+      "returncode": 0,
+      "stage": "cl-model-gen",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "rv32i_min/cov/fl_fcov_plan.json",
+        "rv32i_min/cov/cl_fcov_plan.json when cycle_model requires CL bins",
+        "rv32i_min/cov/fcov_plan.json"
+      ],
+      "blocker": "",
+      "message": "[ssot-dual-fcov] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_dual_fcov.py\nmodule: rv32i_min\nsource: rv32i_min/yaml/rv32i_min.ssot.yaml\n\nruns:\n- emit_dual_fcov: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_dual_fcov.py rv32i_min --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex\n  stdout:\n[emit_dual_fcov] cl_fcov_plan.json written (25 bins)\n[emit_dual_fcov] ip=rv32i_min fl=25 cl=25 union=50 cl_triggered=True\n\nexpected artifacts:\n- rv32i_min/cov/fl_fcov_plan.json\n- rv32i_min/cov/cl_fcov_plan.json when cycle_model requires CL bins\n- rv32i_min/cov/fcov_plan.json",
+      "returncode": 0,
+      "stage": "dual-fcov",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "rv32i_min/verify/equivalence_goals.json",
+        "rv32i_min/model/functional_model.py",
+        "rv32i_min/model/decomposition.json",
+        "rv32i_min/cov/fcov_plan.json"
+      ],
+      "blocker": "",
+      "message": "[ssot-equiv-goals] BLOCKED\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py\nmodule: rv32i_min\nsource: rv32i_min/yaml/rv32i_min.ssot.yaml\ngoals: total=56 required=55 blocked=1 module=4/5\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py rv32i_min --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex/rv32i_min/model/functional_model.py\n[emit_fl_model] decomposition_units=13 fcov_bins=57 passed=True\n- emit_equivalence_goals: exit 1\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py rv32i_min --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex\n  stdout:\n[emit_equivalence_goals] wrote rv32i_min/verify/equivalence_goals.json\n[emit_equivalence_goals] total=56 required=55 blocked=1\n\nexpected artifacts:\n- rv32i_min/verify/equivalence_goals.json\n- rv32i_min/model/functional_model.py\n- rv32i_min/model/decomposition.json\n- rv32i_min/cov/fcov_plan.json\n\nnext: inspect blocked goals and answer/repair SSOT behavior before TB signoff",
+      "returncode": 2,
+      "stage": "equiv-goals",
+      "status": "blocked"
+    }
+  ],
+  "status": "blocked"
+}

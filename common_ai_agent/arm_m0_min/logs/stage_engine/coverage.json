@@ -1,0 +1,2764 @@
+{
+  "artifacts": [
+    "arm_m0_min/cov/fcov_plan.json",
+    "arm_m0_min/cov/coverage_functional.json",
+    "arm_m0_min/cov/coverage.json",
+    "arm_m0_min/cov/coverage_ssot.json",
+    "arm_m0_min/sim/coverage_report.md",
+    "arm_m0_min/sim/results.xml or arm_m0_min/tb/cocotb/results.xml",
+    "arm_m0_min/cov/coverage_todo_plan.json",
+    "arm_m0_min/todo/coverage_todo_tracker.json",
+    "arm_m0_min/cov/coverage_todo_tracker.json"
+  ],
+  "blocker": "",
+  "created_at": "2026-05-16T04:26:00Z",
+  "headline": "[coverage] BLOCKED - coverage gaps or capability limits remain",
+  "ip": "arm_m0_min",
+  "message": "[coverage] BLOCKED - coverage gaps or capability limits remain\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/coverage/scripts/ssot_coverage_summary.py\nmodule: arm_m0_min\nsource: arm_m0_min/yaml/arm_m0_min.ssot.yaml\nfunctional: 35/38 pct=92.11\nline: 0/0 pct=None target=90.0\nbranch: 0/0 pct=None target=90.0\nlimitations:\n- rtl_observed_coverage: Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: latency_alu_instr_lt_min, latency_fetch_accept_lt_min, latency_load_store_instr_lt_min\n- line: SSOT requests line/code coverage, but coverage.info has no DA records.\n- branch: SSOT requests branch coverage, but coverage.info has no BRDA/BRF records for this tool flow.\n\nruns:\n- sim_evidence: exit 0\n  cmd: bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_tb_sim_evidence.sh arm_m0_min\n  stdout:\n[check_scoreboard_events] PASS: goals=37 required=37 scoreboard_rows=37 goals_with_rows=37\n[check_tb_sim_evidence] PASS: tests=3 failures=0 errors=0\n- ssot_coverage_summary: exit 3\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/coverage/scripts/ssot_coverage_summary.py /Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min\n  stdout:\nSSOT coverage summary: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/cov/coverage.json\nSSOT coverage report : /Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/sim/coverage_report.md\nStatus               : blocked\n\nexpected artifacts:\n- arm_m0_min/cov/fcov_plan.json\n- arm_m0_min/cov/coverage_functional.json\n- arm_m0_min/cov/coverage.json\n- arm_m0_min/cov/coverage_ssot.json\n- arm_m0_min/sim/coverage_report.md\n- arm_m0_min/sim/results.xml or arm_m0_min/tb/cocotb/results.xml\n- arm_m0_min/cov/coverage_todo_plan.json\n- arm_m0_min/todo/coverage_todo_tracker.json\n- arm_m0_min/cov/coverage_todo_tracker.json\n\nnext: close SSOT functional coverage gaps or record explicit tool limitations before signoff.",
+  "metadata": {
+    "coverage": {
+      "branches": {
+        "hit": 0,
+        "meets_target": false,
+        "pct": null,
+        "target_pct": 90.0,
+        "total": 0
+      },
+      "coverage_model": {
+        "cycle": {
+          "hit": 14,
+          "meets_target": false,
+          "pct": 82.35,
+          "source": "cycle_model",
+          "target_pct": 100.0,
+          "total": 17
+        },
+        "function": {
+          "hit": 21,
+          "meets_target": true,
+          "pct": 100.0,
+          "source": "function_model",
+          "target_pct": 100.0,
+          "total": 21
+        }
+      },
+      "cycle_coverage": {
+        "bins": {
+          "CCOV_IF_STALL": {
+            "class": "stall",
+            "coverage_domain": "cycle",
+            "description": "IF backpressure observed",
+            "goal_id": "EQ_COVERAGE_CCOV_IF_STALL",
+            "hit": true,
+            "plan": {
+              "class": "stall",
+              "coverage_domain": "cycle",
+              "description": "IF backpressure observed",
+              "id": "CCOV_IF_STALL",
+              "source": "cycle_model.backpressure",
+              "source_ref": "cycle_model.backpressure"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_030_EQ_COVERAGE_CCOV_IF_STALL",
+            "source": "scoreboard_events",
+            "source_ref": "cycle_model.backpressure"
+          },
+          "CCOV_MEM_STALL": {
+            "class": "stall",
+            "coverage_domain": "cycle",
+            "description": "MEM backpressure observed",
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+            "hit": true,
+            "plan": {
+              "class": "stall",
+              "coverage_domain": "cycle",
+              "description": "MEM backpressure observed",
+              "id": "CCOV_MEM_STALL",
+              "source": "cycle_model.handshake_rules",
+              "source_ref": "cycle_model.handshake_rules"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+            "source": "scoreboard_events",
+            "source_ref": "cycle_model.handshake_rules"
+          },
+          "CCOV_PIPELINE_ORDER": {
+            "class": "ordering",
+            "coverage_domain": "cycle",
+            "description": "In-order commit observed",
+            "goal_id": "EQ_TIMING_ORDERING_1",
+            "hit": true,
+            "plan": {
+              "class": "ordering",
+              "coverage_domain": "cycle",
+              "description": "In-order commit observed",
+              "id": "CCOV_PIPELINE_ORDER",
+              "source": "cycle_model.ordering",
+              "source_ref": "cycle_model.ordering"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+            "source": "scoreboard_events",
+            "source_ref": "cycle_model.ordering"
+          },
+          "cycle_handshake_0": {
+            "class": "protocol_handshake",
+            "coverage_domain": "cycle",
+            "description": "handshake_0",
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+            "hit": true,
+            "plan": {
+              "class": "protocol_handshake",
+              "description": "handshake_0",
+              "id": "cycle_handshake_0",
+              "source": "cycle_model.handshake_rules[0]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+            "source": "scoreboard_events"
+          },
+          "cycle_handshake_1": {
+            "class": "protocol_handshake",
+            "coverage_domain": "cycle",
+            "description": "handshake_1",
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+            "hit": true,
+            "plan": {
+              "class": "protocol_handshake",
+              "description": "handshake_1",
+              "id": "cycle_handshake_1",
+              "source": "cycle_model.handshake_rules[1]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+            "source": "scoreboard_events"
+          },
+          "cycle_handshake_2": {
+            "class": "protocol_handshake",
+            "coverage_domain": "cycle",
+            "description": "handshake_2",
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+            "hit": true,
+            "plan": {
+              "class": "protocol_handshake",
+              "description": "handshake_2",
+              "id": "cycle_handshake_2",
+              "source": "cycle_model.handshake_rules[2]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+            "source": "scoreboard_events"
+          },
+          "fsm_core_fault_halt_to_reset_7": {
+            "class": "state_transition",
+            "coverage_domain": "cycle",
+            "description": "rst asserted",
+            "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "hit": true,
+            "plan": {
+              "class": "state_transition",
+              "description": "rst asserted",
+              "id": "fsm_core_fault_halt_to_reset_7",
+              "source": "fsm.core.transitions[7]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "source": "scoreboard_events"
+          },
+          "fsm_core_reset_to_run_0": {
+            "class": "state_transition",
+            "coverage_domain": "cycle",
+            "description": "rst deasserted",
+            "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "hit": true,
+            "plan": {
+              "class": "state_transition",
+              "description": "rst deasserted",
+              "id": "fsm_core_reset_to_run_0",
+              "source": "fsm.core.transitions[0]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "source": "scoreboard_events"
+          },
+          "fsm_core_run_to_fault_halt_5": {
+            "class": "state_transition",
+            "coverage_domain": "cycle",
+            "description": "i_hresp==ERROR || d_hresp==ERROR",
+            "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "hit": true,
+            "plan": {
+              "class": "state_transition",
+              "description": "i_hresp==ERROR || d_hresp==ERROR",
+              "id": "fsm_core_run_to_fault_halt_5",
+              "source": "fsm.core.transitions[5]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "source": "scoreboard_events"
+          },
+          "fsm_core_run_to_stall_if_1": {
+            "class": "state_transition",
+            "coverage_domain": "cycle",
+            "description": "i_hready==0",
+            "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "hit": true,
+            "plan": {
+              "class": "state_transition",
+              "description": "i_hready==0",
+              "id": "fsm_core_run_to_stall_if_1",
+              "source": "fsm.core.transitions[1]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "source": "scoreboard_events"
+          },
+          "fsm_core_run_to_stall_mem_3": {
+            "class": "state_transition",
+            "coverage_domain": "cycle",
+            "description": "active load/store && d_hready==0",
+            "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "hit": true,
+            "plan": {
+              "class": "state_transition",
+              "description": "active load/store && d_hready==0",
+              "id": "fsm_core_run_to_stall_mem_3",
+              "source": "fsm.core.transitions[3]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "source": "scoreboard_events"
+          },
+          "fsm_core_stall_if_to_run_2": {
+            "class": "state_transition",
+            "coverage_domain": "cycle",
+            "description": "i_hready==1",
+            "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "hit": true,
+            "plan": {
+              "class": "state_transition",
+              "description": "i_hready==1",
+              "id": "fsm_core_stall_if_to_run_2",
+              "source": "fsm.core.transitions[2]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "source": "scoreboard_events"
+          },
+          "fsm_core_stall_mem_to_fault_halt_6": {
+            "class": "state_transition",
+            "coverage_domain": "cycle",
+            "description": "d_hresp==ERROR",
+            "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "hit": true,
+            "plan": {
+              "class": "state_transition",
+              "description": "d_hresp==ERROR",
+              "id": "fsm_core_stall_mem_to_fault_halt_6",
+              "source": "fsm.core.transitions[6]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "source": "scoreboard_events"
+          },
+          "fsm_core_stall_mem_to_run_4": {
+            "class": "state_transition",
+            "coverage_domain": "cycle",
+            "description": "d_hready==1 && d_hresp==OKAY",
+            "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "hit": true,
+            "plan": {
+              "class": "state_transition",
+              "description": "d_hready==1 && d_hresp==OKAY",
+              "id": "fsm_core_stall_mem_to_run_4",
+              "source": "fsm.core.transitions[4]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "source": "scoreboard_events"
+          },
+          "latency_alu_instr_lt_min": {
+            "class": "latency_bin",
+            "coverage_domain": "cycle",
+            "description": "alu_instr latency < 1 cycles",
+            "hit": false,
+            "plan": {
+              "bucket": "<min",
+              "class": "latency_bin",
+              "cycles": 1,
+              "description": "alu_instr latency < 1 cycles",
+              "id": "latency_alu_instr_lt_min",
+              "source": "cycle_model.latency.alu_instr",
+              "threshold": 1
+            },
+            "raw": {
+              "hit": false,
+              "source": "fcov_plan"
+            },
+            "raw_hit": false,
+            "source": "missing_rtl_observed_scoreboard_evidence"
+          },
+          "latency_fetch_accept_lt_min": {
+            "class": "latency_bin",
+            "coverage_domain": "cycle",
+            "description": "fetch_accept latency < 1 cycles",
+            "hit": false,
+            "plan": {
+              "bucket": "<min",
+              "class": "latency_bin",
+              "cycles": 1,
+              "description": "fetch_accept latency < 1 cycles",
+              "id": "latency_fetch_accept_lt_min",
+              "source": "cycle_model.latency.fetch_accept",
+              "threshold": 1
+            },
+            "raw": {
+              "hit": false,
+              "source": "fcov_plan"
+            },
+            "raw_hit": false,
+            "source": "missing_rtl_observed_scoreboard_evidence"
+          },
+          "latency_load_store_instr_lt_min": {
+            "class": "latency_bin",
+            "coverage_domain": "cycle",
+            "description": "load_store_instr latency < 1 cycles",
+            "hit": false,
+            "plan": {
+              "bucket": "<min",
+              "class": "latency_bin",
+              "cycles": 1,
+              "description": "load_store_instr latency < 1 cycles",
+              "id": "latency_load_store_instr_lt_min",
+              "source": "cycle_model.latency.load_store_instr",
+              "threshold": 1
+            },
+            "raw": {
+              "hit": false,
+              "source": "fcov_plan"
+            },
+            "raw_hit": false,
+            "source": "missing_rtl_observed_scoreboard_evidence"
+          }
+        },
+        "hit": 14,
+        "meets_target": false,
+        "pct": 82.35,
+        "target_pct": 100.0,
+        "total": 17
+      },
+      "dv_plan": {
+        "coverage_goals": {
+          "code": "line >= 90%, branch >= 85%",
+          "cycle": {
+            "bins": [
+              {
+                "class": "stall",
+                "description": "IF backpressure observed",
+                "id": "CCOV_IF_STALL",
+                "source_ref": "cycle_model.backpressure"
+              },
+              {
+                "class": "stall",
+                "description": "MEM backpressure observed",
+                "id": "CCOV_MEM_STALL",
+                "source_ref": "cycle_model.handshake_rules"
+              },
+              {
+                "class": "ordering",
+                "description": "In-order commit observed",
+                "id": "CCOV_PIPELINE_ORDER",
+                "source_ref": "cycle_model.ordering"
+              }
+            ],
+            "description": "Handshake, stall, and ordering behaviors covered",
+            "model": "cycle_model",
+            "target_pct": 100
+          },
+          "function": {
+            "bins": [
+              {
+                "class": "transaction",
+                "description": "ALU/compare/branch transaction observed",
+                "id": "FCOV_TX_DECODE_EXEC",
+                "source_ref": "function_model.transactions.TX_DECODE_EXEC"
+              },
+              {
+                "class": "transaction",
+                "description": "Load/store transaction observed",
+                "id": "FCOV_TX_LOAD_STORE",
+                "source_ref": "function_model.transactions.TX_LOAD_STORE"
+              }
+            ],
+            "description": "All functional transactions and error transitions observed",
+            "model": "function_model",
+            "target_pct": 100
+          },
+          "functional": "Legacy alias: function + cycle must both close"
+        },
+        "scenarios": 5,
+        "scoreboard_checks": 20
+      },
+      "escalations": [],
+      "failed": 0,
+      "files": {},
+      "fsm_state": {
+        "hit": 8,
+        "meets_target": true,
+        "pct": 100.0,
+        "source": "SSOT functional coverage bins",
+        "target_pct": null,
+        "total": 8
+      },
+      "function_coverage": {
+        "bins": {
+          "FCOV_TX_DECODE_EXEC": {
+            "class": "transaction",
+            "coverage_domain": "function",
+            "description": "ALU/compare/branch transaction observed",
+            "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
+            "hit": true,
+            "plan": {
+              "class": "transaction",
+              "coverage_domain": "function",
+              "description": "ALU/compare/branch transaction observed",
+              "id": "FCOV_TX_DECODE_EXEC",
+              "source": "function_model.transactions.TX_DECODE_EXEC",
+              "source_ref": "function_model.transactions.TX_DECODE_EXEC"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC",
+            "source": "scoreboard_events",
+            "source_ref": "function_model.transactions.TX_DECODE_EXEC"
+          },
+          "FCOV_TX_LOAD_STORE": {
+            "class": "transaction",
+            "coverage_domain": "function",
+            "description": "Load/store transaction observed",
+            "goal_id": "EQ_TRANSACTION_TX_LOAD_STORE",
+            "hit": true,
+            "plan": {
+              "class": "transaction",
+              "coverage_domain": "function",
+              "description": "Load/store transaction observed",
+              "id": "FCOV_TX_LOAD_STORE",
+              "source": "function_model.transactions.TX_LOAD_STORE",
+              "source_ref": "function_model.transactions.TX_LOAD_STORE"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_002_EQ_TRANSACTION_TX_LOAD_STORE",
+            "source": "scoreboard_events",
+            "source_ref": "function_model.transactions.TX_LOAD_STORE"
+          },
+          "SC_ALU_executed": {
+            "class": "scenario",
+            "coverage_domain": "function",
+            "description": "ALU instruction correctness",
+            "goal_id": "EQ_SCENARIO_SC_ALU",
+            "hit": true,
+            "plan": {
+              "class": "scenario",
+              "description": "ALU instruction correctness",
+              "id": "SC_ALU_executed",
+              "scenario": "SC_ALU",
+              "source": "test_requirements.scenarios[0]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_003_EQ_SCENARIO_SC_ALU",
+            "source": "scoreboard_events"
+          },
+          "SC_BUS_ERROR_executed": {
+            "class": "scenario",
+            "coverage_domain": "function",
+            "description": "Bus error to fault-halt",
+            "goal_id": "EQ_ERROR_D_BUS_ERROR",
+            "hit": true,
+            "plan": {
+              "class": "scenario",
+              "description": "Bus error to fault-halt",
+              "id": "SC_BUS_ERROR_executed",
+              "scenario": "SC_BUS_ERROR",
+              "source": "test_requirements.scenarios[4]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_016_EQ_ERROR_D_BUS_ERROR",
+            "source": "scoreboard_events"
+          },
+          "SC_CMP_BRANCH_executed": {
+            "class": "scenario",
+            "coverage_domain": "function",
+            "description": "CMP and conditional branching",
+            "goal_id": "EQ_SCENARIO_SC_CMP_BRANCH",
+            "hit": true,
+            "plan": {
+              "class": "scenario",
+              "description": "CMP and conditional branching",
+              "id": "SC_CMP_BRANCH_executed",
+              "scenario": "SC_CMP_BRANCH",
+              "source": "test_requirements.scenarios[1]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_004_EQ_SCENARIO_SC_CMP_BRANCH",
+            "source": "scoreboard_events"
+          },
+          "SC_IF_STALL_executed": {
+            "class": "scenario",
+            "coverage_domain": "function",
+            "description": "Instruction fetch backpressure",
+            "goal_id": "EQ_SCENARIO_SC_IF_STALL",
+            "hit": true,
+            "plan": {
+              "class": "scenario",
+              "description": "Instruction fetch backpressure",
+              "id": "SC_IF_STALL_executed",
+              "scenario": "SC_IF_STALL",
+              "source": "test_requirements.scenarios[3]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_006_EQ_SCENARIO_SC_IF_STALL",
+            "source": "scoreboard_events"
+          },
+          "SC_LOAD_STORE_executed": {
+            "class": "scenario",
+            "coverage_domain": "function",
+            "description": "Load/store handshake behavior",
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+            "hit": true,
+            "plan": {
+              "class": "scenario",
+              "description": "Load/store handshake behavior",
+              "id": "SC_LOAD_STORE_executed",
+              "scenario": "SC_LOAD_STORE",
+              "source": "test_requirements.scenarios[2]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+            "source": "scoreboard_events"
+          },
+          "cycle_backpressure_0": {
+            "coverage_domain": "function",
+            "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+            "hit": true,
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_037_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+            "source": "scoreboard_events"
+          },
+          "cycle_backpressure_1": {
+            "coverage_domain": "function",
+            "goal_id": "EQ_MEMORY_ID_EX_CTRL",
+            "hit": true,
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL",
+            "source": "scoreboard_events"
+          },
+          "cycle_latency_alu_instr": {
+            "coverage_domain": "function",
+            "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
+            "hit": true,
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_032_EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
+            "source": "scoreboard_events"
+          },
+          "cycle_latency_fetch_accept": {
+            "coverage_domain": "function",
+            "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
+            "hit": true,
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_031_EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
+            "source": "scoreboard_events"
+          },
+          "cycle_latency_load_store_instr": {
+            "coverage_domain": "function",
+            "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
+            "hit": true,
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
+            "source": "scoreboard_events"
+          },
+          "cycle_ordering_0": {
+            "coverage_domain": "function",
+            "goal_id": "EQ_TIMING_ORDERING_1",
+            "hit": true,
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+            "source": "scoreboard_events"
+          },
+          "cycle_ordering_1": {
+            "coverage_domain": "function",
+            "goal_id": "EQ_TIMING_ORDERING_1",
+            "hit": true,
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+            "source": "scoreboard_events"
+          },
+          "cycle_pipeline_ex": {
+            "coverage_domain": "function",
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_EX",
+            "hit": true,
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_036_EQ_COVERAGE_CYCLE_PIPELINE_EX",
+            "source": "scoreboard_events"
+          },
+          "cycle_pipeline_id": {
+            "coverage_domain": "function",
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_ID",
+            "hit": true,
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_035_EQ_COVERAGE_CYCLE_PIPELINE_ID",
+            "source": "scoreboard_events"
+          },
+          "cycle_pipeline_if": {
+            "coverage_domain": "function",
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_IF",
+            "hit": true,
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_034_EQ_COVERAGE_CYCLE_PIPELINE_IF",
+            "source": "scoreboard_events"
+          },
+          "error_d_bus_error": {
+            "class": "error",
+            "coverage_domain": "function",
+            "description": "{'name': 'D_BUS_ERROR', 'detect': 'd_hresp==ERROR when data transfer completes', 'effect': 'enter FAULT_HALT'}",
+            "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "hit": true,
+            "plan": {
+              "class": "error",
+              "description": "{'name': 'D_BUS_ERROR', 'detect': 'd_hresp==ERROR when data transfer completes', 'effect': 'enter FAULT_HALT'}",
+              "id": "error_d_bus_error",
+              "source": "error_handling.error_sources[1]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "source": "scoreboard_events"
+          },
+          "error_i_bus_error": {
+            "class": "error",
+            "coverage_domain": "function",
+            "description": "{'name': 'I_BUS_ERROR', 'detect': 'i_hresp==ERROR when instruction transfer completes', 'effect': 'enter FAULT_HALT'}",
+            "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "hit": true,
+            "plan": {
+              "class": "error",
+              "description": "{'name': 'I_BUS_ERROR', 'detect': 'i_hresp==ERROR when instruction transfer completes', 'effect': 'enter FAULT_HALT'}",
+              "id": "error_i_bus_error",
+              "source": "error_handling.error_sources[0]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+            "source": "scoreboard_events"
+          },
+          "function_alu_compare_branch": {
+            "class": "transaction_type",
+            "coverage_domain": "function",
+            "description": "alu_compare_branch",
+            "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
+            "hit": true,
+            "plan": {
+              "class": "transaction_type",
+              "description": "alu_compare_branch",
+              "id": "function_alu_compare_branch",
+              "source": "function_model.transactions[0]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC",
+            "source": "scoreboard_events"
+          },
+          "function_single_transfer_memory_access": {
+            "class": "transaction_type",
+            "coverage_domain": "function",
+            "description": "single_transfer_memory_access",
+            "goal_id": "EQ_MEMORY_ID_EX_CTRL",
+            "hit": true,
+            "plan": {
+              "class": "transaction_type",
+              "description": "single_transfer_memory_access",
+              "id": "function_single_transfer_memory_access",
+              "source": "function_model.transactions[1]"
+            },
+            "raw_hit": true,
+            "rtl_observed_keys": [
+              "d_haddr",
+              "d_hburst",
+              "d_hmastlock",
+              "d_hprot",
+              "d_hsize",
+              "d_htrans",
+              "d_hwdata",
+              "d_hwrite",
+              "i_haddr",
+              "i_hburst",
+              "i_hmastlock",
+              "i_hprot",
+              "i_hsize",
+              "i_htrans",
+              "i_hwrite"
+            ],
+            "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL",
+            "source": "scoreboard_events"
+          }
+        },
+        "hit": 21,
+        "meets_target": true,
+        "pct": 100.0,
+        "target_pct": 100.0,
+        "total": 21
+      },
+      "functional": {
+        "hit": 35,
+        "pct": 92.11,
+        "total": 38
+      },
+      "functional_bins": {
+        "CCOV_IF_STALL": {
+          "class": "stall",
+          "coverage_domain": "cycle",
+          "description": "IF backpressure observed",
+          "goal_id": "EQ_COVERAGE_CCOV_IF_STALL",
+          "hit": true,
+          "plan": {
+            "class": "stall",
+            "coverage_domain": "cycle",
+            "description": "IF backpressure observed",
+            "id": "CCOV_IF_STALL",
+            "source": "cycle_model.backpressure",
+            "source_ref": "cycle_model.backpressure"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_030_EQ_COVERAGE_CCOV_IF_STALL",
+          "source": "scoreboard_events",
+          "source_ref": "cycle_model.backpressure"
+        },
+        "CCOV_MEM_STALL": {
+          "class": "stall",
+          "coverage_domain": "cycle",
+          "description": "MEM backpressure observed",
+          "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+          "hit": true,
+          "plan": {
+            "class": "stall",
+            "coverage_domain": "cycle",
+            "description": "MEM backpressure observed",
+            "id": "CCOV_MEM_STALL",
+            "source": "cycle_model.handshake_rules",
+            "source_ref": "cycle_model.handshake_rules"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+          "source": "scoreboard_events",
+          "source_ref": "cycle_model.handshake_rules"
+        },
+        "CCOV_PIPELINE_ORDER": {
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "description": "In-order commit observed",
+          "goal_id": "EQ_TIMING_ORDERING_1",
+          "hit": true,
+          "plan": {
+            "class": "ordering",
+            "coverage_domain": "cycle",
+            "description": "In-order commit observed",
+            "id": "CCOV_PIPELINE_ORDER",
+            "source": "cycle_model.ordering",
+            "source_ref": "cycle_model.ordering"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+          "source": "scoreboard_events",
+          "source_ref": "cycle_model.ordering"
+        },
+        "FCOV_TX_DECODE_EXEC": {
+          "class": "transaction",
+          "coverage_domain": "function",
+          "description": "ALU/compare/branch transaction observed",
+          "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
+          "hit": true,
+          "plan": {
+            "class": "transaction",
+            "coverage_domain": "function",
+            "description": "ALU/compare/branch transaction observed",
+            "id": "FCOV_TX_DECODE_EXEC",
+            "source": "function_model.transactions.TX_DECODE_EXEC",
+            "source_ref": "function_model.transactions.TX_DECODE_EXEC"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC",
+          "source": "scoreboard_events",
+          "source_ref": "function_model.transactions.TX_DECODE_EXEC"
+        },
+        "FCOV_TX_LOAD_STORE": {
+          "class": "transaction",
+          "coverage_domain": "function",
+          "description": "Load/store transaction observed",
+          "goal_id": "EQ_TRANSACTION_TX_LOAD_STORE",
+          "hit": true,
+          "plan": {
+            "class": "transaction",
+            "coverage_domain": "function",
+            "description": "Load/store transaction observed",
+            "id": "FCOV_TX_LOAD_STORE",
+            "source": "function_model.transactions.TX_LOAD_STORE",
+            "source_ref": "function_model.transactions.TX_LOAD_STORE"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_002_EQ_TRANSACTION_TX_LOAD_STORE",
+          "source": "scoreboard_events",
+          "source_ref": "function_model.transactions.TX_LOAD_STORE"
+        },
+        "SC_ALU_executed": {
+          "class": "scenario",
+          "coverage_domain": "function",
+          "description": "ALU instruction correctness",
+          "goal_id": "EQ_SCENARIO_SC_ALU",
+          "hit": true,
+          "plan": {
+            "class": "scenario",
+            "description": "ALU instruction correctness",
+            "id": "SC_ALU_executed",
+            "scenario": "SC_ALU",
+            "source": "test_requirements.scenarios[0]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_003_EQ_SCENARIO_SC_ALU",
+          "source": "scoreboard_events"
+        },
+        "SC_BUS_ERROR_executed": {
+          "class": "scenario",
+          "coverage_domain": "function",
+          "description": "Bus error to fault-halt",
+          "goal_id": "EQ_ERROR_D_BUS_ERROR",
+          "hit": true,
+          "plan": {
+            "class": "scenario",
+            "description": "Bus error to fault-halt",
+            "id": "SC_BUS_ERROR_executed",
+            "scenario": "SC_BUS_ERROR",
+            "source": "test_requirements.scenarios[4]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_016_EQ_ERROR_D_BUS_ERROR",
+          "source": "scoreboard_events"
+        },
+        "SC_CMP_BRANCH_executed": {
+          "class": "scenario",
+          "coverage_domain": "function",
+          "description": "CMP and conditional branching",
+          "goal_id": "EQ_SCENARIO_SC_CMP_BRANCH",
+          "hit": true,
+          "plan": {
+            "class": "scenario",
+            "description": "CMP and conditional branching",
+            "id": "SC_CMP_BRANCH_executed",
+            "scenario": "SC_CMP_BRANCH",
+            "source": "test_requirements.scenarios[1]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_004_EQ_SCENARIO_SC_CMP_BRANCH",
+          "source": "scoreboard_events"
+        },
+        "SC_IF_STALL_executed": {
+          "class": "scenario",
+          "coverage_domain": "function",
+          "description": "Instruction fetch backpressure",
+          "goal_id": "EQ_SCENARIO_SC_IF_STALL",
+          "hit": true,
+          "plan": {
+            "class": "scenario",
+            "description": "Instruction fetch backpressure",
+            "id": "SC_IF_STALL_executed",
+            "scenario": "SC_IF_STALL",
+            "source": "test_requirements.scenarios[3]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_006_EQ_SCENARIO_SC_IF_STALL",
+          "source": "scoreboard_events"
+        },
+        "SC_LOAD_STORE_executed": {
+          "class": "scenario",
+          "coverage_domain": "function",
+          "description": "Load/store handshake behavior",
+          "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+          "hit": true,
+          "plan": {
+            "class": "scenario",
+            "description": "Load/store handshake behavior",
+            "id": "SC_LOAD_STORE_executed",
+            "scenario": "SC_LOAD_STORE",
+            "source": "test_requirements.scenarios[2]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+          "source": "scoreboard_events"
+        },
+        "cycle_backpressure_0": {
+          "coverage_domain": "function",
+          "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+          "hit": true,
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_037_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+          "source": "scoreboard_events"
+        },
+        "cycle_backpressure_1": {
+          "coverage_domain": "function",
+          "goal_id": "EQ_MEMORY_ID_EX_CTRL",
+          "hit": true,
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL",
+          "source": "scoreboard_events"
+        },
+        "cycle_handshake_0": {
+          "class": "protocol_handshake",
+          "coverage_domain": "cycle",
+          "description": "handshake_0",
+          "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+          "hit": true,
+          "plan": {
+            "class": "protocol_handshake",
+            "description": "handshake_0",
+            "id": "cycle_handshake_0",
+            "source": "cycle_model.handshake_rules[0]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+          "source": "scoreboard_events"
+        },
+        "cycle_handshake_1": {
+          "class": "protocol_handshake",
+          "coverage_domain": "cycle",
+          "description": "handshake_1",
+          "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+          "hit": true,
+          "plan": {
+            "class": "protocol_handshake",
+            "description": "handshake_1",
+            "id": "cycle_handshake_1",
+            "source": "cycle_model.handshake_rules[1]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+          "source": "scoreboard_events"
+        },
+        "cycle_handshake_2": {
+          "class": "protocol_handshake",
+          "coverage_domain": "cycle",
+          "description": "handshake_2",
+          "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+          "hit": true,
+          "plan": {
+            "class": "protocol_handshake",
+            "description": "handshake_2",
+            "id": "cycle_handshake_2",
+            "source": "cycle_model.handshake_rules[2]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+          "source": "scoreboard_events"
+        },
+        "cycle_latency_alu_instr": {
+          "coverage_domain": "function",
+          "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
+          "hit": true,
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_032_EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
+          "source": "scoreboard_events"
+        },
+        "cycle_latency_fetch_accept": {
+          "coverage_domain": "function",
+          "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
+          "hit": true,
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_031_EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
+          "source": "scoreboard_events"
+        },
+        "cycle_latency_load_store_instr": {
+          "coverage_domain": "function",
+          "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
+          "hit": true,
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
+          "source": "scoreboard_events"
+        },
+        "cycle_ordering_0": {
+          "coverage_domain": "function",
+          "goal_id": "EQ_TIMING_ORDERING_1",
+          "hit": true,
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+          "source": "scoreboard_events"
+        },
+        "cycle_ordering_1": {
+          "coverage_domain": "function",
+          "goal_id": "EQ_TIMING_ORDERING_1",
+          "hit": true,
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+          "source": "scoreboard_events"
+        },
+        "cycle_pipeline_ex": {
+          "coverage_domain": "function",
+          "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_EX",
+          "hit": true,
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_036_EQ_COVERAGE_CYCLE_PIPELINE_EX",
+          "source": "scoreboard_events"
+        },
+        "cycle_pipeline_id": {
+          "coverage_domain": "function",
+          "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_ID",
+          "hit": true,
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_035_EQ_COVERAGE_CYCLE_PIPELINE_ID",
+          "source": "scoreboard_events"
+        },
+        "cycle_pipeline_if": {
+          "coverage_domain": "function",
+          "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_IF",
+          "hit": true,
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_034_EQ_COVERAGE_CYCLE_PIPELINE_IF",
+          "source": "scoreboard_events"
+        },
+        "error_d_bus_error": {
+          "class": "error",
+          "coverage_domain": "function",
+          "description": "{'name': 'D_BUS_ERROR', 'detect': 'd_hresp==ERROR when data transfer completes', 'effect': 'enter FAULT_HALT'}",
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "plan": {
+            "class": "error",
+            "description": "{'name': 'D_BUS_ERROR', 'detect': 'd_hresp==ERROR when data transfer completes', 'effect': 'enter FAULT_HALT'}",
+            "id": "error_d_bus_error",
+            "source": "error_handling.error_sources[1]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "source": "scoreboard_events"
+        },
+        "error_i_bus_error": {
+          "class": "error",
+          "coverage_domain": "function",
+          "description": "{'name': 'I_BUS_ERROR', 'detect': 'i_hresp==ERROR when instruction transfer completes', 'effect': 'enter FAULT_HALT'}",
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "plan": {
+            "class": "error",
+            "description": "{'name': 'I_BUS_ERROR', 'detect': 'i_hresp==ERROR when instruction transfer completes', 'effect': 'enter FAULT_HALT'}",
+            "id": "error_i_bus_error",
+            "source": "error_handling.error_sources[0]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "source": "scoreboard_events"
+        },
+        "fsm_core_fault_halt_to_reset_7": {
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "description": "rst asserted",
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "plan": {
+            "class": "state_transition",
+            "description": "rst asserted",
+            "id": "fsm_core_fault_halt_to_reset_7",
+            "source": "fsm.core.transitions[7]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "source": "scoreboard_events"
+        },
+        "fsm_core_reset_to_run_0": {
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "description": "rst deasserted",
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "plan": {
+            "class": "state_transition",
+            "description": "rst deasserted",
+            "id": "fsm_core_reset_to_run_0",
+            "source": "fsm.core.transitions[0]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "source": "scoreboard_events"
+        },
+        "fsm_core_run_to_fault_halt_5": {
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "description": "i_hresp==ERROR || d_hresp==ERROR",
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "plan": {
+            "class": "state_transition",
+            "description": "i_hresp==ERROR || d_hresp==ERROR",
+            "id": "fsm_core_run_to_fault_halt_5",
+            "source": "fsm.core.transitions[5]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "source": "scoreboard_events"
+        },
+        "fsm_core_run_to_stall_if_1": {
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "description": "i_hready==0",
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "plan": {
+            "class": "state_transition",
+            "description": "i_hready==0",
+            "id": "fsm_core_run_to_stall_if_1",
+            "source": "fsm.core.transitions[1]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "source": "scoreboard_events"
+        },
+        "fsm_core_run_to_stall_mem_3": {
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "description": "active load/store && d_hready==0",
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "plan": {
+            "class": "state_transition",
+            "description": "active load/store && d_hready==0",
+            "id": "fsm_core_run_to_stall_mem_3",
+            "source": "fsm.core.transitions[3]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "source": "scoreboard_events"
+        },
+        "fsm_core_stall_if_to_run_2": {
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "description": "i_hready==1",
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "plan": {
+            "class": "state_transition",
+            "description": "i_hready==1",
+            "id": "fsm_core_stall_if_to_run_2",
+            "source": "fsm.core.transitions[2]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "source": "scoreboard_events"
+        },
+        "fsm_core_stall_mem_to_fault_halt_6": {
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "description": "d_hresp==ERROR",
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "plan": {
+            "class": "state_transition",
+            "description": "d_hresp==ERROR",
+            "id": "fsm_core_stall_mem_to_fault_halt_6",
+            "source": "fsm.core.transitions[6]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "source": "scoreboard_events"
+        },
+        "fsm_core_stall_mem_to_run_4": {
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "description": "d_hready==1 && d_hresp==OKAY",
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "plan": {
+            "class": "state_transition",
+            "description": "d_hready==1 && d_hresp==OKAY",
+            "id": "fsm_core_stall_mem_to_run_4",
+            "source": "fsm.core.transitions[4]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "source": "scoreboard_events"
+        },
+        "function_alu_compare_branch": {
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "description": "alu_compare_branch",
+          "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
+          "hit": true,
+          "plan": {
+            "class": "transaction_type",
+            "description": "alu_compare_branch",
+            "id": "function_alu_compare_branch",
+            "source": "function_model.transactions[0]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC",
+          "source": "scoreboard_events"
+        },
+        "function_single_transfer_memory_access": {
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "description": "single_transfer_memory_access",
+          "goal_id": "EQ_MEMORY_ID_EX_CTRL",
+          "hit": true,
+          "plan": {
+            "class": "transaction_type",
+            "description": "single_transfer_memory_access",
+            "id": "function_single_transfer_memory_access",
+            "source": "function_model.transactions[1]"
+          },
+          "raw_hit": true,
+          "rtl_observed_keys": [
+            "d_haddr",
+            "d_hburst",
+            "d_hmastlock",
+            "d_hprot",
+            "d_hsize",
+            "d_htrans",
+            "d_hwdata",
+            "d_hwrite",
+            "i_haddr",
+            "i_hburst",
+            "i_hmastlock",
+            "i_hprot",
+            "i_hsize",
+            "i_htrans",
+            "i_hwrite"
+          ],
+          "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL",
+          "source": "scoreboard_events"
+        },
+        "latency_alu_instr_lt_min": {
+          "class": "latency_bin",
+          "coverage_domain": "cycle",
+          "description": "alu_instr latency < 1 cycles",
+          "hit": false,
+          "plan": {
+            "bucket": "<min",
+            "class": "latency_bin",
+            "cycles": 1,
+            "description": "alu_instr latency < 1 cycles",
+            "id": "latency_alu_instr_lt_min",
+            "source": "cycle_model.latency.alu_instr",
+            "threshold": 1
+          },
+          "raw": {
+            "hit": false,
+            "source": "fcov_plan"
+          },
+          "raw_hit": false,
+          "source": "missing_rtl_observed_scoreboard_evidence"
+        },
+        "latency_fetch_accept_lt_min": {
+          "class": "latency_bin",
+          "coverage_domain": "cycle",
+          "description": "fetch_accept latency < 1 cycles",
+          "hit": false,
+          "plan": {
+            "bucket": "<min",
+            "class": "latency_bin",
+            "cycles": 1,
+            "description": "fetch_accept latency < 1 cycles",
+            "id": "latency_fetch_accept_lt_min",
+            "source": "cycle_model.latency.fetch_accept",
+            "threshold": 1
+          },
+          "raw": {
+            "hit": false,
+            "source": "fcov_plan"
+          },
+          "raw_hit": false,
+          "source": "missing_rtl_observed_scoreboard_evidence"
+        },
+        "latency_load_store_instr_lt_min": {
+          "class": "latency_bin",
+          "coverage_domain": "cycle",
+          "description": "load_store_instr latency < 1 cycles",
+          "hit": false,
+          "plan": {
+            "bucket": "<min",
+            "class": "latency_bin",
+            "cycles": 1,
+            "description": "load_store_instr latency < 1 cycles",
+            "id": "latency_load_store_instr_lt_min",
+            "source": "cycle_model.latency.load_store_instr",
+            "threshold": 1
+          },
+          "raw": {
+            "hit": false,
+            "source": "fcov_plan"
+          },
+          "raw_hit": false,
+          "source": "missing_rtl_observed_scoreboard_evidence"
+        }
+      },
+      "functions": {
+        "hit": 0,
+        "pct": null,
+        "total": 0
+      },
+      "limitations": {
+        "branch": "SSOT requests branch coverage, but coverage.info has no BRDA/BRF records for this tool flow.",
+        "line": "SSOT requests line/code coverage, but coverage.info has no DA records.",
+        "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: latency_alu_instr_lt_min, latency_fetch_accept_lt_min, latency_load_store_instr_lt_min"
+      },
+      "lines": {
+        "hit": 0,
+        "meets_target": false,
+        "pct": null,
+        "target_pct": 90.0,
+        "total": 0
+      },
+      "module": "arm_m0_min",
+      "passed": 0,
+      "planned_bins": [
+        "SC_ALU_executed",
+        "SC_CMP_BRANCH_executed",
+        "SC_LOAD_STORE_executed",
+        "SC_IF_STALL_executed",
+        "SC_BUS_ERROR_executed",
+        "function_alu_compare_branch",
+        "function_single_transfer_memory_access",
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7",
+        "error_i_bus_error",
+        "error_d_bus_error",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "latency_fetch_accept_lt_min",
+        "latency_alu_instr_lt_min",
+        "latency_load_store_instr_lt_min",
+        "FCOV_TX_DECODE_EXEC",
+        "FCOV_TX_LOAD_STORE",
+        "CCOV_IF_STALL",
+        "CCOV_MEM_STALL",
+        "CCOV_PIPELINE_ORDER"
+      ],
+      "raw_functional": {
+        "hit": 35,
+        "pct": 100.0,
+        "total": 35
+      },
+      "raw_functional_bins": {
+        "SC_ALU_executed": {
+          "goal_id": "EQ_SCENARIO_SC_ALU",
+          "hit": true,
+          "scenario_id": "SC_003_EQ_SCENARIO_SC_ALU"
+        },
+        "SC_BUS_ERROR_executed": {
+          "goal_id": "EQ_ERROR_D_BUS_ERROR",
+          "hit": true,
+          "scenario_id": "SC_016_EQ_ERROR_D_BUS_ERROR"
+        },
+        "SC_CMP_BRANCH_executed": {
+          "goal_id": "EQ_SCENARIO_SC_CMP_BRANCH",
+          "hit": true,
+          "scenario_id": "SC_004_EQ_SCENARIO_SC_CMP_BRANCH"
+        },
+        "SC_IF_STALL_executed": {
+          "goal_id": "EQ_SCENARIO_SC_IF_STALL",
+          "hit": true,
+          "scenario_id": "SC_006_EQ_SCENARIO_SC_IF_STALL"
+        },
+        "SC_LOAD_STORE_executed": {
+          "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+          "hit": true,
+          "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
+        },
+        "ccov_if_stall": {
+          "goal_id": "EQ_COVERAGE_CCOV_IF_STALL",
+          "hit": true,
+          "scenario_id": "SC_030_EQ_COVERAGE_CCOV_IF_STALL"
+        },
+        "ccov_mem_stall": {
+          "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+          "hit": true,
+          "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
+        },
+        "ccov_pipeline_order": {
+          "goal_id": "EQ_TIMING_ORDERING_1",
+          "hit": true,
+          "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
+        },
+        "cycle_backpressure_0": {
+          "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+          "hit": true,
+          "scenario_id": "SC_037_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+        },
+        "cycle_backpressure_1": {
+          "goal_id": "EQ_MEMORY_ID_EX_CTRL",
+          "hit": true,
+          "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL"
+        },
+        "cycle_handshake_0": {
+          "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+          "hit": true,
+          "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
+        },
+        "cycle_handshake_1": {
+          "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+          "hit": true,
+          "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
+        },
+        "cycle_handshake_2": {
+          "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+          "hit": true,
+          "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
+        },
+        "cycle_latency_alu_instr": {
+          "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
+          "hit": true,
+          "scenario_id": "SC_032_EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR"
+        },
+        "cycle_latency_fetch_accept": {
+          "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
+          "hit": true,
+          "scenario_id": "SC_031_EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT"
+        },
+        "cycle_latency_load_store_instr": {
+          "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
+          "hit": true,
+          "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR"
+        },
+        "cycle_ordering_0": {
+          "goal_id": "EQ_TIMING_ORDERING_1",
+          "hit": true,
+          "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
+        },
+        "cycle_ordering_1": {
+          "goal_id": "EQ_TIMING_ORDERING_1",
+          "hit": true,
+          "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
+        },
+        "cycle_pipeline_ex": {
+          "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_EX",
+          "hit": true,
+          "scenario_id": "SC_036_EQ_COVERAGE_CYCLE_PIPELINE_EX"
+        },
+        "cycle_pipeline_id": {
+          "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_ID",
+          "hit": true,
+          "scenario_id": "SC_035_EQ_COVERAGE_CYCLE_PIPELINE_ID"
+        },
+        "cycle_pipeline_if": {
+          "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_IF",
+          "hit": true,
+          "scenario_id": "SC_034_EQ_COVERAGE_CYCLE_PIPELINE_IF"
+        },
+        "error_d_bus_error": {
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+        },
+        "error_i_bus_error": {
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+        },
+        "fcov_tx_decode_exec": {
+          "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
+          "hit": true,
+          "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC"
+        },
+        "fcov_tx_load_store": {
+          "goal_id": "EQ_TRANSACTION_TX_LOAD_STORE",
+          "hit": true,
+          "scenario_id": "SC_002_EQ_TRANSACTION_TX_LOAD_STORE"
+        },
+        "fsm_core_fault_halt_to_reset_7": {
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+        },
+        "fsm_core_reset_to_run_0": {
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+        },
+        "fsm_core_run_to_fault_halt_5": {
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+        },
+        "fsm_core_run_to_stall_if_1": {
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+        },
+        "fsm_core_run_to_stall_mem_3": {
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+        },
+        "fsm_core_stall_if_to_run_2": {
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+        },
+        "fsm_core_stall_mem_to_fault_halt_6": {
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+        },
+        "fsm_core_stall_mem_to_run_4": {
+          "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+          "hit": true,
+          "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+        },
+        "function_alu_compare_branch": {
+          "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
+          "hit": true,
+          "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC"
+        },
+        "function_single_transfer_memory_access": {
+          "goal_id": "EQ_MEMORY_ID_EX_CTRL",
+          "hit": true,
+          "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL"
+        }
+      },
+      "rtl_observed": {
+        "goal_refs": [
+          "SC_ALU_executed",
+          "SC_BUS_ERROR_executed",
+          "SC_CMP_BRANCH_executed",
+          "SC_IF_STALL_executed",
+          "SC_LOAD_STORE_executed",
+          "ccov_if_stall",
+          "ccov_mem_stall",
+          "ccov_pipeline_order",
+          "cycle_backpressure_0",
+          "cycle_backpressure_1",
+          "cycle_handshake_0",
+          "cycle_handshake_1",
+          "cycle_handshake_2",
+          "cycle_latency_alu_instr",
+          "cycle_latency_fetch_accept",
+          "cycle_latency_load_store_instr",
+          "cycle_ordering_0",
+          "cycle_ordering_1",
+          "cycle_pipeline_ex",
+          "cycle_pipeline_id",
+          "cycle_pipeline_if",
+          "error_d_bus_error",
+          "error_i_bus_error",
+          "fcov_tx_decode_exec",
+          "fcov_tx_load_store",
+          "fsm_core_fault_halt_to_reset_7",
+          "fsm_core_reset_to_run_0",
+          "fsm_core_run_to_fault_halt_5",
+          "fsm_core_run_to_stall_if_1",
+          "fsm_core_run_to_stall_mem_3",
+          "fsm_core_stall_if_to_run_2",
+          "fsm_core_stall_mem_to_fault_halt_6",
+          "fsm_core_stall_mem_to_run_4",
+          "function_alu_compare_branch",
+          "function_single_transfer_memory_access"
+        ],
+        "invalid_rows": [],
+        "missing_bins": [
+          "latency_alu_instr_lt_min",
+          "latency_fetch_accept_lt_min",
+          "latency_load_store_instr_lt_min"
+        ],
+        "scoreboard_events": 37,
+        "scoreboard_passed_events_with_refs": 32,
+        "status": "blocked"
+      },
+      "source": "ssot_coverage_summary",
+      "ssot": "arm_m0_min/yaml/arm_m0_min.ssot.yaml",
+      "static_universe_not_instrumented": {
+        "branch": "SSOT requests branch coverage, but coverage.info has no BRDA/BRF records for this tool flow.",
+        "line": "SSOT requests line/code coverage, but coverage.info has no DA records.",
+        "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: latency_alu_instr_lt_min, latency_fetch_accept_lt_min, latency_load_store_instr_lt_min"
+      },
+      "status": "blocked",
+      "total_checks": 0
+    },
+    "limitations": {
+      "branch": "SSOT requests branch coverage, but coverage.info has no BRDA/BRF records for this tool flow.",
+      "line": "SSOT requests line/code coverage, but coverage.info has no DA records.",
+      "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: latency_alu_instr_lt_min, latency_fetch_accept_lt_min, latency_load_store_instr_lt_min"
+    }
+  },
+  "returncode": 2,
+  "runs": [
+    {
+      "cmd": "bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_tb_sim_evidence.sh arm_m0_min",
+      "label": "sim_evidence",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[check_scoreboard_events] PASS: goals=37 required=37 scoreboard_rows=37 goals_with_rows=37\n[check_tb_sim_evidence] PASS: tests=3 failures=0 errors=0"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/coverage/scripts/ssot_coverage_summary.py /Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min",
+      "label": "ssot_coverage_summary",
+      "returncode": 3,
+      "stderr": "",
+      "stdout": "SSOT coverage summary: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/cov/coverage.json\nSSOT coverage report : /Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/sim/coverage_report.md\nStatus               : blocked"
+    }
+  ],
+  "stage": "coverage",
+  "status": "blocked",
+  "workflow": "coverage"
+}

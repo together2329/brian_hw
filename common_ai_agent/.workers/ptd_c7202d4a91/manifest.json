@@ -1,0 +1,48 @@
+{
+  "job_id": "ptd_c7202d4a91",
+  "requested_worker_count": 2,
+  "worker_count": 2,
+  "models": [
+    {
+      "requested_model": "claude-cli",
+      "resolved_model": "claude-cli",
+      "pricing_model": "claude-cli",
+      "reason": ""
+    },
+    {
+      "requested_model": "cursor-cli",
+      "resolved_model": "cursor-cli",
+      "pricing_model": "cursor-cli",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Use web search to find the current Python version (latest stable release). Report only the version number like \"3.13.x\"."
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "Use web search to find the GitHub stars count for the project \"FastAPI\" (tiangolo/fastapi). Report only the number."
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "Use web search to find the current Python version (latest stable release). Report only the version number like \"3.13.x\"."
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "Use web search to find the GitHub stars count for the project \"FastAPI\" (tiangolo/fastapi). Report only the number."
+      }
+    ]
+  ],
+  "created_at": 1778932138.5191948
+}

@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_694d7b2168",
+  "worker_idx": 0,
+  "model": "cursor-cli",
+  "requested_model": "cursor-cli",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Say the word DELTA."
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "The assigned TODO is to say \"DELTA\"; I'll check how parallel TODO workers report completion in this repo.\nThe assigned TODO is to say \"DELTA\"; I'll check how parallel TODO workers report completion in this repo.\n\n[grep: /Users/brian/Desktop/Project/brian_hw/common_ai_agent]\n[read: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/core/parallel_todo_dispatcher.py]\n[read: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.workers/ptd_694d7b2168/0/result.json]\n[grep: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/core/parallel_todo_dispatcher.py]\n[read: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_parallel_todo_dispatcher.py]\n[read: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/core/parallel_todo_dispatcher.py]\n[read: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.workers/ptd_694d7b2168/1/result.json]\n[grep: /Users/brian/Desktop/Project/brian_hw/common_ai_agent]\n[read: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.workers/ptd_b78329d795/0/result.json]\n[read: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.deep_test/.workers/ptd_91a892637b/0/result.json]Completing todo-1 by saying DELTA and writing evidence to the worker directory.\nCompleting todo-1 by saying DELTA and writing evidence to the worker directory.\n\n[edit: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.workers/ptd_694d7b2168/0/todo-1_evidence.txt]DELTA\n\n## Worker result (job `ptd_694d7b2168`, worker 0)\n\n| TODO | Status | Evidence |\n|------|--------|----------|\n| `todo-1` — Say the word DELTA. | **DONE** | Spoken/output word: **DELTA**; artifact: `.workers/ptd_694d7b2168/0/todo-1_evidence.txt` |\n\n**FAILED:** none",
+  "error": "",
+  "started_at": 1778931446.7293131,
+  "completed_at": 1778931496.112254,
+  "duration_s": 49.38294076919556
+}

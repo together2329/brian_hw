@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from src.headless_workflow import _structured_ssot_yaml
-from src.workflow_stage_surface import is_common_stage, run_common_stage_surface
+from src.workflow_stage_surface import compute_kpi_dots, is_common_stage, run_common_stage_surface
 
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
 
@@ -74,6 +74,8 @@ def test_ssot_rtl_surface_loads_dynamic_todos_for_llm_owned_rtl_work(tmp_path: P
     assert "next_llm_packets=" in queued
     assert "start from next_llm_packets" in queued
     assert "llm_actionable_open_count is zero" in queued
+    assert "SSOT decision Q&A" not in surface.message
+    assert "queued rtl-gen authoring loop" in surface.message
     assert (tmp_path / ip / "rtl" / "rtl_todo_plan.json").is_file()
     assert (tmp_path / ip / "rtl" / "rtl_todo_tracker.json").is_file()
     assert (tmp_path / ip / "rtl" / "rtl_authoring_plan.json").is_file()
@@ -107,3 +109,28 @@ def test_common_commands_route_to_stage_handler():
     for rel, handler in expected.items():
         text = (SOURCE_ROOT / rel).read_text(encoding="utf-8")
         assert f'"handler": "{handler}"' in text
+
+
+def test_sim_kpi_accepts_mismatch_list_reports(tmp_path: Path):
+    ip = "surface_sim_probe"
+    sim_dir = tmp_path / ip / "sim"
+    sim_dir.mkdir(parents=True)
+    (sim_dir / "fl_rtl_compare.json").write_text(
+        '{"mismatches": [{"goal": "g0"}, {"goal": "g1"}]}',
+        encoding="utf-8",
+    )
+
+    dots = compute_kpi_dots(ip, "sim", root=tmp_path)
+
+    assert dots[1] == "fail"
+
+
+def test_sim_kpi_accepts_empty_mismatch_list_reports(tmp_path: Path):
+    ip = "surface_sim_clean_probe"
+    sim_dir = tmp_path / ip / "sim"
+    sim_dir.mkdir(parents=True)
+    (sim_dir / "fl_rtl_compare.json").write_text('{"mismatches": []}', encoding="utf-8")
+
+    dots = compute_kpi_dots(ip, "sim", root=tmp_path)
+
+    assert dots[1] == "pass"

@@ -1,0 +1,80 @@
+{
+  "job_id": "ptd_a071d9abe1",
+  "requested_worker_count": 3,
+  "worker_count": 3,
+  "models": [
+    {
+      "requested_model": "m1",
+      "resolved_model": "m1",
+      "pricing_model": "m1",
+      "reason": ""
+    },
+    {
+      "requested_model": "m2",
+      "resolved_model": "m2",
+      "pricing_model": "m2",
+      "reason": ""
+    },
+    {
+      "requested_model": "m3",
+      "resolved_model": "m3",
+      "pricing_model": "m3",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "T1",
+      "content": "first task",
+      "raw": {
+        "id": "T1",
+        "content": "first task"
+      }
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "second-as-string"
+    },
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "third with text key",
+      "raw": {
+        "text": "third with text key"
+      }
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "T1",
+        "content": "first task",
+        "raw": {
+          "id": "T1",
+          "content": "first task"
+        }
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "second-as-string"
+      }
+    ],
+    [
+      {
+        "index": 2,
+        "id": "todo-3",
+        "content": "third with text key",
+        "raw": {
+          "text": "third with text key"
+        }
+      }
+    ]
+  ],
+  "created_at": 1778920137.1905951
+}

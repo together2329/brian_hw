@@ -1,0 +1,28 @@
+{
+  "job_id": "ptd_d110d5454d",
+  "worker_idx": 1,
+  "model": "fake-B",
+  "requested_model": "fake-B",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "beta"
+    },
+    {
+      "index": 4,
+      "id": "todo-5",
+      "content": "epsilon"
+    }
+  ],
+  "todos_done": [
+    "todo-2",
+    "todo-5"
+  ],
+  "result": "ok(fake-B):411",
+  "error": "",
+  "started_at": 1778920135.739635,
+  "completed_at": 1778920136.0471108,
+  "duration_s": 0.3074758052825928
+}

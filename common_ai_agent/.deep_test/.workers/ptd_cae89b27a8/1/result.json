@@ -1,0 +1,20 @@
+{
+  "job_id": "ptd_cae89b27a8",
+  "worker_idx": 1,
+  "model": "fake-B",
+  "requested_model": "fake-B",
+  "status": "error",
+  "todos_assigned": [
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "bomb"
+    }
+  ],
+  "todos_done": [],
+  "result": "",
+  "error": "intentional bomb",
+  "started_at": 1778924815.847275,
+  "completed_at": 1778924815.848597,
+  "duration_s": 0.001322031021118164
+}

@@ -127,6 +127,22 @@ def _default_rule_helpers():
         "min": lambda a, b: min(_parse_int(a, 0), _parse_int(b, 0)),
         "max": lambda a, b: max(_parse_int(a, 0), _parse_int(b, 0)),
         "abs": lambda a: abs(_parse_int(a, 0)),
+        "any": lambda *args: int(any(
+            _parse_int(a, 0) for a in (
+                args[0] if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else args
+            )
+        )),
+        "all": lambda *args: int(all(
+            _parse_int(a, 0) for a in (
+                args[0] if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else args
+            )
+        )),
+        "sum": lambda *args: int(sum(
+            _parse_int(a, 0) for a in (
+                args[0] if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else args
+            )
+        )),
+        "len": lambda *args: len(args[0]) if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else len(args),
     }
 
 
@@ -182,6 +198,10 @@ def _eval_ast(node, env):
             return (base >> lo) & mask
         idx = _eval_ast(sl, env)
         return (base >> idx) & 1
+    if isinstance(node, ast.GeneratorExp):
+        return _eval_comprehension(node, env, generator=True)
+    if isinstance(node, ast.ListComp):
+        return _eval_comprehension(node, env, generator=False)
     if isinstance(node, ast.Call):
         if not isinstance(node.func, ast.Name):
             raise ValueError(f"unsupported rule call {ast.dump(node.func)}")
@@ -193,6 +213,66 @@ def _eval_ast(node, env):
         args = [_eval_ast(arg, env) for arg in node.args]
         return _parse_int(func(*args), 0)
     raise ValueError(f"unsupported rule expression node {type(node).__name__}")
+
+
+def _eval_comprehension(node, env, generator=False):
+    """Evaluate a generator expression or list comprehension.
+
+    Supports single-clause ``for`` with optional ``if`` filter, e.g.:
+        ``(x for x in range(8) if x > 0)``
+    Nested comprehensions are not supported.
+    """
+    if not node.generators:
+        raise ValueError("comprehension with no generators")
+    comp = node.generators[0]
+    if len(node.generators) > 1:
+        raise ValueError("nested comprehensions are not supported in rule expressions")
+    if not isinstance(comp.target, ast.Name):
+        raise ValueError("comprehension target must be a simple name")
+    var_name = comp.target.id
+    iter_values = _eval_iter(comp.iter, env)
+    results = []
+    for val in iter_values:
+        local_env = dict(env)
+        local_env[var_name] = val
+        # Apply if-filters
+        skip = False
+        for if_clause in comp.ifs:
+            if not _eval_ast(if_clause, local_env):
+                skip = True
+                break
+        if skip:
+            continue
+        results.append(_eval_ast(node.elt, local_env))
+    return results if not generator else results
+
+
+def _eval_iter(node, env):
+    """Evaluate an iterable source (range call or name reference)."""
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+        if node.func.id == "range":
+            args = [_eval_ast(a, env) for a in node.args]
+            if len(args) == 1:
+                return list(range(args[0]))
+            if len(args) == 2:
+                return list(range(args[0], args[1]))
+            if len(args) == 3:
+                return list(range(args[0], args[1], args[2]))
+            raise ValueError(f"range() expects 1-3 args, got {len(args)}")
+        # Other callables: evaluate and treat result as iterable if possible
+        func = env.get(node.func.id)
+        if callable(func):
+            call_args = [_eval_ast(a, env) for a in node.args]
+            result = func(*call_args)
+            if isinstance(result, (list, tuple, range)):
+                return list(result)
+            return [_parse_int(result, 0)]
+    if isinstance(node, ast.Name):
+        val = env.get(node.id)
+        if isinstance(val, (list, tuple, range)):
+            return list(val)
+        return [_parse_int(val, 0)]
+    raise ValueError(f"unsupported iterable in comprehension: {ast.dump(node)}")
 
 
 def _eval_rule_expr(expr, env):
@@ -574,7 +654,7 @@ def run_self_check():
         known_names = set(model.params) | set(model.state) | set(model.registers) | output_names | update_names
         known_names.update({"true", "false", "True", "False", "and", "or", "not"})
         known_names.update(_default_rule_helpers().keys())
-        known_names.update({"read_mux", "reduction_or"})
+        known_names.update({"read_mux", "reduction_or", "range"})
         for name in sorted(rule_names - known_names):
             if name and name not in txn:
                 txn[name] = idx + len(txn) + 1

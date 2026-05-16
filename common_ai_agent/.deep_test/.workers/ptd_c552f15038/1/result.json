@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_c552f15038",
+  "worker_idx": 1,
+  "model": "mA2",
+  "requested_model": "mA2",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "a2"
+    }
+  ],
+  "todos_done": [
+    "todo-2"
+  ],
+  "result": "ok(mA2)",
+  "error": "",
+  "started_at": 1778925108.864089,
+  "completed_at": 1778925109.1201658,
+  "duration_s": 0.2560768127441406
+}

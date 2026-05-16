@@ -1,0 +1,48 @@
+{
+  "job_id": "ptd_216b1d624b",
+  "requested_worker_count": 2,
+  "worker_count": 2,
+  "models": [
+    {
+      "requested_model": "mB1",
+      "resolved_model": "mB1",
+      "pricing_model": "mB1",
+      "reason": ""
+    },
+    {
+      "requested_model": "mB2",
+      "resolved_model": "mB2",
+      "pricing_model": "mB2",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "b1"
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "b2"
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "b1"
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "b2"
+      }
+    ]
+  ],
+  "created_at": 1778924816.8746948
+}

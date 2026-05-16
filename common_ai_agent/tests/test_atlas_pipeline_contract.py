@@ -206,6 +206,68 @@ def test_advance_pipeline_starts_all_ready_dag_children(monkeypatch) -> None:
             jobs._jobs.clear()
 
 
+def test_sim_error_still_dispatches_sim_debug_for_classification(monkeypatch) -> None:
+    pipeline_id = "pipe-sim-debug"
+    sim_job = {
+        "job_id": "sim-job",
+        "pipeline_id": pipeline_id,
+        "stage_id": "sim",
+        "workflow": "sim",
+        "status": "error",
+        "pipeline_index": 0,
+        "depends_on": [],
+    }
+    coverage_job = {
+        "job_id": "coverage-job",
+        "pipeline_id": pipeline_id,
+        "stage_id": "coverage",
+        "workflow": "coverage",
+        "status": "queued",
+        "pipeline_index": 1,
+        "depends_on": ["sim-job"],
+    }
+    sim_debug_job = {
+        "job_id": "sim-debug-job",
+        "pipeline_id": pipeline_id,
+        "stage_id": "sim-debug",
+        "workflow": "sim_debug",
+        "status": "queued",
+        "pipeline_index": 2,
+        "depends_on": ["sim-job"],
+    }
+    goal_audit_job = {
+        "job_id": "goal-audit-job",
+        "pipeline_id": pipeline_id,
+        "stage_id": "goal-audit",
+        "workflow": "sim_debug",
+        "status": "queued",
+        "pipeline_index": 3,
+        "depends_on": ["sim-job", "coverage-job", "sim-debug-job"],
+    }
+
+    dispatched: list[str] = []
+
+    def fake_dispatch(job):
+        dispatched.append(job["stage_id"])
+        job["status"] = "running"
+
+    monkeypatch.setattr(jobs, "_dispatch_job_to_worker", fake_dispatch)
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        for job in (sim_job, coverage_job, sim_debug_job, goal_audit_job):
+            jobs._jobs[job["job_id"]] = job
+    try:
+        jobs._advance_pipeline_from(sim_job)
+
+        assert dispatched == ["sim-debug"]
+        assert sim_debug_job["status"] == "running"
+        assert coverage_job["status"] == "blocked"
+        assert goal_audit_job["status"] == "blocked"
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
 def test_rtl_completion_registers_version_and_fans_out_context(
     tmp_path: Path,
     monkeypatch,

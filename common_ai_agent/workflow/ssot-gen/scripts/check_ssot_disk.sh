@@ -289,7 +289,7 @@ all_ports = collect_ports()
 output_ports = {
     str(port.get("name"))
     for port in all_ports
-    if str(port.get("direction") or "").lower() == "output"
+    if str(port.get("direction") or "").lower() in {"output", "inout"}
 }
 contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
 contract_output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
@@ -302,6 +302,7 @@ for idx, tx in enumerate(fm.get("transactions") or []):
             raise SystemExit(f"function_model.transactions[{idx}].{key} is required")
     if not (tx.get("side_effects") or tx.get("error_cases")):
         raise SystemExit(f"function_model.transactions[{idx}] needs side_effects or error_cases")
+    has_tx_output_rule = False
     for ridx, rule in enumerate(rule_items(tx.get("output_rules"))):
         base = f"function_model.transactions[{idx}].output_rules[{ridx}]"
         name = ci_get(rule, "name", "output")
@@ -315,6 +316,24 @@ for idx, tx in enumerate(fm.get("transactions") or []):
         if output_ports and str(port) not in output_ports:
             raise SystemExit(f"{base}.port must name a declared output port")
         has_machine_output_rule = True
+        has_tx_output_rule = True
+    has_tx_state_update = False
+    for uidx, update in enumerate(rule_items(tx.get("state_updates"))):
+        base = f"function_model.transactions[{idx}].state_updates[{uidx}]"
+        name = ci_get(update, "name", "state", "target")
+        expr = ci_get(update, "expr", "expression", "value", "next_value")
+        width = ci_get(update, "width", "bit_width")
+        for key, value in (("name", name), ("expr", expr), ("width", width)):
+            require_present(value, f"{base}.{key}")
+        has_tx_state_update = True
+    tx_token = norm_token(f"{ci_get(tx, 'id') or ''} {ci_get(tx, 'name') or ''}")
+    tx_parts = {part for part in tx_token.split("_") if part}
+    is_reset_tx = "reset" in tx_parts or tx_token in {"fm_reset", "reset_behavior", "reset_sequence"}
+    if not is_reset_tx and not (has_tx_output_rule or has_tx_state_update):
+        raise SystemExit(
+            f"function_model.transactions[{idx}] must include executable output_rules or state_updates; "
+            "prose outputs/side_effects are not scoreboard-comparable"
+        )
 if not has_machine_output_rule:
     raise SystemExit("function_model.transactions[] must include at least one executable output_rules entry with name/expr/width/port")
 

@@ -1175,6 +1175,30 @@ def create_app():
                  # canonical compile/lint evidence JSONs.
                  "authoring_packets", "stage_engine"}
 
+    # Files that are produced by workflow scripts for downstream-stage
+    # consumption (TODO trackers, traceability maps, blocker reports,
+    # authoring plans, gate-evidence packets, manifest bookkeeping). They
+    # are *not* user-facing artifacts — the relevant data already shows
+    # up in the Gates tab / TODO panel / compile/lint evidence cards.
+    # Hide them in `/api/files` listings and exclude them from .ZIP
+    # downloads. They remain on disk; workflow scripts and the
+    # `/resolve-rtl-blockers` flow still read them directly.
+    SKIP_FILES = {
+        "manifest.json", "decomposition.json",
+        "import_manifest.json", "ssot_downstream_blockers.json",
+        "rtl_authoring_plan.json", "rtl_authoring_status.md",
+        "rtl_blocked.json", "rtl_blocked_resolved.json",
+        "rtl_todo_plan.json", "rtl_todo_tracker.json",
+        "rtl_traceability.json",
+    }
+
+    def _is_internal_artifact(name: str) -> bool:
+        if name in SKIP_FILES:
+            return True
+        if name.startswith("rtl_gate_") and (name.endswith(".json") or name.endswith(".md")):
+            return True
+        return False
+
     def _safe(rel_path):
         rel = (rel_path or "").lstrip("/")
         candidate = (PROJECT_ROOT / rel).resolve()
@@ -1213,6 +1237,8 @@ def create_app():
                 if len(entries) >= max_entries:
                     return
                 if child.name in SKIP_DIRS or child.name.startswith("."):
+                    continue
+                if child.is_file() and _is_internal_artifact(child.name):
                     continue
                 try:
                     stat = child.stat()
@@ -5521,6 +5547,135 @@ def create_app():
                         "next_action": _next_action(stage, stage_status),
                     }
 
+                def _simple_summary() -> dict:
+                    visible_order = [
+                        "req",
+                        "ssot",
+                        "fl_model",
+                        "fl_decomp",
+                        "fcov_plan",
+                        "equivalence_goals",
+                        "rtl",
+                        "lint",
+                        "tb",
+                        "sim_debug",
+                        "coverage",
+                        "goal_audit",
+                    ]
+                    passed = sum(1 for stage in visible_order if status.get(stage) in {"ok", "pass"})
+                    total = len(visible_order)
+                    percent = 100 if signoff == "pass" else int(round((passed / total) * 100)) if total else 0
+                    audit_blockers = [
+                        str(item).lower()
+                        for item in (goal_audit.get("blockers", []) if isinstance(goal_audit, dict) else [])
+                        if str(item)
+                    ]
+                    req_needed = req_status != "ok" or any(item == "req" for item in audit_blockers)
+                    hard_fail = any(
+                        status.get(stage) == "fail"
+                        for stage in ("rtl", "lint", "sim_debug", "coverage", "equivalence_goals")
+                    )
+                    if signoff == "pass":
+                        simple_state = "green"
+                        headline = "Ready for signoff"
+                        message = "All required evidence is green."
+                    elif req_needed:
+                        simple_state = "needs_review"
+                        headline = "One user review is needed"
+                        message = "Generated evidence can continue, but requirements need a real review before final green."
+                    elif hard_fail:
+                        simple_state = "needs_repair"
+                        headline = "A generated stage needs repair"
+                        message = "ATLAS should route the failed evidence to the owning workflow and rerun downstream checks."
+                    elif passed:
+                        simple_state = "needs_evidence"
+                        headline = "Run the next evidence step"
+                        message = "Some stages are complete. Continue the pipeline to collect the missing evidence."
+                    else:
+                        simple_state = "not_started"
+                        headline = "Start the IP pipeline"
+                        message = "Create or import SSOT, then run the flow toward RTL, TB, sim, coverage, and signoff."
+
+                    stage_labels = {
+                        "req": "Complete requirements review",
+                        "ssot": "Complete SSOT",
+                        "fl_model": "Generate FL model",
+                        "fl_decomp": "Generate model decomposition",
+                        "fcov_plan": "Create coverage plan",
+                        "equivalence_goals": "Generate equivalence goals",
+                        "rtl": "Generate or repair RTL",
+                        "lint": "Run lint",
+                        "tb": "Generate TB",
+                        "sim_debug": "Run simulation and compare",
+                        "coverage": "Close coverage evidence",
+                        "goal_audit": "Run final evidence audit",
+                    }
+                    stage_reasons = {
+                        "req": "Human-owned design intent must not be guessed.",
+                        "ssot": "SSOT is the source of truth for every downstream workflow.",
+                        "fl_model": "The executable functional model is the golden behavior reference.",
+                        "fl_decomp": "Decomposition tells RTL/TB which design units must exist.",
+                        "fcov_plan": "Coverage needs planned bins before signoff.",
+                        "equivalence_goals": "Scoreboard checks need explicit FL/RTL goals.",
+                        "rtl": "RTL must match SSOT and compile/lint cleanly.",
+                        "lint": "DUT-only lint must be clean or explicitly waived.",
+                        "tb": "Every SSOT DV scenario needs a runnable test.",
+                        "sim_debug": "Simulation must produce fresh zero-fail results.",
+                        "coverage": "Coverage must show required functional/cycle evidence.",
+                        "goal_audit": "The final audit ties every artifact back to SSOT evidence.",
+                    }
+                    next_steps: list[dict[str, str]] = []
+                    for stage in visible_order:
+                        if stage == "req" and req_needed:
+                            needs_step = True
+                        else:
+                            needs_step = status.get(stage) not in {"ok", "pass"}
+                        if not needs_step:
+                            continue
+                        next_steps.append({
+                            "stage": stage,
+                            "label": stage_labels.get(stage, stage),
+                            "owner": "user" if stage == "req" else "atlas",
+                            "reason": stage_reasons.get(stage, ""),
+                            "status": str(status.get(stage) or "pending"),
+                        })
+                        if len(next_steps) >= 3:
+                            break
+
+                    if not next_steps and signoff != "pass":
+                        next_steps.append({
+                            "stage": "signoff",
+                            "label": "Review final signoff",
+                            "owner": "user",
+                            "reason": "Tool evidence is available; final acceptance is a user decision.",
+                            "status": signoff,
+                        })
+
+                    next_stage = next_steps[0]["stage"] if next_steps else "signoff"
+                    primary_label = "Run to Green"
+                    if simple_state == "needs_review":
+                        primary_label = "Open Review"
+                    elif simple_state == "green":
+                        primary_label = "View Evidence"
+
+                    return {
+                        "state": simple_state,
+                        "headline": headline,
+                        "message": message,
+                        "percent": max(0, min(100, percent)),
+                        "passed_checks": passed,
+                        "total_checks": total,
+                        "next_stage": next_stage,
+                        "next_steps": next_steps,
+                        "primary_action": {
+                            "label": primary_label,
+                            "kind": "open_stage" if simple_state in {"green", "needs_review"} else "run_pipeline",
+                            "stage": next_stage,
+                            "flow": "full",
+                        },
+                        "expert_blockers": blockers[:12],
+                    }
+
                 ownership = {
                     "req": _stage_entry("req", req_status, "REQ ledger placeholder/substance check", _first_source(req.get("files") if isinstance(req, dict) else "")),
                     "ssot": _stage_entry("ssot", ssot_status, "canonical SSOT section checker", "yaml/<ip>.ssot.yaml"),
@@ -5540,6 +5695,7 @@ def create_app():
                     "status": status,
                     "blockers": blockers,
                     "ownership": ownership,
+                    "simple_summary": _simple_summary(),
                     "criteria": {
                         "req": "requirements captured before SSOT",
                         "ssot": "all canonical SSOT sections approved",
@@ -5884,6 +6040,7 @@ def create_app():
                     "ssot_mtime": p.stat().st_mtime,
                     "progress": progress,
                     "signoff": gate,
+                    "simple_summary": gate.get("simple_summary", {}),
                 }
 
             def _aggregate_status(modules):
@@ -6247,6 +6404,11 @@ def create_app():
                     "artifact_source": mod.get("artifact_source") or {},
                     "progress": mod.get("progress") or {},
                     "signoff": mod.get("signoff") or {},
+                    "simple_summary": (
+                        mod.get("simple_summary")
+                        or (mod.get("signoff") or {}).get("simple_summary")
+                        or {}
+                    ),
                 }
                 modules.append(entry)
 

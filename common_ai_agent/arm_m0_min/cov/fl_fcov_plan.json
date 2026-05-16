@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "type": "fl_functional_coverage_plan",
+  "ip": "arm_m0_min",
+  "source": "arm_m0_min/yaml/arm_m0_min.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "fl",
+  "summary": {
+    "total_bins": 17,
+    "by_class": {
+      "scenario": 5,
+      "transaction_type": 2,
+      "state_transition": 8,
+      "error": 2
+    }
+  },
+  "bins": [
+    {
+      "id": "SC_ALU_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC_ALU",
+      "description": "ALU instruction correctness"
+    },
+    {
+      "id": "SC_CMP_BRANCH_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC_CMP_BRANCH",
+      "description": "CMP and conditional branching"
+    },
+    {
+      "id": "SC_LOAD_STORE_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC_LOAD_STORE",
+      "description": "Load/store handshake behavior"
+    },
+    {
+      "id": "SC_IF_STALL_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC_IF_STALL",
+      "description": "Instruction fetch backpressure"
+    },
+    {
+      "id": "SC_BUS_ERROR_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC_BUS_ERROR",
+      "description": "Bus error to fault-halt"
+    },
+    {
+      "id": "function_alu_compare_branch",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "alu_compare_branch"
+    },
+    {
+      "id": "function_single_transfer_memory_access",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "single_transfer_memory_access"
+    },
+    {
+      "id": "fsm_core_reset_to_run_0",
+      "class": "state_transition",
+      "source": "fsm.core.transitions[0]",
+      "description": "rst deasserted"
+    },
+    {
+      "id": "fsm_core_run_to_stall_if_1",
+      "class": "state_transition",
+      "source": "fsm.core.transitions[1]",
+      "description": "i_hready==0"
+    },
+    {
+      "id": "fsm_core_stall_if_to_run_2",
+      "class": "state_transition",
+      "source": "fsm.core.transitions[2]",
+      "description": "i_hready==1"
+    },
+    {
+      "id": "fsm_core_run_to_stall_mem_3",
+      "class": "state_transition",
+      "source": "fsm.core.transitions[3]",
+      "description": "active load/store && d_hready==0"
+    },
+    {
+      "id": "fsm_core_stall_mem_to_run_4",
+      "class": "state_transition",
+      "source": "fsm.core.transitions[4]",
+      "description": "d_hready==1 && d_hresp==OKAY"
+    },
+    {
+      "id": "fsm_core_run_to_fault_halt_5",
+      "class": "state_transition",
+      "source": "fsm.core.transitions[5]",
+      "description": "i_hresp==ERROR || d_hresp==ERROR"
+    },
+    {
+      "id": "fsm_core_stall_mem_to_fault_halt_6",
+      "class": "state_transition",
+      "source": "fsm.core.transitions[6]",
+      "description": "d_hresp==ERROR"
+    },
+    {
+      "id": "fsm_core_fault_halt_to_reset_7",
+      "class": "state_transition",
+      "source": "fsm.core.transitions[7]",
+      "description": "rst asserted"
+    },
+    {
+      "id": "error_i_bus_error",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'name': 'I_BUS_ERROR', 'detect': 'i_hresp==ERROR when instruction transfer completes', 'effect': 'enter FAULT_HALT'}"
+    },
+    {
+      "id": "error_d_bus_error",
+      "class": "error",
+      "source": "error_handling.error_sources[1]",
+      "description": "{'name': 'D_BUS_ERROR', 'detect': 'd_hresp==ERROR when data transfer completes', 'effect': 'enter FAULT_HALT'}"
+    }
+  ]
+}

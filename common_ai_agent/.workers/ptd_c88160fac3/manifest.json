@@ -1,0 +1,90 @@
+{
+  "job_id": "ptd_c88160fac3",
+  "requested_worker_count": 3,
+  "worker_count": 3,
+  "models": [
+    {
+      "requested_model": "claude-cli",
+      "resolved_model": "claude-cli",
+      "pricing_model": "claude-cli",
+      "reason": ""
+    },
+    {
+      "requested_model": "glm-5.1",
+      "resolved_model": "glm-5.1",
+      "pricing_model": "glm-5.1",
+      "reason": ""
+    },
+    {
+      "requested_model": "kimi",
+      "resolved_model": "kimi-2.6",
+      "pricing_model": "kimi-2.6",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "For IP parity_gen: RTL-0001: Read SSOT and build dynamic RTL implementation ledger",
+      "raw": {
+        "id": "todo-1",
+        "content": "For IP parity_gen: RTL-0001: Read SSOT and build dynamic RTL implementation ledger"
+      }
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "For IP parity_gen: RTL-0002: Implement top-level ports, reset, and filelist integration",
+      "raw": {
+        "id": "todo-2",
+        "content": "For IP parity_gen: RTL-0002: Implement top-level ports, reset, and filelist integration"
+      }
+    },
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "For IP parity_gen: RTL-0003: Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "raw": {
+        "id": "todo-3",
+        "content": "For IP parity_gen: RTL-0003: Gate: SSOT function_model and cycle_model are present before RTL generation"
+      }
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "For IP parity_gen: RTL-0001: Read SSOT and build dynamic RTL implementation ledger",
+        "raw": {
+          "id": "todo-1",
+          "content": "For IP parity_gen: RTL-0001: Read SSOT and build dynamic RTL implementation ledger"
+        }
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "For IP parity_gen: RTL-0002: Implement top-level ports, reset, and filelist integration",
+        "raw": {
+          "id": "todo-2",
+          "content": "For IP parity_gen: RTL-0002: Implement top-level ports, reset, and filelist integration"
+        }
+      }
+    ],
+    [
+      {
+        "index": 2,
+        "id": "todo-3",
+        "content": "For IP parity_gen: RTL-0003: Gate: SSOT function_model and cycle_model are present before RTL generation",
+        "raw": {
+          "id": "todo-3",
+          "content": "For IP parity_gen: RTL-0003: Gate: SSOT function_model and cycle_model are present before RTL generation"
+        }
+      }
+    ]
+  ],
+  "created_at": 1778933893.583194
+}

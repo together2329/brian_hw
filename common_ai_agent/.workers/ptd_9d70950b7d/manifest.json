@@ -1,0 +1,30 @@
+{
+  "job_id": "ptd_9d70950b7d",
+  "requested_worker_count": 1,
+  "worker_count": 1,
+  "models": [
+    {
+      "requested_model": "claude-cli",
+      "resolved_model": "claude-cli",
+      "pricing_model": "claude-cli",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Say the word DONE and nothing else."
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "Say the word DONE and nothing else."
+      }
+    ]
+  ],
+  "created_at": 1778928905.806755
+}

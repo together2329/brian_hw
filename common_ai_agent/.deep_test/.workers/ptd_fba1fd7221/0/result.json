@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_fba1fd7221",
+  "worker_idx": 0,
+  "model": "m1",
+  "requested_model": "m1",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "t"
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "ok",
+  "error": "",
+  "started_at": 1778925111.114342,
+  "completed_at": 1778925111.114909,
+  "duration_s": 0.0005669593811035156
+}

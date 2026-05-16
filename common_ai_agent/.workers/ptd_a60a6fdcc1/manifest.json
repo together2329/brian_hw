@@ -1,0 +1,30 @@
+{
+  "job_id": "ptd_a60a6fdcc1",
+  "requested_worker_count": 1,
+  "worker_count": 1,
+  "models": [
+    {
+      "requested_model": "claude-cli",
+      "resolved_model": "claude-cli",
+      "pricing_model": "claude-cli",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Use WebSearch to find the GitHub stars count for tiangolo/fastapi. Report just the number."
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "Use WebSearch to find the GitHub stars count for tiangolo/fastapi. Report just the number."
+      }
+    ]
+  ],
+  "created_at": 1778932523.289112
+}

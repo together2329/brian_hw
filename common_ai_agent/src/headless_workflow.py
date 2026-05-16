@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
@@ -107,7 +108,24 @@ HEADLESS_STAGE_ALIASES = {
     "sim": "sim",
     "sim-debug": "sim-debug",
     "goal-audit": "goal-audit",
+    "pipeline": "pipeline",
+    "pipelining": "pipeline",
+    "repair-pipeline": "pipeline",
 }
+
+PIPELINE_DEFAULT_STAGES = [
+    "fl-model-gen",
+    "cl-model-gen",
+    "dual-fcov",
+    "equiv-goals",
+    "rtl-gen",
+    "lint",
+    "tb-gen",
+    "sim",
+    "coverage",
+    "sim-debug",
+    "goal-audit",
+]
 
 
 def _utc() -> str:
@@ -1263,6 +1281,40 @@ class HeadlessWorkflowRunner:
     def _question_path(self, ip: str, stage: str, topic: str) -> Path:
         return self._ip_dir(ip) / "questions" / f"{_safe_name(stage)}_{_safe_name(topic, 'decision')}.json"
 
+    def _review_decision_path(self, ip: str, workflow: str, topic: str) -> Path:
+        return self._ip_dir(ip) / "review" / f"decision_needed_{_safe_name(workflow)}_{_safe_name(topic, 'decision')}.json"
+
+    def _write_review_decision_needed(
+        self,
+        ip: str,
+        workflow: str,
+        topic: str,
+        *,
+        decision_needed: str,
+        evidence: dict[str, Any] | None = None,
+        severity: str = "needs_review",
+        next_action: str = "",
+    ) -> Path:
+        path = self._review_decision_path(ip, workflow, topic)
+        _write_json(
+            path,
+            {
+                "schema_version": 1,
+                "type": "review_decision_needed",
+                "status": "review_decision_needed",
+                "ip": ip,
+                "workflow": workflow,
+                "topic": topic,
+                "severity": severity,
+                "decision_needed": decision_needed,
+                "evidence": evidence or {},
+                "next_action": next_action
+                or "Review and either lock missing SSOT semantics or approve a workflow/tooling repair.",
+                "created_at": _utc(),
+            },
+        )
+        return path
+
     def _write_human_gate(
         self,
         ip: str,
@@ -1645,11 +1697,80 @@ class HeadlessWorkflowRunner:
         except Exception:
             return False
         rtl_contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
-        if not rtl_contract:
-            return False
         fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
         transactions = [item for item in fm.get("transactions") or [] if isinstance(item, dict)]
         tx = transactions[0] if transactions else {}
+
+        def _iter_ports() -> list[dict[str, Any]]:
+            io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
+            rows: list[dict[str, Any]] = []
+
+            def add_from(container: Any) -> None:
+                if isinstance(container, dict):
+                    ports = container.get("ports")
+                    if isinstance(ports, list):
+                        for port in ports:
+                            if isinstance(port, dict) and str(port.get("name") or "").strip():
+                                rows.append(port)
+                    for key in ("clock_domains", "resets", "interfaces"):
+                        value = container.get(key)
+                        if isinstance(value, list):
+                            for item in value:
+                                add_from(item)
+                elif isinstance(container, list):
+                    for item in container:
+                        add_from(item)
+
+            add_from(io)
+            seen: set[str] = set()
+            unique: list[dict[str, Any]] = []
+            for port in rows:
+                name = str(port.get("name") or "").strip()
+                if not name or name in seen:
+                    continue
+                seen.add(name)
+                unique.append(port)
+            return unique
+
+        ports = _iter_ports()
+        input_ports = {
+            str(port.get("name"))
+            for port in ports
+            if str(port.get("direction") or "").strip().lower() == "input"
+        }
+        output_ports = [
+            port for port in ports if str(port.get("direction") or "").strip().lower() == "output"
+        ]
+
+        def _first_named(names: list[str], fallback: str) -> str:
+            for name in names:
+                if name in input_ports:
+                    return name
+            return fallback
+
+        inferred_clock = _first_named(
+            [
+                str(rtl_contract.get("clock") or ""),
+                "clk",
+                "clock",
+                "pclk",
+            ],
+            "clk",
+        )
+        inferred_reset = _first_named(
+            [
+                str(rtl_contract.get("reset") or ""),
+                "rst_n",
+                "reset_n",
+                "reset",
+                "rst",
+            ],
+            "rst_n",
+        )
+        reset_active = str(rtl_contract.get("reset_active") or "").strip().lower()
+        if reset_active not in {"low", "high"}:
+            reset_active = "low" if inferred_reset.endswith("_n") else "high"
+
         outputs: list[dict[str, Any]] = []
         for rule in tx.get("output_rules") or []:
             if not isinstance(rule, dict):
@@ -1663,6 +1784,18 @@ class HeadlessWorkflowRunner:
                 "width": rule.get("width") or 1,
                 "source": rule,
             })
+        if not outputs:
+            for port in output_ports:
+                name = str(port.get("name") or "").strip()
+                if not name:
+                    continue
+                outputs.append({
+                    "name": name,
+                    "port": name,
+                    "expr": "",
+                    "width": port.get("width") or 1,
+                    "source": {"kind": "io_list_output_fallback"},
+                })
         state_vars = {
             str(item.get("name")): {"width": item.get("width") or 1, "reset": item.get("reset", 0)}
             for item in fm.get("state_variables") or []
@@ -1685,9 +1818,9 @@ class HeadlessWorkflowRunner:
             "contract": {
                 "top": ip,
                 "transaction": rtl_contract.get("transaction") or tx.get("id") or "FM_PRIMARY",
-                "clock": rtl_contract.get("clock") or "clk",
-                "reset": rtl_contract.get("reset") or "rst_n",
-                "reset_active": rtl_contract.get("reset_active") or "low",
+                "clock": inferred_clock,
+                "reset": inferred_reset,
+                "reset_active": reset_active,
                 "sample_condition": rtl_contract.get("sample_condition") or "1'b1",
                 "input_map": rtl_contract.get("input_map") if isinstance(rtl_contract.get("input_map"), dict) else {},
                 "outputs": outputs,
@@ -2138,9 +2271,70 @@ class HeadlessWorkflowRunner:
             initial_queue_passes = (work_packets + batch_limit - 1) // batch_limit
         return max(self.rtl_repair_attempts + 1, initial_queue_passes + self.rtl_repair_attempts)
 
+    def _rtl_repair_evidence_active(self, ip: str) -> bool:
+        if not ip:
+            return False
+        classify_path = self._ip_dir(ip) / "sim" / "mismatch_classification.json"
+        if not classify_path.is_file():
+            return False
+        if not self._loopable_repair_classifications(ip, "rtl-gen"):
+            return False
+        try:
+            classify_mtime = classify_path.stat().st_mtime
+        except OSError:
+            return False
+        rtl_mtime = 0.0
+        for rtl_path in (self._ip_dir(ip) / "rtl").glob("*.sv"):
+            try:
+                rtl_mtime = max(rtl_mtime, rtl_path.stat().st_mtime)
+            except OSError:
+                continue
+        return classify_mtime >= rtl_mtime
+
+    def _rtl_repair_packets(self, plan: dict[str, Any]) -> list[dict[str, Any]]:
+        packets = self._rtl_packet_entries(plan)
+        repair_packets: list[dict[str, Any]] = []
+        for packet in packets:
+            packet_id = str(packet.get("packet_id") or Path(str(packet.get("json") or "")).stem)
+            kind = str(packet.get("kind") or "").lower()
+            owner_file = str(packet.get("owner_file") or "")
+            if "human" in packet_id or "contract_blocked" in packet_id:
+                continue
+            if owner_file.endswith(".sv") or kind.startswith("module") or packet_id.startswith("module__"):
+                repair_packets.append(packet)
+        return repair_packets
+
     def _rtl_packet_work_batch(self, plan: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, int]]:
         packets = self._rtl_packet_entries(plan)
         work_packets = [packet for packet in packets if self._rtl_packet_needs_llm(packet)]
+        ip = str(plan.get("ip") or "")
+        if self._rtl_repair_evidence_active(ip):
+            for packet in self._rtl_repair_packets(plan):
+                if packet not in work_packets:
+                    work_packets.append(packet)
+        summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+        next_packet_ids = [
+            str(item).strip()
+            for item in (summary.get("next_llm_packets") if isinstance(summary.get("next_llm_packets"), list) else [])
+            if str(item).strip()
+        ]
+        if next_packet_ids:
+            work_by_id = {
+                str(packet.get("packet_id") or Path(str(packet.get("json") or "")).stem): packet
+                for packet in work_packets
+            }
+            preferred = [work_by_id[item] for item in next_packet_ids if item in work_by_id]
+            if preferred:
+                limit = self._rtl_packet_batch_limit()
+                selected = preferred[:limit] if limit else preferred
+                return selected, {
+                    "total_packets": len(packets),
+                    "work_packets": len(work_packets),
+                    "selected_packets": len(selected),
+                    "skipped_closed_packets": len(packets) - len(work_packets),
+                    "deferred_work_packets": max(0, len(work_packets) - len(selected)),
+                    "packet_batch_limit": limit,
+                }
         primary_packets = [
             packet
             for packet in work_packets
@@ -2253,6 +2447,304 @@ class HeadlessWorkflowRunner:
         _write_json(provenance_path, payload)
         return True
 
+    def _rtl_interface_digest(self, ip: str) -> str:
+        sections: list[str] = []
+        ip_dir = self._ip_dir(ip)
+        for rel in self._declared_rtl_files(ip):
+            path = ip_dir / rel
+            if not path.is_file():
+                sections.append(f"### {rel}\n<missing>")
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            module_headers = []
+            for match in re.finditer(r"\bmodule\s+\w+\b[\s\S]*?\)\s*;", text):
+                module_headers.append(match.group(0))
+                if len(module_headers) >= 4:
+                    break
+            if module_headers:
+                sections.append(f"### {rel}\n" + "\n\n".join(module_headers))
+            else:
+                sections.append(f"### {rel}\n" + "\n".join(text.splitlines()[:80]))
+        return "\n\n".join(sections) if sections else "<none>"
+
+    def _rtl_file_snapshots(self, ip: str) -> str:
+        sections: list[str] = []
+        ip_dir = self._ip_dir(ip)
+        try:
+            per_file_limit = max(4000, int(os.getenv("ATLAS_HEADLESS_RTL_SNAPSHOT_FILE_CHARS", "22000")))
+        except ValueError:
+            per_file_limit = 22000
+        try:
+            total_limit = max(per_file_limit, int(os.getenv("ATLAS_HEADLESS_RTL_SNAPSHOT_TOTAL_CHARS", "70000")))
+        except ValueError:
+            total_limit = 70000
+        used = 0
+        for rel in self._declared_rtl_files(ip):
+            if used >= total_limit:
+                sections.append(f"### {rel}\n<truncated: total RTL snapshot budget exhausted>")
+                continue
+            path = ip_dir / rel
+            if not path.is_file():
+                text = "<missing>"
+            else:
+                text = path.read_text(encoding="utf-8", errors="replace")
+            remaining = max(0, total_limit - used)
+            clipped = _clip(text, min(per_file_limit, remaining))
+            used += len(clipped)
+            sections.append(f"### {rel}\n{clipped}")
+        return "\n\n".join(sections) if sections else "<none>"
+
+    def _rtl_gate_audit_digest(self, ip: str) -> dict[str, Any]:
+        ip_dir = self._ip_dir(ip)
+        todo_plan = _read_json(ip_dir / "rtl" / "rtl_todo_plan.json")
+        compile_report = _read_json(ip_dir / "rtl" / "rtl_compile.json")
+        lint_report = _read_json(ip_dir / "lint" / "dut_lint.json")
+
+        todo_completion = todo_plan.get("todo_completion") if isinstance(todo_plan.get("todo_completion"), dict) else {}
+        static_evidence = todo_plan.get("static_rtl_evidence") if isinstance(todo_plan.get("static_rtl_evidence"), dict) else {}
+        signal_flow = (
+            todo_plan.get("manifest_signal_flow_evidence")
+            if isinstance(todo_plan.get("manifest_signal_flow_evidence"), dict)
+            else {}
+        )
+        hierarchy = (
+            todo_plan.get("manifest_hierarchy_evidence")
+            if isinstance(todo_plan.get("manifest_hierarchy_evidence"), dict)
+            else {}
+        )
+        open_tasks = todo_completion.get("open_tasks") if isinstance(todo_completion.get("open_tasks"), list) else []
+        missing_tasks = static_evidence.get("missing_tasks") if isinstance(static_evidence.get("missing_tasks"), list) else []
+        signal_issues = signal_flow.get("issues") if isinstance(signal_flow.get("issues"), list) else []
+        hierarchy_issues = hierarchy.get("issues") if isinstance(hierarchy.get("issues"), list) else []
+
+        lint_diagnostics: list[Any] = []
+        tool_results = lint_report.get("tool_results") if isinstance(lint_report.get("tool_results"), list) else []
+        for result in tool_results:
+            if isinstance(result, dict):
+                diagnostics = result.get("diagnostics") if isinstance(result.get("diagnostics"), list) else []
+                for diag in diagnostics:
+                    lint_diagnostics.append(diag)
+
+        return {
+            "source": f"{ip}/rtl/rtl_todo_plan.json",
+            "gate": todo_plan.get("gate") if isinstance(todo_plan.get("gate"), dict) else {},
+            "open_required_tasks": open_tasks[:48],
+            "static_missing_tasks": missing_tasks[:48],
+            "manifest_signal_flow_issues": signal_issues[:48],
+            "manifest_hierarchy_issues": hierarchy_issues[:48],
+            "compile": {
+                "source": f"{ip}/rtl/rtl_compile.json",
+                "present": bool(compile_report),
+                "passed": compile_report.get("passed"),
+                "returncode": compile_report.get("returncode"),
+                "errors": compile_report.get("errors"),
+                "diagnostics": compile_report.get("diagnostics"),
+                "style_violations": compile_report.get("style_violations"),
+                "style_violation_details": (
+                    compile_report.get("style_violation_details")
+                    if isinstance(compile_report.get("style_violation_details"), list)
+                    else []
+                )[:24],
+            },
+            "lint": {
+                "source": f"{ip}/lint/dut_lint.json",
+                "present": bool(lint_report),
+                "passed": lint_report.get("passed"),
+                "returncode": lint_report.get("returncode"),
+                "errors": lint_report.get("errors"),
+                "warnings": lint_report.get("warnings"),
+                "suppression_violation_count": lint_report.get("suppression_violation_count"),
+                "style_violation_count": lint_report.get("style_violation_count"),
+                "diagnostics": lint_diagnostics[:48],
+            },
+        }
+
+    def _canonical_repair_owner(self, owner: str) -> str:
+        key = str(owner or "").strip().lower().replace("_", "-")
+        mapping = {
+            "rtl": "rtl-gen",
+            "rtl-gen": "rtl-gen",
+            "ssot-rtl": "rtl-gen",
+            "tb": "tb-gen",
+            "testbench": "tb-gen",
+            "scoreboard": "tb-gen",
+            "tb-gen": "tb-gen",
+            "fl": "fl-model-gen",
+            "fl-model": "fl-model-gen",
+            "fl-model-gen": "fl-model-gen",
+            "coverage": "coverage",
+            "cov": "coverage",
+            "sim": "sim",
+            "sim-debug": "sim-debug",
+        }
+        return mapping.get(key, _canonical_headless_stage(key))
+
+    def _loopable_repair_classifications(self, ip: str, owner_workflow: str = "") -> list[dict[str, Any]]:
+        path = self._ip_dir(ip) / "sim" / "mismatch_classification.json"
+        doc = _read_json(path)
+        raw_items = doc.get("classifications") if isinstance(doc.get("classifications"), list) else []
+        wanted = self._canonical_repair_owner(owner_workflow) if owner_workflow else ""
+        items: list[dict[str, Any]] = []
+        for item in raw_items:
+            if not isinstance(item, dict):
+                continue
+            if item.get("llm_loop_allowed") is not True:
+                continue
+            if not str(item.get("repair_prompt") or "").strip():
+                continue
+            owner = self._canonical_repair_owner(str(item.get("owner") or ""))
+            if wanted and owner != wanted:
+                continue
+            items.append({**item, "owner": owner})
+        return items
+
+    def _repair_classification_signature(self, items: list[dict[str, Any]]) -> str:
+        normalized: list[dict[str, Any]] = []
+        for item in items:
+            evidence = item.get("evidence") if isinstance(item.get("evidence"), dict) else {}
+            rows = evidence.get("scoreboard_rows") if isinstance(evidence.get("scoreboard_rows"), list) else []
+            first_row = rows[0] if rows and isinstance(rows[0], dict) else {}
+            normalized.append(
+                {
+                    "goal_id": item.get("goal_id"),
+                    "owner": self._canonical_repair_owner(str(item.get("owner") or "")),
+                    "classification": item.get("classification"),
+                    "reason": item.get("reason"),
+                    "fl_expected": evidence.get("fl_expected") or first_row.get("fl_expected"),
+                    "rtl_observed": evidence.get("rtl_observed") or first_row.get("rtl_observed"),
+                }
+            )
+        return _sha(json.dumps(sorted(normalized, key=lambda row: str(row.get("goal_id") or "")), sort_keys=True, default=str))
+
+    def _rtl_repair_evidence_digest(self, ip: str) -> dict[str, Any]:
+        items = self._loopable_repair_classifications(ip, "rtl-gen")
+        digest: list[dict[str, Any]] = []
+        for item in items[:24]:
+            evidence = item.get("evidence") if isinstance(item.get("evidence"), dict) else {}
+            rows = evidence.get("scoreboard_rows") if isinstance(evidence.get("scoreboard_rows"), list) else []
+            digest.append(
+                {
+                    "goal_id": item.get("goal_id"),
+                    "classification": item.get("classification"),
+                    "owner": item.get("owner"),
+                    "reason": item.get("reason"),
+                    "repair_prompt": item.get("repair_prompt"),
+                    "evidence": {
+                        "ssot_refs": evidence.get("ssot_refs") or [],
+                        "fl_expected": evidence.get("fl_expected"),
+                        "rtl_observed": evidence.get("rtl_observed"),
+                        "scoreboard_rows": rows[:4],
+                        "sim_result": evidence.get("sim_result"),
+                    },
+                }
+            )
+        return {
+            "source": f"{ip}/sim/mismatch_classification.json",
+            "status": "present" if digest else "none",
+            "owner_workflow": "rtl-gen",
+            "items": digest,
+        }
+
+    def _rtl_packet_parallel_worker_count(self) -> int:
+        raw = os.getenv("ATLAS_HEADLESS_RTL_PACKET_PARALLEL_WORKERS", "").strip()
+        if not raw:
+            raw = os.getenv("ATLAS_RTL_PACKET_WORKERS", "4").strip()
+        try:
+            return max(1, int(raw))
+        except ValueError:
+            return 1
+
+    def _rtl_packet_parallel_enabled(self, packets: list[dict[str, Any]]) -> bool:
+        mode = os.getenv("ATLAS_HEADLESS_RTL_PACKET_PARALLEL", "0").strip().lower()
+        if mode in {"0", "off", "false", "no"}:
+            return False
+        if mode in {"1", "on", "true", "yes"}:
+            return self._rtl_packet_parallel_worker_count() > 1 and len(packets) > 1
+        if mode == "auto":
+            return self._rtl_packet_parallel_worker_count() > 1 and len(packets) > 2
+        return False
+
+    def _rtl_packets_parallel_safe(self, packets: list[dict[str, Any]]) -> bool:
+        """Only independent module-owner packets may be authored concurrently."""
+
+        owner_files: set[str] = set()
+        for packet in packets:
+            owner_file = str(packet.get("owner_file") or "").strip()
+            if not self._rtl_packet_parallel_safe(packet):
+                return False
+            if owner_file in owner_files:
+                return False
+            owner_files.add(owner_file)
+        return True
+
+    def _rtl_packet_parallel_safe(self, packet: dict[str, Any]) -> bool:
+        packet_id = str(packet.get("packet_id") or Path(str(packet.get("json") or "")).stem)
+        kind = str(packet.get("kind") or "").strip().lower()
+        owner_file = str(packet.get("owner_file") or "").strip()
+        if kind != "module" or not owner_file:
+            return False
+        if packet_id.startswith("rtl_gate_") or "evidence_closure" in packet_id:
+            return False
+        return True
+
+    def _rtl_packet_context(
+        self,
+        ip: str,
+        rtl_context: dict[str, Any],
+        packet: dict[str, Any],
+        index: int,
+        batch: dict[str, int],
+    ) -> tuple[str, dict[str, Any]]:
+        packet_id = str(packet.get("packet_id") or Path(str(packet.get("json") or f"packet_{index}")).stem)
+        packet_context = dict(rtl_context)
+        packet_context.update(
+            {
+                "rtl_packet_mode": True,
+                "rtl_packet_index": index,
+                "rtl_packet_count": batch["selected_packets"],
+                "rtl_packet_total_count": batch["total_packets"],
+                "rtl_packet_work_count": batch["work_packets"],
+                "rtl_packet_selected_count": batch["selected_packets"],
+                "rtl_packet_deferred_work_count": batch["deferred_work_packets"],
+                "rtl_packet_batch_limit": batch["packet_batch_limit"],
+                "rtl_packet_skipped_closed_count": batch["skipped_closed_packets"],
+                "rtl_packet_id": packet_id,
+                "rtl_packet_path": f"{ip}/{packet.get('json')}",
+                "rtl_packet_kind": packet.get("kind"),
+                "rtl_packet_owner_module": packet.get("owner_module"),
+                "rtl_packet_owner_file": packet.get("owner_file"),
+            }
+        )
+        return packet_id, packet_context
+
+    def _call_rtl_packet_llm(
+        self,
+        ip: str,
+        rtl_context: dict[str, Any],
+        plan: dict[str, Any],
+        packet: dict[str, Any],
+        index: int,
+        batch: dict[str, int],
+        *,
+        attempt: int,
+    ) -> tuple[int, str, dict[str, Any], LLMResponse]:
+        packet_id, packet_context = self._rtl_packet_context(ip, rtl_context, packet, index, batch)
+        system, prompt = self._rtl_packet_prompt(ip, packet_context, plan, packet, attempt=attempt)
+        log_stage = (
+            f"rtl-gen-packet-{index:02d}-{_safe_name(packet_id)}"
+            if attempt == 0
+            else f"rtl-gen-repair-{attempt}-packet-{index:02d}-{_safe_name(packet_id)}"
+        )
+        response = self._call_llm(
+            "rtl-gen",
+            ip,
+            packet_context,
+            system_prompt=system,
+            prompt=prompt,
+            log_stage=log_stage,
+        )
+        return index, packet_id, packet_context, response
+
     def _rtl_packet_prompt(
         self,
         ip: str,
@@ -2277,6 +2769,12 @@ class HeadlessWorkflowRunner:
             if owner_file_path is not None and owner_file_path.is_file()
             else ""
         )
+        packet_id = str(packet.get("packet_id") or Path(packet_rel).stem)
+        packet_kind = str(packet.get("kind") or "").strip().lower()
+        is_gate_packet = packet_kind == "gate" or packet_id.startswith("rtl_gate_")
+        rtl_interface_digest = self._rtl_interface_digest(ip)
+        rtl_gate_audit_digest = self._rtl_gate_audit_digest(ip)
+        rtl_snapshots_text = self._rtl_file_snapshots(ip) if is_gate_packet else "<included only for gate/tool-evidence packets>"
         tool_artifact_sections: list[str] = []
         packet_policy = packet_doc.get("execution_policy") if isinstance(packet_doc.get("execution_policy"), dict) else {}
         tool_plans = packet_policy.get("tool_evidence_plan") if isinstance(packet_policy.get("tool_evidence_plan"), list) else []
@@ -2322,6 +2820,7 @@ class HeadlessWorkflowRunner:
             for key in REFERENCE_PROFILE_PROMPT_KEYS
             if key in reference_profile
         }
+        repair_evidence_digest = self._rtl_repair_evidence_digest(ip)
         plan_overview = {
             "type": plan.get("type"),
             "ip": plan.get("ip"),
@@ -2333,6 +2832,11 @@ class HeadlessWorkflowRunner:
             "execution_policy": plan.get("execution_policy"),
             "packets": packet_digest,
             "todo_plan_sha256": plan.get("todo_plan_sha256"),
+            "sim_debug_repair_evidence": {
+                "source": repair_evidence_digest.get("source"),
+                "owner_workflow": repair_evidence_digest.get("owner_workflow"),
+                "items": len(repair_evidence_digest.get("items") or []),
+            },
         }
         ssot_latency_contract: dict[str, Any] = {}
         ssot_prompt_text = ""
@@ -2394,6 +2898,8 @@ class HeadlessWorkflowRunner:
             "- For rtl_gate_evidence_closure, repair only LLM-actionable evidence gaps revealed by compile/lint/audit output; do not claim PASS.\n"
             "- If rtl_gate_evidence_closure includes pending connection_contract_suggestions, you may use them as draft RTL wiring candidates to instantiate child modules and close hierarchy/signal-flow evidence, but they remain pending QA and must not be treated as SSOT authority.\n"
             "- For rtl_gate_tool_evidence, do not fabricate compile/lint/sim/coverage artifacts. If compile/lint evidence already exists and is not clean, repair the owner RTL that caused the diagnostics; the runner will rerun tools afterward.\n"
+            "- Gate/tool-evidence packets may edit any declared RTL file implicated by the audit digest, compile diagnostics, lint diagnostics, or static-evidence gaps; current owner_file is the gate coordinator, not an edit restriction.\n"
+            "- Keep generated RTL lint-clean: eliminate Verilator warnings, unused evidence-only helper signals, unused parameters, and the no_parameterized_part_select_in_procedural_block style violation by adding real helper wires or real signal consumption.\n"
             "- For rtl_gate_contract_blocked, return human_gate only; missing SSOT connection contracts block correct top integration semantics.\n"
             "- For rtl_gate_human_closure, return human_gate only; do not invent or edit human-locked authority.\n"
             "- The headless runner will refresh filelist/provenance from LLM-authored artifacts after each packet.\n\n"
@@ -2408,7 +2914,11 @@ class HeadlessWorkflowRunner:
             f"Locked SSOT YAML excerpt ({ip}/yaml/{ip}.ssot.yaml):\n{_clip(ssot_prompt_text, 40000) if ssot_prompt_text else '<missing>'}\n\n"
             f"Base rtl-gen contract:\n{base_prompt}\n\n"
             f"Authoring plan overview:\n{_clip(json.dumps(plan_overview, indent=2, sort_keys=True), 30000)}\n\n"
+            f"Current sim-debug owner repair evidence:\n{_clip(json.dumps(repair_evidence_digest, indent=2, sort_keys=True), 24000)}\n\n"
             f"Current owner RTL file ({owner_file_rel or '<none>'}):\n{_clip(owner_file_text, 30000) if owner_file_text else '<missing or not authored yet>'}\n\n"
+            f"Current RTL module interface digest (all manifest RTL files):\n{_clip(rtl_interface_digest, 24000)}\n\n"
+            f"Current RTL gate audit digest:\n{_clip(json.dumps(rtl_gate_audit_digest, indent=2, sort_keys=True), 26000)}\n\n"
+            f"Current RTL file snapshots for gate/tool-evidence repair:\n{_clip(rtl_snapshots_text, 72000)}\n\n"
             f"Current tool evidence artifacts referenced by this packet:\n{tool_artifacts_text}\n\n"
             f"Current packet JSON ({packet_rel}):\n{_clip(packet_json, packet_char_limit)}\n\n"
             f"Current packet Markdown ({packet_md_rel}):\n{_clip(packet_md, 16000)}"
@@ -2424,55 +2934,102 @@ class HeadlessWorkflowRunner:
     ) -> StageResult | None:
         plan = self._rtl_authoring_plan(ip)
         work_packets, batch = self._rtl_packet_work_batch(plan)
-        for index, packet in enumerate(work_packets):
-            packet_id = str(packet.get("packet_id") or Path(str(packet.get("json") or f"packet_{index}")).stem)
-            packet_context = dict(rtl_context)
-            packet_context.update(
-                {
-                    "rtl_packet_mode": True,
-                    "rtl_packet_index": index,
-                    "rtl_packet_count": len(work_packets),
-                    "rtl_packet_total_count": batch["total_packets"],
-                    "rtl_packet_work_count": batch["work_packets"],
-                    "rtl_packet_selected_count": batch["selected_packets"],
-                    "rtl_packet_deferred_work_count": batch["deferred_work_packets"],
-                    "rtl_packet_batch_limit": batch["packet_batch_limit"],
-                    "rtl_packet_skipped_closed_count": batch["skipped_closed_packets"],
-                    "rtl_packet_id": packet_id,
-                    "rtl_packet_path": f"{ip}/{packet.get('json')}",
-                    "rtl_packet_kind": packet.get("kind"),
-                    "rtl_packet_owner_module": packet.get("owner_module"),
-                    "rtl_packet_owner_file": packet.get("owner_file"),
-                }
-            )
-            system, prompt = self._rtl_packet_prompt(ip, packet_context, plan, packet, attempt=attempt)
-            log_stage = (
-                f"rtl-gen-packet-{index:02d}-{_safe_name(packet_id)}"
-                if attempt == 0
-                else f"rtl-gen-repair-{attempt}-packet-{index:02d}-{_safe_name(packet_id)}"
-            )
-            response = self._call_llm(
-                "rtl-gen",
+
+        def consume(packet_results: list[tuple[int, str, dict[str, Any], LLMResponse]]) -> StageResult | None:
+            for _index, packet_id, _packet_context, response in sorted(packet_results, key=lambda item: item[0]):
+                if _response_declares_empty_files(response):
+                    continue
+                if response.status in {"blocked", "human_gate"}:
+                    return self._append_llm_gate(ip, "rtl-gen", response, topic=f"packet_{_safe_name(packet_id)}")
+                if not response.parsed_artifacts:
+                    return self._append(
+                        "rtl-gen",
+                        "blocked",
+                        f"rtl-gen packet {packet_id} produced no files[] artifacts; retry the packet instead of treating truncated output as progress",
+                        returncode=1,
+                    )
+                self._apply_artifacts(ip, response.parsed_artifacts)
+                self._refresh_rtl_filelist_and_provenance(ip, packet_id=packet_id)
+            return None
+
+        def run_parallel_segment(indexed_packets: list[tuple[int, dict[str, Any]]]) -> StageResult | None:
+            if not indexed_packets:
+                return None
+            worker_count = min(self._rtl_packet_parallel_worker_count(), len(indexed_packets))
+            if worker_count <= 1 or len(indexed_packets) <= 1:
+                return consume([
+                    self._call_rtl_packet_llm(ip, rtl_context, plan, packet, index, batch, attempt=attempt)
+                    for index, packet in indexed_packets
+                ])
+
+            lanes: dict[str, list[tuple[int, dict[str, Any]]]] = {}
+            for item in indexed_packets:
+                owner_file = str(item[1].get("owner_file") or "").strip()
+                lanes.setdefault(owner_file, []).append(item)
+
+            self._write_progress(
                 ip,
-                packet_context,
-                system_prompt=system,
-                prompt=prompt,
-                log_stage=log_stage,
+                "rtl_packet_parallel_start",
+                stage="rtl-gen",
+                packets=len(indexed_packets),
+                workers=worker_count,
             )
-            if _response_declares_empty_files(response):
-                continue
-            if response.status in {"blocked", "human_gate"}:
-                return self._append_llm_gate(ip, "rtl-gen", response, topic=f"packet_{_safe_name(packet_id)}")
-            if not response.parsed_artifacts:
-                return self._append(
-                    "rtl-gen",
-                    "blocked",
-                    f"rtl-gen packet {packet_id} produced no files[] artifacts; retry the packet instead of treating truncated output as progress",
-                    returncode=1,
-                )
-            self._apply_artifacts(ip, response.parsed_artifacts)
-            self._refresh_rtl_filelist_and_provenance(ip, packet_id=packet_id)
-        return None
+            while lanes:
+                wave: list[tuple[int, dict[str, Any]]] = []
+                for owner_file in list(lanes.keys()):
+                    if len(wave) >= worker_count:
+                        break
+                    lane = lanes[owner_file]
+                    wave.append(lane.pop(0))
+                    if not lane:
+                        del lanes[owner_file]
+                with ThreadPoolExecutor(max_workers=len(wave), thread_name_prefix="rtl_packet_worker") as executor:
+                    futures = [
+                        executor.submit(
+                            self._call_rtl_packet_llm,
+                            ip,
+                            rtl_context,
+                            plan,
+                            packet,
+                            index,
+                            batch,
+                            attempt=attempt,
+                        )
+                        for index, packet in wave
+                    ]
+                    gate = consume([future.result() for future in as_completed(futures)])
+                    if gate is not None:
+                        return gate
+            self._write_progress(
+                ip,
+                "rtl_packet_parallel_end",
+                stage="rtl-gen",
+                packets=len(indexed_packets),
+                workers=worker_count,
+            )
+            return None
+
+        if self._rtl_packet_parallel_enabled(work_packets):
+            segment: list[tuple[int, dict[str, Any]]] = []
+            for index, packet in enumerate(work_packets):
+                if self._rtl_packet_parallel_safe(packet):
+                    segment.append((index, packet))
+                    continue
+                gate = run_parallel_segment(segment)
+                if gate is not None:
+                    return gate
+                segment = []
+                gate = consume([
+                    self._call_rtl_packet_llm(ip, rtl_context, plan, packet, index, batch, attempt=attempt)
+                ])
+                if gate is not None:
+                    return gate
+            return run_parallel_segment(segment)
+
+        return consume([
+            self._call_rtl_packet_llm(ip, rtl_context, plan, packet, index, batch, attempt=attempt)
+            for index, packet in enumerate(work_packets)
+        ])
 
     def _rtl_result_repairable_by_llm(self, result: StageEngineResult) -> bool:
         if result.status == "fail":
@@ -2653,6 +3210,252 @@ class HeadlessWorkflowRunner:
     def _stage_goal_audit(self, ip: str) -> StageResult:
         return self._append_engine_result(self.stage_engine.run_stage("goal-audit", ip), "goal-audit")
 
+    def _execute_canonical_stage(self, canonical: str, ip: str, context: dict[str, Any]) -> StageResult:
+        before = len(self.stages)
+        if canonical == "ssot-gen":
+            self._run_ssot_generation(ip, context)
+        elif canonical == "fl-model-gen":
+            self._stage_fl_model(ip)
+        elif canonical == "cl-model-gen":
+            self._stage_cl_model(ip)
+        elif canonical == "dual-fcov":
+            self._stage_dual_fcov(ip)
+        elif canonical == "equiv-goals":
+            self._stage_equiv_goals(ip)
+        elif canonical == "rtl-gen":
+            self._stage_rtl_gen(ip, context)
+        elif canonical == "lint":
+            self._stage_lint(ip)
+        elif canonical == "tb-gen":
+            self._stage_tb_gen(ip, context)
+        elif canonical == "coverage":
+            self._append_engine_result(self.stage_engine.run_stage("coverage", ip), "coverage")
+        elif canonical == "sim":
+            self._stage_sim(ip)
+        elif canonical == "sim-debug":
+            self._stage_sim_debug(ip)
+        elif canonical == "goal-audit":
+            self._stage_goal_audit(ip)
+        elif canonical == "pipeline":
+            self._stage_pipeline_converge(ip, context)
+        else:
+            self._append(canonical, "fail", f"unknown stage {canonical}", returncode=2)
+        if len(self.stages) <= before:
+            return self._append(canonical, "fail", f"stage {canonical} produced no result", returncode=998)
+        return self.stages[-1]
+
+    def _pipeline_stage_list(self, ip: str, context: dict[str, Any]) -> list[str]:
+        raw = os.getenv("ATLAS_HEADLESS_PIPELINE_STAGES", "").strip()
+        if raw:
+            return [
+                _canonical_headless_stage(part.strip())
+                for part in raw.split(",")
+                if part.strip() and _canonical_headless_stage(part.strip()) != "pipeline"
+            ]
+        stages = list(PIPELINE_DEFAULT_STAGES)
+        ssot_path = self._ip_dir(ip) / "yaml" / f"{ip}.ssot.yaml"
+        if context.get("requirement_text") and not ssot_path.is_file():
+            stages.insert(0, "ssot-gen")
+        return stages
+
+    def _pipeline_repair_sequence(self, owner: str) -> list[str]:
+        owner = self._canonical_repair_owner(owner)
+        if owner == "rtl-gen":
+            full = ["rtl-gen", "lint", "tb-gen", "sim", "coverage", "sim-debug", "goal-audit"]
+        elif owner == "tb-gen":
+            full = ["tb-gen", "sim", "coverage", "sim-debug", "goal-audit"]
+        elif owner == "fl-model-gen":
+            full = ["fl-model-gen", "equiv-goals", "tb-gen", "sim", "coverage", "sim-debug", "goal-audit"]
+        elif owner == "coverage":
+            full = ["coverage", "goal-audit"]
+        else:
+            full = [owner]
+        # When the operator constrains the pipeline via ATLAS_HEADLESS_PIPELINE_STAGES
+        # (used by tests and debugging runs), the repair sequence must respect the
+        # same constraint — otherwise the second iteration tries to run stages the
+        # caller never asked for. Filter while preserving the canonical order of
+        # the hardcoded repair sequence.
+        raw = os.getenv("ATLAS_HEADLESS_PIPELINE_STAGES", "").strip()
+        if raw:
+            allowed = {
+                _canonical_headless_stage(part.strip())
+                for part in raw.split(",")
+                if part.strip()
+            }
+            filtered = [s for s in full if _canonical_headless_stage(s) in allowed]
+            if filtered:
+                if owner in full and owner not in filtered:
+                    first_filtered_index = min(full.index(s) for s in filtered)
+                    owner_index = full.index(owner)
+                    required_prefix = full[: max(first_filtered_index, owner_index) + 1]
+                    repaired = []
+                    for stage in required_prefix + filtered:
+                        if stage not in repaired:
+                            repaired.append(stage)
+                    return repaired
+                return filtered
+        return full
+
+    def _pipeline_repair_request(self, ip: str) -> dict[str, Any]:
+        items = self._loopable_repair_classifications(ip)
+        if not items:
+            return {}
+        priority = ["rtl-gen", "tb-gen", "fl-model-gen", "coverage"]
+        grouped: dict[str, list[dict[str, Any]]] = {}
+        for item in items:
+            grouped.setdefault(self._canonical_repair_owner(str(item.get("owner") or "")), []).append(item)
+        owner = next((candidate for candidate in priority if grouped.get(candidate)), sorted(grouped)[0])
+        owner_items = grouped[owner]
+        return {
+            "owner": owner,
+            "signature": self._repair_classification_signature(owner_items),
+            "items": owner_items,
+            "goal_ids": [item.get("goal_id") for item in owner_items if item.get("goal_id")],
+        }
+
+    def _stage_pipeline_converge(self, ip: str, context: dict[str, Any]) -> StageResult:
+        max_iterations = max(1, int(os.getenv("ATLAS_HEADLESS_PIPELINE_MAX_ITERS", "2")))
+        initial_sequence = self._pipeline_stage_list(ip, context)
+        next_owner = ""
+        last_repair_signature = ""
+        last_request: dict[str, Any] = {}
+
+        for iteration in range(max_iterations):
+            sequence = self._pipeline_repair_sequence(next_owner) if next_owner else initial_sequence
+            next_owner = ""
+            self._write_progress(ip, "pipeline_iteration_start", iteration=iteration + 1, stages=sequence)
+            consumed_repair = False
+            pending_sim_failure: StageResult | None = None
+            for index, canonical in enumerate(sequence):
+                if pending_sim_failure is not None and canonical != "sim-debug":
+                    if "sim-debug" in sequence[index + 1 :]:
+                        self._write_progress(
+                            ip,
+                            "stage_skipped",
+                            stage=canonical,
+                            reason="waiting for sim-debug to classify failed sim evidence",
+                            pipeline_iteration=iteration + 1,
+                        )
+                        continue
+                self._write_progress(ip, "stage_start", stage=canonical, pipeline_iteration=iteration + 1)
+                self._write_heartbeat(ip, state="running", phase="pipeline", current_stage=canonical, model=self.model)
+                stage_result = self._execute_canonical_stage(canonical, ip, context)
+                self._write_progress(
+                    ip,
+                    "stage_end",
+                    stage=canonical,
+                    status=stage_result.status,
+                    message=stage_result.message[:400],
+                    pipeline_iteration=iteration + 1,
+                )
+                if stage_result.status not in {"fail", "human_gate", "blocked"}:
+                    continue
+                if canonical == "sim" and "sim-debug" in sequence[index + 1 :]:
+                    pending_sim_failure = stage_result
+                    stage_result.message += "\n[pipeline] sim failed; continuing to sim-debug for owner classification."
+                    continue
+                if canonical == "sim-debug":
+                    request = self._pipeline_repair_request(ip)
+                    if request:
+                        last_request = request
+                        signature = str(request.get("signature") or "")
+                        if signature and signature == last_repair_signature:
+                            rel = self._write_repeated_mismatch_review(ip, request)
+                            stage_result.status = "pass"
+                            stage_result.message += "\n[pipeline] repeated repair signature escalated to Review Decision Needed."
+                            return self._append(
+                                "pipeline",
+                                "blocked",
+                                "pipeline stopped: same sim-debug mismatch signature repeated after owner repair",
+                                returncode=1,
+                                artifacts=[rel],
+                                blocker=rel,
+                            )
+                        last_repair_signature = signature
+                        next_owner = str(request.get("owner") or "")
+                        stage_result.status = "pass"
+                        stage_result.message += f"\n[pipeline] routed loopable mismatch to {next_owner} repair."
+                        consumed_repair = True
+                        break
+                    if pending_sim_failure is not None:
+                        return pending_sim_failure
+                return stage_result
+            if next_owner:
+                if iteration >= max_iterations - 1:
+                    rel = self._write_repeated_mismatch_review(ip, last_request)
+                    return self._append(
+                        "pipeline",
+                        "blocked",
+                        "pipeline stopped: repair loop budget exhausted before mismatches converged",
+                        returncode=1,
+                        artifacts=[rel],
+                        blocker=rel,
+                    )
+                continue
+            if pending_sim_failure is not None:
+                return pending_sim_failure
+            if not consumed_repair:
+                return self._append(
+                    "pipeline",
+                    "pass",
+                    f"pipeline converged through {', '.join(sequence)}",
+                    artifacts=[f"{ip}/logs/headless_run.json"],
+                )
+
+        rel = self._write_repeated_mismatch_review(ip, last_request)
+        return self._append(
+            "pipeline",
+            "blocked",
+            "pipeline stopped: convergence loop did not reach a terminal pass",
+            returncode=1,
+            artifacts=[rel],
+            blocker=rel,
+        )
+
+    def _write_repeated_mismatch_review(self, ip: str, request: dict[str, Any]) -> str:
+        """Route through `src/review_decisions.py` so /api/pipeline/state's
+        decisions_needed count, the orchestrator UI, and resolve tooling all
+        see the same `pipeline_decision_needed.v1` schema."""
+        try:
+            from src import review_decisions as rd
+        except ImportError:
+            import review_decisions as rd  # type: ignore[no-redef]
+
+        owner = str(request.get("owner") or "unknown")
+        goal_ids = [str(item) for item in request.get("goal_ids") or [] if str(item)]
+        items = request.get("items") if isinstance(request.get("items"), list) else []
+        retry_attempts = int(request.get("retry_attempts") or request.get("attempts") or 0)
+        signature = str(request.get("signature") or "")
+        # Legacy callers expect one file per owner (overwrite on repeat) — the
+        # signature lives inside the record body, not in the filename. Pass
+        # `signature=""` to the path helper so we don't fork the on-disk
+        # contract that downstream tooling already reads.
+        path = rd.write_repeated_mismatch_decision(
+            self._ip_dir(ip),
+            ip=ip,
+            owner=owner,
+            signature="",
+            retry_attempts=retry_attempts,
+            reason=(
+                f"{owner} repair did not converge for "
+                f"{', '.join(goal_ids) if goal_ids else 'classified mismatch goals'}."
+            ),
+            evidence={
+                "source": f"{ip}/sim/mismatch_classification.json",
+                "owner": owner,
+                "goal_ids": goal_ids,
+                "signature": signature,
+                "classifications": items[:16],
+            },
+            next_actions=[
+                "Decide whether SSOT semantics are missing, the owner classification is wrong, "
+                "or a workflow/tool evidence rule needs repair.",
+                "Do not silently pass. Fix the owning workflow/tooling if classification is wrong, "
+                "or lock the missing SSOT decision before rerunning the pipeline.",
+            ],
+        )
+        return str(path.relative_to(self.root))
+
     def run(self, *, ip: str, requirement_path: str | Path | None = None, stages: list[str]) -> WorkflowResult:
         ip = _safe_name(ip, "headless_ip")
         self.root.mkdir(parents=True, exist_ok=True)
@@ -2680,32 +3483,7 @@ class HeadlessWorkflowRunner:
             canonical = _canonical_headless_stage(stage)
             self._write_progress(ip, "stage_start", stage=canonical)
             self._write_heartbeat(ip, state="running", phase="stage", current_stage=canonical, model=self.model)
-            if canonical == "ssot-gen":
-                self._run_ssot_generation(ip, context)
-            elif canonical == "fl-model-gen":
-                self._stage_fl_model(ip)
-            elif canonical == "cl-model-gen":
-                self._stage_cl_model(ip)
-            elif canonical == "dual-fcov":
-                self._stage_dual_fcov(ip)
-            elif canonical == "equiv-goals":
-                self._stage_equiv_goals(ip)
-            elif canonical == "rtl-gen":
-                self._stage_rtl_gen(ip, context)
-            elif canonical == "lint":
-                self._stage_lint(ip)
-            elif canonical == "tb-gen":
-                self._stage_tb_gen(ip, context)
-            elif canonical == "coverage":
-                self._append_engine_result(self.stage_engine.run_stage("coverage", ip), "coverage")
-            elif canonical == "sim":
-                self._stage_sim(ip)
-            elif canonical == "sim-debug":
-                self._stage_sim_debug(ip)
-            elif canonical == "goal-audit":
-                self._stage_goal_audit(ip)
-            else:
-                self._append(canonical, "fail", f"unknown stage {stage}", returncode=2)
+            self._execute_canonical_stage(canonical, ip, context)
 
             if self.stages and self.stages[-1].status in {"fail", "human_gate", "blocked"}:
                 self._write_progress(
@@ -2763,7 +3541,7 @@ class HeadlessWorkflowRunner:
                     return
                 _wiki_build = _ilu.module_from_spec(spec)
                 spec.loader.exec_module(_wiki_build)
-            project_root = Path(SOURCE_ROOT).resolve()
+            project_root = self.root.resolve()
             graph = _wiki_build.build_ip(ip, project_root)
             wiki_dir = project_root / ip / "wiki"
             wiki_dir.mkdir(parents=True, exist_ok=True)
@@ -2771,7 +3549,7 @@ class HeadlessWorkflowRunner:
                 json.dumps(graph, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",
             )
-        except Exception:
+        except BaseException:
             pass
 
     def _write_trace_summary(self, *, ip: str, run_status: str) -> None:
@@ -2884,27 +3662,113 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--ip", required=True)
     parser.add_argument("--req", default="")
     parser.add_argument("--model", default=os.getenv("ATLAS_HEADLESS_LLM_MODEL", "glm-5.1"))
-    parser.add_argument("--stages", required=True, help="comma-separated stage list")
+    parser.add_argument("--stages", required=True, help="comma-separated stage list (or 'take')")
     parser.add_argument("--provider", choices=["fake", "cached", "real"], default="real")
     parser.add_argument("--fixture", default="")
+    parser.add_argument(
+        "--workflow",
+        default="",
+        help="workflow name to claim when --stages take is used (e.g. rtl-gen)",
+    )
     args = parser.parse_args(argv)
-    stages = [_canonical_headless_stage(part.strip()) for part in args.stages.split(",") if part.strip()]
+    raw_stages = [part.strip() for part in args.stages.split(",") if part.strip()]
+
+    def _make_runner() -> HeadlessWorkflowRunner:
+        provider = _make_provider(args.provider, args.fixture)
+        return HeadlessWorkflowRunner(
+            root=args.root,
+            model=args.model,
+            llm_provider=provider,
+            require_glm51=args.provider == "real" and os.getenv("ATLAS_HEADLESS_REQUIRE_GLM51") == "1",
+        )
+
+    if raw_stages == ["take"]:
+        if not args.workflow:
+            parser.error("--workflow is required when --stages take")
+        return _run_take(args, _make_runner)
+
+    stages = [_canonical_headless_stage(s) for s in raw_stages]
     if not args.req and "ssot-gen" in stages:
         parser.error("--req is required when ssot-gen is requested")
 
-    provider = _make_provider(args.provider, args.fixture)
-    runner = HeadlessWorkflowRunner(
-        root=args.root,
-        model=args.model,
-        llm_provider=provider,
-        require_glm51=args.provider == "real" and os.getenv("ATLAS_HEADLESS_REQUIRE_GLM51") == "1",
-    )
+    runner = _make_runner()
     result = runner.run(
         ip=args.ip,
         requirement_path=args.req or None,
         stages=stages,
     )
     print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+    return 0 if result.status == "pass" else 2
+
+
+def _run_take(args, runner_factory) -> int:
+    """Claim one pending JSON handoff for the requested workflow and run it.
+
+    Contract (from `doc/wiki/orchestrator-worker-handoff.md` §JSON Fallback):
+    - claim the oldest pending handoff in `<ip>/handoff/pending/` whose
+      `to_workflow` matches `--workflow`
+    - run the owner workflow as a normal stage
+    - on success: move the handoff to `done` with the result attached
+    - on failure: release the claim back to pending so another `take` can retry
+    - if no pending handoff: print `status=none_available` and exit 0
+    """
+    try:
+        from src import handoff_queue as hq
+    except ImportError:
+        import handoff_queue as hq  # type: ignore[no-redef]
+
+    ip_dir = Path(args.root) / args.ip
+    # claim_next() is the atomic primitive — it walks pending FIFO and uses
+    # os.replace() to win exactly one record. Two concurrent /take calls
+    # cannot end up with the same handoff_id.
+    claimed = hq.claim_next(
+        ip_dir,
+        args.workflow,
+        claimant=f"headless-{os.getpid()}",
+    )
+    if claimed is None:
+        print(json.dumps(
+            {"status": "none_available", "ip": args.ip, "workflow": args.workflow},
+            indent=2,
+            sort_keys=True,
+        ))
+        return 0
+    handoff_id = claimed["handoff_id"]
+
+    runner = runner_factory()
+    canonical_stage = _canonical_headless_stage(args.workflow)
+    try:
+        result = runner.run(
+            ip=args.ip,
+            requirement_path=args.req or None,
+            stages=[canonical_stage],
+        )
+    except Exception as exc:
+        hq.release_claim(ip_dir, handoff_id)
+        print(json.dumps(
+            {"status": "error", "ip": args.ip, "workflow": args.workflow,
+             "handoff_id": handoff_id, "error": str(exc)},
+            indent=2,
+            sort_keys=True,
+        ))
+        return 2
+
+    if result.status == "pass":
+        hq.complete(ip_dir, handoff_id, result={"status": result.status})
+    else:
+        hq.release_claim(ip_dir, handoff_id)
+
+    print(json.dumps(
+        {
+            "status": result.status,
+            "ip": args.ip,
+            "workflow": args.workflow,
+            "handoff_id": handoff_id,
+            "result": result.to_dict(),
+        },
+        indent=2,
+        sort_keys=True,
+    ))
     return 0 if result.status == "pass" else 2
 
 

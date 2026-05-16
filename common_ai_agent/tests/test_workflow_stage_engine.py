@@ -2982,6 +2982,74 @@ def test_dynamic_rtl_todos_gate_rejects_token_only_behavior_owner(tmp_path: Path
     assert plan["owner_logic_evidence"]["status"] == "pass"
 
 
+def test_dynamic_rtl_todos_owner_logic_accepts_filelist_entries_with_ip_prefix(tmp_path: Path):
+    ip = "dynamic_owner_prefixed_filelist"
+    ip_dir = tmp_path / ip
+    for subdir in ("yaml", "rtl", "list"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                f"  name: {ip}",
+                "sub_modules:",
+                f"  - name: {ip}",
+                f"    file: rtl/{ip}.sv",
+                "    ownership: manifest",
+                "    wiring_only: true",
+                f"  - name: {ip}_counter",
+                f"    file: rtl/{ip}_counter.sv",
+                "    ownership: manifest",
+                "    function_model_refs: [function_model.state_variables.counter]",
+                "function_model:",
+                "  state_variables:",
+                "    - {name: counter, width: 8, reset: 0}",
+                "  transactions:",
+                "    - id: FM_INC",
+                "      state_updates: [counter += 1]",
+                "cycle_model:",
+                "  latency: 1",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        f"module {ip}(input wire clk, output wire [7:0] count_o);\n"
+        "  wire [7:0] counter_value;\n"
+        f"  {ip}_counter u_counter(.clk(clk), .count_o(counter_value));\n"
+        "  assign count_o = counter_value;\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}_counter.sv").write_text(
+        f"module {ip}_counter(input wire clk, output wire [7:0] count_o);\n"
+        "  reg [7:0] counter;\n"
+        "  always @(posedge clk) counter <= counter + 8'd1;\n"
+        "  assign count_o = counter;\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text(
+        f"{ip}/rtl/{ip}.sv\n{ip}/rtl/{ip}_counter.sv\n",
+        encoding="utf-8",
+    )
+
+    subprocess.run(
+        [sys.executable, str(DERIVE_RTL_TODOS), ip, "--root", str(tmp_path), "--audit-rtl"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    plan = json.loads((ip_dir / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    assert plan["owner_logic_evidence"]["status"] == "pass"
+    assert not any(
+        issue.get("issue") == "Behavior-owner module is not declared in its owner file"
+        for issue in plan["owner_logic_evidence"]["issues"]
+    )
+
+
 def test_dynamic_rtl_todos_gate_checks_ssot_connection_contract_signal(tmp_path: Path):
     ip = "dynamic_contract_signal"
     ip_dir = tmp_path / ip

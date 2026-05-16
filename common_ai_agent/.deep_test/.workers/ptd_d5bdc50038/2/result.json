@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_d5bdc50038",
+  "worker_idx": 2,
+  "model": "MC",
+  "requested_model": "MC",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "taskC"
+    }
+  ],
+  "todos_done": [
+    "todo-3"
+  ],
+  "result": "ok-for-MC",
+  "error": "",
+  "started_at": 1778924817.4554482,
+  "completed_at": 1778924817.4566138,
+  "duration_s": 0.001165628433227539
+}

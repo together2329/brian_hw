@@ -1,0 +1,66 @@
+{
+  "job_id": "ptd_bbc6c02226",
+  "requested_worker_count": 3,
+  "worker_count": 3,
+  "models": [
+    {
+      "requested_model": "MA",
+      "resolved_model": "MA",
+      "pricing_model": "MA",
+      "reason": ""
+    },
+    {
+      "requested_model": "MB",
+      "resolved_model": "MB",
+      "pricing_model": "MB",
+      "reason": ""
+    },
+    {
+      "requested_model": "MC",
+      "resolved_model": "MC",
+      "pricing_model": "MC",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "taskA"
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "taskB"
+    },
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "taskC"
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "taskA"
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "taskB"
+      }
+    ],
+    [
+      {
+        "index": 2,
+        "id": "todo-3",
+        "content": "taskC"
+      }
+    ]
+  ],
+  "created_at": 1778925109.585058
+}

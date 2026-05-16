@@ -358,6 +358,170 @@ def _apply_rtl_output_map(doc: dict[str, Any], answer: dict[str, Any]) -> None:
     _append_unique(notes, {"rule": rule_name, "port": port, "source": text})
 
 
+def _apply_rtl_input_map(doc: dict[str, Any], answer: dict[str, Any]) -> None:
+    qid = str(answer.get("id") or answer.get("question_id") or "")
+    raw_name = qid.removeprefix("RTL_INPUT_MAP_")
+    field = re.sub(r"[^A-Za-z0-9_]+", "_", raw_name.lower()).strip("_")
+    text = _answer_text(answer)
+    low = text.lower()
+    contract = _ensure_dict(doc, "rtl_contract")
+    input_map = _ensure_dict(contract, "input_map")
+    inputs = _io_ports(doc, direction="input")
+    input_set = {item.lower(): item for item in inputs}
+    selected = ""
+
+    def consider_mapping(mapping: Any) -> None:
+        nonlocal selected
+        if selected or not isinstance(mapping, dict):
+            return
+        for key, value in mapping.items():
+            key_norm = re.sub(r"[^A-Za-z0-9_]+", "_", str(key).lower()).strip("_")
+            if key_norm != field:
+                continue
+            port = str(value or "").strip()
+            if port.lower() in input_set:
+                selected = input_set[port.lower()]
+                return
+
+    for source in (answer, _parse_structured_answer(str(answer.get("custom") or "")), _parse_structured_answer(str(answer.get("answer") or ""))):
+        if isinstance(source, dict):
+            consider_mapping(source.get("input_map"))
+            rtl_contract = source.get("rtl_contract")
+            if isinstance(rtl_contract, dict):
+                consider_mapping(rtl_contract.get("input_map"))
+            consider_mapping(source)
+
+    if not selected and not any(token in low for token in ("do not bind", "not from input_map", "no input_map")):
+        patterns = [
+            rf"input_map\.{re.escape(field)}\s*[:=]\s*([A-Za-z_][A-Za-z0-9_]*)",
+            rf"{re.escape(field)}\s*[:=]\s*([A-Za-z_][A-Za-z0-9_]*)",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match and match.group(1).lower() in input_set:
+                selected = input_set[match.group(1).lower()]
+                break
+
+    notes = _ensure_list(contract, "input_map_sources")
+    if selected and field:
+        input_map[field] = selected
+        _append_unique(notes, {"field": field, "port": selected, "source": text})
+    else:
+        _append_unique(notes, {"field": field, "port": "", "source": text, "status": "not_applied"})
+
+
+def _output_rule_rows_from_answer(answer: dict[str, Any], target_name: str) -> list[dict[str, Any]]:
+    candidates: list[Any] = []
+    for key in ("output_rules", "rule", "rules"):
+        if key in answer:
+            candidates.append(answer.get(key))
+    for key in ("custom", "answer"):
+        parsed = _parse_structured_answer(str(answer.get(key) or ""))
+        if parsed is not None:
+            candidates.append(parsed)
+
+    rows: list[dict[str, Any]] = []
+
+    def collect(candidate: Any) -> None:
+        if isinstance(candidate, dict):
+            if isinstance(candidate.get("output_rules"), list):
+                rows.extend(item for item in candidate["output_rules"] if isinstance(item, dict))
+            elif isinstance(candidate.get("output_rules"), dict):
+                for name, value in candidate["output_rules"].items():
+                    item = dict(value) if isinstance(value, dict) else {"expr": value}
+                    item.setdefault("name", name)
+                    rows.append(item)
+            elif any(key in candidate for key in ("name", "port", "expr", "expression", "value")):
+                rows.append(candidate)
+            else:
+                for value in candidate.values():
+                    if isinstance(value, (dict, list)):
+                        collect(value)
+        elif isinstance(candidate, list):
+            rows.extend(item for item in candidate if isinstance(item, dict))
+
+    for candidate in candidates:
+        collect(candidate)
+
+    text = _answer_text(answer)
+    if not rows:
+        expr_match = re.search(r"\bexpr(?:ession)?\s*[:=]\s*([^,\n;]+)", text, re.IGNORECASE)
+        if expr_match:
+            row: dict[str, Any] = {"name": target_name, "expr": expr_match.group(1).strip()}
+            width_match = re.search(r"\bwidth\s*[:=]\s*(\d+)", text, re.IGNORECASE)
+            port_match = re.search(r"\bport\s*[:=]\s*([A-Za-z_][A-Za-z0-9_]*)", text, re.IGNORECASE)
+            txn_match = re.search(r"\b(FM_[A-Za-z0-9_]+)\b", text)
+            if width_match:
+                row["width"] = int(width_match.group(1))
+            if port_match:
+                row["port"] = port_match.group(1)
+            if txn_match:
+                row["transaction"] = txn_match.group(1)
+            rows.append(row)
+    return rows
+
+
+def _apply_rtl_expr_rule(doc: dict[str, Any], answer: dict[str, Any]) -> None:
+    qid = str(answer.get("id") or answer.get("question_id") or "")
+    raw_name = qid.removeprefix("RTL_EXPR_")
+    target_name = re.sub(r"[^A-Za-z0-9_]+", "_", raw_name.lower()).strip("_")
+    rows = _output_rule_rows_from_answer(answer, target_name)
+    fm = _ensure_dict(doc, "function_model")
+    txns = _ensure_list(fm, "transactions")
+    applied: list[dict[str, Any]] = []
+
+    for row in rows:
+        name = re.sub(r"[^A-Za-z0-9_]+", "_", str(row.get("name") or row.get("port") or target_name).lower()).strip("_")
+        if target_name and name not in {target_name, ""}:
+            continue
+        expr = str(row.get("expr") or row.get("expression") or row.get("value") or "").strip()
+        if not expr:
+            continue
+        txn_filter = str(row.get("transaction") or row.get("txn") or "").strip().upper()
+        port = str(row.get("port") or target_name).strip()
+        width = row.get("width", 1)
+        matched = False
+        for txn in txns:
+            if not isinstance(txn, dict):
+                continue
+            txn_id = str(txn.get("id") or "").strip().upper()
+            if txn_filter and txn_id != txn_filter:
+                continue
+            output_rules = _ensure_list(txn, "output_rules")
+            for rule in output_rules:
+                if not isinstance(rule, dict):
+                    continue
+                rule_name = re.sub(
+                    r"[^A-Za-z0-9_]+",
+                    "_",
+                    str(rule.get("name") or rule.get("port") or "").lower(),
+                ).strip("_")
+                if rule_name != target_name:
+                    continue
+                rule["expr"] = expr
+                rule.setdefault("width", width)
+                if port:
+                    rule.setdefault("port", port)
+                matched = True
+                applied.append({"transaction": txn_id, "name": rule_name, "expr": expr})
+        if not matched and txn_filter:
+            txn = _find_txn(doc, txn_filter)
+            item = {"name": target_name, "expr": expr, "width": width}
+            if port:
+                item["port"] = port
+            _ensure_list(txn, "output_rules").append(item)
+            applied.append({"transaction": txn_filter, "name": target_name, "expr": expr})
+
+    custom = _ensure_dict(doc, "custom")
+    history = _ensure_list(custom, "rtl_expr_resolution_history")
+    history.append({
+        "blocker_id": qid,
+        "applied": applied,
+        "source": _answer_text(answer),
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+
+
 def _apply_valid_ready_sample_condition(doc: dict[str, Any], blocker: dict[str, Any], answer: dict[str, Any]) -> None:
     qid = str(answer.get("id") or answer.get("question_id") or "RTL_VALID_READY_SAMPLE_CONDITION")
     qdoc = _question_doc(blocker, qid)
@@ -377,8 +541,21 @@ def _apply_valid_ready_sample_condition(doc: dict[str, Any], blocker: dict[str, 
     contract = _ensure_dict(doc, "rtl_contract")
     contract["sample_condition"] = sample
     contract["sample_condition_source"] = text
-    txn = _find_txn(doc, "FM_PRIMARY")
-    txn["sample_condition"] = sample
+    if qid == "RTL_VALID_READY_SAMPLE_CONDITION":
+        txn = _find_txn(doc, "FM_PRIMARY")
+        txn["sample_condition"] = sample
+    else:
+        fm = _ensure_dict(doc, "function_model")
+        txns = _ensure_list(fm, "transactions")
+        fm["transactions"] = [
+            txn for txn in txns
+            if not (
+                isinstance(txn, dict)
+                and str(txn.get("id") or "").upper() == "FM_PRIMARY"
+                and not any(txn.get(key) for key in ("output_rules", "state_updates", "counter_rules", "event_rules"))
+                and not any(txn.get(key) for key in ("inputs", "outputs", "preconditions", "side_effects", "error_cases"))
+            )
+        ]
     cm = _ensure_dict(doc, "cycle_model")
     rules = _ensure_list(cm, "handshake_rules")
     _append_unique(rules, {
@@ -1045,8 +1222,17 @@ def apply_answers(doc: dict[str, Any], blocker: dict[str, Any], answers: list[di
         if qid == "RTL_VALID_READY_SAMPLE_CONDITION":
             _apply_valid_ready_sample_condition(doc, blocker, answer)
             continue
+        if qid == "RTL_SAMPLE_CONDITION":
+            _apply_valid_ready_sample_condition(doc, blocker, answer)
+            continue
         if qid == "RTL_OBSERVABLE_STATE_RULES":
             _apply_observable_state_rules(doc, blocker, answer)
+            continue
+        if qid.startswith("RTL_INPUT_MAP_"):
+            _apply_rtl_input_map(doc, answer)
+            continue
+        if qid.startswith("RTL_EXPR_"):
+            _apply_rtl_expr_rule(doc, answer)
             continue
         if qid in {
             "RTL_DYNAMIC_TODO_OWNERSHIP",

@@ -130,6 +130,19 @@ def _stale_evidence(root: Path, sources: list[Path], evidence: list[Path]) -> li
     return stale
 
 
+def _derived_stale_evidence(root: Path, source: Path, derived: list[Path]) -> list[str]:
+    if not source.is_file():
+        return []
+    source_mtime = source.stat().st_mtime
+    stale: list[str] = []
+    for path in derived:
+        if not path.is_file():
+            continue
+        if path.stat().st_mtime + 0.5 < source_mtime:
+            stale.append(f"{_rel(path, root)} older than {_rel(source, root)}")
+    return stale
+
+
 def _goal_map(goals_doc: dict[str, Any]) -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {}
     for goal in goals_doc.get("goals") if isinstance(goals_doc.get("goals"), list) else []:
@@ -366,6 +379,34 @@ def _human_question(goal: dict[str, Any], reason: str) -> str:
     )
 
 
+def _stale_oracle_classification(stale_evidence: list[str]) -> dict[str, Any]:
+    reason = (
+        "derived FL/equivalence oracle artifacts are older than the current SSOT; "
+        "scoreboard mismatches cannot be assigned to RTL until the oracle is regenerated"
+    )
+    return {
+        "goal_id": "",
+        "classification": "stale_oracle",
+        "owner": "fl-model-gen",
+        "llm_loop_allowed": True,
+        "reason": reason,
+        "evidence": {
+            "stale_evidence": stale_evidence,
+            "sim_result": "stale",
+        },
+        "authority_policy": {
+            "locked_artifacts": ["ssot_spec", "interface_contract", "performance_target"],
+            "llm_editable_artifacts": ["functional_model", "equivalence_goals", "coverage_plan", "tb", "scoreboard_implementation"],
+            "rule": "Regenerate derived oracle artifacts from SSOT before classifying RTL/TB mismatches.",
+        },
+        "repair_prompt": (
+            "Regenerate FunctionalModel, FL checks, coverage/equivalence oracle artifacts from the current SSOT, "
+            "then rerun tb-gen, sim, coverage, sim-debug, and goal-audit. Do not repair RTL from stale oracle evidence."
+        ),
+        "human_question": "",
+    }
+
+
 def compare(ip: str, root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
     ip_dir = root / ip
     goals_path = ip_dir / "verify" / "equivalence_goals.json"
@@ -424,12 +465,24 @@ def compare(ip: str, root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         [ssot_path, model_path, fl_check_path, decomp_path, fcov_plan_path, goals_path],
         [score_path, results_path, coverage_path],
     )
+    stale_oracle_evidence = _derived_stale_evidence(
+        root,
+        ssot_path,
+        [model_path, fl_check_path, decomp_path, fcov_plan_path, goals_path],
+    )
+    stale_blocks_compare = bool(stale_evidence or stale_oracle_evidence)
+    if stale_oracle_evidence:
+        classifications.append(_stale_oracle_classification(stale_oracle_evidence))
 
     for gid, goal in goals.items():
         goal_rows = rows_by_goal.get(gid) or []
         cov_refs = [str(x) for x in goal.get("coverage_refs") or []]
         cov_hit = all(coverage_hits.get(ref, False) for ref in cov_refs) if cov_refs and coverage_hits else None
-        if goal.get("blocked"):
+        if stale_blocks_compare:
+            status = "stale"
+            if goal_rows:
+                checked += 1
+        elif goal.get("blocked"):
             status = "blocked"
             blocked += 1
             reason = str(goal.get("blocker") or "equivalence goal is blocked by SSOT")
@@ -466,18 +519,21 @@ def compare(ip: str, root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         })
 
     if orphan_rows:
-        classifications.append({
-            "goal_id": "",
-            "classification": "tb_bug",
-            "owner": "tb-gen",
-            "llm_loop_allowed": True,
-            "reason": "scoreboard emitted rows without a known goal_id",
-            "evidence": {"scoreboard_rows": orphan_rows[:8], "sim_result": "failed"},
-            "repair_prompt": "Repair TB scoreboard to emit only goal_id values from equivalence_goals.json.",
-            "human_question": "",
-        })
+        if stale_blocks_compare:
+            pass
+        else:
+            classifications.append({
+                "goal_id": "",
+                "classification": "tb_bug",
+                "owner": "tb-gen",
+                "llm_loop_allowed": True,
+                "reason": "scoreboard emitted rows without a known goal_id",
+                "evidence": {"scoreboard_rows": orphan_rows[:8], "sim_result": "failed"},
+                "repair_prompt": "Repair TB scoreboard to emit only goal_id values from equivalence_goals.json.",
+                "human_question": "",
+            })
 
-    if sim_result.get("fail"):
+    if sim_result.get("fail") and not stale_blocks_compare:
         classification = "tool_issue" if sim_result.get("parse_error") or sim_result.get("errors") else "tb_bug"
         owner = "sim_debug" if classification == "tool_issue" else "tb-gen"
         reason = (
@@ -508,12 +564,12 @@ def compare(ip: str, root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
     status = "pending"
     if total == 0:
         status = "pending"
+    elif stale_blocks_compare:
+        status = "stale"
     elif blocked:
         status = "blocked"
     elif failed or orphan_rows:
         status = "fail"
-    elif stale_evidence:
-        status = "stale"
     elif untested or missing_evidence:
         status = "pending"
     elif checked == total and passed == total:
@@ -543,6 +599,7 @@ def compare(ip: str, root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
             "orphan_scoreboard_events": len(orphan_rows),
             "missing_evidence": missing_evidence,
             "stale_evidence": stale_evidence,
+            "stale_oracle_evidence": stale_oracle_evidence,
             "sim_results": sim_result,
         },
         "goals": goal_results,

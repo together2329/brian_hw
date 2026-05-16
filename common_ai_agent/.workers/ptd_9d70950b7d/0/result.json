@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_9d70950b7d",
+  "worker_idx": 0,
+  "model": "claude-cli",
+  "requested_model": "claude-cli",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Say the word DONE and nothing else."
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "Error calling LLM: HTTP Error 400: Bad Request",
+  "error": "",
+  "started_at": 1778928905.807329,
+  "completed_at": 1778928906.7716851,
+  "duration_s": 0.9643561840057373
+}

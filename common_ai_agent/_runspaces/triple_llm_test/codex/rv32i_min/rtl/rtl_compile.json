@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "type": "rtl_compile",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "iverilog",
+  "command": "iverilog -g2012 -Irtl -f list/rv32i_min.f -s rv32i_min -o /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/rv32i_min_rtl_check.vvp",
+  "cwd": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex/rv32i_min",
+  "top": "rv32i_min",
+  "filelist": "list/rv32i_min.f",
+  "rtl_files": [
+    "rtl/rv32i_min_if.sv",
+    "rtl/rv32i_min_idex.sv",
+    "rtl/rv32i_min_memwb.sv",
+    "rtl/rv32i_min_regfile.sv",
+    "rtl/rv32i_min_core.sv",
+    "rtl/rv32i_min.sv"
+  ],
+  "timestamp": "2026-05-16T04:35:13Z",
+  "returncode": 3,
+  "errors": 2,
+  "diagnostics": 0,
+  "style_violations": 1,
+  "style_violation_details": [
+    {
+      "file": "rtl/rv32i_min_if.sv",
+      "line": 120,
+      "rule": "no_parameterized_part_select_in_procedural_block",
+      "message": "Move parameterized/constant part-selects out of always_* into continuous assign/helper wires.",
+      "text": "pc_q             <= RESET_PC[XLEN-1:0];"
+    }
+  ],
+  "passed": false,
+  "policy": "returncode==0, no error/fatal/warning/sorry diagnostics, no procedural parameterized part-select style violations, and no generated-RTL policy violations: .sv filenames with SystemVerilog logic-port syntax, rtl/<ip>_param.vh for shared parameters, no package/import/interface/modport/function/task/for/while, and no typedef/enum/always_ff/always_comb"
+}

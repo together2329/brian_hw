@@ -12,6 +12,11 @@ The pipeline has two separate concerns:
 
 Scheduling is about throughput. Feedback is about correctness.
 
+Delivery is handled by the orchestrator agent. If live workflow workers are
+available, feedback is dispatched in real time. If not, feedback is persisted
+as JSON and another workspace can claim it with `take`. See
+[[orchestrator-worker-handoff]].
+
 ## Worker-Aware Scheduling
 
 The default schedule mode is `auto`.
@@ -142,6 +147,15 @@ Where `feedback_hash` is derived from reason plus evidence digests. This keeps
 repeated runs from creating duplicate pending feedback for the same mismatch.
 The owner workflow should resolve feedback by writing a sibling resolved record
 that references the artifact changes and fresh evidence.
+
+For orchestrator-managed work queues, the same logical packet is stored under:
+
+```text
+<ip>/handoff/pending/<handoff_id>.json
+```
+
+The `feedback/` path is the evidence-oriented historical record. The
+`handoff/` path is the executable queue that `/take` or a live worker consumes.
 
 ## Repair Loop
 

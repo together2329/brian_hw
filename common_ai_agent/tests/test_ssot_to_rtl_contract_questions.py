@@ -99,6 +99,110 @@ def test_generic_rule_rtl_does_not_redeclare_output_state_names():
     assert "busy <= 1'b1;" in rtl
 
 
+def test_generic_rule_contract_allows_inout_observable_output_rule():
+    rtl_gen = _load_rtl_gen()
+    doc = {
+        "top_module": {"name": "gpio_probe"},
+        "io_list": {
+            "clock_domains": [{"ports": [{"name": "clk", "direction": "input", "width": 1}]}],
+            "resets": [{"ports": [{"name": "rst_n", "direction": "input", "width": 1}]}],
+            "interfaces": [
+                {
+                    "name": "gpio",
+                    "ports": [{"name": "gpio_pins", "direction": "inout", "width": 32}],
+                }
+            ],
+        },
+        "function_model": {
+            "transactions": [
+                {
+                    "id": "FM_GPIO_DRIVE",
+                    "outputs": ["gpio_pins drive mask"],
+                    "output_rules": [{"name": "gpio_pins", "port": "gpio_pins", "expr": "1", "width": 32}],
+                }
+            ]
+        },
+        "cycle_model": {"handshake_rules": []},
+        "rtl_contract": {"clock": "clk", "reset": "rst_n", "sample_condition": "1"},
+    }
+    ports = rtl_gen._io_ports(doc)
+
+    contract, questions = rtl_gen._generic_rule_contract(doc, "gpio_probe", ports)
+
+    assert not [q for q in questions if q["id"].startswith("RTL_OUTPUT_MAP_GPIO_PINS")]
+    assert any(item["port"] == "gpio_pins" for item in contract["outputs"])
+
+
+def test_generic_rule_contract_lowers_reduction_or_and_bit_select_helpers():
+    rtl_gen = _load_rtl_gen()
+    assert rtl_gen._expr_names("reduction_or(edge_event)") == {"edge_event"}
+    doc = {
+        "top_module": {"name": "gpio_irq"},
+        "io_list": {
+            "clock_domains": [{"ports": [{"name": "clk", "direction": "input", "width": 1}]}],
+            "resets": [{"ports": [{"name": "rst_n", "direction": "input", "width": 1}]}],
+            "interfaces": [
+                {
+                    "name": "apb",
+                    "ports": [
+                        {"name": "pwdata", "direction": "input", "width": 32},
+                        {"name": "pstrb", "direction": "input", "width": 4},
+                        {"name": "irq", "direction": "output", "width": 1},
+                    ],
+                }
+            ],
+        },
+        "function_model": {
+            "state_variables": [
+                {"name": "dir_reg", "width": 32, "reset": 0},
+                {"name": "int_status_reg", "width": 32, "reset": 0},
+                {"name": "int_en_reg", "width": 32, "reset": 0},
+            ],
+            "derived_signals": [
+                {"name": "edge_event", "width": 32, "expr": "int_status_reg & int_en_reg"}
+            ],
+            "transactions": [
+                {
+                    "id": "FM_IRQ",
+                    "output_rules": [
+                        {
+                            "name": "irq",
+                            "port": "irq",
+                            "expr": "reduction_or((int_status_reg | edge_event) & int_en_reg)",
+                            "width": 1,
+                        }
+                    ],
+                    "state_updates": [
+                        {
+                            "name": "dir_reg",
+                            "expr": "((dir_reg & (4294967295 ^ (255 if pstrb[0] else 0))) | (pwdata & (255 if pstrb[0] else 0)))",
+                            "width": 32,
+                        }
+                    ],
+                }
+            ],
+        },
+        "rtl_contract": {
+            "clock": "clk",
+            "reset": "rst_n",
+            "reset_active": "low",
+            "sample_condition": "1",
+            "input_map": {"pwdata": "pwdata", "pstrb": "pstrb"},
+            "output_map": {"irq": "irq"},
+        },
+    }
+    ports = rtl_gen._io_ports(doc)
+
+    contract, questions = rtl_gen._generic_rule_contract(doc, "gpio_irq", ports)
+
+    question_ids = {q["id"] for q in questions}
+    assert "RTL_INPUT_MAP_REDUCTION_OR" not in question_ids
+    assert "RTL_EXPR_IRQ" not in question_ids
+    assert "RTL_STATE_EXPR_DIR_REG" not in question_ids
+    assert "(|" in contract["outputs"][0]["expr"]
+    assert "pstrb[0]" in contract["state_updates"][0]["expr"]
+
+
 def test_generic_rule_rtl_drives_apb_ready_in_single_module_path():
     rtl_gen = _load_rtl_gen()
     ports = [

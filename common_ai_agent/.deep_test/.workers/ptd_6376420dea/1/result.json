@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_6376420dea",
+  "worker_idx": 1,
+  "model": "thread1-mB",
+  "requested_model": "thread1-mB",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "thread1-t2"
+    }
+  ],
+  "todos_done": [
+    "todo-2"
+  ],
+  "result": "ok(thread1-mB)",
+  "error": "",
+  "started_at": 1778925159.8759732,
+  "completed_at": 1778925159.9320378,
+  "duration_s": 0.05606579780578613
+}

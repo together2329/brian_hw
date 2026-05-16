@@ -1,0 +1,40 @@
+{
+  "ip": "generic_counter_ip",
+  "schema_version": 1,
+  "source_of_truth": {
+    "ssot": "generic_counter_ip/yaml/generic_counter_ip.ssot.yaml",
+    "functional_model": "generic_counter_ip/model/functional_model.py",
+    "cycle_model_section": "cycle_model",
+    "coverage_plan": "generic_counter_ip/cov/fcov_plan.json"
+  },
+  "summary": {"total": 1, "required": 1, "optional": 0, "blocked": 0},
+  "goals": [
+    {
+      "goal_id": "EQ_DOUBLE",
+      "title": "Primary value doubles",
+      "kind": "datapath",
+      "ssot_refs": ["function_model.transactions[0]"],
+      "decomposition_refs": ["datapath"],
+      "coverage_refs": ["FCOV_DOUBLE"],
+      "stimulus_contract": {
+        "transaction_type": "primary_behavior",
+        "required_fields": ["value"],
+        "constraints": []
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": ["value"],
+        "latency": "1",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": ["RTL value equals FunctionalModel value"],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": ["ssot", "fl_model", "rtl", "tb", "coverage", "human"]
+      },
+      "blocked": false,
+      "blocker": ""
+    }
+  ]
+}

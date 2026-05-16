@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_b78329d795",
+  "worker_idx": 1,
+  "model": "gpt-5.3-codex",
+  "requested_model": "gpt-5.3-codex",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "Say the word BETA."
+    }
+  ],
+  "todos_done": [
+    "todo-2"
+  ],
+  "result": "Thought: Terminating with required action while indicating completion.\nAction: run_command(command=\"printf 'DONE: todo-2 completed with evidence BETA\\n'\")",
+  "error": "",
+  "started_at": 1778931032.219615,
+  "completed_at": 1778931069.714026,
+  "duration_s": 37.4944109916687
+}

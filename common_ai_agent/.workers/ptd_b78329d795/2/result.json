@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_b78329d795",
+  "worker_idx": 2,
+  "model": "glm-5.1",
+  "requested_model": "glm-5.1",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "Say the word GAMMA."
+    }
+  ],
+  "todos_done": [
+    "todo-3"
+  ],
+  "result": "Final Answer:\nDONE\n- **todo-3 (index 2)**: DONE. Said the word GAMMA. Evidence: `run_command` output \"GAMMA\".",
+  "error": "",
+  "started_at": 1778931032.2203789,
+  "completed_at": 1778931045.3585138,
+  "duration_s": 13.138134956359863
+}

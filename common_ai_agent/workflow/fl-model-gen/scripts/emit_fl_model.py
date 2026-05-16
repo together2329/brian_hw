@@ -678,6 +678,14 @@ def _module_contracts(ssot: dict[str, Any], ip: str) -> tuple[list[dict[str, Any
                 if str(ref).split(".", 1)[0] in {"top_module", "io_list", "integration"}
             ]
             module_structural_refs = sorted({*module_structural_refs, *wiring_refs})
+        elif (
+            not refs
+            and (
+                str(module.get("name") or "") == top
+                or Path(str(module.get("file") or "")).stem == top
+            )
+        ):
+            module_structural_refs = sorted({*module_structural_refs, "top_module", "integration"})
         # ``_cycle_model_leaf_refs`` only extracts a fixed list of generic
         # cycle_model categories (pipeline, handshake_rules, …) so IP-specific
         # sections such as ``cycle_model.baud_generator`` never produce leaf
@@ -1104,6 +1112,22 @@ def _default_rule_helpers():
         "min": lambda a, b: min(_parse_int(a, 0), _parse_int(b, 0)),
         "max": lambda a, b: max(_parse_int(a, 0), _parse_int(b, 0)),
         "abs": lambda a: abs(_parse_int(a, 0)),
+        "any": lambda *args: int(any(
+            _parse_int(a, 0) for a in (
+                args[0] if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else args
+            )
+        )),
+        "all": lambda *args: int(all(
+            _parse_int(a, 0) for a in (
+                args[0] if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else args
+            )
+        )),
+        "sum": lambda *args: int(sum(
+            _parse_int(a, 0) for a in (
+                args[0] if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else args
+            )
+        )),
+        "len": lambda *args: len(args[0]) if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else len(args),
     }}
 
 
@@ -1159,6 +1183,10 @@ def _eval_ast(node, env):
             return (base >> lo) & mask
         idx = _eval_ast(sl, env)
         return (base >> idx) & 1
+    if isinstance(node, ast.GeneratorExp):
+        return _eval_comprehension(node, env, generator=True)
+    if isinstance(node, ast.ListComp):
+        return _eval_comprehension(node, env, generator=False)
     if isinstance(node, ast.Call):
         if not isinstance(node.func, ast.Name):
             raise ValueError(f"unsupported rule call {{ast.dump(node.func)}}")
@@ -1170,6 +1198,66 @@ def _eval_ast(node, env):
         args = [_eval_ast(arg, env) for arg in node.args]
         return _parse_int(func(*args), 0)
     raise ValueError(f"unsupported rule expression node {{type(node).__name__}}")
+
+
+def _eval_comprehension(node, env, generator=False):
+    """Evaluate a generator expression or list comprehension.
+
+    Supports single-clause ``for`` with optional ``if`` filter, e.g.:
+        ``(x for x in range(8) if x > 0)``
+    Nested comprehensions are not supported.
+    """
+    if not node.generators:
+        raise ValueError("comprehension with no generators")
+    comp = node.generators[0]
+    if len(node.generators) > 1:
+        raise ValueError("nested comprehensions are not supported in rule expressions")
+    if not isinstance(comp.target, ast.Name):
+        raise ValueError("comprehension target must be a simple name")
+    var_name = comp.target.id
+    iter_values = _eval_iter(comp.iter, env)
+    results = []
+    for val in iter_values:
+        local_env = dict(env)
+        local_env[var_name] = val
+        # Apply if-filters
+        skip = False
+        for if_clause in comp.ifs:
+            if not _eval_ast(if_clause, local_env):
+                skip = True
+                break
+        if skip:
+            continue
+        results.append(_eval_ast(node.elt, local_env))
+    return results if not generator else results
+
+
+def _eval_iter(node, env):
+    """Evaluate an iterable source (range call or name reference)."""
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+        if node.func.id == "range":
+            args = [_eval_ast(a, env) for a in node.args]
+            if len(args) == 1:
+                return list(range(args[0]))
+            if len(args) == 2:
+                return list(range(args[0], args[1]))
+            if len(args) == 3:
+                return list(range(args[0], args[1], args[2]))
+            raise ValueError(f"range() expects 1-3 args, got {{len(args)}}")
+        # Other callables: evaluate and treat result as iterable if possible
+        func = env.get(node.func.id)
+        if callable(func):
+            call_args = [_eval_ast(a, env) for a in node.args]
+            result = func(*call_args)
+            if isinstance(result, (list, tuple, range)):
+                return list(result)
+            return [_parse_int(result, 0)]
+    if isinstance(node, ast.Name):
+        val = env.get(node.id)
+        if isinstance(val, (list, tuple, range)):
+            return list(val)
+        return [_parse_int(val, 0)]
+    raise ValueError(f"unsupported iterable in comprehension: {{ast.dump(node)}}")
 
 
 def _eval_rule_expr(expr, env):
@@ -1257,9 +1345,43 @@ class FunctionalModel:
             return (lo + width - 1, lo)
         return (0, 0)
 
+    def _state_name_for_register(self, reg):
+        name = str(reg.get("name") or "").strip()
+        if not name:
+            return ""
+        fm = SSOT_MODEL.get("function_model") or {{}}
+        for row in fm.get("state_variables") or []:
+            if not isinstance(row, dict):
+                continue
+            source = str(row.get("source") or "").strip().lower()
+            state_name = str(row.get("name") or "").strip()
+            if state_name and source == f"registers.{{name}}".lower():
+                return state_name
+        norm = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+        candidates = [
+            norm,
+            f"{{norm}}_reg",
+            f"{{norm}}_q",
+            f"{{norm}}_r",
+            f"{{norm}}_value",
+        ]
+        for field in reg.get("fields") or []:
+            if isinstance(field, dict):
+                fname = re.sub(r"[^a-z0-9]+", "_", str(field.get("name") or "").lower()).strip("_")
+                if fname:
+                    candidates.extend([fname, f"{{fname}}_reg", f"{{fname}}_q", f"{{fname}}_r"])
+        for candidate in candidates:
+            if candidate in self.state:
+                return candidate
+        return ""
+
     def _register_read_value(self, reg):
         name = str(reg.get("name") or "")
-        value = _parse_int(self.registers.get(name, reg.get("reset", 0)), 0)
+        state_name = self._state_name_for_register(reg)
+        if state_name:
+            value = _parse_int(self.state.get(state_name), 0)
+        else:
+            value = _parse_int(self.registers.get(name, reg.get("reset", 0)), 0)
         for field in reg.get("fields") or []:
             if not isinstance(field, dict):
                 continue
@@ -1504,16 +1626,17 @@ class FunctionalModel:
     def apply(self, txn):
         txn = dict(txn or {{}})
         kind = self._norm(txn.get("kind") or txn.get("op") or txn.get("transaction") or "")
+        tx = self._find_transaction(kind)
+        if tx is not None:
+            if self._norm(tx.get("name")) == "reset" or self._norm(tx.get("id")) in {{"reset", "fm_reset"}}:
+                self.reset()
+                return self._record(kind or "reset", txn, {{"kind": "reset", "resp": RESP_OKAY, "state": dict(self.state)}})
+            return self._record(kind, txn, self._apply_primary(tx, txn))
         reg_result = self._apply_register_access(txn)
         if reg_result is not None:
             return self._record(kind or "register_access", txn, reg_result)
-        tx = self._find_transaction(kind)
         if tx is None:
             return self._record(kind or "unknown", txn, {{"kind": kind or "unknown", "resp": RESP_SLVERR, "error": "unsupported_transaction"}})
-        if self._norm(tx.get("name")) == "reset" or self._norm(tx.get("id")) in {{"reset", "fm_reset"}}:
-            self.reset()
-            return self._record(kind or "reset", txn, {{"kind": "reset", "resp": RESP_OKAY, "state": dict(self.state)}})
-        return self._record(kind, txn, self._apply_primary(tx, txn))
 
     def coverage_seed_bins(self):
         return {{item["id"]: False for item in SSOT_MODEL.get("fcov_bins", [])}}
@@ -1551,7 +1674,7 @@ def run_self_check():
         known_names = set(model.params) | set(model.state) | set(model.registers) | output_names | update_names
         known_names.update({{"true", "false", "True", "False", "and", "or", "not"}})
         known_names.update(_default_rule_helpers().keys())
-        known_names.update({{"read_mux", "reduction_or"}})
+        known_names.update({{"read_mux", "reduction_or", "range"}})
         for name in sorted(rule_names - known_names):
             if name and name not in txn:
                 txn[name] = idx + len(txn) + 1

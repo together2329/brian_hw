@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_4a461d5c08",
+  "worker_idx": 0,
+  "model": "m1",
+  "requested_model": "m1",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "t"
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "ok",
+  "error": "",
+  "started_at": 1778925109.931655,
+  "completed_at": 1778925109.9321852,
+  "duration_s": 0.000530242919921875
+}

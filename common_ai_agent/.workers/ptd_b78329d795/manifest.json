@@ -1,0 +1,66 @@
+{
+  "job_id": "ptd_b78329d795",
+  "requested_worker_count": 3,
+  "worker_count": 3,
+  "models": [
+    {
+      "requested_model": "claude-cli",
+      "resolved_model": "claude-cli",
+      "pricing_model": "claude-cli",
+      "reason": ""
+    },
+    {
+      "requested_model": "gpt-5.3-codex",
+      "resolved_model": "gpt-5.3-codex",
+      "pricing_model": "gpt-5.3-codex",
+      "reason": ""
+    },
+    {
+      "requested_model": "glm-5.1",
+      "resolved_model": "glm-5.1",
+      "pricing_model": "glm-5.1",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Say the word ALPHA."
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "Say the word BETA."
+    },
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "Say the word GAMMA."
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "Say the word ALPHA."
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "Say the word BETA."
+      }
+    ],
+    [
+      {
+        "index": 2,
+        "id": "todo-3",
+        "content": "Say the word GAMMA."
+      }
+    ]
+  ],
+  "created_at": 1778931032.218827
+}

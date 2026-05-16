@@ -827,6 +827,344 @@ def test_scoreboard_runtime_and_comparator_pass(tmp_path: Path):
     assert classify_doc["classifications"] == []
 
 
+def test_scoreboard_treats_highz_as_zero_for_integer_drive_mask(tmp_path: Path):
+    ip = _write_fixture(tmp_path)
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"equivalence_scoreboard_highz_{time.time_ns()}")
+    scoreboard = scoreboard_mod.EquivalenceScoreboard(ip, tmp_path, reset_events=True)
+
+    row = scoreboard.record(
+        "EQ_DOUBLE",
+        scenario_id="SC_HIGHZ",
+        cycle=1,
+        stimulus={"value": 0},
+        rtl_observed={"value": "zzzz"},
+    )
+
+    assert row["passed"] is True
+
+
+def test_scoreboard_self_check_blocks_prose_only_ssot_questions(tmp_path: Path):
+    ip = _write_fixture(tmp_path)
+    model_path = tmp_path / ip / "model" / "functional_model.py"
+    model_path.write_text(
+        """
+class FunctionalModel:
+    def _transactions(self):
+        return [{"id": "FM_PRIMARY", "name": "primary_behavior"}]
+
+    def apply(self, txn):
+        return {
+            "resp": 0,
+            "value": 1,
+            "ssot_question": "[SSOT QUESTION] structured output_rules/state_updates undefined for transaction FM_PRIMARY",
+        }
+""".lstrip(),
+        encoding="utf-8",
+    )
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"equivalence_scoreboard_ssot_question_{time.time_ns()}")
+    scoreboard = scoreboard_mod.EquivalenceScoreboard(ip, tmp_path, reset_events=True)
+
+    report = scoreboard.self_check()
+
+    assert report["passed"] is False
+    assert report["ssot_questions"] == 1
+    assert report["contract_gaps"][0]["goal_id"] == "EQ_DOUBLE"
+    check = subprocess.run(
+        [sys.executable, str(SCOREBOARD_PATH), ip, "--root", str(tmp_path), "--self-check"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    assert check.returncode == 2, check.stdout
+    blocked = json.loads((tmp_path / ip / "tb" / "cocotb" / "tb_blocked.json").read_text(encoding="utf-8"))
+    assert blocked["reason"].startswith("SSOT/FunctionalModel contract")
+    assert blocked["questions"][0]["id"] == "TB_SELF_CHECK_001"
+    assert "structured output_rules" in blocked["questions"][0]["evidence"]
+
+
+def test_tb_manifest_allows_inout_observable_output(tmp_path: Path):
+    ip = "inout_tb_ip"
+    ip_dir = tmp_path / ip
+    for subdir in ("yaml", "verify", "rtl", "list"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "top_module": {"name": ip},
+                "io_list": {
+                    "clock_domains": [{"ports": [{"name": "clk", "direction": "input", "width": 1}]}],
+                    "resets": [{"ports": [{"name": "rst_n", "direction": "input", "width": 1}]}],
+                    "interfaces": [
+                        {
+                            "name": "gpio",
+                            "type": "custom",
+                            "ports": [{"name": "gpio_pins", "direction": "inout", "width": 32}],
+                        }
+                    ],
+                },
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(
+        json.dumps({"goals": [{"goal_id": "EQ_GPIO", "blocked": False}]}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_contract.json").write_text(
+        json.dumps(
+            {
+                "type": "generic_ssot_rule_rtl_contract",
+                "contract": {
+                    "clock": "clk",
+                    "reset": "rst_n",
+                    "reset_active": "low",
+                    "sample_condition": "1",
+                    "outputs": [{"name": "gpio_pins", "port": "gpio_pins", "width": 32}],
+                },
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text("module inout_tb_ip; endmodule\n", encoding="utf-8")
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+    tb_mod = _load_module(TB_GEN_PATH, f"tb_gen_inout_{time.time_ns()}")
+
+    manifest, questions = tb_mod._build_manifest(ip, tmp_path)
+
+    assert not [q for q in questions if q["id"].startswith("TB_OUTPUT_GPIO_PINS")]
+    assert any(item["port"] == "gpio_pins" for item in manifest["outputs"])
+    assert manifest["inout_ports"] == ["gpio_pins"]
+
+
+def test_generated_driver_releases_inout_except_input_capture(monkeypatch):
+    import types
+
+    cocotb_mod = types.ModuleType("cocotb")
+    cocotb_mod.test = lambda: (lambda fn: fn)
+    cocotb_mod.start_soon = lambda _awaitable: None
+    binary_mod = types.ModuleType("cocotb.binary")
+    binary_mod.BinaryValue = lambda value: value
+    clock_mod = types.ModuleType("cocotb.clock")
+    clock_mod.Clock = lambda *_args, **_kwargs: types.SimpleNamespace(start=lambda: None)
+    triggers_mod = types.ModuleType("cocotb.triggers")
+    triggers_mod.ClockCycles = lambda *_args, **_kwargs: None
+    triggers_mod.FallingEdge = lambda *_args, **_kwargs: None
+    triggers_mod.ReadOnly = lambda *_args, **_kwargs: None
+    triggers_mod.RisingEdge = lambda *_args, **_kwargs: None
+    monkeypatch.setitem(sys.modules, "cocotb", cocotb_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.binary", binary_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.clock", clock_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.triggers", triggers_mod)
+    tb_mod = _load_module(TB_GEN_PATH, f"tb_gen_inout_drive_{time.time_ns()}")
+    ns: dict[str, object] = {}
+    exec(tb_mod.TEST_PY, ns)
+
+    class Signal:
+        def __init__(self):
+            self.value = None
+
+    class Dut:
+        clk = Signal()
+        rst_n = Signal()
+        gpio_pins = Signal()
+        psel = Signal()
+        penable = Signal()
+
+    manifest = {
+        "clock": "clk",
+        "reset": "rst_n",
+        "input_ports": ["clk", "rst_n", "gpio_pins", "psel", "penable"],
+        "output_ports": ["gpio_pins"],
+        "inout_ports": ["gpio_pins"],
+        "input_map": {"gpio_pins": "gpio_pins", "psel": "psel", "penable": "penable"},
+        "sample_inputs": [],
+        "port_widths": {"gpio_pins": 4, "psel": 1, "penable": 1, "clk": 1, "rst_n": 1},
+    }
+
+    ns["_drive_inputs"](Dut, manifest, {"kind": "gpio_pin_drive", "gpio_pins": 0xF, "psel": 1, "penable": 1})
+    assert Dut.gpio_pins.value == "zzzz"
+    assert Dut.psel.value == 1
+    assert Dut.penable.value == 1
+
+    ns["_drive_inputs"](Dut, manifest, {"kind": "gpio_input_capture", "gpio_pins": 0xA})
+    assert Dut.gpio_pins.value == 0xA
+
+
+def test_generated_apb_goal_stimulus_uses_ssot_register_offsets_without_register_fallback(tmp_path: Path, monkeypatch):
+    import types
+
+    ip = "apb_goal_stimulus_ip"
+    ip_dir = tmp_path / ip
+    for subdir in ("yaml", "verify", "rtl", "list"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "top_module": {"name": ip},
+                "io_list": {
+                    "clock_domains": [{"ports": [{"name": "clk", "direction": "input", "width": 1}]}],
+                    "resets": [{"ports": [{"name": "rst_n", "direction": "input", "width": 1}]}],
+                    "interfaces": [
+                        {
+                            "name": "apb",
+                            "type": "apb",
+                            "ports": [
+                                {"name": "psel", "direction": "input", "width": 1},
+                                {"name": "penable", "direction": "input", "width": 1},
+                                {"name": "pwrite", "direction": "input", "width": 1},
+                                {"name": "paddr", "direction": "input", "width": 8},
+                                {"name": "pwdata", "direction": "input", "width": 32},
+                                {"name": "pstrb", "direction": "input", "width": 4},
+                                {"name": "prdata", "direction": "output", "width": 32},
+                                {"name": "pready", "direction": "output", "width": 1},
+                                {"name": "pslverr", "direction": "output", "width": 1},
+                            ],
+                        }
+                    ],
+                },
+                "parameters": [{"name": "APB_ADDR_WIDTH", "default": 8}],
+                "registers": {
+                    "config": {"byte_addressable": True},
+                    "register_list": [
+                        {"name": "CTRL", "offset": 0, "width": 32, "access": "rw", "reset": 0},
+                        {"name": "STATUS", "offset": 4, "width": 32, "access": "ro", "reset": 0},
+                    ],
+                },
+                "function_model": {
+                    "transactions": [
+                        {
+                            "id": "FM1",
+                            "name": "apb_write_register",
+                            "required_fields": ["psel", "penable", "pwrite", "paddr", "pwdata", "pstrb"],
+                            "output_rules": [{"name": "pslverr", "port": "pslverr", "expr": "0", "width": 1}],
+                        }
+                    ]
+                },
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    goal = {
+        "goal_id": "EQ_TRANSACTION_FM1",
+        "title": "Transaction apb_write_register matches FunctionalModel",
+        "kind": "transaction",
+        "stimulus_contract": {
+            "transaction_type": "apb_write_register",
+            "required_fields": ["psel", "penable", "pwrite", "paddr", "pwdata", "pstrb"],
+        },
+        "expected_contract": {
+            "observables": ["pready", "pslverr", "prdata"],
+            "error_policy": "addr_valid == 0 returns pslverr == 1 without updating registers",
+        },
+        "blocked": False,
+    }
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(
+        json.dumps({"goals": [goal]}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_contract.json").write_text(
+        json.dumps(
+            {
+                "ip": ip,
+                "owner_module": f"{ip}_regs",
+                "implemented_behavior": ["legacy packet-style RTL contract"],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(f"module {ip}; endmodule\n", encoding="utf-8")
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+    tb_mod = _load_module(TB_GEN_PATH, f"tb_gen_apb_offsets_{time.time_ns()}")
+    manifest, questions = tb_mod._build_manifest(ip, tmp_path)
+
+    assert questions == []
+    assert manifest["rtl_contract_source"] == "ssot_fallback"
+    assert [row["offset"] for row in manifest["registers"]["register_list"]] == [0, 4]
+
+    cocotb_mod = types.ModuleType("cocotb")
+    cocotb_mod.test = lambda: (lambda fn: fn)
+    cocotb_mod.start_soon = lambda _awaitable: None
+    binary_mod = types.ModuleType("cocotb.binary")
+    binary_mod.BinaryValue = lambda value: value
+    clock_mod = types.ModuleType("cocotb.clock")
+    clock_mod.Clock = lambda *_args, **_kwargs: types.SimpleNamespace(start=lambda: None)
+    triggers_mod = types.ModuleType("cocotb.triggers")
+    triggers_mod.ClockCycles = lambda *_args, **_kwargs: None
+    triggers_mod.FallingEdge = lambda *_args, **_kwargs: None
+    triggers_mod.ReadOnly = lambda *_args, **_kwargs: None
+    triggers_mod.RisingEdge = lambda *_args, **_kwargs: None
+    monkeypatch.setitem(sys.modules, "cocotb", cocotb_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.binary", binary_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.clock", clock_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.triggers", triggers_mod)
+    ns: dict[str, object] = {}
+    exec(tb_mod.TEST_PY, ns)
+
+    stimulus = ns["_stimulus_for_goal"](goal, manifest, 0)
+
+    assert stimulus["paddr"] == 0
+    assert stimulus["pwrite"] == 1
+    assert stimulus["psel"] == 1
+    assert stimulus["penable"] == 1
+    assert stimulus["pstrb"] == 15
+    assert "reg" not in stimulus
+    assert "addr_or_name" not in stimulus
+
+    read_goal = {
+        **goal,
+        "goal_id": "EQ_TRANSACTION_FM2",
+        "title": "Transaction apb_read_register decodes address, drives prdata read mux, or latches write data in other paths",
+        "stimulus_contract": {
+            "transaction_type": "apb_read_register",
+            "required_fields": ["psel", "penable", "pwrite", "paddr"],
+        },
+    }
+    read_stimulus = ns["_stimulus_for_goal"](read_goal, manifest, 1)
+    assert read_stimulus["op"] == "read"
+    assert read_stimulus["pwrite"] == 0
+    assert read_stimulus["paddr"] == 4
+
+
+def test_generated_runner_escalates_soft_scoreboard_mismatches(tmp_path: Path, monkeypatch):
+    import types
+
+    cocotb_test_mod = types.ModuleType("cocotb_test")
+    simulator_mod = types.ModuleType("cocotb_test.simulator")
+    simulator_mod.run = lambda **_kwargs: ""
+    monkeypatch.setitem(sys.modules, "cocotb_test", cocotb_test_mod)
+    monkeypatch.setitem(sys.modules, "cocotb_test.simulator", simulator_mod)
+    tb_mod = _load_module(TB_GEN_PATH, f"tb_gen_runner_escalate_{time.time_ns()}")
+    ns: dict[str, object] = {}
+    exec(tb_mod.RUNNER_PY, ns)
+    events = tmp_path / "scoreboard_events.jsonl"
+    events.write_text(
+        json.dumps(
+            {
+                "goal_id": "EQ_GPIO",
+                "passed": False,
+                "mismatch": "irq: expected=1 observed=0",
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    lines = ns["_scoreboard_escalations"](events)
+
+    assert lines
+    assert lines[0].startswith("[SIM ESCALATE] scoreboard_failed=1")
+    assert "EQ_GPIO" in lines[1]
+    assert "irq: expected=1 observed=0" in lines[1]
+
+
 def test_blocked_goal_creates_human_gate_question(tmp_path: Path):
     ip = _write_fixture(tmp_path)
     goals_path = tmp_path / ip / "verify" / "equivalence_goals.json"
@@ -907,6 +1245,40 @@ def test_atlas_progress_reports_equivalence_pass_from_compare_artifacts(tmp_path
         for field in ("status", "owner", "validator", "evidence", "blocker", "next_action"):
             assert field in entry
     assert ownership["signoff"]["owner"] in {"LLM loop", "human gate"}
+
+
+def test_atlas_progress_simple_summary_turns_req_blocker_into_user_action(tmp_path: Path, monkeypatch):
+    ip = _write_goal_audit_complete_fixture(tmp_path)
+    req_path = tmp_path / ip / "req" / "requirements.md"
+    req_path.write_text("# Requirements\n\nTBD\n", encoding="utf-8")
+
+    run = subprocess.run(
+        [sys.executable, str(AUDIT_PATH), ip, "--root", str(tmp_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    assert run.returncode != 0, run.stdout
+
+    from fastapi.testclient import TestClient
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    client = _authenticated_client(atlas_ui.create_app())
+    response = client.get("/api/progress", params={"scope": ip})
+
+    assert response.status_code == 200
+    selected = response.json()["selected"]
+    summary = selected["simple_summary"]
+    assert summary == selected["signoff"]["simple_summary"]
+    assert summary["state"] == "needs_review"
+    assert summary["primary_action"]["label"] == "Open Review"
+    assert summary["next_steps"][0]["stage"] == "req"
+    assert summary["next_steps"][0]["owner"] == "user"
+    assert "goal audit" not in summary["headline"].lower()
+    assert "blockers=req" not in summary["message"].lower()
+    assert any("goal audit" in item.lower() for item in summary["expert_blockers"])
 
 
 def test_atlas_progress_rtl_artifact_status_uses_strict_manifest_gate(tmp_path: Path, monkeypatch):
@@ -1050,6 +1422,55 @@ def test_stale_equivalence_evidence_blocks_progress(tmp_path: Path, monkeypatch)
     assert selected["signoff"]["ownership"]["equivalence_goals"]["owner"] == "LLM loop"
 
 
+def test_stale_derived_oracle_routes_to_fl_model_gen_instead_of_rtl(tmp_path: Path):
+    ip = _write_fixture(tmp_path)
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, "equivalence_scoreboard_stale_oracle_under_test")
+    comparator_mod = _load_module(COMPARATOR_PATH, "compare_fl_rtl_results_stale_oracle_under_test")
+
+    scoreboard = scoreboard_mod.EquivalenceScoreboard(ip, tmp_path, reset_events=True)
+    scoreboard.record(
+        "EQ_DOUBLE",
+        scenario_id="SC_DOUBLE",
+        cycle=23,
+        stimulus={"value": 10},
+        rtl_observed={"value": 19},
+    )
+
+    ip_dir = tmp_path / ip
+    old = time.time() - 20
+    ssot_time = time.time()
+    fresh = time.time() + 20
+    for rel in [
+        "model/functional_model.py",
+        "model/fl_model_check.json",
+        "verify/equivalence_goals.json",
+    ]:
+        path = ip_dir / rel
+        os.utime(path, (old, old))
+    os.utime(ip_dir / "yaml" / f"{ip}.ssot.yaml", (ssot_time, ssot_time))
+    for rel in [
+        "sim/scoreboard_events.jsonl",
+        "sim/results.xml",
+        "cov/coverage.json",
+    ]:
+        path = ip_dir / rel
+        os.utime(path, (fresh, fresh))
+
+    compare_doc, classify_doc = comparator_mod.compare(ip, tmp_path)
+
+    assert compare_doc["status"] == "stale"
+    assert compare_doc["summary"]["stale_oracle_evidence"]
+    assert compare_doc["summary"]["goals_failed"] == 0
+    assert classify_doc["status"] == "action_required"
+    assert len(classify_doc["classifications"]) == 1
+    classification = classify_doc["classifications"][0]
+    assert classification["classification"] == "stale_oracle"
+    assert classification["owner"] == "fl-model-gen"
+    assert classification["llm_loop_allowed"] is True
+    assert "Do not repair RTL" in classification["repair_prompt"]
+    assert not [item for item in classify_doc["classifications"] if item.get("owner") == "rtl-gen"]
+
+
 def test_sim_result_failure_without_scoreboard_mismatch_is_classified(tmp_path: Path):
     ip = _write_fixture(tmp_path)
     scoreboard_mod = _load_module(SCOREBOARD_PATH, "equivalence_scoreboard_result_fail_under_test")
@@ -1119,6 +1540,32 @@ def test_goal_audit_passes_complete_equivalence_evidence(tmp_path: Path):
     assert required_checks <= {check["id"] for check in audit_doc["checks"]}
 
 
+def test_goal_audit_accepts_functional_coverage_when_code_metrics_are_uninstrumented(tmp_path: Path):
+    ip = _write_goal_audit_complete_fixture(tmp_path)
+    coverage_path = tmp_path / ip / "cov" / "coverage.json"
+    coverage = json.loads(coverage_path.read_text(encoding="utf-8"))
+    coverage["status"] = "blocked"
+    coverage["limitations"] = {
+        "line": "coverage.info has no line records",
+        "branch": "coverage.info has no branch records",
+    }
+    coverage_path.write_text(json.dumps(coverage, indent=2) + "\n", encoding="utf-8")
+
+    run = subprocess.run(
+        [sys.executable, str(AUDIT_PATH), ip, "--root", str(tmp_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+
+    assert run.returncode == 0, run.stdout
+    audit_doc = json.loads((tmp_path / ip / "sim" / "fl_rtl_goal_audit.json").read_text(encoding="utf-8"))
+    check = next(item for item in audit_doc["checks"] if item["id"] == "functional_coverage")
+    assert check["status"] == "pass"
+    assert "status=blocked" in check["detail"]
+
+
 def test_goal_audit_fails_with_exact_blockers_for_incomplete_ip(tmp_path: Path):
     ip = _write_fixture(tmp_path)
 
@@ -1135,6 +1582,153 @@ def test_goal_audit_fails_with_exact_blockers_for_incomplete_ip(tmp_path: Path):
     blockers = set(audit_doc["summary"]["blockers"])
     assert {"req", "fl_decomposition", "fcov_plan", "rtl_artifacts", "dut_compile", "dut_lint"} <= blockers
     assert audit_doc["stop_condition"]["signoff_evidence_backed"] is False
+
+
+def test_derive_rtl_static_evidence_uses_ports_context_and_cross_module_invariants(tmp_path: Path):
+    ip = "semantic_gpio_ip"
+    ip_dir = tmp_path / ip
+    for sub in ("yaml", "rtl", "list"):
+        (ip_dir / sub).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "top_module": {"name": ip},
+                "sub_modules": [
+                    {
+                        "name": f"{ip}_regs",
+                        "file": f"rtl/{ip}_regs.sv",
+                        "function_model_refs": [
+                            "function_model.transactions.FM2",
+                            "function_model.state_variables.dir_reg",
+                        ],
+                        "register_refs": ["registers"],
+                    },
+                    {
+                        "name": f"{ip}_datapath",
+                        "file": f"rtl/{ip}_datapath.sv",
+                        "function_model_refs": [
+                            "function_model.transactions.FM4",
+                            "function_model.state_variables.gpio_sync2",
+                            "function_model.state_variables.gpio_prev",
+                        ],
+                        "dataflow_refs": ["dataflow"],
+                    },
+                ],
+                "io_list": {
+                    "interfaces": [
+                        {"name": "paddr", "type": "input", "width": 8},
+                        {"name": "prdata", "type": "output", "width": 32},
+                        {"name": "gpio_pins", "type": "inout", "width": 32},
+                    ]
+                },
+                "function_model": {
+                    "state_variables": [
+                        {"name": "dir_reg", "width": 32, "reset": 0},
+                        {
+                            "name": "gpio_sync2",
+                            "width": 32,
+                            "reset": 0,
+                            "description": "Synchronized GPIO input value",
+                        },
+                        {
+                            "name": "gpio_prev",
+                            "width": 32,
+                            "reset": 0,
+                            "description": "Previous synchronized input used for edge detection",
+                        },
+                    ],
+                    "transactions": [
+                        {
+                            "id": "FM2",
+                            "name": "apb_read_register",
+                            "required_fields": ["paddr"],
+                            "output_rules": [
+                                {"name": "prdata", "port": "prdata", "expr": "read_mux(paddr)", "width": 32}
+                            ],
+                        },
+                        {
+                            "id": "FM4",
+                            "name": "gpio_input_capture",
+                            "required_fields": ["gpio_pins"],
+                            "output_rules": [
+                                {"name": "gpio_pins", "port": "gpio_pins", "expr": "gpio_pins", "width": 32}
+                            ],
+                            "side_effects": ["Synchronized value readable via IN_DATA register"],
+                            "state_updates": [
+                                {"name": "gpio_sync2", "expr": "gpio_pins", "width": 32},
+                                {"name": "gpio_prev", "expr": "gpio_sync2", "width": 32},
+                            ],
+                        },
+                    ],
+                    "invariants": [
+                        "Edge detection operates only on 2-stage synchronized inputs, never on raw gpio_pins."
+                    ],
+                },
+                "cycle_model": {"latency": 1},
+                "registers": {
+                    "register_list": [
+                        {"name": "IN_DATA", "offset": 8, "width": 32, "access": "ro", "reset": 0}
+                    ]
+                },
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}_regs.sv").write_text(
+        f"""
+module {ip}_regs (
+  input  logic [7:0]  paddr,
+  output logic [31:0] prdata
+);
+  logic [31:0] read_data;
+  always_comb begin
+    read_data = 32'h0;
+    prdata = read_data;
+  end
+endmodule
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}_datapath.sv").write_text(
+        f"""
+module {ip}_datapath (
+  inout  wire  [31:0] gpio_pins,
+  output logic [31:0] gpio_sync2_o,
+  output logic [31:0] gpio_prev_o
+);
+  logic [31:0] gpio_sync2_r;
+  logic [31:0] gpio_prev_r;
+  assign gpio_sync2_o = gpio_sync2_r;
+  assign gpio_prev_o = gpio_prev_r;
+  assign gpio_sync2_r = gpio_pins;
+  assign gpio_prev_r = gpio_sync2_r;
+endmodule
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(f"module {ip}; endmodule\n", encoding="utf-8")
+    (ip_dir / "list" / f"{ip}.f").write_text(
+        f"../{ip}/rtl/{ip}.sv\n../{ip}/rtl/{ip}_regs.sv\n../{ip}/rtl/{ip}_datapath.sv\n",
+        encoding="utf-8",
+    )
+
+    subprocess.run(
+        [sys.executable, str(DERIVE_RTL_TODOS_PATH), ip, "--root", str(tmp_path), "--audit-rtl"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+
+    plan = json.loads((ip_dir / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    by_ref = {task["source_ref"]: task for task in plan["tasks"]}
+    assert by_ref["function_model.transactions.FM2.output_rules.prdata"]["todo_completion"]["status"] == "pass"
+    assert by_ref["function_model.transactions.FM4.side_effects.side_effect_0"]["todo_completion"]["status"] == "pass"
+    invariant = by_ref["function_model.invariants.invariant_0"]
+    assert invariant["todo_completion"]["status"] == "pass"
+    assert invariant["owner_file"] == f"rtl/{ip}_datapath.sv"
+    assert invariant["static_evidence"]["source_scope"].endswith(f"rtl/{ip}_datapath.sv")
 
 
 def test_atlas_websocket_runs_ssot_equivalence_goal_command(tmp_path: Path, monkeypatch):
@@ -1687,6 +2281,78 @@ def test_fl_model_supports_register_read_mux_and_reduction_or_helpers(tmp_path: 
     assert result["resp"] == 0
     assert result["result"] == 5
     assert result["result_valid"] == 1
+
+
+def test_fl_model_prefers_structured_transaction_over_register_hint_fields(tmp_path: Path):
+    ip = _write_structured_rule_ssot(tmp_path)
+    ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+    doc = yaml.safe_load(ssot_path.read_text(encoding="utf-8"))
+    doc["io_list"]["interfaces"][0]["ports"].extend(
+        [
+            {"name": "paddr", "direction": "input", "width": 8},
+            {"name": "psel", "direction": "input", "width": 1},
+            {"name": "penable", "direction": "input", "width": 1},
+            {"name": "pwrite", "direction": "input", "width": 1},
+            {"name": "pwdata", "direction": "input", "width": 32},
+            {"name": "pslverr", "direction": "output", "width": 1},
+        ]
+    )
+    doc["registers"] = {
+        "register_list": [
+            {"name": "CTRL", "offset": 0, "width": 32, "access": "rw", "reset": 0}
+        ]
+    }
+    doc["function_model"]["state_variables"][0]["source"] = "registers.CTRL"
+    tx = doc["function_model"]["transactions"][0]
+    tx["id"] = "FM_APB_WRITE"
+    tx["name"] = "apb_write_register"
+    tx["required_fields"] = ["paddr", "psel", "penable", "pwrite", "pwdata"]
+    tx["sample_condition"] = "psel == 1 and penable == 1 and pwrite == 1"
+    tx["output_rules"] = [{"name": "pslverr", "port": "pslverr", "expr": "0 if paddr == 0 else 1", "width": 1}]
+    tx["state_updates"] = [{"name": "accepted_count", "expr": "pwdata if paddr == 0 else accepted_count", "width": 8}]
+    doc["function_model"]["transactions"].append(
+        {
+            "id": "FM2",
+            "name": "apb_read_register",
+            "required_fields": ["paddr", "psel", "penable", "pwrite"],
+            "sample_condition": "psel == 1 and penable == 1 and pwrite == 0",
+            "output_rules": [{"name": "prdata", "port": "prdata", "expr": "read_mux(paddr)", "width": 32}],
+        }
+    )
+    ssot_path.write_text(yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
+    fl_path = REPO / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py"
+
+    fl_run = subprocess.run(
+        [sys.executable, str(fl_path), ip, "--root", str(tmp_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+
+    assert fl_run.returncode == 0, fl_run.stdout
+    model_mod = _load_module(tmp_path / ip / "model" / "functional_model.py", "fl_structured_apb_model")
+    model = model_mod.FunctionalModel()
+    result = model.apply(
+        {
+            "kind": "FM_APB_WRITE",
+            "reg": 99,
+            "addr_or_name": 99,
+            "paddr": 0,
+            "psel": 1,
+            "penable": 1,
+            "pwrite": 1,
+            "pwdata": 7,
+        }
+    )
+
+    assert result["resp"] == 0
+    assert result["transaction_id"] == "FM_APB_WRITE"
+    assert result["pslverr"] == 0
+    assert result["state_updates"]["accepted_count"] == 7
+    assert "write" not in result
+    read_result = model.apply({"kind": "FM2", "psel": 1, "penable": 1, "pwrite": 0, "paddr": 0})
+    assert read_result["prdata"] == 7
 
 
 def test_module_contract_uses_specific_transaction_ref_over_broad_function_model_ref(tmp_path: Path):

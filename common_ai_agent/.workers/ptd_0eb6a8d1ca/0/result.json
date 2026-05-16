@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_0eb6a8d1ca",
+  "worker_idx": 0,
+  "model": "claude-cli",
+  "requested_model": "claude-cli",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Use WebSearch to find the GitHub stars count for tiangolo/fastapi. Report the exact number."
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "I don't have permission to use WebSearch or WebFetch in this session. I'm unable to retrieve the live GitHub stars count for `tiangolo/fastapi`.\n\n---\n\n**Result Summary:**\n\n| # | TODO ID | Status | Evidence |\n|---|---------|--------|----------|\n| 0 | todo-1 | FAILED | WebSearch and WebFetch tools require user permission that has not been granted in this session. Cannot retrieve live GitHub stars count. |\n\n**FAILED:** `todo-1` — Unable to query GitHub stars for `tiangolo/fastapi` because both `WebSearch` and `WebFetch` tool calls were denied by the permission system. Please grant web access permissions and retry.",
+  "error": "",
+  "started_at": 1778932454.23615,
+  "completed_at": 1778932474.659599,
+  "duration_s": 20.42344903945923
+}

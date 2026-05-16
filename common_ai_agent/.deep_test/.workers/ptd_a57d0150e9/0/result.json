@@ -1,0 +1,34 @@
+{
+  "job_id": "ptd_a57d0150e9",
+  "worker_idx": 0,
+  "model": "m1",
+  "requested_model": "m1",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "t0"
+    },
+    {
+      "index": 3,
+      "id": "todo-4",
+      "content": "t3"
+    },
+    {
+      "index": 6,
+      "id": "todo-7",
+      "content": "t6"
+    }
+  ],
+  "todos_done": [
+    "todo-1",
+    "todo-4",
+    "todo-7"
+  ],
+  "result": "ok",
+  "error": "",
+  "started_at": 1778925111.8940318,
+  "completed_at": 1778925111.895743,
+  "duration_s": 0.001711130142211914
+}

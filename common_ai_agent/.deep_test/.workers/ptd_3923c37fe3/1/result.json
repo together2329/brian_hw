@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_3923c37fe3",
+  "worker_idx": 1,
+  "model": "concur-B",
+  "requested_model": "concur-B",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "a2"
+    }
+  ],
+  "todos_done": [
+    "todo-2"
+  ],
+  "result": "ok(concur-B)",
+  "error": "",
+  "started_at": 1778925109.209988,
+  "completed_at": 1778925109.3611689,
+  "duration_s": 0.15118074417114258
+}

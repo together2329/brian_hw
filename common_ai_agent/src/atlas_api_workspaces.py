@@ -86,7 +86,24 @@ def register_workspaces_routes(
             ".benchmarks", ".common_ai_agent", ".session_debug", "logs",
         }
         skip_files = {".env", ".env.local", ".env.production",
-                      ".env.example", ".DS_Store"}
+                      ".env.example", ".DS_Store",
+                      # Internal workflow scaffolding — same list as
+                      # atlas_ui.SKIP_FILES. Keeping this mirrored here
+                      # (rather than importing) so the zip endpoint stays
+                      # self-contained, and obvious from this file alone.
+                      "manifest.json", "decomposition.json",
+                      "import_manifest.json", "ssot_downstream_blockers.json",
+                      "rtl_authoring_plan.json", "rtl_authoring_status.md",
+                      "rtl_blocked.json", "rtl_blocked_resolved.json",
+                      "rtl_todo_plan.json", "rtl_todo_tracker.json",
+                      "rtl_traceability.json"}
+
+        def _is_internal_artifact(name: str) -> bool:
+            if name in skip_files:
+                return True
+            if name.startswith("rtl_gate_") and (name.endswith(".json") or name.endswith(".md")):
+                return True
+            return False
 
         try:
             base = project_root()
@@ -112,7 +129,7 @@ def register_workspaces_routes(
                         if d not in skip_dirs and not d.startswith(".")
                     ]
                     for f in files:
-                        if f in skip_files or f.startswith("."):
+                        if f.startswith(".") or _is_internal_artifact(f):
                             continue
                         full = Path(root_dir) / f
                         try:

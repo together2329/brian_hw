@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_32bcc40452",
+  "worker_idx": 0,
+  "model": "deepseek-v4-pro",
+  "requested_model": "deepseek-v4-pro",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Say the word ZETA."
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "Thought: The command successfully printed \"ZETA\", fulfilling the single TODO item assigned to worker 0.\n\nFinal Answer:\n  - TODO index 0 (id: todo-1): DONE — Evidence: `echo ZETA` output was \"ZETA\".",
+  "error": "",
+  "started_at": 1778931977.8599832,
+  "completed_at": 1778932013.350958,
+  "duration_s": 35.49097490310669
+}

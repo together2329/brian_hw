@@ -1,0 +1,66 @@
+{
+  "job_id": "ptd_b7eb41f5db",
+  "requested_worker_count": 3,
+  "worker_count": 3,
+  "models": [
+    {
+      "requested_model": "cursor-cli",
+      "resolved_model": "cursor-cli",
+      "pricing_model": "cursor-cli",
+      "reason": ""
+    },
+    {
+      "requested_model": "gpt-5.3-codex",
+      "resolved_model": "gpt-5.3-codex",
+      "pricing_model": "gpt-5.3-codex",
+      "reason": ""
+    },
+    {
+      "requested_model": "glm-5.1",
+      "resolved_model": "glm-5.1",
+      "pricing_model": "glm-5.1",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "Say exactly the word DONE."
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "Say exactly the word OK."
+    },
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "Say exactly the word YES."
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "Say exactly the word DONE."
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "Say exactly the word OK."
+      }
+    ],
+    [
+      {
+        "index": 2,
+        "id": "todo-3",
+        "content": "Say exactly the word YES."
+      }
+    ]
+  ],
+  "created_at": 1778928933.524858
+}

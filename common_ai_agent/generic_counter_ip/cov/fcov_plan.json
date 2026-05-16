@@ -1,0 +1,10 @@
+{
+  "planned_before_rtl": true,
+  "bins": [
+    {
+      "id": "FCOV_DOUBLE",
+      "goal_id": "EQ_DOUBLE",
+      "description": "double-value equivalence goal observed"
+    }
+  ]
+}

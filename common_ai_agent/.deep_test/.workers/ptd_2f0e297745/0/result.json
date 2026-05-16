@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_2f0e297745",
+  "worker_idx": 0,
+  "model": "thread2-mA",
+  "requested_model": "thread2-mA",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "thread2-t1"
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "ok(thread2-mA)",
+  "error": "",
+  "started_at": 1778925159.873472,
+  "completed_at": 1778925159.932907,
+  "duration_s": 0.059435129165649414
+}

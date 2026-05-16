@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_b7eb41f5db",
+  "worker_idx": 2,
+  "model": "glm-5.1",
+  "requested_model": "glm-5.1",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "Say exactly the word YES."
+    }
+  ],
+  "todos_done": [
+    "todo-3"
+  ],
+  "result": "Final Answer:\n\nTODO #2 (todo-3): DONE. Output: YES",
+  "error": "",
+  "started_at": 1778928933.5255969,
+  "completed_at": 1778928946.770828,
+  "duration_s": 13.24523115158081
+}

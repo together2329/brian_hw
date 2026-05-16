@@ -4,7 +4,7 @@ module parity_gen #(
 ) (
     input  logic                  PCLK,
     input  logic                  PRESETn,
-    input  logic [11:0]           PADDR,
+    input  logic [ADDR_WIDTH-1:0] PADDR,
     input  logic                  PSEL,
     input  logic                  PENABLE,
     input  logic                  PWRITE,
@@ -12,7 +12,7 @@ module parity_gen #(
     output logic [31:0]           PRDATA,
     output logic                  PREADY,
     output logic                  PSLVERR,
-    input  logic [31:0]           data_in,
+    input  logic [DATA_WIDTH-1:0] data_in,
     output logic                  parity_out,
     output logic                  parity_error
 );

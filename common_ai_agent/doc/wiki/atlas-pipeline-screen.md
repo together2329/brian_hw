@@ -22,8 +22,9 @@ the whole IP.
 Pipeline gives:
 
 - **One-click dispatch** per stage (or a chain of stages).
-- **Live DAG map** showing every stage as a colored node, with
-  token-flow animation along edges from running stages.
+- **Large live DAG map** showing the pipeline as the primary workspace,
+  with swimlanes, selected-path highlighting, numbered handoff steps, and
+  token-flow animation along active edges.
 - **Per-stage scoresheet** — 3-5 KPI dots read directly from each
   stage's evidence JSON. Pass / warn / fail / idle at a glance.
 - **Owner-aware failure routing** — failed cards offer
@@ -41,18 +42,136 @@ Pipeline gives:
 | Component file | `frontend/atlas/pipeline.jsx` |
 | CSS | `frontend/atlas/styles.css` `/* ── Pipeline screen ── */` block |
 | Backend state endpoint | `GET /api/pipeline/state?ip=<ip>` in `src/atlas_api_jobs.py` |
-| Backend dispatch | `POST /api/pipeline/dispatch` (existing, `src/atlas_api_jobs.py:1146`) |
+| Backend dispatch | `POST /api/pipeline/dispatch` (`src/atlas_api_jobs.py`) |
 | Per-stage KPI compute | `compute_kpi_dots(ip, stage)` in `src/workflow_stage_surface.py` |
+
+## Visual Target
+
+The Pipeline screen should feel like the reference flow-map screenshots the user
+provided (`/Users/brian/Downloads/IMG_1345.JPG`,
+`IMG_1344.jpg`, `IMG_1342.jpg`, `IMG_1341.jpg`,
+`IMG_1336.PNG`, `IMG_1343.jpg`): a dark, spacious architecture map with
+highlighted paths, stage status always visible on the left, and orchestrator
+chat always visible on the right.
+
+This is the important product direction:
+
+```text
+wrong: small pipeline widget + many tiny status cards
+right: left stage rail + large center flow map + right orchestrator chat
+wrong: putting flow controls under the graph
+right: putting flow and step controls above the graph
+```
+
+The user reaction to the current card-heavy version was that Pipeline is "too
+small and looks rough." Treat that as a product requirement, not polish feedback.
+The main surface must be a large graph/canvas where the IP development pipeline
+is visible as a system.
+
+Design cues from the references:
+
+- Dark canvas, not a white dashboard.
+- Wide swimlanes with vertical section bands.
+- Most inactive nodes are muted but still visible for context.
+- Selected path is bright amber/yellow with thicker node borders and connected
+  curved lines.
+- Edge hops have small numbered badges so the user can follow execution order.
+- Center header contains two compact horizontal rows:
+  - **Flows**: selectable scenario/run definitions.
+  - **Steps**: numbered execution/handoff steps for the selected flow.
+- The graph is the primary object; the left rail shows stage status and the
+  right rail is reserved for orchestrator chat.
+- Text is compact but readable; avoid tiny labels and low-contrast gray.
+
+ATLAS-specific visual mapping:
+
+| Reference concept | ATLAS Pipeline concept |
+|---|---|
+| Architecture/service boxes | Workflow stages and worker endpoints |
+| Yellow selected route | Selected pipeline, repair loop, or signoff path |
+| Numbered edge dots | Stage order, handoff order, or rerun order |
+| Flow control row | Full pipeline, RTL repair loop, TB/sim loop, PPA signoff, coverage closure |
+| Step control row | Concrete stage actions with evidence files and owner workflow |
+| Muted unavailable boxes | Locked/stale/offline stages |
+
+The graph should support these first-class selectable flows:
+
+- **Full IP pipeline**: `ssot -> fl/cl -> rtl -> lint/tb/sim -> coverage -> signoff`
+- **RTL repair loop**: `sim-debug -> rtl-gen -> lint -> tb-gen -> sim -> coverage -> sim-debug`
+- **TB/sim repair loop**: `sim-debug -> tb-gen -> sim -> coverage -> sim-debug`
+- **Coverage closure**: `coverage -> coverage repair -> tb-gen/sim -> coverage`
+- **PPA signoff**: `rtl -> syn -> sta -> pnr -> sta-post`
+- **JSON handoff / take**: `orchestrator -> pending handoff -> workspace take -> owner workflow`
 
 ## Layout
 
-3-column flex on a full-screen canvas:
+Target layout is graph-first, not card-first.
 
 | Column | Content |
 |---|---|
-| Left | IP hierarchy + active-IP file tree |
-| Center | DAG MAP (top, ~140 px) · STAGE CARDS (2-col grid, 5 phase bands) · DISPATCH RAIL (bottom) |
-| Right | `ArchitectChat` (re-used from `soc-architect.jsx:3482`) — the live agent transcript stays one click away |
+| Left | IP selector plus every stage's current status, evidence summary, and state |
+| Center | Full-height DAG/flow canvas with swimlanes and selected route highlighting |
+| Right | Orchestrator chat for pipeline-level instructions and user input |
+
+Sizing rules:
+
+- Desktop uses a three-column grid: about 300 px left rail, fluid center graph,
+  and about 430 px right orchestrator chat.
+- Graph height should be at least 65vh and should not collapse into a strip.
+- Flow selection and numbered step controls stay above the graph, never below it.
+- Right chat should be wide enough for readable command/history text and scroll independently.
+- Stage cards are not the main layout. They can appear as compact node popovers
+  or detail drilldowns, not as the default screen.
+- The old 2-column stage-card grid is acceptable only as a secondary/detail
+  view, not the default Pipeline experience.
+
+## User-first Green Readiness
+
+The Pipeline screen must be usable without knowing internal gate names such as
+`goal_audit`, `derive_rtl_todos`, or `coverage blocked`.
+
+The left rail therefore starts with a **Green Readiness** card above the expert
+stage list. Backend source is `GET /api/progress`, field
+`selected.simple_summary` (also mirrored at `selected.signoff.simple_summary`).
+That summary is deliberately user-facing:
+
+- `headline` and `message` explain the current state in plain language.
+- `percent` gives a rough "how close to green" readout.
+- `primary_action` is a simple action such as `Run to Green` or `Open Review`.
+- `next_steps[]` is capped to the first few useful actions and labels ownership
+  as `user` or `atlas`.
+- Raw internal blockers remain available under `expert_blockers`, but they are
+  not the first thing a normal user sees.
+
+Example policy: a real requirements blocker should render as "One user review
+is needed" / "Complete requirements review", not as
+`goal audit fail blockers=req`. The expert string still stays in the payload so
+debuggers and tests can inspect the exact gate.
+
+## Current Validation
+
+2026-05-16 validation evidence:
+
+- Browser smoke on `127.0.0.1:5410` verified the new Green Readiness card is
+  visible above the left stage rail, the right orchestrator chat remains mounted,
+  and there is no JSX/runtime crash. Screenshot:
+  `/tmp/atlas_pipeline_green_v2.png`.
+- Browser layout smoke on `127.0.0.1:8766` showed a 3-column board:
+  left stage rail at `x=0`, center flow map at `x=300`, right orchestrator
+  chat at `x=1491`, and `pipe-flow-inspector` count `0`.
+- `tests/test_pipeline_orchestrator_worker_integration.py` starts two
+  mock HTTP workers and verifies the default 15-stage full-IP pipeline
+  can complete through `/api/pipeline/dispatch` with `schedule=auto`.
+  It also verifies the focused `rtl-gen -> {lint,tb-gen,syn}` fanout
+  path across a second worker after `/status` + `/result` reports RTL
+  completion.
+- The same test file also starts real `core.agent_server.create_app()`
+  worker endpoints with the LLM loop patched out, proving the Pipeline
+  dispatcher can talk to the same `/run`, `/status`, and `/result`
+  surface used by `python3 src/main.py --serve`.
+- The same integration test verifies `ATLAS_ORCHESTRATOR_MODE=1`
+  surfaces a pending JSON handoff in `/api/pipeline/state` and that
+  downstream worker payloads carry `rtl_version_id` plus artifact context.
 
 Phase bands group the 14 stages by domain semantics, not by status:
 
@@ -61,6 +180,15 @@ Phase bands group the 14 stages by domain semantics, not by status:
 - **IMPLEMENT** — `rtl`, `lint`, `tb` (the long expensive LLM stages — biggest cards)
 - **VERIFY** — `sim`, `coverage`, `sim-debug`, `goal-audit` (truth-check + blame routing)
 - **SIGN-OFF** — `syn`, `sta`, `pnr`, `sta-post` (collapsed by default; rarely run for educational IPs)
+
+Recommended swimlanes for the graph:
+
+- REQUIREMENTS / SSOT
+- MODELS / COVERAGE PLAN
+- RTL / TB AUTHORING
+- VERIFY / DEBUG
+- EDA SIGNOFF
+- ORCHESTRATOR / WORKERS / HANDOFFS
 
 ## State derivation (DB-first, FS-fallback)
 

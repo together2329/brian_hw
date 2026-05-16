@@ -1,0 +1,22 @@
+{
+  "job_id": "ptd_945abba1a2",
+  "worker_idx": 0,
+  "model": "mA1",
+  "requested_model": "mA1",
+  "status": "completed",
+  "todos_assigned": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "a1"
+    }
+  ],
+  "todos_done": [
+    "todo-1"
+  ],
+  "result": "ok(mA1)",
+  "error": "",
+  "started_at": 1778924816.8725948,
+  "completed_at": 1778924817.1291032,
+  "duration_s": 0.25650906562805176
+}

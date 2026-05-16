@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,7 @@ from src.headless_workflow import (
     HeadlessWorkflowRunner,
     LLMResponse,
     RealLLMProvider,
+    StageResult,
     _stable_json_sha256,
     _structured_ssot_yaml,
 )
@@ -114,6 +116,84 @@ def test_rtl_packet_needs_llm_skips_locked_truth_only_packets(tmp_path: Path):
     ) is True
 
 
+def test_pipeline_continues_failed_sim_to_sim_debug_for_owner_routing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    ip = "sim_fail_owner_route_ip"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="fake-contract-model",
+        llm_provider=FakeLLMProvider(),
+    )
+    (runner.root / ip / "logs").mkdir(parents=True, exist_ok=True)
+    calls: list[str] = []
+
+    monkeypatch.setenv("ATLAS_HEADLESS_PIPELINE_MAX_ITERS", "1")
+    monkeypatch.setattr(
+        runner,
+        "_pipeline_stage_list",
+        lambda _ip, _context: ["sim", "coverage", "sim-debug"],
+    )
+    monkeypatch.setattr(
+        runner,
+        "_pipeline_repair_request",
+        lambda _ip: {
+            "owner": "fl-model-gen",
+            "signature": "stale-oracle-signature",
+            "items": [
+                {
+                    "classification": "stale_oracle",
+                    "owner": "fl-model-gen",
+                    "llm_loop_allowed": True,
+                }
+            ],
+        },
+    )
+
+    def fake_execute(canonical: str, _ip: str, _context: dict) -> StageResult:
+        calls.append(canonical)
+        if canonical == "coverage":
+            raise AssertionError("coverage should wait until sim-debug classifies failed sim evidence")
+        if canonical == "sim":
+            return StageResult("sim", "fail", "scoreboard failed", returncode=1)
+        if canonical == "sim-debug":
+            return StageResult("sim-debug", "fail", "owner classification ready", returncode=1)
+        return StageResult(canonical, "pass", "pass")
+
+    monkeypatch.setattr(runner, "_execute_canonical_stage", fake_execute)
+
+    result = runner._stage_pipeline_converge(ip, {})
+
+    assert calls == ["sim", "sim-debug"]
+    assert result.stage == "pipeline"
+    assert result.status == "blocked"
+    assert "repair loop budget exhausted" in result.message
+    review_files = list((runner.root / ip / "review").glob("decision_needed_pipeline_*.json"))
+    assert review_files
+
+
+def test_pipeline_repair_sequence_keeps_owner_when_stage_filter_excludes_it(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="fake-contract-model",
+        llm_provider=FakeLLMProvider(),
+    )
+
+    monkeypatch.setenv("ATLAS_HEADLESS_PIPELINE_STAGES", "tb-gen,sim,sim-debug")
+
+    assert runner._pipeline_repair_sequence("rtl-gen") == [
+        "rtl-gen",
+        "lint",
+        "tb-gen",
+        "sim",
+        "sim-debug",
+    ]
+
+
 def test_rtl_packet_work_batch_respects_max_per_pass(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     runner = HeadlessWorkflowRunner(
         root=tmp_path / "work",
@@ -164,6 +244,133 @@ def test_rtl_packet_work_batch_defaults_to_small_ui_batch(tmp_path: Path, monkey
     assert batch["selected_packets"] == 4
     assert batch["deferred_work_packets"] == 2
     assert batch["packet_batch_limit"] == 4
+
+
+def test_rtl_packet_parallel_mode_runs_independent_module_packets_concurrently(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    ip = "parallel_packet_ip"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="fake-contract-model",
+        llm_provider=FakeLLMProvider(),
+    )
+    packets = [
+        {
+            "packet_id": "module__parallel_packet_ip_core",
+            "kind": "module",
+            "json": "rtl/authoring_packets/module__parallel_packet_ip_core.json",
+            "owner_file": f"rtl/{ip}_core.sv",
+            "summary": {"open_required_count": 1},
+            "execution_policy": {"llm_actionable_open_count": 1},
+        },
+        {
+            "packet_id": "module__parallel_packet_ip_irq",
+            "kind": "module",
+            "json": "rtl/authoring_packets/module__parallel_packet_ip_irq.json",
+            "owner_file": f"rtl/{ip}_irq.sv",
+            "summary": {"open_required_count": 1},
+            "execution_policy": {"llm_actionable_open_count": 1},
+        },
+    ]
+    barrier = threading.Barrier(2, timeout=2)
+    refreshed: list[str] = []
+
+    def fake_call(stage, ip_arg, context, **_kwargs):
+        barrier.wait()
+        packet_id = context["rtl_packet_id"]
+        owner_file = context["rtl_packet_owner_file"]
+        return LLMResponse(
+            stage=stage,
+            model="fake-contract-model",
+            raw_response=json.dumps({"files": [{"path": f"{ip_arg}/{owner_file}", "content": f"// {packet_id}\n"}]}),
+            parsed_artifacts=[{"path": f"{ip_arg}/{owner_file}", "content": f"// {packet_id}\n", "kind": "rtl"}],
+        )
+
+    monkeypatch.setenv("ATLAS_HEADLESS_RTL_PACKET_PARALLEL", "1")
+    monkeypatch.setenv("ATLAS_HEADLESS_RTL_PACKET_PARALLEL_WORKERS", "2")
+    monkeypatch.setattr(runner, "_rtl_authoring_plan", lambda _ip: {"packets": packets})
+    monkeypatch.setattr(runner, "_rtl_packet_prompt", lambda *_args, **_kwargs: ("system", "prompt"))
+    monkeypatch.setattr(runner, "_call_llm", fake_call)
+    monkeypatch.setattr(runner, "_refresh_rtl_filelist_and_provenance", lambda _ip, packet_id="": refreshed.append(packet_id) or False)
+
+    result = runner._run_rtl_packet_llm_pass(ip, {}, attempt=0)
+
+    assert result is None
+    assert refreshed == ["module__parallel_packet_ip_core", "module__parallel_packet_ip_irq"]
+    assert (tmp_path / "work" / ip / "rtl" / f"{ip}_core.sv").read_text(encoding="utf-8") == "// module__parallel_packet_ip_core\n"
+    assert (tmp_path / "work" / ip / "rtl" / f"{ip}_irq.sv").read_text(encoding="utf-8") == "// module__parallel_packet_ip_irq\n"
+    progress = (tmp_path / "work" / ip / "logs" / "run_progress.jsonl").read_text(encoding="utf-8")
+    assert "rtl_packet_parallel_start" in progress
+    assert "rtl_packet_parallel_end" in progress
+
+
+def test_rtl_packet_parallel_mode_rejects_shared_owner_files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="fake-contract-model",
+        llm_provider=FakeLLMProvider(),
+    )
+    monkeypatch.setenv("ATLAS_HEADLESS_RTL_PACKET_PARALLEL", "1")
+    packets = [
+        {"packet_id": "a", "kind": "module", "owner_file": "rtl/shared.sv"},
+        {"packet_id": "b", "kind": "module", "owner_file": "rtl/shared.sv"},
+    ]
+
+    assert runner._rtl_packet_parallel_enabled(packets) is True
+    assert runner._rtl_packets_parallel_safe(packets) is False
+
+
+def test_ensure_generic_rtl_contract_recovers_noncanonical_llm_contract(tmp_path: Path):
+    ip = "gpio_like"
+    ip_dir = tmp_path / "work" / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "rtl").mkdir()
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        """
+top_module:
+  name: gpio_like
+io_list:
+  clock_domains:
+    - name: clk
+      ports:
+        - {name: clk, direction: input, width: 1}
+  resets:
+    - name: rst_n
+      ports:
+        - {name: rst_n, direction: input, width: 1}
+  interfaces:
+    - name: bus
+      ports:
+        - {name: psel, direction: input, width: 1}
+        - {name: prdata, direction: output, width: 32}
+        - {name: pready, direction: output, width: 1}
+function_model:
+  state_variables:
+    - {name: reg0, reset: 0, width: 32}
+  transactions:
+    - id: FM1
+      outputs: ["prdata reflects selected register"]
+cycle_model: {}
+""",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_contract.json").write_text(
+        json.dumps({"ip": ip, "note": "LLM-authored noncanonical contract"}),
+        encoding="utf-8",
+    )
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="fake-contract-model",
+        llm_provider=FakeLLMProvider(),
+    )
+
+    assert runner._ensure_generic_rtl_contract(ip) is True
+
+    contract = json.loads((ip_dir / "rtl" / "rtl_contract.json").read_text(encoding="utf-8"))
+    assert contract["type"] == "generic_ssot_rule_rtl_contract"
+    assert contract["contract"]["clock"] == "clk"
+    assert contract["contract"]["reset"] == "rst_n"
+    assert contract["contract"]["reset_active"] == "low"
+    assert {row["port"] for row in contract["contract"]["outputs"]} == {"prdata", "pready"}
 
 
 def test_rtl_packet_work_batch_defers_evidence_closure_until_module_work_is_audited(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -411,6 +618,352 @@ def test_rtl_packet_prompt_includes_tool_evidence_artifacts(tmp_path: Path):
     assert "Current tool evidence artifacts referenced by this packet" in prompt
     assert f"### {ip}/lint/dut_lint.json" in prompt
     assert "UNUSEDPARAM" in prompt
+
+
+def test_rtl_packet_prompt_includes_manifest_rtl_interface_digest(tmp_path: Path):
+    ip = "interface_digest_ip"
+    root = tmp_path / "work"
+    ip_dir = root / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "rtl" / "authoring_packets").mkdir(parents=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                f"  name: {ip}",
+                "sub_modules:",
+                f"  - name: {ip}",
+                f"    file: rtl/{ip}.sv",
+                "    ownership: manifest",
+                f"  - name: {ip}_child",
+                f"    file: rtl/{ip}_child.sv",
+                "    ownership: manifest",
+                "filelist:",
+                "  rtl:",
+                f"    - rtl/{ip}.sv",
+                f"    - rtl/{ip}_child.sv",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        f"module {ip}(input logic clk); endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}_child.sv").write_text(
+        f"module {ip}_child(input logic clk, output logic done); endmodule\n",
+        encoding="utf-8",
+    )
+    packet_rel = "rtl/authoring_packets/rtl_gate_evidence_closure.json"
+    packet_md_rel = "rtl/authoring_packets/rtl_gate_evidence_closure.md"
+    (ip_dir / packet_rel).write_text('{"execution_policy":{}}\n', encoding="utf-8")
+    (ip_dir / packet_md_rel).write_text("# evidence closure\n", encoding="utf-8")
+    packet = {
+        "packet_id": "rtl_gate_evidence_closure",
+        "kind": "gate",
+        "json": packet_rel,
+        "markdown": packet_md_rel,
+        "owner_file": f"rtl/{ip}.sv",
+        "summary": {"open_required_count": 1},
+        "execution_policy": {"llm_actionable_open_count": 1},
+    }
+    runner = HeadlessWorkflowRunner(root=root, model="fake-contract-model", llm_provider=FakeLLMProvider())
+
+    _, prompt = runner._rtl_packet_prompt(ip, {}, {"packets": [packet]}, packet, attempt=1)
+
+    assert "Current RTL module interface digest" in prompt
+    assert f"module {ip}_child" in prompt
+    assert "output logic done" in prompt
+
+
+def test_rtl_gate_packet_prompt_includes_audit_digest_and_all_rtl_snapshots(tmp_path: Path):
+    ip = "gate_snapshot_ip"
+    root = tmp_path / "work"
+    ip_dir = root / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "rtl" / "authoring_packets").mkdir(parents=True)
+    (ip_dir / "lint").mkdir(parents=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                f"  name: {ip}",
+                "sub_modules:",
+                f"  - name: {ip}",
+                f"    file: rtl/{ip}.sv",
+                "    ownership: manifest",
+                f"  - name: {ip}_apb",
+                f"    file: rtl/{ip}_apb.sv",
+                "    ownership: manifest",
+                f"  - name: {ip}_irq",
+                f"    file: rtl/{ip}_irq.sv",
+                "    ownership: manifest",
+                "filelist:",
+                "  rtl:",
+                f"    - rtl/{ip}.sv",
+                f"    - rtl/{ip}_apb.sv",
+                f"    - rtl/{ip}_irq.sv",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(f"module {ip}; endmodule\n", encoding="utf-8")
+    (ip_dir / "rtl" / f"{ip}_apb.sv").write_text(
+        f"module {ip}_apb(input logic [31:0] pwdata); always @(posedge pwdata[0]) apb_w1c_mask <= pwdata[GPIO_WIDTH-1:0]; endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}_irq.sv").write_text(
+        f"module {ip}_irq; logic [7:0] reg_irq_status_set_next; endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_compile.json").write_text(
+        json.dumps(
+            {
+                "passed": False,
+                "returncode": 0,
+                "errors": 0,
+                "diagnostics": 0,
+                "style_violations": 1,
+                "style_violation_details": [
+                    {
+                        "file": f"rtl/{ip}_apb.sv",
+                        "line": 1,
+                        "rule": "no_parameterized_part_select_in_procedural_block",
+                        "text": "apb_w1c_mask <= pwdata[GPIO_WIDTH-1:0];",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "lint" / "dut_lint.json").write_text(
+        json.dumps(
+            {
+                "passed": False,
+                "returncode": 1,
+                "errors": 0,
+                "warnings": 1,
+                "tool_results": [
+                    {
+                        "tool": "verilator",
+                        "diagnostics": [
+                            {
+                                "rule": "UNUSEDSIGNAL",
+                                "file": f"rtl/{ip}_irq.sv",
+                                "message": "Signal is not used: reg_irq_status_set_next",
+                            }
+                        ],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_todo_plan.json").write_text(
+        json.dumps(
+            {
+                "gate": {"status": "fail", "open_required_todos": 2, "static_missing": 1},
+                "todo_completion": {
+                    "open_tasks": [
+                        {
+                            "task_id": "RTL-0114",
+                            "source_ref": "cycle_model.ordering.ordering_rule_0",
+                            "reason": "Required RTL static evidence is missing.",
+                        }
+                    ]
+                },
+                "static_rtl_evidence": {
+                    "missing_tasks": [
+                        {
+                            "task_id": "RTL-0114",
+                            "owner_file": f"rtl/{ip}_irq.sv",
+                            "terms": ["set_and_clear_same_bit_same_observation_window_is_set_dominant"],
+                        }
+                    ]
+                },
+                "manifest_signal_flow_evidence": {
+                    "issues": [
+                        {
+                            "module": f"{ip}_irq",
+                            "port": "irq_status_core",
+                            "issue": "output does not feed parent logic",
+                        }
+                    ]
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    packet_rel = "rtl/authoring_packets/rtl_gate_tool_evidence.json"
+    packet_md_rel = "rtl/authoring_packets/rtl_gate_tool_evidence.md"
+    (ip_dir / packet_rel).write_text(
+        json.dumps(
+            {
+                "packet_id": "rtl_gate_tool_evidence",
+                "kind": "gate",
+                "owner_file": f"rtl/{ip}.sv",
+                "execution_policy": {
+                    "tool_evidence_plan": [
+                        {
+                            "gate_kind": "dut_compile",
+                            "artifacts": [f"{ip}/rtl/rtl_compile.json", f"{ip}/lint/dut_lint.json"],
+                        }
+                    ]
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / packet_md_rel).write_text("# gate tool evidence\n", encoding="utf-8")
+    packet = {
+        "packet_id": "rtl_gate_tool_evidence",
+        "kind": "gate",
+        "json": packet_rel,
+        "markdown": packet_md_rel,
+        "owner_file": f"rtl/{ip}.sv",
+        "summary": {"open_required_count": 2},
+        "execution_policy": {"llm_actionable_open_count": 1},
+    }
+    runner = HeadlessWorkflowRunner(root=root, model="fake-contract-model", llm_provider=FakeLLMProvider())
+
+    _, prompt = runner._rtl_packet_prompt(ip, {}, {"packets": [packet]}, packet, attempt=1)
+
+    assert "Current RTL gate audit digest" in prompt
+    assert "Current RTL file snapshots for gate/tool-evidence repair" in prompt
+    assert "Gate/tool-evidence packets may edit any declared RTL file" in prompt
+    assert f"### rtl/{ip}_apb.sv" in prompt
+    assert f"### rtl/{ip}_irq.sv" in prompt
+    assert "no_parameterized_part_select_in_procedural_block" in prompt
+    assert "UNUSEDSIGNAL" in prompt
+    assert "set_and_clear_same_bit_same_observation_window_is_set_dominant" in prompt
+    assert "apb_w1c_mask <= pwdata[GPIO_WIDTH-1:0];" in prompt
+
+
+def test_rtl_packet_prompt_includes_sim_debug_repair_evidence(tmp_path: Path):
+    ip = "packet_repair_evidence_ip"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="glm-5.1",
+        llm_provider=FakeLLMProvider(),
+    )
+    ip_dir = tmp_path / "work" / ip
+    packet_rel = "rtl/authoring_packets/module__core.json"
+    packet_md_rel = "rtl/authoring_packets/module__core.md"
+    (ip_dir / "rtl" / "authoring_packets").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "sim").mkdir(parents=True, exist_ok=True)
+    (ip_dir / packet_rel).write_text(
+        json.dumps({"packet_id": "module__core", "owner_file": f"rtl/{ip}.sv"}),
+        encoding="utf-8",
+    )
+    (ip_dir / packet_md_rel).write_text("# Packet\n", encoding="utf-8")
+    (ip_dir / "sim" / "mismatch_classification.json").write_text(
+        json.dumps(
+            {
+                "type": "mismatch_classification",
+                "classifications": [
+                    {
+                        "goal_id": "EQ_GPIO_READBACK",
+                        "classification": "rtl_bug",
+                        "owner": "rtl-gen",
+                        "llm_loop_allowed": True,
+                        "reason": "readback returned zero",
+                        "repair_prompt": "Repair RTL for EQ_GPIO_READBACK using expected/observed evidence.",
+                        "evidence": {
+                            "ssot_refs": ["function_model.transactions.FM_READ.output_rules.prdata"],
+                            "fl_expected": {"prdata": 90},
+                            "rtl_observed": {"prdata": 0},
+                            "scoreboard_rows": [
+                                {
+                                    "goal_id": "EQ_GPIO_READBACK",
+                                    "fl_expected": {"prdata": 90},
+                                    "rtl_observed": {"prdata": 0},
+                                }
+                            ],
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    plan = {
+        "packets": [
+            {
+                "packet_id": "module__core",
+                "kind": "module",
+                "owner_module": f"{ip}_core",
+                "owner_file": f"rtl/{ip}.sv",
+                "json": packet_rel,
+                "markdown": packet_md_rel,
+                "summary": {"required_count": 1, "open_required_count": 1},
+                "execution_policy": {"llm_actionable_open_count": 1},
+            }
+        ],
+    }
+
+    _, prompt = runner._rtl_packet_prompt(ip, {}, plan, plan["packets"][0], attempt=1)
+
+    assert "Current sim-debug owner repair evidence" in prompt
+    assert f"{ip}/sim/mismatch_classification.json" in prompt
+    assert "EQ_GPIO_READBACK" in prompt
+    assert "Repair RTL for EQ_GPIO_READBACK" in prompt
+    assert '"fl_expected"' in prompt
+    assert '"rtl_observed"' in prompt
+
+
+def test_rtl_packet_work_batch_reopens_closed_module_packets_for_fresh_sim_debug_repair(tmp_path: Path):
+    ip = "packet_repair_reopen_ip"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="gpt-5.3-codex",
+        llm_provider=FakeLLMProvider(),
+    )
+    ip_dir = tmp_path / "work" / ip
+    (ip_dir / "rtl").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "sim").mkdir(parents=True, exist_ok=True)
+    rtl_path = ip_dir / "rtl" / f"{ip}.sv"
+    rtl_path.write_text("module packet_repair_reopen_ip; endmodule\n", encoding="utf-8")
+    mismatch_path = ip_dir / "sim" / "mismatch_classification.json"
+    mismatch_path.write_text(
+        json.dumps(
+            {
+                "classifications": [
+                    {
+                        "goal_id": "EQ_GPIO_READBACK",
+                        "classification": "rtl_bug",
+                        "owner": "rtl-gen",
+                        "llm_loop_allowed": True,
+                        "reason": "readback returned zero",
+                        "repair_prompt": "Repair RTL readback from scoreboard evidence.",
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    now = rtl_path.stat().st_mtime
+    os.utime(mismatch_path, (now + 10, now + 10))
+    plan = {
+        "ip": ip,
+        "packets": [
+            {
+                "packet_id": "module__core",
+                "kind": "module",
+                "owner_file": f"rtl/{ip}.sv",
+                "json": "rtl/authoring_packets/module__core.json",
+                "summary": {"required_count": 4, "open_required_count": 0},
+                "execution_policy": {"llm_actionable_open_count": 0},
+            }
+        ],
+    }
+
+    work_packets, batch = runner._rtl_packet_work_batch(plan)
+
+    assert [packet["packet_id"] for packet in work_packets] == ["module__core"]
+    assert batch["work_packets"] == 1
+    assert batch["skipped_closed_packets"] == 0
 
 
 def test_headless_runner_regenerates_generic_rtl_contract_from_ssot(tmp_path: Path):
@@ -963,6 +1516,91 @@ def test_rtl_gen_packet_mode_uses_queue_sized_pass_budget(tmp_path: Path, monkey
 
     assert packet_attempts == [0, 1, 2, 3, 4, 5]
     assert result.status == "fail"
+
+
+def test_pipeline_repeats_loopable_mismatch_as_review_decision_not_human_gate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    ip = "pipeline_repair_probe"
+    root = tmp_path / "work"
+    runner = HeadlessWorkflowRunner(
+        root=root,
+        model="fake-contract-model",
+        llm_provider=FakeLLMProvider(),
+    )
+    (root / ip / "sim").mkdir(parents=True, exist_ok=True)
+    calls: list[str] = []
+
+    def append_pass(stage: str):
+        def _impl(_ip: str, *args, **kwargs):
+            calls.append(stage)
+            return runner._append(stage, "pass", f"{stage} pass")
+
+        return _impl
+
+    def sim_debug(_ip: str):
+        calls.append("sim-debug")
+        (root / ip / "sim" / "mismatch_classification.json").write_text(
+            json.dumps(
+                {
+                    "type": "mismatch_classification",
+                    "status": "action_required",
+                    "classifications": [
+                        {
+                            "goal_id": "EQ_STABLE_FAIL",
+                            "classification": "rtl_bug",
+                            "owner": "rtl-gen",
+                            "llm_loop_allowed": True,
+                            "reason": "same expected/observed mismatch",
+                            "repair_prompt": "Repair RTL for EQ_STABLE_FAIL.",
+                            "evidence": {
+                                "fl_expected": {"result": 1},
+                                "rtl_observed": {"result": 0},
+                                "scoreboard_rows": [
+                                    {
+                                        "goal_id": "EQ_STABLE_FAIL",
+                                        "fl_expected": {"result": 1},
+                                        "rtl_observed": {"result": 0},
+                                    }
+                                ],
+                            },
+                        }
+                    ],
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        return runner._append("sim-debug", "fail", "classified rtl-gen mismatch")
+
+    monkeypatch.setenv("ATLAS_HEADLESS_PIPELINE_STAGES", "rtl-gen,lint,tb-gen,sim,sim-debug")
+    monkeypatch.setenv("ATLAS_HEADLESS_PIPELINE_MAX_ITERS", "2")
+    monkeypatch.setattr(runner, "_stage_rtl_gen", lambda _ip, _ctx: append_pass("rtl-gen")(_ip))
+    monkeypatch.setattr(runner, "_stage_lint", append_pass("lint"))
+    monkeypatch.setattr(runner, "_stage_tb_gen", lambda _ip, _ctx: append_pass("tb-gen")(_ip))
+    monkeypatch.setattr(runner, "_stage_sim", append_pass("sim"))
+    monkeypatch.setattr(runner, "_stage_sim_debug", sim_debug)
+
+    result = runner.run(ip=ip, stages=["pipeline"])
+
+    assert result.status == "blocked"
+    assert calls == [
+        "rtl-gen",
+        "lint",
+        "tb-gen",
+        "sim",
+        "sim-debug",
+        "rtl-gen",
+        "lint",
+        "tb-gen",
+        "sim",
+        "sim-debug",
+    ]
+    review_path = root / ip / "review" / "decision_needed_pipeline_repeated_rtl_gen_mismatch.json"
+    assert review_path.is_file()
+    review = json.loads(review_path.read_text(encoding="utf-8"))
+    assert review["status"] == "review_decision_needed"
+    assert review["evidence"]["owner"] == "rtl-gen"
+    assert review["evidence"]["goal_ids"] == ["EQ_STABLE_FAIL"]
+    assert not (root / ip / "questions").exists()
 
 
 def test_headless_cli_allows_downstream_stage_without_req(tmp_path: Path):

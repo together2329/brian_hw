@@ -1,0 +1,84 @@
+{
+  "job_id": "ptd_41a4a80eac",
+  "requested_worker_count": 4,
+  "worker_count": 4,
+  "models": [
+    {
+      "requested_model": "m1",
+      "resolved_model": "m1",
+      "pricing_model": "m1",
+      "reason": ""
+    },
+    {
+      "requested_model": "m2",
+      "resolved_model": "m2",
+      "pricing_model": "m2",
+      "reason": ""
+    },
+    {
+      "requested_model": "m3",
+      "resolved_model": "m3",
+      "pricing_model": "m3",
+      "reason": ""
+    },
+    {
+      "requested_model": "m4",
+      "resolved_model": "m4",
+      "pricing_model": "m4",
+      "reason": ""
+    }
+  ],
+  "todos": [
+    {
+      "index": 0,
+      "id": "todo-1",
+      "content": "한글 task — 처리 부탁"
+    },
+    {
+      "index": 1,
+      "id": "todo-2",
+      "content": "with \"quotes\" and \\backslash"
+    },
+    {
+      "index": 2,
+      "id": "todo-3",
+      "content": "multi\nline\ncontent"
+    },
+    {
+      "index": 3,
+      "id": "todo-4",
+      "content": "emoji 🚀 and symbols ∑∆Ω"
+    }
+  ],
+  "chunks": [
+    [
+      {
+        "index": 0,
+        "id": "todo-1",
+        "content": "한글 task — 처리 부탁"
+      }
+    ],
+    [
+      {
+        "index": 1,
+        "id": "todo-2",
+        "content": "with \"quotes\" and \\backslash"
+      }
+    ],
+    [
+      {
+        "index": 2,
+        "id": "todo-3",
+        "content": "multi\nline\ncontent"
+      }
+    ],
+    [
+      {
+        "index": 3,
+        "id": "todo-4",
+        "content": "emoji 🚀 and symbols ∑∆Ω"
+      }
+    ]
+  ],
+  "created_at": 1778925157.104991
+}
