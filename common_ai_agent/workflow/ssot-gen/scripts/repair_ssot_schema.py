@@ -631,10 +631,15 @@ def _port_widths(doc: dict[str, Any]) -> dict[str, Any]:
 
 
 def _ports_by_direction(doc: dict[str, Any], direction: str) -> list[str]:
+    requested = str(direction or "").lower()
     return [
         str(port.get("name"))
         for port in _all_interface_ports(doc)
-        if str(port.get("direction") or "").lower() == direction
+        if (
+            str(port.get("direction") or "").lower() == requested
+            or (requested == "output" and str(port.get("direction") or "").lower() == "inout")
+            or (requested == "input" and str(port.get("direction") or "").lower() == "inout")
+        )
         and str(port.get("name") or "").strip()
     ]
 
@@ -1047,16 +1052,16 @@ def _ensure_function_model_machine_rules(doc: dict[str, Any]) -> None:
     for tx in txs:
         if not isinstance(tx.get("output_rules"), list):
             tx["output_rules"] = []
-        tx_text = " ".join(
+        local_tx_text = " ".join(
             [
                 str(tx.get("id") or ""),
                 str(tx.get("name") or ""),
                 json.dumps(tx.get("outputs") or [], sort_keys=True, default=str),
                 json.dumps(tx.get("side_effects") or [], sort_keys=True, default=str),
-                combined_doc_text,
             ]
         )
-        if not tx["output_rules"] and input_port and output_port and _mentions_shift_left_by_one(tx_text):
+        tx_text = " ".join([local_tx_text, combined_doc_text])
+        if not tx["output_rules"] and input_port and output_port and _mentions_shift_left_by_one(local_tx_text):
             tx["output_rules"].append(
                 {
                     "name": output_port,
@@ -1072,7 +1077,7 @@ def _ensure_function_model_machine_rules(doc: dict[str, Any]) -> None:
             isinstance(state, dict) and str(state.get("name") or "") == "accepted_count"
             for state in fm.get("state_variables") or []
         )
-        if has_accepted_count and not state_updates and "accepted_count" in tx_text and "increment" in tx_text.lower():
+        if has_accepted_count and not state_updates and "accepted_count" in local_tx_text and "increment" in local_tx_text.lower():
             width = 32
             for state in fm.get("state_variables") or []:
                 if isinstance(state, dict) and str(state.get("name") or "") == "accepted_count":
@@ -1212,9 +1217,20 @@ def _names_in_expr(expr: Any) -> set[str]:
     except SyntaxError:
         return set()
     names: set[str] = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Name):
+
+    class _Visitor(ast.NodeVisitor):
+        def visit_Name(self, node: ast.Name) -> None:  # noqa: N802 - ast visitor API
             names.add(node.id)
+
+        def visit_Call(self, node: ast.Call) -> None:  # noqa: N802 - ast visitor API
+            if not isinstance(node.func, ast.Name):
+                self.visit(node.func)
+            for arg in node.args:
+                self.visit(arg)
+            for keyword in node.keywords:
+                self.visit(keyword.value)
+
+    _Visitor().visit(tree)
     return names
 
 
@@ -1232,9 +1248,10 @@ def _is_dsl_parseable(expr: Any) -> bool:
 def _ensure_rule_expr_input_map_completeness(doc: dict[str, Any]) -> None:
     """Repair rtl-gen preflight gates by deterministic SSOT extension.
 
-    C-1: Auto-extend rtl_contract.input_map and io_list with identifier names
-         referenced in output_rules/sample_condition that aren't declared
-         input ports (added as 1-bit input ports, self-mapped).
+    C-1: Keep expression references machine-checkable without inventing top
+         level IO. Helper calls and internal derived signals must not be
+         promoted to DUT ports; undeclared external fields should surface as
+         contract questions in downstream gates.
     C-2: Replace prose sample_condition with a DSL-parseable default that
          uses declared input ports.
     C-3: Add placeholder output_rules for function_model state_variables that
@@ -1248,16 +1265,65 @@ def _ensure_rule_expr_input_map_completeness(doc: dict[str, Any]) -> None:
     if not txs:
         return
 
+    input_map = contract.get("input_map") if isinstance(contract.get("input_map"), dict) else {}
+    output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
+    stale_auto_ports: set[str] = set()
+    io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
+    interfaces = io.get("interfaces") if isinstance(io.get("interfaces"), list) else []
+    for interface in interfaces:
+        if not isinstance(interface, dict):
+            continue
+        ports = interface.get("ports") if isinstance(interface.get("ports"), list) else []
+        kept_ports: list[dict[str, Any]] = []
+        for port in ports:
+            if not isinstance(port, dict):
+                continue
+            name = str(port.get("name") or "").strip()
+            desc = str(port.get("description") or "")
+            if name and "Auto-derived 1-bit input from rule expression" in desc:
+                stale_auto_ports.add(name)
+                continue
+            kept_ports.append(port)
+        interface["ports"] = kept_ports
+    if stale_auto_ports:
+        input_map = {
+            str(field): port
+            for field, port in input_map.items()
+            if str(field) not in stale_auto_ports and str(port) not in stale_auto_ports
+        }
+        contract["input_map"] = input_map
+
     declared_inputs = set(_ports_by_direction(doc, "input"))
     declared_outputs = set(_ports_by_direction(doc, "output"))
     declared_all = declared_inputs | declared_outputs
-    input_map = contract.get("input_map") if isinstance(contract.get("input_map"), dict) else {}
-    output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
+
     fm_state_names = {
         str(state.get("name") or "").strip()
         for state in fm.get("state_variables") or []
         if isinstance(state, dict) and str(state.get("name") or "").strip()
     }
+    internal_signal_names: set[str] = set()
+    for key in (
+        "derived_signals",
+        "intermediate_signals",
+        "internal_signals",
+        "combinational_signals",
+    ):
+        values = fm.get(key)
+        if isinstance(values, dict):
+            internal_signal_names.update(str(name).strip() for name in values if str(name).strip())
+            values = list(values.values())
+        if not isinstance(values, list):
+            continue
+        for item in values:
+            if isinstance(item, str) and item.strip():
+                internal_signal_names.add(item.strip())
+            elif isinstance(item, dict):
+                for name_key in ("name", "signal", "id"):
+                    name = str(item.get(name_key) or "").strip()
+                    if name:
+                        internal_signal_names.add(name)
+                        break
 
     rule_target_names: set[str] = set()
     for tx in txs:
@@ -1300,6 +1366,7 @@ def _ensure_rule_expr_input_map_completeness(doc: dict[str, Any]) -> None:
         | set(input_map.keys())
         | set(output_map.keys())
         | fm_state_names
+        | internal_signal_names
         | rule_target_names
         | _RULE_HELPER_NAMES
     )
@@ -1309,30 +1376,9 @@ def _ensure_rule_expr_input_map_completeness(doc: dict[str, Any]) -> None:
     )
 
     if missing:
-        for name in missing:
-            input_map.setdefault(name, name)
-        contract["input_map"] = input_map
-        io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
-        interfaces = io.get("interfaces") if isinstance(io.get("interfaces"), list) else []
-        if interfaces and isinstance(interfaces[0], dict):
-            ports = interfaces[0].get("ports") if isinstance(interfaces[0].get("ports"), list) else []
-            existing_port_names = {
-                str(p.get("name") or "") for p in ports if isinstance(p, dict)
-            }
-            for name in missing:
-                if name in existing_port_names:
-                    continue
-                ports.append({
-                    "name": name,
-                    "width": 1,
-                    "direction": "input",
-                    "description": (
-                        f"Auto-derived 1-bit input from rule expression {name!r} "
-                        "(repair_ssot_schema rule_expr_completeness pass; advisory: "
-                        "TB drives this signal from FL transaction intent)."
-                    ),
-                })
-            interfaces[0]["ports"] = ports
+        contract["unresolved_expression_refs"] = missing
+    else:
+        contract.pop("unresolved_expression_refs", None)
 
     if sample_condition is not None and not _is_dsl_parseable(sample_condition):
         replacement = ""
@@ -2810,8 +2856,83 @@ def _ensure_workflow_todos(doc: dict[str, Any], ip: str) -> dict[str, Any]:
     return todos
 
 
+_LEGACY_PROTOCOL_HINTS = {
+    "apb": "APB4", "apb3": "APB3", "apb4": "APB4",
+    "axi": "AXI4", "axil": "AXI4-Lite", "axilite": "AXI4-Lite", "axi_lite": "AXI4-Lite",
+    "axi4": "AXI4", "axi4_lite": "AXI4-Lite",
+    "ahb": "AHB", "ahbl": "AHB-Lite", "ahb_lite": "AHB-Lite",
+    "wishbone": "Wishbone", "wb": "Wishbone",
+    "i2c": "I2C", "i3c": "I3C", "spi": "SPI", "uart": "UART",
+    "irq": "interrupt", "interrupt": "interrupt", "interrupts": "interrupt",
+    "clock_reset": "clock_reset", "clk_rst": "clock_reset",
+    "clk": "clock", "rst": "reset",
+}
+
+
+def _normalize_port_direction(value: Any) -> str:
+    raw = str(value or "").strip().lower()
+    if raw in ("input", "in", "i"): return "input"
+    if raw in ("output", "out", "o"): return "output"
+    if raw in ("inout", "io", "bidir", "bidirectional"): return "inout"
+    return raw or "input"
+
+
+def _legacy_interface_to_io_list(doc: dict[str, Any]) -> None:
+    """Convert top-level `interface.<bus>.<port>: {dir,width,desc}` legacy
+    nested-dict format to canonical `io_list.interfaces[]: [{name, type,
+    ports: [{name, direction, width, description}]}]`. Idempotent: removes
+    the legacy key after migration so a second pass is a no-op.
+    """
+    legacy = doc.get("interface")
+    if not isinstance(legacy, dict) or not legacy:
+        return
+    io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
+    interfaces = io.get("interfaces") if isinstance(io.get("interfaces"), list) else []
+    existing_names = {
+        str(item.get("name") or "").strip().lower()
+        for item in interfaces
+        if isinstance(item, dict)
+    }
+    for bus_name, ports_dict in legacy.items():
+        if not isinstance(ports_dict, dict):
+            continue
+        bus_key = str(bus_name).strip()
+        if not bus_key or bus_key.lower() in existing_names:
+            continue
+        proto = _LEGACY_PROTOCOL_HINTS.get(bus_key.lower(), "custom")
+        ports: list[dict[str, Any]] = []
+        for port_name, port_spec in ports_dict.items():
+            if not isinstance(port_spec, dict):
+                continue
+            ports.append({
+                "name": str(port_name).strip(),
+                "direction": _normalize_port_direction(port_spec.get("dir") or port_spec.get("direction")),
+                "width": port_spec.get("width", 1),
+                "description": str(
+                    port_spec.get("desc")
+                    or port_spec.get("description")
+                    or ""
+                ).strip(),
+            })
+        if not ports:
+            continue
+        interfaces.append({
+            "name": bus_key,
+            "type": proto,
+            "role": "target" if proto in ("APB4", "APB3", "AXI4-Lite", "AHB-Lite", "Wishbone") else "custom",
+            "description": f"Legacy-migrated from `interface.{bus_key}` (auto-converted by repair_ssot_schema).",
+            "ports": ports,
+        })
+        existing_names.add(bus_key.lower())
+    if interfaces:
+        io["interfaces"] = interfaces
+        doc["io_list"] = io
+    doc.pop("interface", None)
+
+
 def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any]:
     out = dict(doc)
+    _legacy_interface_to_io_list(out)
     out["top_module"] = _ensure_top_module(out, state, ip)
     out["sub_modules"] = _ensure_sub_modules(out, ip)
     out["decomposition"] = _ensure_decomposition(out, ip)
@@ -3024,11 +3145,66 @@ def _validate_submodule_ownership(doc: dict[str, Any]) -> list[dict[str, Any]]:
     return issues
 
 
+def _machine_rule_items(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, dict)]
+
+
+def _machine_rule_has_expr(rule: dict[str, Any]) -> bool:
+    return any(str(rule.get(key) or "").strip() for key in ("expr", "expression", "value", "next_value"))
+
+
+def _is_reset_transaction(tx: dict[str, Any]) -> bool:
+    token = _norm_token(" ".join(str(tx.get(key) or "") for key in ("id", "name")))
+    parts = {part for part in token.split("_") if part}
+    return "reset" in parts or token in {"fm_reset", "reset_behavior", "reset_sequence"}
+
+
+def _validate_function_model_machine_rules(doc: dict[str, Any]) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    txs = fm.get("transactions") if isinstance(fm.get("transactions"), list) else []
+    for idx, tx in enumerate(txs):
+        if not isinstance(tx, dict):
+            continue
+        if _is_reset_transaction(tx):
+            continue
+        output_rules = _machine_rule_items(tx.get("output_rules"))
+        state_updates = _machine_rule_items(tx.get("state_updates"))
+        has_output_rule = any(
+            str(rule.get("name") or rule.get("output") or "").strip() and _machine_rule_has_expr(rule)
+            for rule in output_rules
+        )
+        has_state_update = any(
+            str(rule.get("name") or rule.get("state") or rule.get("target") or "").strip()
+            and _machine_rule_has_expr(rule)
+            for rule in state_updates
+        )
+        if has_output_rule or has_state_update:
+            continue
+        tx_id = str(tx.get("id") or tx.get("name") or f"tx_{idx}").strip() or f"tx_{idx}"
+        issues.append({
+            "id": f"SSOT_FM_MACHINE_RULES_MISSING_{_norm_token(tx_id).upper()}",
+            "field": f"function_model.transactions[{idx}]",
+            "transaction": tx_id,
+            "outputs": tx.get("outputs") or [],
+            "side_effects": tx.get("side_effects") or [],
+            "fix": (
+                "Convert prose outputs/side_effects into executable output_rules or state_updates. "
+                "Use output_rules with name, expr, width, and port for externally visible outputs; "
+                "use state_updates with name, expr, and width for architectural state changes."
+            ),
+        })
+    return issues
+
+
 def _validate_downstream_readiness(doc: dict[str, Any], ip: str, root: Path) -> list[dict[str, Any]]:
     issues: list[dict[str, Any]] = []
     issues.extend(_validate_output_rule_cycles(doc))
     issues.extend(_validate_sample_conditions(doc))
     issues.extend(_validate_submodule_ownership(doc))
+    issues.extend(_validate_function_model_machine_rules(doc))
     return issues
 
 
