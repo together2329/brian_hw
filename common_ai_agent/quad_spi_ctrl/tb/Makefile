@@ -1,5 +1,9 @@
 # Makefile for quad_spi_ctrl cocotb simulation
-export PATH := /Users/brian/Library/Python/3.9/bin:$(PATH)
+export PATH := /tmp:$(PATH)
+
+# Use wrapper cocotb-config
+COCOTB_MAKEFILES_DIR := $(shell cocotb-config --makefiles 2>/dev/null || echo /Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/share/makefiles)
+export COCOTB_MAKEFILES_DIR
 
 TOPLEVEL = quad_spi_ctrl_top
 
