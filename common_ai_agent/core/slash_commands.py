@@ -2938,8 +2938,12 @@ class SlashCommandRegistry:
             "m": "medium",
             "high": "high",
             "h": "high",
+            "hi": "high",
             "xhigh": "xhigh",
+            "x": "xhigh",
             "xh": "xhigh",
+            "xhi": "xhigh",
+            "max": "xhigh",
         }
         raw = args.strip().lower()
         if not raw:
@@ -2950,8 +2954,8 @@ class SlashCommandRegistry:
                 f"Responses API default: {'on' if responses else 'off'}",
                 "",
                 "Usage: /effort none | low | med | medium | high | xhigh",
-                "Aliases: /effort m, /effort h, /effort xh",
-                "Note: API field is reasoning.effort; /effort only changes local runtime config.",
+                "Aliases: /effort l, /effort m, /effort h, /effort xh",
+                "Note: provider-specific mapping is applied when building each request.",
             ])
         effort = aliases.get(raw)
         if effort is None:
@@ -2961,9 +2965,11 @@ class SlashCommandRegistry:
             )
         _config.REASONING_MODE = effort
         _config.REASONING_EFFORT = effort
+        _config.GLM_THINKING_TYPE = "disabled" if effort == "none" else "enabled"
         _os.environ["REASONING_MODE"] = effort
         _os.environ["REASONING_EFFORT"] = effort
-        return f"✅ Reasoning effort set to {effort} (API: reasoning.effort={effort})"
+        _os.environ["GLM_THINKING_TYPE"] = _config.GLM_THINKING_TYPE
+        return f"✅ Reasoning effort set to {effort} (provider-specific mapping applies at request time)"
 
     def _cmd_window(self, args: str) -> str:
         """Rolling context window. /window N — only last N message pairs sent to LLM each turn."""

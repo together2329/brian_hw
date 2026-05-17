@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "type": "mismatch_classification",
+  "ip": "dma_real",
+  "status": "pass",
+  "total_mismatches": 0,
+  "classifications": [],
+  "timestamp": "2026-05-17T11:53:12.552691"
+}

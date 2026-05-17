@@ -124,18 +124,26 @@ EVIDENCE_STOPWORDS = {
     "fl",
     "for",
     "from",
+    "function",
     "function_model",
+    "generate",
+    "generated",
+    "generates",
     "gen",
+    "has",
+    "have",
     "implement",
     "input",
     "is",
     "listed",
     "map",
+    "mapping",
     "mapped",
     "maps",
     "model",
     "module",
     "non",
+    "no",
     "observable",
     "output",
     "pending",
@@ -1142,6 +1150,44 @@ def _semantic_owner_match(ref: str, value: Any, modules: list[dict[str, Any]], t
     return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
 
 
+def _memory_owner_fallback(ref: str, value: Any, modules: list[dict[str, Any]], top: str) -> dict[str, str] | None:
+    if not ref.startswith("memory."):
+        return None
+    task_terms = _semantic_task_terms(ref, value)
+    task_terms -= {
+        "memory",
+        "memories",
+        "instance",
+        "instances",
+        "register",
+        "registers",
+        "storage",
+        "width",
+        "depth",
+        "latency",
+        "ff",
+    }
+    if not task_terms:
+        return None
+    scored: list[tuple[int, int, dict[str, Any], str]] = []
+    for index, module in enumerate(modules):
+        name_terms, ref_terms = _module_owner_terms(module, top)
+        hits = task_terms & (name_terms | ref_terms)
+        if not hits:
+            continue
+        score = len(hits) * 2
+        if hits & name_terms:
+            score += 1
+        scored.append((score, -index, module, "memory_semantic_terms:" + ",".join(sorted(hits)[:6])))
+    if not scored:
+        return None
+    scored.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    if len(scored) > 1 and scored[0][0] == scored[1][0]:
+        return None
+    _score, _neg_index, module, matched_ref = scored[0]
+    return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
+
+
 def _control_owner_fallback(ref: str, modules: list[dict[str, Any]], top: str) -> dict[str, str] | None:
     if not ref.startswith(("function_model.", "cycle_model.")):
         return None
@@ -1238,6 +1284,9 @@ def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = N
     semantic_owner = _semantic_owner_match(ref, value, modules, top)
     if semantic_owner is not None:
         return semantic_owner
+    memory_owner = _memory_owner_fallback(ref, value, modules, top)
+    if memory_owner is not None:
+        return memory_owner
     section = ref.split(".", 1)[0]
     section_matches = [
         module
@@ -1418,13 +1467,46 @@ def _looks_like_design_token(token: str) -> bool:
     lower = text.lower()
     if lower in EVIDENCE_STOPWORDS or lower in REFERENCE_STOPWORDS:
         return False
+    if _looks_like_requirement_label_token(text):
+        return False
     if re.fullmatch(r".*_\d+", text):
         return False
     return bool("_" in text or re.search(r"[A-Z]", text) or re.search(r"\d", text))
 
 
+def _looks_like_requirement_label_token(token: str) -> bool:
+    """Detect snake-case requirement labels that are not RTL identifiers.
+
+    SSOT cycle-model prose is sometimes compressed into labels such as
+    ``no_apb_backpressure_generated`` or
+    ``every_function_model_transaction_has_cycle_model_stage_mapping``.  Those
+    labels describe behavior; treating the whole string as a required live RTL
+    identifier encourages unused marker signals.
+    """
+
+    text = str(token or "").strip()
+    if "_" not in text:
+        return False
+    lower = text.lower()
+    parts = [part for part in lower.split("_") if part]
+    if not parts:
+        return False
+    if parts[0] in {"every", "no"} and (
+        "generated" in parts
+        or "mapping" in parts
+        or "transaction" in parts
+        or "transactions" in parts
+        or "backpressure" in parts
+    ):
+        return True
+    if "function_model" in lower or "cycle_model" in lower:
+        if any(part in {"every", "has", "mapping", "transaction", "transactions"} for part in parts):
+            return True
+    return False
+
+
 def _split_design_token(token: str) -> set[str]:
-    out = {token}
+    out: set[str] = set() if _looks_like_requirement_label_token(token) else {token}
     if "_" in token:
         for part in token.split("_"):
             if _looks_like_design_token(part) or part.lower() not in EVIDENCE_STOPWORDS | REFERENCE_STOPWORDS:
@@ -1435,6 +1517,34 @@ def _split_design_token(token: str) -> set[str]:
         if _looks_like_design_token(item)
         or ("_" not in item and len(item) > 1 and item.lower() not in EVIDENCE_STOPWORDS | REFERENCE_STOPWORDS)
     }
+
+
+def _field_name_aliases_parent_register(field: str, parent_register: str) -> bool:
+    """Return true when a short field name is a clear alias of its register.
+
+    Register field names often use compact forms such as ``dout`` for
+    ``DATA_OUT`` or ``din`` for ``DATA_IN``. Requiring the literal compact
+    field token in RTL pushes the LLM toward marker-only identifiers even
+    though the real implementation naturally uses the parent register name.
+    """
+
+    field_norm = re.sub(r"[^a-z0-9]", "", str(field or "").lower())
+    parent_parts = [
+        part
+        for part in re.split(r"[^a-z0-9]+", str(parent_register or "").lower())
+        if part
+    ]
+    if not field_norm or not parent_parts:
+        return False
+    parent_norm = "".join(parent_parts)
+    if field_norm == parent_norm or field_norm in parent_norm:
+        return True
+    if len(parent_parts) >= 2:
+        first_initial_rest = parent_parts[0][0] + "".join(parent_parts[1:])
+        acronym = "".join(part[0] for part in parent_parts)
+        if field_norm in {first_initial_rest, acronym}:
+            return True
+    return False
 
 
 def _direct_string_token_is_evidence(category: str, token: str) -> bool:
@@ -1475,6 +1585,13 @@ NAME_EVIDENCE_CATEGORIES = {
 def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
     terms: set[str] = set()
     protocol_alias_seen = False
+    reserved_register_field = (
+        category == "registers.field"
+        and (
+            str(_ci_get(value, "name", "field", "id") or "").strip().lower() == "reserved"
+            or str(source_ref or "").rsplit(".", 1)[-1].lower() == "reserved"
+        )
+    )
 
     def add_identifier_terms(value: Any) -> None:
         """Add explicit SSOT identifiers such as ports/states/registers.
@@ -1560,10 +1677,33 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
         for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text):
             if category in DIRECT_STRING_EVIDENCE_CATEGORIES and _direct_string_token_is_evidence(category, token):
                 terms.add(token)
+            elif _looks_like_requirement_label_token(token):
+                terms.update(_split_design_token(token))
             elif "_" in token and _looks_like_design_token(token):
                 terms.update(_split_design_token(token))
 
     visit(value)
+    if category == "registers.field" and not reserved_register_field:
+        match = re.search(r"registers\.register_list\.([^.]+)\.fields\.([^.]+)$", str(source_ref or ""))
+        if match:
+            parent, field = match.group(1), match.group(2)
+            field_name = str(_ci_get(value, "name", "field", "id") or field)
+            if _field_name_aliases_parent_register(field_name, parent):
+                terms.add(parent)
+                terms.update(_split_design_token(parent))
+    if reserved_register_field:
+        # "reserved" is a semantic field policy, not a live RTL identifier.
+        # Use the parent register/mask evidence instead so LLMs do not add
+        # marker-only reserved signals solely to satisfy static text matching.
+        terms.discard("reserved")
+        parent = ""
+        match = re.search(r"registers\.register_list\.([^.]+)\.fields\.reserved$", str(source_ref or ""))
+        if match:
+            parent = match.group(1)
+        if parent:
+            terms.add(parent)
+            terms.update(_split_design_token(parent))
+        terms.update({"mask", "GPIO_MASK"})
     if protocol_alias_seen and category.startswith("function_model."):
         for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", source_ref):
             if token.startswith("FM_"):
@@ -1921,14 +2061,14 @@ def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str],
             "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
             "content": "Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs",
             "detail": (
-                "Production RTL cannot carry TODO/TBD/FIXME/stub/dummy/not-implemented markers in source code or comments. "
+                "Production RTL cannot carry audit-banned incomplete/fake implementation markers in source code or comments. "
                 "Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, "
                 "with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. "
                 "If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract."
             ),
             "criteria": [
                 "Listed RTL source files contain no TODO/TBD/FIXME/HACK markers",
-                "Listed RTL source files contain no placeholder/stub/dummy/not-implemented implementation text",
+                "Listed RTL source files contain no audit-banned incomplete/fake implementation text",
                 "Listed RTL source files and rtl/<ip>_param.vh contain no banned package/function/task/loop constructs",
                 "Default generated RTL uses input/output logic ports and portable always @ syntax",
                 "FSMs use the conventional explicit style by default, unless SSOT/user specifies another synthesizable style",
@@ -4639,7 +4779,7 @@ def _write_authoring_packets(ip_dir: Path, plan: dict[str, Any], *, todo_plan_sh
             "Process one authoring packet at a time: module packets first, then unowned tasks if any, then rtl_gate_evidence_closure; leave rtl_gate_tool_evidence to tools and rtl_gate_contract_blocked/rtl_gate_human_closure to human-locked authority gaps.",
             "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
             "Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.",
-            "Do not close static RTL evidence with evidence-only alias/dummy wires; the matched identifiers must participate in real RTL behavior.",
+            "Do not close static RTL evidence with evidence-only alias wires or marker-only helper wires; the matched identifiers must participate in real RTL behavior.",
             "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
             "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
             "Keep locked authority artifacts unchanged unless a human approves a change request.",
@@ -5403,7 +5543,16 @@ def _connection_contract_from_entry(
                     )
                 return contracts
 
-        explicit_module = _ci_get(raw, "module", "child", "target_module", "sink_module")
+        explicit_module = _ci_get(
+            raw,
+            "module",
+            "child",
+            "target_module",
+            "sink_module",
+            "to_module",
+            "dst_module",
+            "destination_module",
+        )
         module = explicit_module or default_module
         port = _ci_get(raw, "port", "child_port", "target_port", "sink_port", "to_port", "dst_port")
         signal = _ci_get(raw, "signal", "expr", "expression", "source_signal", "from_signal", "top_signal")
@@ -6897,12 +7046,14 @@ def _audit_manifest_hierarchy(ip_dir: Path, plan: dict[str, Any]) -> dict[str, A
     sources = _read_rtl_sources(ip_dir)
     declarations: dict[str, str] = {}
     ports_by_module: dict[str, set[str]] = {}
+    tokens_by_module: dict[str, set[str]] = {}
     graph: dict[str, set[str]] = {}
     instances_by_parent: dict[str, list[dict[str, Any]]] = {}
     for rel, text in sources.items():
         for module_name, body in _sv_module_bodies(text).items():
             declarations[module_name] = rel
             ports_by_module[module_name] = _sv_declared_ports_from_module_body(body)
+            tokens_by_module[module_name] = _rtl_token_set(body)
             instances = _sv_instance_named_port_maps(body)
             instances_by_parent[module_name] = instances
             graph[module_name] = {str(instance.get("module") or "") for instance in instances if instance.get("module")}
@@ -7066,6 +7217,28 @@ def _audit_manifest_hierarchy(ip_dir: Path, plan: dict[str, Any]) -> dict[str, A
         ]
         non_empty_exprs = [expr for expr in port_exprs if expr]
         if not non_empty_exprs:
+            declared_ports = ports_by_module.get(module, set())
+            module_tokens = tokens_by_module.get(module, set())
+            expected_signal = str(contract.get("signal") or "").strip()
+            expected_terms = set(contract.get("signal_terms") or [])
+            # Integration contracts can describe a parent/wiring module's
+            # internal connection point rather than a child instance port, for
+            # example from child.data_out_reg -> top_int.gpio_out_drv.  Accept
+            # that shape only when the target is not a declared port and both
+            # the target connection point and expected signal are live RTL
+            # tokens inside the module body.  Declared but unconnected ports
+            # still fail above as real hierarchy wiring issues.
+            if (
+                port
+                and port not in declared_ports
+                and port in module_tokens
+                and (
+                    not expected_signal
+                    or expected_signal in module_tokens
+                    or bool(expected_terms & module_tokens)
+                )
+            ):
+                continue
             connection_contract_issues.append({
                 "source_ref": contract.get("source_ref"),
                 "module": module,

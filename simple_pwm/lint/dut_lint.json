@@ -1,0 +1,10 @@
+{
+    "ip": "simple_pwm",
+    "stage": "lint",
+    "lint_tool": "iverilog -Wall",
+    "rtl_files": ["rtl/simple_pwm.sv"],
+    "errors": 0,
+    "warnings": 0,
+    "status": "pass",
+    "timestamp": "2026-05-17T04:05:00Z"
+}

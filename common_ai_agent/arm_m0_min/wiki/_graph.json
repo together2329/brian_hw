@@ -1,8 +1,8 @@
 {
   "schema_version": "ip_wiki_graph.v1",
-  "generated_at": "2026-05-16T04:26:00Z",
+  "generated_at": "2026-05-17T02:28:15Z",
   "root": "arm_m0_min/wiki",
-  "node_count": 11,
+  "node_count": 14,
   "edge_count": 14,
   "tags": {
     "artifact": [
@@ -60,7 +60,10 @@
       "coverage",
       "filelist",
       "fl_model",
+      "index",
       "lint",
+      "log",
+      "notes",
       "rtl",
       "sim",
       "ssot",
@@ -86,12 +89,12 @@
       ],
       "incoming": [],
       "broken_refs": [],
-      "updated": "2026-05-15T10:46:55Z",
-      "summary": "goals=37 blocked=0",
+      "updated": "2026-05-16T23:28:17Z",
+      "summary": "goals=39 blocked=0",
       "status": "pass",
-      "digest": "goals=37 blocked=0",
+      "digest": "goals=39 blocked=0",
       "path": "arm_m0_min/verify/equivalence_goals.json",
-      "size_bytes": 89755
+      "size_bytes": 95066
     },
     {
       "id": "cl_model",
@@ -132,12 +135,12 @@
       ],
       "incoming": [],
       "broken_refs": [],
-      "updated": "2026-05-16T04:26:00Z",
+      "updated": "2026-05-17T01:47:26Z",
       "summary": "reports=5",
       "status": "present",
       "digest": "reports=5",
       "path": "arm_m0_min/cov/coverage.json",
-      "size_bytes": 76646
+      "size_bytes": 79775
     },
     {
       "id": "filelist",
@@ -191,6 +194,20 @@
       "size_bytes": 43313
     },
     {
+      "id": "index",
+      "title": "arm_m0_min CPU README Handoff Wiki Index",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Status: this CPU README handoff index points to `arm_m0_min/README.md` as the root README entry point and shows that generated artifacts are present, but final signoff is blocked on the human-owned `req` approval gate.",
+      "path": "arm_m0_min/wiki/index.md",
+      "size_bytes": 2152
+    },
+    {
       "id": "last_run",
       "title": "arm_m0_min last run",
       "type": "log",
@@ -231,6 +248,34 @@
       "digest": "errors=0 warnings=0",
       "path": "arm_m0_min/lint/dut_lint.json",
       "size_bytes": 2046
+    },
+    {
+      "id": "log",
+      "title": "arm_m0_min Wiki Log",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "- IP-local CPU handoff wiki index added so review can start from `arm_m0_min/wiki/` without searching the project-level wiki. The index points to the handoff, approval request, readiness checklist, and review index while preserving the approval boundary: no manual `req/` files, real promotion only after `approve_locked_scope`. - The wiki index now also…",
+      "path": "arm_m0_min/wiki/log.md",
+      "size_bytes": 548
+    },
+    {
+      "id": "notes",
+      "title": "arm_m0_min Wiki Notes",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "- The generated CPU is intentionally a minimal ARMv6-M-like reference IP, not a production Cortex-M compatible core. - The current machine evidence is sufficient for review, but not final signoff. - The remaining blocker is the human-owned `req` approval gate.",
+      "path": "arm_m0_min/wiki/notes.md",
+      "size_bytes": 288
     },
     {
       "id": "rtl",
@@ -285,12 +330,12 @@
         "coverage"
       ],
       "broken_refs": [],
-      "updated": "2026-05-15T11:44:00Z",
-      "summary": "goals=37/37 mismatches=0",
-      "status": "pass",
-      "digest": "goals=37/37 mismatches=0",
+      "updated": "2026-05-17T01:51:20Z",
+      "summary": "results.xml=present scoreboard_events=present",
+      "status": "present",
+      "digest": "results.xml=present scoreboard_events=present",
       "path": "arm_m0_min/sim",
-      "size_bytes": 352
+      "size_bytes": 384
     },
     {
       "id": "ssot",
@@ -335,7 +380,7 @@
         "sim"
       ],
       "broken_refs": [],
-      "updated": "2026-05-15T11:40:26Z",
+      "updated": "2026-05-16T23:28:49Z",
       "summary": "manifest=yes",
       "status": "present",
       "digest": "manifest=yes",

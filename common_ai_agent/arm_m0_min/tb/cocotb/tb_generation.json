@@ -3,10 +3,10 @@
   "type": "generic_goal_scoreboard_cocotb_generation",
   "status": "pass",
   "ip": "arm_m0_min",
-  "generated_at": "2026-05-15T10:47:03Z",
+  "generated_at": "2026-05-16T23:28:49Z",
   "manifest": "arm_m0_min/tb/cocotb/tb_manifest.json",
   "test": "arm_m0_min/tb/cocotb/test_arm_m0_min.py",
   "runner": "arm_m0_min/tb/cocotb/test_runner.py",
-  "goals": 37,
+  "goals": 39,
   "rtl_sources": 8
 }

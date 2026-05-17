@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_compare",
+  "ip": "dma_real",
+  "status": "pass",
+  "all_matched": true,
+  "summary": {
+    "total": 67,
+    "goals_checked": 67,
+    "goals_matched": 67,
+    "goals_mismatched": 0,
+    "missing_evidence": [],
+    "stale_evidence": []
+  },
+  "timestamp": "2026-05-17T11:53:12.521381",
+  "details": []
+}

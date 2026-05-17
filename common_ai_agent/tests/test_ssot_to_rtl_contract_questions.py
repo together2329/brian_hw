@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 
@@ -71,6 +72,137 @@ def test_resolved_optional_policy_does_not_reblock_on_policy_text():
     questions = rtl_gen._rtl_contract_questions(doc, "simple_cpu")
 
     assert not [q for q in questions if q["id"] == "OPTIONAL_BEHAVIOR_POLICY"]
+
+
+def test_apb_illegal_access_policy_is_not_reasked_when_ssot_defines_response():
+    rtl_gen = _load_rtl_gen()
+    doc = {
+        "top_module": {"name": "gpio_policy", "type": "gpio"},
+        "io_list": {
+            "interfaces": [
+                {
+                    "name": "apb_slave",
+                    "type": "apb",
+                    "ports": [
+                        {"name": "paddr", "direction": "input", "width": "ADDR_WIDTH"},
+                        {"name": "psel", "direction": "input", "width": 1},
+                        {"name": "penable", "direction": "input", "width": 1},
+                        {"name": "pwrite", "direction": "input", "width": 1},
+                        {"name": "prdata", "direction": "output", "width": 32},
+                        {"name": "pready", "direction": "output", "width": 1},
+                        {"name": "pslverr", "direction": "output", "width": 1},
+                    ],
+                }
+            ]
+        },
+        "registers": {
+            "register_list": [
+                {
+                    "name": "DATA_IN",
+                    "offset": 4,
+                    "access": "ro",
+                    "write_semantics": "writes ignored",
+                }
+            ]
+        },
+        "error_handling": {
+            "error_sources": [{"id": "ILLEGAL_ADDR", "condition": "APB ACCESS to unmapped address"}],
+            "propagation": ["Illegal address forces pslverr and prdata=0 for reads."],
+        },
+        "rtl_contract": {
+            "protocol_contracts": [
+                {
+                    "interface": "apb_slave",
+                    "rule": "No slave backpressure; pready asserted during ACCESS for legal and illegal accesses",
+                },
+                {
+                    "interface": "apb_slave",
+                    "rule": "Illegal address: pslverr=1 in ACCESS; read returns prdata=0; no state updates",
+                },
+            ]
+        },
+        "function_model": {
+            "transactions": [
+                {
+                    "id": "FM_ILLEGAL_ACCESS",
+                    "output_rules": [
+                        {"name": "pslverr_o", "port": "pslverr", "expr": "1", "width": 1},
+                        {"name": "prdata_o", "port": "prdata", "expr": "0", "width": 32},
+                    ],
+                    "state_updates": [],
+                }
+            ]
+        },
+    }
+
+    question_ids = {q["id"] for q in rtl_gen._rtl_contract_questions(doc, "gpio_policy")}
+
+    assert "APB_ILLEGAL_ACCESS_POLICY" not in question_ids
+
+
+def test_apb_illegal_access_policy_accepts_structured_rtl_contract_response():
+    rtl_gen = _load_rtl_gen()
+    doc = {
+        "top_module": {"name": "gpio_policy", "type": "gpio"},
+        "io_list": {
+            "interfaces": [
+                {
+                    "name": "apb_slave",
+                    "type": "apb",
+                    "ports": [
+                        {"name": "paddr", "direction": "input", "width": "ADDR_WIDTH"},
+                        {"name": "psel", "direction": "input", "width": 1},
+                        {"name": "penable", "direction": "input", "width": 1},
+                        {"name": "pwrite", "direction": "input", "width": 1},
+                        {"name": "prdata", "direction": "output", "width": 32},
+                        {"name": "pready", "direction": "output", "width": 1},
+                        {"name": "pslverr", "direction": "output", "width": 1},
+                    ],
+                }
+            ]
+        },
+        "error_handling": {
+            "error_sources": [{"id": "ILLEGAL_ADDR", "condition": "illegal access to unsupported address"}]
+        },
+        "rtl_contract": {
+            "apb_illegal_access_policy": {
+                "response": {"pready": 1, "pslverr": 1, "prdata": 0},
+                "state_update": "none",
+            }
+        },
+    }
+
+    question_ids = {q["id"] for q in rtl_gen._rtl_contract_questions(doc, "gpio_policy")}
+
+    assert "APB_ILLEGAL_ACCESS_POLICY" not in question_ids
+
+
+def test_apb_illegal_access_policy_still_blocks_when_response_is_missing():
+    rtl_gen = _load_rtl_gen()
+    doc = {
+        "top_module": {"name": "gpio_policy", "type": "gpio"},
+        "io_list": {
+            "interfaces": [
+                {
+                    "name": "apb_slave",
+                    "type": "apb",
+                    "ports": [
+                        {"name": "paddr", "direction": "input", "width": 12},
+                        {"name": "psel", "direction": "input", "width": 1},
+                        {"name": "penable", "direction": "input", "width": 1},
+                        {"name": "pwrite", "direction": "input", "width": 1},
+                    ],
+                }
+            ]
+        },
+        "error_handling": {
+            "error_sources": [{"id": "ILLEGAL_ADDR", "condition": "illegal access to unsupported address"}]
+        },
+    }
+
+    question_ids = {q["id"] for q in rtl_gen._rtl_contract_questions(doc, "gpio_policy")}
+
+    assert "APB_ILLEGAL_ACCESS_POLICY" in question_ids
 
 
 def test_generic_rule_rtl_does_not_redeclare_output_state_names():
@@ -201,6 +333,67 @@ def test_generic_rule_contract_lowers_reduction_or_and_bit_select_helpers():
     assert "RTL_STATE_EXPR_DIR_REG" not in question_ids
     assert "(|" in contract["outputs"][0]["expr"]
     assert "pstrb[0]" in contract["state_updates"][0]["expr"]
+
+
+def test_generic_rule_contract_resolves_derived_signals_out_of_order():
+    rtl_gen = _load_rtl_gen()
+    doc = {
+        "top_module": {"name": "gpio_read_mux"},
+        "io_list": {
+            "clock_domains": [{"ports": [{"name": "clk", "direction": "input", "width": 1}]}],
+            "resets": [{"ports": [{"name": "rst_n", "direction": "input", "width": 1}]}],
+            "interfaces": [
+                {
+                    "name": "apb",
+                    "ports": [
+                        {"name": "paddr", "direction": "input", "width": 12},
+                        {"name": "prdata", "direction": "output", "width": 32},
+                    ],
+                }
+            ],
+        },
+        "function_model": {
+            "state_variables": [{"name": "data_out_reg", "width": 32, "reset": 0}],
+            "derived_signals": [
+                {
+                    "name": "read_mux",
+                    "width": 32,
+                    "expr": "(data_out_reg if addr == 4 else 0)",
+                },
+                {"name": "addr", "width": 12, "expr": "paddr"},
+            ],
+            "transactions": [
+                {
+                    "id": "FM_APB_READ",
+                    "output_rules": [
+                        {
+                            "name": "fm_apb_read_prdata",
+                            "port": "prdata",
+                            "expr": "read_mux",
+                            "width": 32,
+                        }
+                    ],
+                }
+            ],
+        },
+        "rtl_contract": {
+            "clock": "clk",
+            "reset": "rst_n",
+            "reset_active": "low",
+            "sample_condition": "1",
+            "output_map": {"fm_apb_read_prdata": "prdata"},
+        },
+    }
+    ports = rtl_gen._io_ports(doc)
+
+    contract, questions = rtl_gen._generic_rule_contract(doc, "gpio_read_mux", ports)
+
+    question_ids = {q["id"] for q in questions}
+    assert "RTL_INPUT_MAP_READ_MUX" not in question_ids
+    assert "RTL_DERIVED_EXPR_READ_MUX" not in question_ids
+    assert "RTL_EXPR_FM_APB_READ_PRDATA" not in question_ids
+    assert contract["outputs"][0]["port"] == "prdata"
+    assert "paddr" in contract["outputs"][0]["expr"]
 
 
 def test_generic_rule_rtl_drives_apb_ready_in_single_module_path():
@@ -414,6 +607,57 @@ def test_manifest_submodule_contract_refs_allow_multi_file_rtl_gen():
     assert not [q for q in questions if q["id"] == "RTL_MANIFEST_FILELIST_SYNC"]
 
 
+def test_wiring_only_module_can_use_global_integration_connections():
+    rtl_gen = _load_rtl_gen()
+    doc = _doc_with_structured_primary()
+    doc["filelist"] = {
+        "rtl": [
+            "rtl/simple_cpu_datapath.sv",
+            "rtl/simple_cpu_top_int.sv",
+            "rtl/simple_cpu.sv",
+        ]
+    }
+    doc["sub_modules"] = [
+        {
+            "name": "simple_cpu_datapath",
+            "file": "rtl/simple_cpu_datapath.sv",
+            "ownership": "manifest",
+            "implements": ["function_model.transactions.FM_PRIMARY.output_rules"],
+            "source_sections": ["features", "function_model", "cycle_model"],
+            "function_model_refs": ["function_model.transactions.FM_PRIMARY"],
+        },
+        {
+            "name": "simple_cpu_top_int",
+            "file": "rtl/simple_cpu_top_int.sv",
+            "ownership": "manifest",
+            "wiring_only": True,
+            "implements": ["integration.connections", "io_list.interfaces"],
+            "source_sections": ["integration", "io_list"],
+        },
+        {
+            "name": "simple_cpu",
+            "file": "rtl/simple_cpu.sv",
+            "ownership": "manifest",
+            "description": "top",
+        },
+    ]
+    doc["integration"] = {
+        "connections": [
+            {
+                "from_module": "simple_cpu_datapath",
+                "from_port": "busy_o",
+                "to_module": "simple_cpu_top_int",
+                "to_port": "busy_i",
+                "signal": "busy",
+            }
+        ]
+    }
+
+    questions = rtl_gen._rtl_contract_questions(doc, "simple_cpu")
+
+    assert not [q for q in questions if q["id"] == "RTL_MODULE_CONTRACTS"]
+
+
 def test_ssot_behavior_ownership_blocks_orphan_function_refs():
     rtl_gen = _load_rtl_gen()
     doc = _doc_with_structured_primary()
@@ -594,3 +838,46 @@ def test_manifest_submodule_contract_requires_behavior_refs_not_just_prose():
     assert module_questions[0]["missing_modules"] == [
         {"name": "simple_cpu_datapath", "file": "rtl/simple_cpu_datapath.sv"}
     ]
+
+
+def test_starter_mode_generates_preview_from_minimal_output_rules(tmp_path: Path):
+    rtl_gen = _load_rtl_gen()
+    ip = "tiny_starter_and"
+    ip_dir = tmp_path / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        """
+top_module:
+  name: tiny_starter_and
+io_list:
+  interfaces:
+    - name: pins
+      type: raw
+      ports:
+        - {name: a_i, direction: input, width: 1}
+        - {name: b_i, direction: input, width: 1}
+        - {name: y_o, direction: output, width: 1}
+function_model:
+  description: y_o is asserted when both inputs are asserted.
+  output_rules:
+    - {name: y_o, expr: a_i and b_i}
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    rtl_gen.generate(ip, tmp_path, mode="starter")
+
+    rtl = (ip_dir / "rtl" / f"{ip}.sv").read_text(encoding="utf-8")
+    gates = json.loads((ip_dir / "rtl" / "rtl_preview_gates.json").read_text(encoding="utf-8"))
+    provenance = json.loads((ip_dir / "rtl" / "rtl_authoring_provenance.json").read_text(encoding="utf-8"))
+
+    assert "module tiny_starter_and" in rtl
+    assert "assign y_o = a_i & b_i;" in rtl
+    assert "!= 0" not in rtl
+    assert (ip_dir / "list" / f"{ip}.f").read_text(encoding="utf-8") == f"rtl/{ip}.sv\n"
+    assert not (ip_dir / "rtl" / "rtl_blocked.json").exists()
+    assert gates["status"] == "pass"
+    assert gates["mode"] == "starter"
+    assert any(item["id"] == "STARTER_CYCLE_MODEL_DEFERRED" for item in gates["soft_gates"])
+    assert provenance["generator"] == "starter_ssot_preview_seed"

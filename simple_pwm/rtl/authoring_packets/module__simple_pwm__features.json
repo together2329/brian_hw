@@ -1,0 +1,298 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 8,
+      "key": "features",
+      "module_task_count": 70,
+      "rule": "Owner module simple_pwm is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "features",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/simple_pwm.sv",
+      "name": "simple_pwm",
+      "refs": [
+        "top_module",
+        "function_model",
+        "cycle_model"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/simple_pwm.sv",
+        "name": "simple_pwm",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "enable",
+          "pwm_control_enable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "enable",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "duty_cycle",
+          "pwm_control_duty_cycle"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "duty_cycle",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "COUNTER_WIDTH"
+      },
+      {
+        "aliases": [
+          "period",
+          "pwm_control_period"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "period",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "COUNTER_WIDTH"
+      },
+      {
+        "aliases": [
+          "pwm_out",
+          "pwm_output_pwm_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pwm_out",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 2,
+    "open_required_count": 2,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "simple_pwm",
+  "kind": "module",
+  "owner_file": "rtl/simple_pwm.sv",
+  "owner_module": "simple_pwm",
+  "packet_id": "module__simple_pwm__features",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "features.item": 2
+    },
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 8,
+      "key": "features",
+      "module_task_count": 70,
+      "rule": "Owner module simple_pwm is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "features",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 2,
+    "required_count": 2,
+    "source_refs": [
+      "features.PWM_generation",
+      "features.Dynamic_reconfiguration"
+    ],
+    "status_counts": {
+      "open": 2
+    },
+    "task_count": 2
+  },
+  "tasks": [
+    {
+      "category": "features.item",
+      "content": "Implement feature PWM generation",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.PWM_generation",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.PWM_generation.\nOwner: simple_pwm in rtl/simple_pwm.sv via single_owner.\nSSOT item context: name=PWM generation; output=pwm_out toggles at duty_cycle/period ratio.",
+      "evidence_terms": [
+        "duty",
+        "duty_cycle",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0070",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.PWM_generation",
+      "ssot_context": {
+        "name": "PWM generation",
+        "output": "pwm_out toggles at duty_cycle/period ratio"
+      },
+      "ssot_refs": [
+        "features.PWM_generation"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "duty",
+          "duty_cycle",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Dynamic reconfiguration",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Dynamic_reconfiguration",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Dynamic_reconfiguration.\nOwner: simple_pwm in rtl/simple_pwm.sv via single_owner.\nSSOT item context: name=Dynamic reconfiguration; output=PWM output adjusts within one period.",
+      "evidence_terms": [
+        "PWM"
+      ],
+      "id": "RTL-0071",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Dynamic_reconfiguration",
+      "ssot_context": {
+        "name": "Dynamic reconfiguration",
+        "output": "PWM output adjusts within one period"
+      },
+      "ssot_refs": [
+        "features.Dynamic_reconfiguration"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "PWM"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "97147a83467339f3d8bdf10370e6366a4b8a3eeca0cb4ad8bac3bf660a00d118",
+  "top": "simple_pwm",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,11 @@
+{"cycle":0,"transaction":"FM1","expected_pwm_out":1,"actual_pwm_out":1,"match":true,"context":"SC1: period=10 duty=3"}
+{"cycle":1,"transaction":"FM1","expected_pwm_out":1,"actual_pwm_out":1,"match":true,"context":"SC1: period=10 duty=3"}
+{"cycle":2,"transaction":"FM1","expected_pwm_out":1,"actual_pwm_out":1,"match":true,"context":"SC1: period=10 duty=3"}
+{"cycle":3,"transaction":"FM2","expected_pwm_out":0,"actual_pwm_out":0,"match":true,"context":"SC1: period=10 duty=3"}
+{"cycle":4,"transaction":"FM2","expected_pwm_out":0,"actual_pwm_out":0,"match":true,"context":"SC1: period=10 duty=3"}
+{"cycle":5,"transaction":"FM2","expected_pwm_out":0,"actual_pwm_out":0,"match":true,"context":"SC1: period=10 duty=3"}
+{"cycle":6,"transaction":"FM2","expected_pwm_out":0,"actual_pwm_out":0,"match":true,"context":"SC1: period=10 duty=3"}
+{"cycle":7,"transaction":"FM2","expected_pwm_out":0,"actual_pwm_out":0,"match":true,"context":"SC1: period=10 duty=3"}
+{"cycle":8,"transaction":"FM2","expected_pwm_out":0,"actual_pwm_out":0,"match":true,"context":"SC1: period=10 duty=3"}
+{"cycle":9,"transaction":"FM1","expected_pwm_out":1,"actual_pwm_out":1,"match":true,"context":"SC2a: duty=3"}
+{"cycle":10,"transaction":"FM1","expected_pwm_out":1,"actual_pwm_out":1,"match":true,"context":"SC2a: duty=3"}

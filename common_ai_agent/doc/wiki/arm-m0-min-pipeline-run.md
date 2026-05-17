@@ -14,7 +14,7 @@ Related wiki:
 - [[rtl-gen-ssot-contract]] — RTL must follow SSOT exactly
 - [[rtl-version-run-history]] — see `arm_m0_min` entry there
 - [[provider-and-llm-call-accounting]] — `gpt-5.3-codex` cost trail
-- [[human-review-and-escalation]] — none triggered this run
+- [[human-review-and-escalation]] — human req approval is the current final blocker
 - [[workflow-feedback-and-scheduling]] — single-IP serial mode used here
 
 ## Locked design
@@ -63,6 +63,121 @@ Related wiki:
 | Coverage closure | ✅ 35 / 35 bins hit |
 | Provenance | ✅ valid surface + sha256 |
 | RTL audit ledger | ⚠️ 8 open required — none reflect RTL defects (see below) |
+
+## 2026-05-17 Evidence Refresh
+
+Purpose: re-audit `arm_m0_min` after hidden cocotb soft-mismatch failures were
+found. The rule for this refresh was **no pass-for-pass**: cocotb JUnit PASS
+alone is insufficient; `scoreboard_events.jsonl`, `fl_rtl_compare.json`,
+coverage, compile, lint, and goal audit must agree.
+
+Commands/evidence from the refresh:
+
+```bash
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest \
+  tests/test_coverage_summary.py \
+  tests/test_fl_rtl_equivalence_loop.py::test_scoreboard_uses_goal_specific_comparison_policy_for_reset_debug_and_cycle_goals -q
+
+python3 workflow/fl-model-gen/scripts/emit_equivalence_goals.py arm_m0_min --root .
+python3 workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py arm_m0_min --root .
+COMMON_AI_AGENT_ROOT=/Users/brian/Desktop/Project/brian_hw/common_ai_agent \
+  python3 arm_m0_min/tb/cocotb/test_runner.py
+python3 workflow/coverage/scripts/ssot_coverage_summary.py arm_m0_min
+bash workflow/tb-gen/scripts/check_tb_sim_evidence.sh arm_m0_min
+python3 workflow/sim_debug/scripts/compare_fl_rtl_results.py arm_m0_min --root .
+python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py arm_m0_min --root .
+
+cd arm_m0_min && iverilog -g2012 -o /tmp/arm_m0_min_fresh_compile.vvp -f list/arm_m0_min.f
+cd arm_m0_min && verilator --lint-only -Wall -f list/arm_m0_min.f
+```
+
+Refresh result:
+
+| Gate | 2026-05-17 result |
+|---|---|
+| Targeted regression tests | PASS, 5 tests |
+| Cocotb JUnit | PASS, 1 test, 0 failures/errors |
+| Scoreboard rows | PASS, 39 required / 39 rows / 39 goals covered |
+| FL-vs-RTL compare | PASS, 39 checked / 39 passed / 0 failed / 0 stale |
+| Function coverage | PASS, 19 / 19, 100% |
+| Cycle coverage | PASS, 17 / 17, 100% |
+| RTL compile | PASS, `iverilog -g2012` |
+| RTL lint | PASS, `verilator --lint-only -Wall` |
+| Goal audit | FAIL only on `req` human gate: 15 / 16 checks pass |
+
+Completion audit:
+
+- [`arm_m0_min/doc/arm_m0_min_completion_audit.md`](../../arm_m0_min/doc/arm_m0_min_completion_audit.md)
+  maps the user objective to concrete artifacts and explicitly records the
+  stop condition.
+- [`arm_m0_min/doc/arm_m0_min_requirement_review.md`](../../arm_m0_min/doc/arm_m0_min_requirement_review.md)
+  is the pending human review packet. It is not accepted as a requirement
+  artifact until it is promoted into `arm_m0_min/req/` by human approval.
+- [`arm_m0_min/review/decision_needed_req_requirement_approval.json`](../../arm_m0_min/review/decision_needed_req_requirement_approval.json)
+  is the open UI/orchestrator review decision item for the same blocker.
+  `promote_requirement_review.py` resolves this queue item when a human
+  approver is supplied and the reviewed packet is promoted into `req/`.
+- `/api/pipeline/state?ip=arm_m0_min` now surfaces this honestly:
+  `orchestrator.decisions_needed=1`, `stages.goal-audit.state=failed`, and
+  `stages.goal-audit.error_summary=blockers=req`. The UI must not treat a
+  failed `sim/fl_rtl_goal_audit.json` as a passing stage merely because the
+  artifact exists.
+- Approval promotion was dry-run on a temporary copy: after promotion, the
+  copied final audit passed 16 / 16 with `req_ok=true`, and the copied review
+  decision was marked `resolved`. The audit now requires both the approved
+  requirement markdown and `req/approval_manifest.json` with a matching
+  `target_sha256` and `source_sha256`, and the requirement approval review
+  decision must be resolved. The review decision also pins
+  `evidence.approval_target.sha256`, and `promote_requirement_review.py`
+  rejects stale source path/hash mismatches before writing `req/`. It also
+  validates pinned `evidence.machine_evidence_snapshot` hashes for the SSOT,
+  FL-vs-RTL compare, coverage, and completion-audit files. A long hand-written
+  `req/*.md` file alone cannot satisfy the human gate. The real IP remains
+  blocked until a real human approval is applied.
+
+Current interpretation:
+
+- The CPU RTL/TB/sim equivalence path is green at the machine-evidence level:
+  39/39 FL-vs-RTL goals pass, no mismatches are classified, and coverage bins
+  are backed by passing scoreboard rows with real `rtl_observed` signals.
+- The run is **not final signoff green** because
+  `arm_m0_min/req/*.md` does not contain a human-approved requirement document.
+  This blocker must stay human-owned; auto-generating a 1000-byte requirement
+  file would be a pass-for-pass anti-pattern.
+- A review packet was prepared at
+  `arm_m0_min/doc/arm_m0_min_requirement_review.md`. It captures the locked CPU
+  scope and current evidence, but it is deliberately outside `req/` and marked
+  pending review so it cannot masquerade as approved requirement evidence.
+- `arm_m0_min/cov/coverage.json` still reports `status=blocked` for structural
+  line/branch coverage because there is no `coverage.info` instrumentation in
+  this refresh. The goal audit's `functional_coverage` check passes because the
+  function/cycle domains are fully covered by RTL-observed scoreboard evidence.
+
+Workflow fixes made during the refresh:
+
+- `tb-gen` reset-goal detection now distinguishes actual asserted-reset goals
+  from state transitions such as `RESET -> RUN`.
+- Generated TB stimulus now uses safe AHB-like defaults:
+  `_hready=1`, `_hresp=0`, `_hrdata=0`, and constraint-driven overrides for
+  `i_hready==0`, `d_hready==0`, and `hresp==ERROR`.
+- Generated TB now resets the DUT between independent non-reset equivalence
+  goals, so PC/state accumulation cannot hide or create mismatches.
+- The scoreboard has goal-specific compare policies for reset/state/cycle
+  goals and treats internal pipeline-latch `memory.instances` as internal
+  register memory, not as mandatory external D-bus transfers.
+- Coverage summary now maps high-level SSOT bins such as `FCOV_TX_LOAD_STORE`,
+  `CCOV_IF_STALL`, `CCOV_MEM_STALL`, and `CCOV_PIPELINE_ORDER` only from
+  passing scoreboard rows with real RTL observations.
+
+Remaining non-signoff limitation:
+
+- Internal pipeline latch memory goals currently prove observable top-level
+  behavior (`fault_halt=0`, active instruction fetch, PC/address coherence, and
+  overlapping model outputs such as `d_haddr/d_hwrite`). They do not yet prove
+  the hidden latch contents directly unless hierarchical probes are exposed.
+  This is acceptable as non-signoff evidence but should be tightened with
+  pyslang/hierarchy-aware probes before claiming deep microarchitectural
+  retention proof.
 
 ## Open RTL ledger items (8) — all non-defects
 

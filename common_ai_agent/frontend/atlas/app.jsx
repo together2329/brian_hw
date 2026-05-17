@@ -62,6 +62,27 @@ const atlasResolutionPreset = (key) =>
   ATLAS_UI_RESOLUTION_PRESETS.find(p => p.key === key) ||
   ATLAS_UI_RESOLUTION_PRESETS.find(p => p.key === DEFAULT_ATLAS_RESOLUTION) ||
   ATLAS_UI_RESOLUTION_PRESETS[0];
+const ATLAS_RUN_MODE_OPTIONS = [
+  { key: 'starter', label: 'Starter' },
+  { key: 'engineering', label: 'Engineering' },
+  { key: 'signoff', label: 'Signoff' },
+];
+const ATLAS_EXEC_MODE_OPTIONS = [
+  { key: 'single-worker', label: 'Single Worker' },
+  { key: 'orchestrator', label: 'Orchestrator' },
+];
+const normalizeAtlasRunMode = (value) => {
+  const v = String(value || '').trim().toLowerCase().replace(/_/g, '-');
+  if (v === 'eng') return 'engineering';
+  if (v === 'sign-off') return 'signoff';
+  return ATLAS_RUN_MODE_OPTIONS.some(o => o.key === v) ? v : 'engineering';
+};
+const normalizeAtlasExecMode = (value) => {
+  const v = String(value || '').trim().toLowerCase().replace(/_/g, '-');
+  if (v === 'single' || v === 'worker' || v === 'serial') return 'single-worker';
+  if (v === 'orch' || v === 'multi-worker') return 'orchestrator';
+  return ATLAS_EXEC_MODE_OPTIONS.some(o => o.key === v) ? v : 'single-worker';
+};
 
 // ── PipelineRunningChip ───────────────────────────────────────────
 // Top-bar "[▶ N running]" chip. Reads window.ATLAS_PIPELINE_RUNNING
@@ -119,6 +140,14 @@ const App = () => {
       return atlasResolutionPreset(localStorage.getItem('atlasResolution')).key;
     } catch (_) { return DEFAULT_ATLAS_RESOLUTION; }
   });
+  const [runMode, setRunMode] = React.useState(() => {
+    try { return normalizeAtlasRunMode(localStorage.getItem('atlasRunMode')); }
+    catch (_) { return 'engineering'; }
+  });
+  const [execMode, setExecMode] = React.useState(() => {
+    try { return normalizeAtlasExecMode(localStorage.getItem('atlasExecMode')); }
+    catch (_) { return 'single-worker'; }
+  });
   React.useEffect(() => {
     window.ATLAS_UI_LANG = uiLang;
     try { localStorage.setItem('atlasUiLang', uiLang); } catch (_) {}
@@ -139,6 +168,19 @@ const App = () => {
     try { localStorage.setItem('atlasResolution', preset.key); } catch (_) {}
     window.dispatchEvent(new CustomEvent('atlas-resolution-changed', { detail: preset }));
   }, [resolution]);
+  React.useEffect(() => {
+    window.ATLAS_RUN_MODE = runMode;
+    window.ATLAS_EXEC_MODE = execMode;
+    try {
+      localStorage.setItem('atlasRunMode', runMode);
+      localStorage.setItem('atlasExecMode', execMode);
+    } catch (_) {}
+    try {
+      window.dispatchEvent(new CustomEvent('atlas-run-policy-changed', {
+        detail: { run_mode: runMode, exec_mode: execMode },
+      }));
+    } catch (_) {}
+  }, [runMode, execMode]);
   const chooseUiLang = React.useCallback((next) => {
     setUiLang(next === 'ko' ? 'ko' : 'en');
     try { localStorage.setItem('atlasUiLangUserSet', '1'); } catch (_) {}
@@ -204,6 +246,29 @@ const App = () => {
     setTopNotice(String(msg || ''));
     setTimeout(() => setTopNotice(''), 5000);
   }, []);
+  const saveRunPolicy = React.useCallback(async (nextRunMode, nextExecMode) => {
+    const run_mode = normalizeAtlasRunMode(nextRunMode);
+    const exec_mode = normalizeAtlasExecMode(nextExecMode);
+    setRunMode(run_mode);
+    setExecMode(exec_mode);
+    try {
+      const r = await fetch('/api/pipeline/run_policy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ run_mode, exec_mode }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) {
+        if (j.run_mode) setRunMode(normalizeAtlasRunMode(j.run_mode));
+        if (j.exec_mode) setExecMode(normalizeAtlasExecMode(j.exec_mode));
+        try { window.dispatchEvent(new CustomEvent('atlas:pipeline-poll')); } catch (_) {}
+      } else if (j.error) {
+        showNotice(j.error);
+      }
+    } catch (e) {
+      showNotice(`Run policy update failed: ${e && e.message ? e.message : e}`);
+    }
+  }, [showNotice]);
 
   const [agentRunning, _setAgentRunning] = React.useState(false);
   const agentRunningRef = React.useRef(false);
@@ -341,6 +406,19 @@ const App = () => {
       .catch(() => { if (!cancelled) setAuthState('unauth'); });
     return () => { cancelled = true; };
   }, []);
+  React.useEffect(() => {
+    if (authState !== 'authed') return undefined;
+    let dead = false;
+    fetch('/api/pipeline/run_policy', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(j => {
+        if (dead || !j) return;
+        if (j.run_mode) setRunMode(normalizeAtlasRunMode(j.run_mode));
+        if (j.exec_mode) setExecMode(normalizeAtlasExecMode(j.exec_mode));
+      })
+      .catch(() => {});
+    return () => { dead = true; };
+  }, [authState]);
   React.useEffect(() => {
     const mark = (k, v) => setBootSteps(s => (s[k] === v ? s : { ...s, [k]: v }));
     const runProbes = () => {
@@ -930,6 +1008,24 @@ const App = () => {
     try { localStorage.atlasScreen = screen; } catch (_) {}
   }, [screen]);
 
+  React.useEffect(() => {
+    const onOpenEvidence = (ev) => {
+      const path = String(ev?.detail?.path || '').trim();
+      if (!path) return;
+      try { localStorage.setItem('atlasPreviewPath', path); } catch (_) {}
+      setScreen('workspace');
+      setTimeout(() => {
+        try {
+          window.dispatchEvent(new CustomEvent('atlas-chip-open', {
+            detail: { path, source: ev?.detail?.source || 'pipeline' },
+          }));
+        } catch (_) {}
+      }, 0);
+    };
+    window.addEventListener('atlas:open_evidence', onOpenEvidence);
+    return () => window.removeEventListener('atlas:open_evidence', onOpenEvidence);
+  }, []);
+
   // Auto-switch the agent's workflow when entering / leaving Architect.
   // Architect is a SoC-level supervisor (one tier above ssot-gen,
   // rtl-gen, sim, lint, …), so the persona that handles its chat needs
@@ -1259,6 +1355,28 @@ const App = () => {
         <button className={`dir-btn ${screen === 'architect' ? 'active' : ''}`}
                 title="SoC structure · per-module status grid · block diagram (rich progress view)"
                 onClick={() => setScreen('architect')}>◇ Architect</button>
+        <label className="dir-select-wrap run-policy" title="Run Mode controls evidence strictness, not IP size">
+          <span>run</span>
+          <select
+            className="dir-select policy"
+            value={runMode}
+            onChange={e => saveRunPolicy(e.currentTarget.value, execMode)}>
+            {ATLAS_RUN_MODE_OPTIONS.map(opt => (
+              <option key={opt.key} value={opt.key}>{opt.label}</option>
+            ))}
+          </select>
+        </label>
+        <label className="dir-select-wrap run-policy" title="Exec Mode chooses single-worker execution or orchestrator-managed workers">
+          <span>exec</span>
+          <select
+            className="dir-select exec"
+            value={execMode}
+            onChange={e => saveRunPolicy(runMode, e.currentTarget.value)}>
+            {ATLAS_EXEC_MODE_OPTIONS.map(opt => (
+              <option key={opt.key} value={opt.key}>{opt.label}</option>
+            ))}
+          </select>
+        </label>
         <PipelineRunningChip onClick={() => setScreen('pipeline')} />
         <span style={{ width: 12 }} />
         <label className="dir-select-wrap" title="Change UI font family">

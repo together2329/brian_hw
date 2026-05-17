@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_goal_audit",
+  "ip": "dma_real",
+  "generated_at": "2026-05-17T02:58:34Z",
+  "status": "fail",
+  "source_of_truth": {
+    "ssot": "dma_real/yaml/dma_real.ssot.yaml",
+    "functional_model": "dma_real/model/functional_model.py",
+    "cycle_model": "SSOT cycle_model section",
+    "equivalence_goals": "dma_real/verify/equivalence_goals.json"
+  },
+  "summary": {
+    "total_checks": 16,
+    "passed_checks": 15,
+    "failed_checks": 1,
+    "blockers": [
+      "req"
+    ]
+  },
+  "checks": [
+    {
+      "id": "req",
+      "label": "Human-approved requirement artifact exists",
+      "status": "fail",
+      "owner": "human gate",
+      "evidence": [
+        "dma_real/req/dma_real_requirements.md"
+      ],
+      "detail": "requirement markdown must exist under req/, contain at least 1000 bytes, contain no TODO/TBD markers, and match req/approval_manifest.json; bytes=8413; approval_manifest=False; pending_review=False; review_decision=False; missing or invalid approval manifest: missing req/approval_manifest.json",
+      "next_action": "capture requirement intent in dma_real/req/*.md before SSOT signoff"
+    },
+    {
+      "id": "ssot",
+      "label": "SSOT contains function_model and cycle_model source of truth",
+      "status": "pass",
+      "owner": "ssot-gen",
+      "evidence": "dma_real/yaml/dma_real.ssot.yaml",
+      "detail": "SSOT parsed with function_model and cycle_model",
+      "next_action": "repair SSOT from requirement answers; do not infer product behavior in RTL"
+    },
+    {
+      "id": "fl_model",
+      "label": "Executable functional model passes self-check",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": [
+        "dma_real/model/functional_model.py",
+        "dma_real/model/fl_model_check.json"
+      ],
+      "detail": "fl_model_check.passed=True",
+      "next_action": "rerun /ssot-equiv-goals dma_real after repairing FunctionalModel from SSOT"
+    },
+    {
+      "id": "fl_decomposition",
+      "label": "Functional model decomposition is complete",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "dma_real/model/decomposition.json",
+      "detail": "complete=True units=11",
+      "next_action": "split FunctionalModel behavior into units before coverage/equivalence planning"
+    },
+    {
+      "id": "fcov_plan",
+      "label": "Functional coverage plan exists before RTL signoff",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "dma_real/cov/fcov_plan.json",
+      "detail": "planned_before_rtl=True bins=58",
+      "next_action": "derive functional coverage bins from SSOT/decomposition before RTL/TB signoff"
+    },
+    {
+      "id": "equivalence_goals",
+      "label": "SSOT-traceable equivalence goals are generated",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "dma_real/verify/equivalence_goals.json",
+      "detail": "total=67 blocked=0 errors=[]",
+      "next_action": "rerun /ssot-equiv-goals dma_real or answer SSOT blockers"
+    },
+    {
+      "id": "module_equivalence_goals",
+      "label": "Each RTL owner module has an exact FL-vs-RTL functionality goal",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "dma_real/verify/equivalence_goals.json",
+      "detail": "module_contracts=5 module_goals=4 missing=[] blocked=[]",
+      "next_action": "rerun /ssot-fl-model and /ssot-equiv-goals; every module owning function_model refs needs a scope.level=module goal"
+    },
+    {
+      "id": "rtl_artifacts",
+      "label": "RTL and filelist artifacts exist without placeholder markers",
+      "status": "pass",
+      "owner": "rtl-gen",
+      "evidence": [
+        "dma_real/rtl/dma_real_ahb_master.sv",
+        "dma_real/rtl/dma_real_apb_cfg.sv",
+        "dma_real/rtl/dma_real_arbiter.sv",
+        "dma_real/rtl/dma_real_channel.sv",
+        "dma_real/rtl/dma_real_irq.sv",
+        "dma_real/rtl/dma_real_top.sv",
+        "dma_real/list/dma_real.f"
+      ],
+      "detail": "rtl_files=6 list_exists=True",
+      "next_action": "run /ssot-rtl dma_real; repair only RTL when SSOT/FL behavior is clear"
+    },
+    {
+      "id": "dut_compile",
+      "label": "DUT-only RTL compile evidence passes with a real HDL tool",
+      "status": "pass",
+      "owner": "rtl-gen",
+      "evidence": "dma_real/rtl/rtl_compile.json",
+      "detail": "passed=True dut_only=True tool=iverilog",
+      "next_action": "run a DUT-only compile command with verilator/pyslang/slang/iverilog and repair diagnostics"
+    },
+    {
+      "id": "dut_lint",
+      "label": "DUT-only lint evidence passes with a real HDL lint/parser tool",
+      "status": "pass",
+      "owner": "rtl-gen",
+      "evidence": "dma_real/lint/dut_lint.json",
+      "detail": "passed=True dut_only=True tool=pyslang+verilator",
+      "next_action": "run DUT-only lint; do not count cocotb/pytest as RTL lint evidence"
+    },
+    {
+      "id": "scoreboard_contract",
+      "label": "TB consumes equivalence_goals.json and emits required scoreboard rows",
+      "status": "pass",
+      "owner": "tb-gen",
+      "evidence": [
+        "dma_real/sim/scoreboard_events.jsonl",
+        "workflow/tb-gen/scripts/check_scoreboard_events.py"
+      ],
+      "detail": "[check_scoreboard_events] PASS: goals=67 required=67 scoreboard_rows=67 goals_with_rows=67",
+      "next_action": "repair cocotb/pyuvm TB to instantiate EquivalenceScoreboard and cover all required goals"
+    },
+    {
+      "id": "simulation",
+      "label": "RTL simulation completed with waveform evidence",
+      "status": "pass",
+      "owner": "sim",
+      "evidence": [
+        "dma_real/sim/results.xml",
+        "dma_real/sim/dma_real.vcd"
+      ],
+      "detail": "{\"errors\": 0, \"exists\": true, \"failures\": 0, \"parse_error\": \"\", \"tests\": 6}",
+      "next_action": "run /sim dma_real; simulation must emit results.xml, scoreboard_events.jsonl, and waveform"
+    },
+    {
+      "id": "fl_rtl_compare",
+      "label": "FL-vs-RTL comparator passes all equivalence goals",
+      "status": "pass",
+      "owner": "sim_debug",
+      "evidence": "dma_real/sim/fl_rtl_compare.json",
+      "detail": "status=pass summary={'total': 67, 'goals_checked': 67, 'goals_matched': 67, 'goals_mismatched': 0, 'missing_evidence': [], 'stale_evidence': []}",
+      "next_action": "run /sim-debug dma_real; repair classified owner or answer human gate"
+    },
+    {
+      "id": "mismatch_classification",
+      "label": "Mismatches are absent or fully routed before signoff",
+      "status": "pass",
+      "owner": "sim_debug",
+      "evidence": "dma_real/sim/mismatch_classification.json",
+      "detail": "status=pass classifications=0 schema_ok=True",
+      "next_action": "loopable classifications may repair the owner; human classifications must open ATLAS question and persist answer"
+    },
+    {
+      "id": "functional_coverage",
+      "label": "Functional coverage is backed by RTL-observed scoreboard evidence",
+      "status": "pass",
+      "owner": "tb-gen",
+      "evidence": "dma_real/cov/coverage.json",
+      "detail": "source=ssot_coverage_summary status=pass pct=100.0 required_refs=58 missing_refs=[] missing_rtl_bins=[] invalid_rows=[] rtl_observed_status=pass function_domain_ok=True cycle_domain_ok=True",
+      "next_action": "rerun /coverage after /sim; coverage must be proven by passing scoreboard rows with real rtl_observed signals"
+    },
+    {
+      "id": "fresh_evidence",
+      "label": "Simulation, compare, and coverage evidence is newer than SSOT/model inputs",
+      "status": "pass",
+      "owner": "LLM loop",
+      "evidence": [],
+      "detail": "evidence is fresh",
+      "next_action": "rerun /sim dma_real and /sim-debug dma_real after source artifact changes"
+    }
+  ],
+  "stop_condition": {
+    "req_ok": false,
+    "ssot_ok": true,
+    "fl_model_pass": true,
+    "cycle_model_present": true,
+    "equivalence_goals_generated": true,
+    "scoreboard_from_goals": true,
+    "simulation_complete": true,
+    "fl_rtl_compare_complete": true,
+    "mismatches_classified_or_zero": true,
+    "coverage_linked": true,
+    "signoff_evidence_backed": false
+  }
+}

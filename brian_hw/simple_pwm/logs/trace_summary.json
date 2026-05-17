@@ -1,0 +1,26 @@
+{
+  "blocked_at_stage": "fl-model-gen",
+  "ip": "simple_pwm",
+  "llm": {
+    "by_stage": {},
+    "totals": {
+      "cache_read_tokens": 0,
+      "calls": 0,
+      "cost_usd": 0.0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "repair_calls": 0,
+      "repair_rate": 0.0,
+      "total_tokens": 0
+    }
+  },
+  "llm_log_files": 0,
+  "run_status": "blocked",
+  "stage_engine_order": [
+    {
+      "created_at": "2026-05-16T19:02:43Z",
+      "stage_engine": "ssot-fl-model",
+      "status": "blocked"
+    }
+  ]
+}

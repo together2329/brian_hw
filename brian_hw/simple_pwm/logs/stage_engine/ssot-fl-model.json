@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "blocker": "simple_pwm/yaml/simple_pwm.ssot.yaml",
+  "created_at": "2026-05-16T19:02:43Z",
+  "headline": "[ssot-fl-model] blocked: SSOT not found",
+  "ip": "simple_pwm",
+  "message": "[ssot-fl-model] blocked: SSOT not found at simple_pwm/yaml/simple_pwm.ssot.yaml\nRun /new-ip simple_pwm, approve simple_pwm, and /to-ssot simple_pwm first.",
+  "metadata": {},
+  "returncode": 2,
+  "runs": [],
+  "stage": "ssot-fl-model",
+  "status": "blocked",
+  "workflow": "fl-model-gen"
+}

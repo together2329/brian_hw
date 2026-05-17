@@ -1,5 +1,346 @@
 # Wiki Log
 
+## 2026-05-17
+
+- Added `arm_m0_min/review/prompt_to_artifact_checklist.json`, a
+  machine-readable map from the original CPU request to concrete SSOT, model,
+  RTL, TB, sim, equivalence, coverage, wiki, and approval-gate evidence. The
+  open req review decision now exposes this JSON as a `review_aids[]` entry so
+  UI/orchestrator/future agents can distinguish machine-green evidence from the
+  remaining human-owned `req` blocker without parsing prose.
+- Added `workflow/req-gen/scripts/audit_prompt_to_artifact_checklist.py` as a
+  consistency checker for that JSON map. On real `arm_m0_min` it reports
+  `status=blocked`, `completion_ready=false`, no errors, and blocked items
+  `human_req_approval` plus `final_audit`, which keeps the approval boundary
+  machine-checkable without promoting `req/`.
+- Added `doc/wiki/arm-m0-min-current-status.md` as the project-level discovery
+  page for the active CPU handoff. Before this, project-level `wiki_query`
+  found only `doc/wiki/log.md` for `"cpu approval req"` and returned no direct
+  result for `"arm m0 handoff"` or `"readme cpu"`, even though the IP-local
+  wiki was already good. The new page keeps the same approval boundary:
+  `arm_m0_min/README.md` is the reviewer entry point, real final audit remains
+  `15/16 blockers=req`, and `approve_locked_scope` is required before
+  `workflow/req-gen/scripts/promote_requirement_review.py` may write real
+  `arm_m0_min/req/` approval artifacts. The review decision's
+  `evidence.review_aids[]` now includes this project wiki page so UI,
+  orchestrator, and future agents land on the same current-status summary.
+  Promotion preflight after the wiki/review-aid update passed in dry-run mode
+  with review packet SHA256
+  `e0b6e6a3d2078930bb046fd241a2422712af3155b4e823b2ec2da1bd64942a07`; no real
+  `arm_m0_min/req/` artifacts were written. A live FastAPI test-client smoke
+  against the real `arm_m0_min` workspace also confirmed
+  `/api/pipeline/state?ip=arm_m0_min` reports one open review decision,
+  recommended option `approve_locked_scope`, the then-current review aids
+  including the project wiki current-status page, and `goal-audit` as
+  `failed blockers=req`.
+  Added
+  `tests/test_atlas_api_pipeline_state.py::test_real_arm_m0_min_pipeline_state_exposes_req_review_decision`
+  so this real-IP UI/API visibility cannot silently regress.
+- Fresh CPU machine-evidence smoke after the API visibility test:
+  `iverilog -g2012 -f list/arm_m0_min.f` compile passed, `verilator
+  --lint-only -Wall -f list/arm_m0_min.f` passed with 0 errors/0 warnings,
+  cocotb `test_runner.py` passed `TESTS=1 PASS=1 FAIL=0`,
+  `compare_fl_rtl_results.py` passed `39/39`, and final goal audit remains
+  blocked only on `req` (`15/16 blockers=req`). This confirms the new review
+  docs/tests did not mask a stale CPU implementation failure. Because the
+  compare file was freshly rewritten, the approval decision's pinned
+  `fl_rtl_compare_sha256` needed to advance; the guard test caught the stale
+  hash before approval could proceed. `compare_fl_rtl_results.py` now preserves
+  `generated_at` when a rerun produces identical semantic evidence, so no-op
+  reruns no longer churn approval hashes. The current stable compare SHA256 is
+  `b7f758f1ecfd3a20ecab9472ec4f53834628fd9b9f1e057aa497a30a3319a062`.
+- Fresh completion audit for the active "make one CPU" goal after process
+  cleanup: `arm_m0_min/review/completion_readiness_checklist.md` already maps
+  the user objective to concrete artifacts (SSOT, FL/CL models, RTL, filelist,
+  TB, sim, scoreboard, FL-vs-RTL compare, coverage, requirement approval, final
+  audit). Re-ran the real final audit:
+  `python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py arm_m0_min --root .`
+  and it still reports `status=fail passed=15/16 blockers=req`. Re-ran the
+  focused approval/audit/API regression set and it still passes `80 passed`.
+  Therefore the CPU implementation evidence remains intact, but the thread goal
+  is not complete until the human-owned locked-scope requirement approval is
+  promoted into `arm_m0_min/req/`.
+- Approval promotion preflight was rechecked without writing real `req/`
+  artifacts:
+  `python3 workflow/req-gen/scripts/promote_requirement_review.py arm_m0_min --root . --source arm_m0_min/doc/arm_m0_min_requirement_review.md --approved-by dry-run --decision-note 'preflight after completion audit refresh' --dry-run --json`
+  passed and reported the expected review source hash
+  `e0b6e6a3d2078930bb046fd241a2422712af3155b4e823b2ec2da1bd64942a07`.
+  Note: `sim/fl_rtl_goal_audit.json` is runtime audit output and may update
+  when the audit is rerun; the pinned promotion snapshot intentionally verifies
+  `doc/arm_m0_min_completion_audit.md`, SSOT, FL-vs-RTL compare, and coverage.
+- Added `arm_m0_min/doc/arm_m0_min_user_handoff.md` as a non-pinned usage and
+  verification guide for the generated CPU. It lists the built scope, artifact
+  locations, fresh audit/regression/preflight commands, and the approval
+  boundary. `arm_m0_min/doc/arm_m0_min_review_index.md` now links it in the
+  review order, and `arm_m0_min/PIPELINE_SUMMARY.md` now carries a current
+  status note so readers do not mistake the historical run summary for the
+  current `req` signoff state. Verified with `tests/test_review_decisions.py`
+  (`15 passed`) and wiki graph checks (`broken_refs=0`).
+- Exposed that handoff through the Pipeline review queue as a fifth
+  `review_aids[]` entry, between the review index and deeper RTL/ISA
+  inventories. Added a regression that the handoff keeps the approval boundary
+  explicit (`do not manually create req`, real promotion only after
+  `approve_locked_scope`). API/review-decision tests pass (`41 passed`), and
+  requirement-promotion dry-run still verifies the pinned review packet hash
+  without writing real `req/` artifacts. The full focused
+  approval/audit/API regression set now passes `81 passed`; wiki graph checks
+  remain clean (`broken_refs=0`).
+- Added IP-local wiki pages under `arm_m0_min/wiki/` (`index.md`, `log.md`,
+  `notes.md`) so the CPU review can start from the IP directory itself. The
+  index links to the handoff, approval request, readiness checklist, review
+  index, and key machine artifacts, while explicitly preserving the same `req`
+  approval boundary.
+- Improved `core.tools.wiki_query` keyword matching for agents: queries now
+  split topic terms and match them against id, title, tags, path, status,
+  digest, and summary instead of requiring one exact substring in id/title/tags.
+  Added `tests/test_wiki_query_tool.py` so questions like "CPU handoff approval
+  req" find the IP-local handoff/review pages. Also adjusted the
+  `arm_m0_min/wiki/index.md` title/summary so `wiki_query(ip="arm_m0_min",
+  topic="CPU handoff")` returns a useful result.
+- Added a real-IP `wiki_query` regression for `arm_m0_min` itself. The test
+  rebuilds `arm_m0_min/wiki/_graph.json`, calls the same `wiki_query` tool path
+  an agent would use, and verifies that topic `"CPU handoff approval req"`
+  returns the IP-local wiki index, `approve_locked_scope`, and the final-signoff
+  blocker wording. The focused approval/audit/API/wiki-query regression set now
+  passes `84 passed`; project and IP wiki graph checks remain `broken_refs=0`.
+- Added a Korean review checklist to `arm_m0_min/doc/arm_m0_min_user_handoff.md`
+  so the approval decision is understandable without reading the whole English
+  artifact set. The checklist says this is a minimal reference CPU, lists the
+  approved ISA/pipeline/excluded features, and states the two outcomes:
+  answer `approve_locked_scope` if the scope is correct, or reopen SSOT scope if
+  it is insufficient.
+- Added `arm_m0_min/README.md` as the root-level CPU entry point. It links to
+  the handoff, approval request, completion checklist, IP wiki index, review
+  index, and main artifacts, while making the current gate explicit
+  (`15/16 blockers=req`) and preserving the rule that `req/` artifacts are not
+  manually created before `approve_locked_scope`.
+- Fixed `wiki_query` lazy rebuild so wiki lookup does not serve stale
+  `_graph.json` after markdown content changes. The tool now checks file mtimes
+  under IP `wiki/` plus artifact directories, and project wiki markdown mtimes,
+  instead of only checking a few IP artifact directory mtimes. Added a
+  regression that edits an existing IP wiki markdown file, leaves a stale graph,
+  and verifies `wiki_query` rebuilds before answering. Focused
+  approval/audit/API/wiki-query regression now passes `86 passed`.
+- Linked the new root `arm_m0_min/README.md` from `arm_m0_min/wiki/index.md`
+  and added a real-IP `wiki_query` regression for topic `"readme cpu"`. This
+  keeps the root entry point discoverable from the wiki/tool path instead of
+  requiring the reviewer to know it exists. After tightening the wiki index
+  title/summary, `wiki_query(ip="arm_m0_min", topic="readme cpu")` returns the
+  CPU README handoff index and names `arm_m0_min/README.md` as the root README
+  entry point. Focused approval/audit/API/wiki-query regression now passes
+  `87 passed`.
+- Improved `wiki_query` result ordering so reviewer entry points appear before
+  logs/notes for the same topic. The scorer weights matches in id/title/path
+  above summary-only matches and gives `wiki/index.md` a start-page boost.
+  Real-IP regression now asserts `wiki_query(ip="arm_m0_min", topic="CPU handoff approval req")`
+  returns the IP wiki index before the log. The focused regression remains
+  `87 passed`.
+- Cleaned stale Claude/worker monitor shells that were only polling with
+  `until grep ... sleep` and causing repeated unified exec pressure warnings.
+  The cleanup intentionally did not kill user-facing Claude sessions, `cmux`,
+  or the active Textual UI process. Follow-up process scan showed zero
+  remaining `until grep` monitors; one user-facing
+  `textual_main.py --ui textual -s test_ip` process was left running.
+- Checked the concurrent `octa_ddr_spi_ctrl` workflow run under
+  `/Users/brian/Desktop/Project/OCTA_DDR_SPI_ORCH_20260517_001`: the run reached
+  generated model/TB stages and ended with evidence, not a process hang.
+  Current failure is `sim-debug` FL-vs-RTL mismatch: 67 goals checked, 43 pass,
+  24 fail, 0 blocked. Owner classification is 18 `rtl-gen` repairs and 6
+  `tb-gen` repairs. This should feed the repair loop; it should not be treated
+  as a human gate or as a manual artifact edit request.
+- Continuation audit for `arm_m0_min` after compaction: real final audit still
+  fails only on the human-owned `req` gate (`15/16 blockers=req`). Focused
+  approval/audit/API regression remains green (`75 passed`), wiki graphs remain
+  clean (`doc/wiki` 33 nodes/192 edges/0 broken refs, `arm_m0_min/wiki` 11
+  nodes/14 edges/0 broken refs), and promotion on a temporary copy still
+  reaches `16/16 blockers=none`. Real `arm_m0_min/req/arm_m0_min_requirements.md`
+  and `arm_m0_min/req/approval_manifest.json` were intentionally not written;
+  the stop condition remains explicit human approval of
+  `arm_m0_min/review/approval_request.md` with `approve_locked_scope`.
+- Added `arm_m0_min/review/completion_readiness_checklist.md` as a review aid
+  that maps the original "make a CPU" request to concrete artifacts, current
+  evidence, and the single remaining blocker. It is linked from the human
+  approval request and from the open review decision's `evidence.review_aids[]`.
+  It is intentionally not part of the pinned approval target, so adding it does
+  not mutate the reviewed requirement packet hash. Revalidation after the link:
+  JSON valid, approval dry-run passes hash preflight, focused regression remains
+  `75 passed`, and the real audit still fails only as expected at
+  `15/16 blockers=req`.
+- Strengthened the Pipeline API regression for that review queue shape:
+  `tests/test_atlas_api_pipeline_state.py` now locks a four-aid list with the
+  readiness checklist first, matching the real `arm_m0_min` decision record.
+  Direct review queue inspection returns the same four aids, the API test file
+  passes (`25 passed`), and the focused approval/audit/API set remains
+  `75 passed`.
+- Added a real-artifact review decision regression in
+  `tests/test_review_decisions.py`: the `arm_m0_min` requirement approval
+  record must list the four expected review aids in order, and each path must
+  exist on disk. This prevents Pipeline from surfacing stale or missing review
+  links while the human `req` gate is open. Review-decision tests pass
+  (`12 passed`), and the focused approval/audit/API set now passes
+  `76 passed`; real final audit is still intentionally blocked at
+  `15/16 blockers=req`.
+- Added another real-artifact regression for the same approval decision: the
+  pinned approval packet hash and machine evidence snapshot hashes must match
+  the current files on disk (`requirement_review.md`, completion audit, SSOT,
+  FL-vs-RTL compare, and coverage). This prevents approving a review decision
+  whose evidence has drifted. Review-decision tests now pass `13 passed`, and
+  the focused approval/audit/API set passes `77 passed`; approval dry-run still
+  passes hash preflight and the real audit remains `15/16 blockers=req`.
+- Added a readiness-checklist consistency regression: while the
+  `arm_m0_min` requirement decision remains open, the checklist must say it is
+  not complete, must mirror the real final-audit count/blocker
+  (`passed=15/16`, `blockers=req`), must include `approve_locked_scope`, and
+  must not coexist with real `req/arm_m0_min_requirements.md` or
+  `req/approval_manifest.json`. The test skips automatically after the review
+  decision is resolved, so it protects the pre-approval state without blocking
+  post-approval completion. Review-decision tests now pass `14 passed`, and the
+  focused approval/audit/API set passes `78 passed`; approval dry-run still
+  passes and the real audit remains `15/16 blockers=req`.
+- Added a temp-copy completion regression:
+  `tests/test_goal_audit_requirement_review.py` copies the actual
+  `arm_m0_min` artifact to a temporary directory, runs
+  `promote_requirement_review.promote(...)` there with a real approver name,
+  and then calls the final audit function. The temp copy reaches
+  `16/16 blockers=[]`, while the real repo remains unpromoted
+  (`req/arm_m0_min_requirements.md` and `req/approval_manifest.json` absent).
+  Goal-audit requirement tests pass `6 passed`; the focused
+  approval/audit/API set now passes `79 passed`; approval dry-run still passes
+  hash preflight and the real audit remains `15/16 blockers=req`.
+- Refreshed the human-facing approval docs after the regression count changed:
+  `arm_m0_min/review/completion_readiness_checklist.md` now reports the focused
+  set as `79 passed`, and `arm_m0_min/review/approval_request.md` explicitly
+  lists both the focused regression and the temp-copy promotion regression.
+  Revalidated the doc consistency path (`20 passed`) and the full focused
+  approval/audit/API set (`79 passed`); real audit still remains
+  `15/16 blockers=req`.
+- Updated the review index to include
+  `arm_m0_min/review/completion_readiness_checklist.md` in both review order
+  and evidence locations, then added a regression that the human review index
+  references every review aid listed in the open decision record. Review-decision
+  tests now pass `15 passed`; the full focused approval/audit/API set passes
+  `80 passed`, so the human-facing checklist and approval request were refreshed
+  to report `80 passed`. Real audit remains `15/16 blockers=req`.
+- Reduced future drift in the human-facing approval docs: the checklist and
+  approval request now report the focused regression as "pass in latest
+  verification" instead of hardcoding a pytest item count. The exact count is
+  still available from the command output and wiki history, but approval-facing
+  docs no longer need edits just because another guard test is added. Regression
+  coverage was adjusted to require the pass wording and reject stale `80 passed`
+  wording in the checklist. Current validation remains `21 passed` for the doc
+  consistency path and `80 passed` for the focused approval/audit/API set; real
+  audit remains `15/16 blockers=req`.
+- Human review gate for `arm_m0_min` made user-visible without weakening
+  signoff: `/api/pipeline/state` exposes `orchestrator.decision_items[]`,
+  the Pipeline review chip opens `arm_m0_min/review/approval_request.md`,
+  and that approval request now includes a Korean scope summary. The real
+  final audit remains blocked at `15/16` until `approve_locked_scope` is
+  explicitly promoted into `req/`.
+- Added non-signoff review aids for the same gate:
+  `arm_m0_min/doc/arm_m0_min_review_index.md`,
+  `arm_m0_min/doc/arm_m0_min_rtl_inventory.md`, and
+  `arm_m0_min/doc/arm_m0_min_isa_decode_inventory.md`. The review decision
+  now carries these paths in `evidence.review_aids`, Pipeline shows them in the
+  review-chip tooltip, and `tests/test_atlas_api_pipeline_state.py` locks that
+  the API preserves them. Promotion dry-run still reaches final audit `16/16`;
+  the real artifact remains intentionally blocked on `req`.
+- Rechecked the `arm_m0_min` final gate after the review-aid update:
+  the pinned approval target, completion audit, SSOT, FL-vs-RTL compare, and
+  coverage hashes all match the review decision snapshot; RTL/list/TB/sim/
+  scoreboard/coverage/audit artifacts are present; approval promotion still
+  passes `16/16` on a temporary copy; focused approval/audit/review-queue
+  regression is `75 passed`. The real artifact remains `15/16` until a human
+  explicitly approves `arm_m0_min/review/approval_request.md`.
+- Locked another approval-gate guardrail after noticing
+  `arm_m0_min/req/phase1_ledger.log`: it is only a phase marker, not
+  requirement evidence. `arm_m0_min/review/approval_request.md` and
+  `arm_m0_min/doc/arm_m0_min_review_index.md` now say this explicitly, and
+  `tests/test_goal_audit_requirement_review.py` verifies that a non-markdown
+  phase marker under `req/` still leaves the final audit blocked on `req`.
+- Added `promote_requirement_review.py --dry-run` so approval promotion can be
+  preflighted against pinned review/evidence hashes without writing `req/`
+  artifacts or resolving the open review decision. The real `arm_m0_min`
+  preflight reports it would write `arm_m0_min/req/arm_m0_min_requirements.md`
+  and resolve the review item, while the real final audit correctly remains
+  `15/16 blockers=req`. The script now resolves relative `--source` paths
+  against `--root`, so temp-root preflight and UI/orchestrator calls do not
+  accidentally validate a source file from the caller's current directory.
+  Dry-run stdout includes `approved_at_utc`, `source_sha256`, and
+  `target_sha256`; the target hash is tied to the printed approval timestamp.
+  `--json` emits the same dry-run manifest preview as parseable JSON for UI or
+  orchestrator preflight without writing files. The dry-run manifest also
+  carries `target_sha256_preview` and a note so callers do not mistake a
+  preview hash tied to dry-run `approved_at_utc`, `approved_by`, and
+  `decision_note` for the eventual real approval artifact hash. Non-dry-run
+  `--json` is also tested in a temp workspace: it writes `req/`, resolves the
+  review decision, and prints the same manifest JSON that lands on disk.
+  Non-dry-run promotion now rejects placeholder approvers such as `dryrun` and
+  requires a real human approver name; the CLI path is covered too, so
+  `--approved-by dryrun` cannot accidentally create real `req/` artifacts.
+  Placeholder variants with whitespace, hyphens, and underscores are normalized
+  and rejected for real promotion while remaining allowed for `--dry-run`;
+  punctuation-only variants such as `n/a` and `N.A.` are normalized too. The
+  inverse dry-run allowance is also tested so preflight remains ergonomic.
+- Re-ran a real approval promotion on a temporary copy after the dry-run/json
+  and approver-guard changes. With `--approved-by brian --json`, promotion
+  wrote the approved `req/` artifact in the temp tree, resolved the review
+  decision, and the temp final audit passed `16/16 blockers=none`. The real
+  `arm_m0_min` artifact remains unpromoted and blocked at `15/16`.
+
+- Captured [[run-mode-and-provenance-policy]] from the Run Mode / Exec Mode /
+  SSOT provenance discussion. Decision: modes are work-maturity / evidence
+  strictness (`Starter`, `Engineering`, `Signoff`), not IP-size buckets; execution
+  topology is separate (`Single Worker`, `Orchestrator`). Accepted the feedback
+  that inline provenance on every YAML field would worsen boilerplate, but
+  refined it to `schema policy + resolved SSOT + sidecar provenance ledger`
+  rather than validator-only hidden state. UI placement: global second row near
+  `Workspace / Pipeline / Architect` for compact controls, Pipeline run bar for
+  rich evidence (`defaults`, `review`, `signoff blocked`, workers/handoffs).
+
+- Completed first `simple_pwm` end-to-end pipeline run. IP type:
+  educational-tiny peripheral (PWM controller). Single module, 6 ports,
+  3 function model transactions (FM1/FM2/FM3). Pipeline stages:
+  ssot-gen → fl-model-gen → cl-model-gen → equiv-goals → rtl-gen →
+  tb-gen → sim → coverage → goal-audit. All stages PASS. Key results:
+  SSOT 19787B/36 sections/0 TBDs; FL model 7 decomposition units,
+  29 fcov bins; equiv-goals total=26 blocked=0; iverilog compile+lint
+  clean; FL-vs-RTL sim 85/85 matches (0 mismatches); coverage 3/3
+  function bins + 6/6 cycle bins hit. Lessons: (1) `check_ssot_disk.sh`
+  requires many non-empty sections that are empty-by-default for tiny IPs
+  (pnr, security.assets, error_handling.error_sources, handshake_rules,
+  trace_events, quality_gates.{dv,eda,signoff}); plan to add these from the
+  start. (2) RTL-gen LLM call requires `ATLAS_RUN_REAL_LLM_TDD=1` and
+  can timeout; for simple IPs, direct RTL authoring from SSOT is viable.
+  (3) cocotb 1.9.2 on macOS with system Python has Makefile discovery
+  issues; plain iverilog testbench is a simpler path for tiny IPs.
+  (4) FL-vs-RTL timing alignment requires careful reset sequencing in the
+  testbench — the FL model step must be called before the posedge, and
+  comparison after.
+
+- Added a non-destructive Fast Context / Debugging And Operations layer to
+  [[index]] instead of replacing the existing reading order. The goal is faster
+  agent handoff while preserving the prior wiki structure: start from the quick
+  map, then follow the existing linked pages for detail.
+- Captured [[pipeline-progress-debugging]] after mini CPU `ssot-gen` retries
+  made progress diagnosis too file-hunting-driven. New rule: headless is a
+  reproduction/regression surface, not product-flow authority. Real validation
+  must use the same Atlas UI/API/worker path as users:
+  `/api/pipeline/dispatch` or `/api/job/dispatch` → worker `/run` →
+  `/status/<run_id>` → `/result/<run_id>` → artifacts/DB/UI state. The wiki
+  now records the shared `progress_debug` payload shape and the development
+  practice that code, tests, real-environment validation, and wiki updates move
+  together.
+- Captured [[multi-user-worker-isolation]] after the mini CPU orchestrator
+  retry exposed shared-worker concerns. Code review found that handoff JSON and
+  Pipeline state have user-scoped protections, but live HTTP worker dispatch is
+  still URL-scoped through `WORKER_URL_<workflow>` / `WORKER_URL_DEFAULT`.
+  Current runtime evidence: `:5521` and `:5522` were bound to `quad_spi`
+  workers while unrelated IP jobs were active; mini CPU did not reach worker
+  dispatch and no file collision occurred, but reusing those URLs for another
+  IP would be a real wrong-owner dispatch risk. Required fix: worker leases
+  keyed by user/workspace/IP/workflow/run, worker health metadata, fail-closed
+  dispatch preflight, and no `WORKER_URL_DEFAULT` in multi-user mode.
+
 ## 2026-05-16
 
 - Review of [[orchestrator-worker-handoff]] captured at
@@ -188,6 +529,18 @@
   3. `lib/iteration_control.detect_completion_signal` now recognizes narrative-end phrases ("pipeline complete", "all tasks finished", "everything is done", "nothing more to do", "✓ loop ended", "all workflows complete", "all stages passed", "run finished", …) in addition to the strict sentinel tokens. The react_loop's existing completion path at `core/react_loop.py:1266` now exits on the same plain-English declarations the LLM emitted on the arm_m0_min run, removing the ~50 min post-completion idle.
 
 ## 2026-05-15
+
+- Run Mode / Exec Mode implementation landed for the first stable contract:
+  ATLAS top row has `run` and `exec` selectors, pipeline dispatch/state carries
+  `run_mode` and `exec_mode`, pipeline UI shows policy/provenance chips,
+  `check_ssot_disk.sh --mode starter|engineering|signoff` gates SSOT strictness,
+  and `repair_ssot_schema.py --mode ...` writes
+  `<ip>/yaml/<ip>.ssot.provenance.json`. The provenance sidecar now records
+  nested field paths too, and the pipeline summary treats signoff-critical
+  prefixes such as `security.assets.*` and `quality_gates.*` as blockers when
+  they are generated defaults or review-needed. Headless SSOT validation/repair
+  now passes the selected Run Mode instead of always behaving as signoff. See
+  [[run-mode-and-provenance-policy]].
 
 - Created the tracked project wiki map for common_ai_agent under `doc/wiki/`.
 - Added cross-linked pages for flow, ownership, todo evidence, provider call accounting, and human escalation.

@@ -1262,6 +1262,32 @@ def test_reference_target_scale_candidate_requires_ssot_lock_or_waiver(tmp_path:
     assert policy_task["todo_completion"]["status"] == "pass"
 
 
+def test_target_scale_policy_without_reference_does_not_become_preflight_human_gate(tmp_path: Path):
+    ip = "target_scale_no_reference_probe"
+    ip_dir = tmp_path / ip
+    _write_dynamic_todo_ssot(tmp_path, ip)
+
+    result = subprocess.run(
+        [sys.executable, str(DERIVE_RTL_TODOS), ip, "--root", str(tmp_path)],
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stderr or result.stdout
+
+    preflight = subprocess.run(
+        [sys.executable, str(SSOT_TO_RTL), ip, "--root", str(tmp_path)],
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+
+    assert preflight.returncode == 2
+    blocked = json.loads((ip_dir / "rtl" / "rtl_blocked.json").read_text(encoding="utf-8"))
+    blocked_ids = {question["id"] for question in blocked["questions"]}
+    assert "RTL_TARGET_SCALE_POLICY" not in blocked_ids
+
+
 def test_dynamic_rtl_todos_scale_from_ssot_complexity(tmp_path: Path):
     ip = "dynamic_todo_probe"
     _write_dynamic_todo_ssot(tmp_path, ip)
@@ -3665,6 +3691,62 @@ def test_static_rtl_evidence_requires_multiple_terms_for_rich_tasks(tmp_path: Pa
     output_rule = next(task for task in plan["tasks"] if task["category"] == "function_model.output_rule")
     assert output_rule["static_evidence"]["status"] == "pass"
     assert {"ComplexOut", "payload_flag"}.issubset(set(output_rule["static_evidence"]["matched_terms"]))
+
+
+def test_cycle_model_requirement_labels_do_not_force_marker_signals(tmp_path: Path):
+    ip = "cycle_marker_filter"
+    ip_dir = tmp_path / ip
+    for subdir in ("yaml", "rtl", "list"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                f"  name: {ip}",
+                "sub_modules:",
+                f"  - name: {ip}",
+                f"    file: rtl/{ip}.sv",
+                "    ownership: manifest",
+                "    cycle_model_refs: [cycle_model]",
+                "cycle_model:",
+                "  latency: 1",
+                "  backpressure:",
+                "    - no_apb_backpressure_generated",
+                "  observability:",
+                "    - every_function_model_transaction_has_cycle_model_stage_mapping",
+                "filelist:",
+                "  rtl:",
+                f"    - rtl/{ip}.sv",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        f"module {ip}(input wire pclk, input wire psel, input wire penable, output wire pready);\n"
+        "  wire apb_access = psel & penable;\n"
+        "  assign pready = apb_access | pclk;\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+
+    subprocess.run(
+        [sys.executable, str(DERIVE_RTL_TODOS), ip, "--root", str(tmp_path), "--audit-rtl"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    plan = json.loads((ip_dir / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    backpressure = next(task for task in plan["tasks"] if task["category"] == "cycle_model.backpressure")
+    observability = next(task for task in plan["tasks"] if task["category"] == "cycle_model.observability")
+
+    assert "no_apb_backpressure_generated" not in backpressure["evidence_terms"]
+    assert "apb" in backpressure["evidence_terms"]
+    assert backpressure["static_evidence"]["status"] == "pass"
+    assert "every_function_model_transaction_has_cycle_model_stage_mapping" not in observability["evidence_terms"]
+    assert observability["requires_static_rtl_evidence"] is False
 
 
 def test_static_rtl_evidence_matches_protocol_response_error_aliases(tmp_path: Path):

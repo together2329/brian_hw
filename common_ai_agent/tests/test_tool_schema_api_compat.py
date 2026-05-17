@@ -1402,7 +1402,7 @@ class TestReasoningParameter(unittest.TestCase):
         """REASONING_MODE config controls effort level."""
         from src.llm_client import _build_responses_request
 
-        for effort in ("low", "medium", "high"):
+        for effort in ("low", "medium", "high", "xhigh"):
             with patch('src.llm_client.config') as mock_config:
                 mock_config.REASONING_MODE = effort
                 mock_config.REASONING_EFFORT = effort

@@ -1,0 +1,338 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 14,
+      "key": "workflow_todo",
+      "module_task_count": 70,
+      "rule": "Owner module simple_pwm is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/simple_pwm.sv",
+      "name": "simple_pwm",
+      "refs": [
+        "top_module",
+        "function_model",
+        "cycle_model"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/simple_pwm.sv",
+        "name": "simple_pwm",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "enable",
+          "pwm_control_enable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "enable",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "duty_cycle",
+          "pwm_control_duty_cycle"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "duty_cycle",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "COUNTER_WIDTH"
+      },
+      {
+        "aliases": [
+          "period",
+          "pwm_control_period"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "period",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "COUNTER_WIDTH"
+      },
+      {
+        "aliases": [
+          "pwm_out",
+          "pwm_output_pwm_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pwm_out",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 2,
+    "open_required_count": 2,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "simple_pwm",
+  "kind": "module",
+  "owner_file": "rtl/simple_pwm.sv",
+  "owner_module": "simple_pwm",
+  "packet_id": "module__simple_pwm__workflow_todo",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "workflow_todo.rtl_gen": 2
+    },
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 14,
+      "key": "workflow_todo",
+      "module_task_count": 70,
+      "rule": "Owner module simple_pwm is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 2,
+    "required_count": 2,
+    "source_refs": [
+      "workflow_todos.rtl-gen[0]",
+      "workflow_todos.rtl-gen[1]"
+    ],
+    "status_counts": {
+      "open": 2
+    },
+    "task_count": 2
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement PWM counter with period rollover",
+      "criteria": [
+        "Counter increments when enable=1",
+        "Counter wraps to 0 when counter+1 == period",
+        "Counter stays at 0 when enable=0",
+        "Counter width is COUNTER_WIDTH parameter",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[0]",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "Semantic source_refs covered: function_model.transactions.FM1, function_model.transactions.FM2, function_model.transactions.FM3"
+      ],
+      "detail": "Implement a free-running counter that increments each clock cycle when enable=1 and wraps to 0 when it reaches the period input value. When enable=0, counter stays at 0.\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: simple_pwm in rtl/simple_pwm.sv via workflow_todos.owner.\nSSOT item context: id=RTL_001.",
+      "evidence_terms": [
+        "001",
+        "RTL_001",
+        "pwm",
+        "simple",
+        "simple_pwm"
+      ],
+      "id": "RTL-0020",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[0]",
+      "ssot_context": {
+        "id": "RTL_001"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1",
+        "function_model.transactions.FM2",
+        "function_model.transactions.FM3",
+        "workflow_todos.rtl-gen[0]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "001",
+          "RTL_001",
+          "pwm",
+          "simple",
+          "simple_pwm"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_001",
+        "source_refs": [
+          "function_model.transactions.FM1",
+          "function_model.transactions.FM2",
+          "function_model.transactions.FM3"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement duty-cycle comparison and pwm_out output",
+      "criteria": [
+        "pwm_out=1 when enable=1 and counter < duty_cycle",
+        "pwm_out=0 when enable=1 and counter >= duty_cycle",
+        "pwm_out=0 when enable=0",
+        "Comparison is combinational (same-cycle)",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "Semantic source_refs covered: function_model.transactions.FM1, function_model.transactions.FM2, function_model.transactions.FM3"
+      ],
+      "detail": "Compare counter value with duty_cycle input each clock cycle. Drive pwm_out=1 when counter < duty_cycle, pwm_out=0 when counter >= duty_cycle. When enable=0, force pwm_out=0.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: simple_pwm in rtl/simple_pwm.sv via workflow_todos.owner.\nSSOT item context: id=RTL_002.",
+      "evidence_terms": [
+        "002",
+        "RTL_002",
+        "pwm",
+        "simple",
+        "simple_pwm"
+      ],
+      "id": "RTL-0021",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_002"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1",
+        "function_model.transactions.FM2",
+        "function_model.transactions.FM3",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "002",
+          "RTL_002",
+          "pwm",
+          "simple",
+          "simple_pwm"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_002",
+        "source_refs": [
+          "function_model.transactions.FM1",
+          "function_model.transactions.FM2",
+          "function_model.transactions.FM3"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    }
+  ],
+  "todo_plan_sha256": "97147a83467339f3d8bdf10370e6366a4b8a3eeca0cb4ad8bac3bf660a00d118",
+  "top": "simple_pwm",
+  "type": "rtl_authoring_packet"
+}

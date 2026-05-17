@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "type": "prompt_to_artifact_completion_checklist",
+  "ip": "arm_m0_min",
+  "objective": "Create one CPU IP, use the project wiki/workflow guidance, and help resolve blockers.",
+  "status": "pass",
+  "blocked_on": [],
+  "completion_rule": "Do not mark the goal complete until final_audit.status is pass and blockers is empty.",
+  "locked_scope": {
+    "kind": "minimal_armv6m_like_reference_cpu",
+    "isa_subset": [
+      "ADD",
+      "SUB",
+      "AND",
+      "ORR",
+      "EOR",
+      "MOV",
+      "CMP",
+      "LDR",
+      "STR",
+      "B",
+      "BEQ",
+      "BNE",
+      "LSL",
+      "LSR",
+      "ASR"
+    ],
+    "microarchitecture": "3-stage in-order IF/ID/EX-WB pipeline",
+    "bus": "separate AHB-Lite-like instruction and data master interfaces",
+    "excluded": [
+      "interrupts",
+      "exception_return",
+      "privilege",
+      "debug",
+      "MPU",
+      "MMU",
+      "cache",
+      "NVIC",
+      "SysTick",
+      "production_ARM_compatibility"
+    ]
+  },
+  "checklist": [
+    {
+      "id": "cpu_ip_exists",
+      "requirement": "Create one CPU IP artifact.",
+      "status": "pass",
+      "evidence": [
+        "arm_m0_min/yaml/arm_m0_min.ssot.yaml",
+        "arm_m0_min/README.md"
+      ]
+    },
+    {
+      "id": "wiki_guidance_used",
+      "requirement": "Use wiki/workflow guidance and leave a future-agent handoff.",
+      "status": "pass",
+      "evidence": [
+        "doc/wiki/arm-m0-min-current-status.md",
+        "arm_m0_min/wiki/index.md",
+        "arm_m0_min/doc/arm_m0_min_review_index.md"
+      ]
+    },
+    {
+      "id": "ssot_exists",
+      "requirement": "Provide SSOT authority for the CPU.",
+      "status": "pass",
+      "evidence": [
+        "arm_m0_min/yaml/arm_m0_min.ssot.yaml"
+      ]
+    },
+    {
+      "id": "models_exist",
+      "requirement": "Provide functional and cycle model artifacts.",
+      "status": "pass",
+      "evidence": [
+        "arm_m0_min/model/functional_model.py",
+        "arm_m0_min/model/cycle_model.py",
+        "arm_m0_min/model/fl_model_check.json",
+        "arm_m0_min/model/cl_model_check.json"
+      ]
+    },
+    {
+      "id": "rtl_exists",
+      "requirement": "Provide RTL implementation and filelist.",
+      "status": "pass",
+      "evidence": [
+        "arm_m0_min/rtl/arm_m0_min.sv",
+        "arm_m0_min/rtl/arm_m0_min_alu.sv",
+        "arm_m0_min/rtl/arm_m0_min_branch.sv",
+        "arm_m0_min/rtl/arm_m0_min_ex.sv",
+        "arm_m0_min/rtl/arm_m0_min_id.sv",
+        "arm_m0_min/rtl/arm_m0_min_if.sv",
+        "arm_m0_min/rtl/arm_m0_min_mem_if.sv",
+        "arm_m0_min/rtl/arm_m0_min_rf.sv",
+        "arm_m0_min/list/arm_m0_min.f"
+      ]
+    },
+    {
+      "id": "compile_and_lint",
+      "requirement": "Compile and lint RTL with real HDL tools.",
+      "status": "pass",
+      "evidence": [
+        "arm_m0_min/rtl/rtl_compile.json",
+        "arm_m0_min/lint/dut_lint.json"
+      ]
+    },
+    {
+      "id": "tb_and_sim",
+      "requirement": "Provide generated TB and simulation evidence.",
+      "status": "pass",
+      "evidence": [
+        "arm_m0_min/tb/cocotb/test_arm_m0_min.py",
+        "arm_m0_min/sim/results.xml",
+        "arm_m0_min/sim/scoreboard_events.jsonl"
+      ]
+    },
+    {
+      "id": "equivalence",
+      "requirement": "Prove FL-vs-RTL equivalence goals.",
+      "status": "pass",
+      "evidence": [
+        "arm_m0_min/verify/equivalence_goals.json",
+        "arm_m0_min/sim/fl_rtl_compare.json"
+      ],
+      "expected_summary": {
+        "goals_checked": 39,
+        "goals_passed": 39,
+        "goals_failed": 0,
+        "goals_blocked": 0
+      }
+    },
+    {
+      "id": "coverage",
+      "requirement": "Close function and cycle coverage through RTL-observed evidence.",
+      "status": "pass",
+      "evidence": [
+        "arm_m0_min/cov/coverage.json"
+      ],
+      "expected_summary": {
+        "function_bins": "19/19",
+        "cycle_bins": "17/17"
+      }
+    },
+    {
+      "id": "human_req_approval",
+      "requirement": "Human-approved requirement artifact and approval manifest exist.",
+      "status": "pass",
+      "evidence": [
+        "arm_m0_min/review/approval_request.md",
+        "arm_m0_min/review/decision_needed_req_requirement_approval.json",
+        "arm_m0_min/req/arm_m0_min_requirements.md",
+        "arm_m0_min/req/approval_manifest.json"
+      ]
+    },
+    {
+      "id": "final_audit",
+      "requirement": "Final goal audit passes.",
+      "status": "pass",
+      "evidence": [
+        "arm_m0_min/sim/fl_rtl_goal_audit.json"
+      ],
+      "expected_current_summary": {
+        "status": "pass",
+        "passed": "16/16",
+        "blockers": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "tool": "iverilog",
+  "version": "12.0",
+  "args": "-g2012",
+  "files": [
+    "dma_real/rtl/dma_real_irq.sv",
+    "dma_real/rtl/dma_real_arbiter.sv",
+    "dma_real/rtl/dma_real_ahb_master.sv",
+    "dma_real/rtl/dma_real_channel.sv",
+    "dma_real/rtl/dma_real_apb_cfg.sv",
+    "dma_real/rtl/dma_real_top.sv"
+  ],
+  "errors": 0,
+  "warnings": [],
+  "exit_code": 0,
+  "timestamp": "2026-05-17T11:51:01.832065",
+  "dut_only": true,
+  "passed": true
+}

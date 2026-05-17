@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "type": "fl_functional_coverage_plan",
+  "ip": "simple_pwm",
+  "source": "simple_pwm/yaml/simple_pwm.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "fl",
+  "summary": {
+    "total_bins": 10,
+    "by_class": {
+      "scenario": 4,
+      "transaction_type": 3,
+      "state_transition": 2,
+      "error": 1
+    }
+  },
+  "bins": [
+    {
+      "id": "SC1_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC1",
+      "description": "Basic PWM generation"
+    },
+    {
+      "id": "SC2_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC2",
+      "description": "Duty cycle variation"
+    },
+    {
+      "id": "SC3_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC3",
+      "description": "Period rollover"
+    },
+    {
+      "id": "SC4_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC4",
+      "description": "Disable behavior"
+    },
+    {
+      "id": "function_pwm_active_high",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "pwm_active_high"
+    },
+    {
+      "id": "function_pwm_active_low",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "pwm_active_low"
+    },
+    {
+      "id": "function_pwm_idle",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "pwm_idle"
+    },
+    {
+      "id": "fsm_pwm_fsm_idle_to_running_0",
+      "class": "state_transition",
+      "source": "fsm.pwm_fsm.transitions[0]",
+      "description": "enable == 1"
+    },
+    {
+      "id": "fsm_pwm_fsm_running_to_idle_1",
+      "class": "state_transition",
+      "source": "fsm.pwm_fsm.transitions[1]",
+      "description": "enable == 0"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No error sources in this minimal IP', 'architectural_effect': 'N/A'}"
+    }
+  ]
+}

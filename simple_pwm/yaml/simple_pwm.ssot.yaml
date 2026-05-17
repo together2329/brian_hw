@@ -1,0 +1,514 @@
+# =============================================================================
+# simple_pwm SSOT — Single Source of Truth
+# =============================================================================
+# Type: peripheral (PWM generator)
+# Scale: educational-tiny, single module, no bus, no registers
+# =============================================================================
+
+top_module:
+  name: "simple_pwm"
+  file: "rtl/simple_pwm.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "Configurable PWM output generator with duty-cycle and period inputs"
+  reference_spec: "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+
+sub_modules: []
+
+decomposition:
+  units:
+    - { id: "counter", kind: "datapath", source_refs: ["function_model.transactions"], rtl_candidates: ["simple_pwm"], verification_impact: ["test_requirements.scenarios"] }
+
+parameters:
+  - name: "COUNTER_WIDTH"
+    default: 8
+    type: int
+    description: "Counter width in bits (1-16)"
+    drives: ["rtl/simple_pwm.sv"]
+
+io_list:
+  clock_domains:
+    - name: "clk"
+      frequency_mhz: 100
+      description: "System clock"
+      ports:
+        - { name: "clk", width: 1, direction: "input", description: "System clock, rising-edge active" }
+
+  resets:
+    - name: "rst_n"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Active-low asynchronous reset"
+      ports:
+        - { name: "rst_n", width: 1, direction: "input", description: "Active-low async reset" }
+
+  interfaces:
+    - name: "pwm_control"
+      type: "custom"
+      clock_domain: "clk"
+      reset_domain: "rst_n"
+      description: "PWM control and data interface"
+      protocol:
+        sampling: "Inputs sampled on rising clk edge when rst_n is high."
+        timing: "enable, duty_cycle, and period are combinational inputs, no handshake required."
+      ports:
+        - { name: "enable",     width: 1,              direction: "input",  description: "PWM enable (1=running, 0=stopped)" }
+        - { name: "duty_cycle", width: "COUNTER_WIDTH", direction: "input",  description: "Duty cycle threshold value" }
+        - { name: "period",     width: "COUNTER_WIDTH", direction: "input",  description: "Counter period (rollover value)" }
+
+    - name: "pwm_output"
+      type: "custom"
+      clock_domain: "clk"
+      reset_domain: "rst_n"
+      description: "PWM output signal"
+      protocol:
+        assertion: "pwm_out reflects the comparison of counter vs duty_cycle each clock cycle."
+        deassertion: "pwm_out clears to 0 on reset or when enable=0."
+        reset_value: 0
+      ports:
+        - { name: "pwm_out", width: 1, direction: "output", description: "PWM output signal" }
+
+features:
+  - name: "PWM generation"
+    trigger: "enable asserted high"
+    datapath: "Free-running counter 0 to (period-1); pwm_out=1 when counter < duty_cycle, else 0"
+    control: "IDLE when enable=0, RUNNING when enable=1"
+    output: "pwm_out toggles at duty_cycle/period ratio"
+
+  - name: "Dynamic reconfiguration"
+    trigger: "duty_cycle or period input changes at any time"
+    datapath: "New values sampled on next clock edge"
+    control: "No special sequence required"
+    output: "PWM output adjusts within one period"
+
+dataflow:
+  counter_path:
+    source: "counter register (COUNTER_WIDTH bits)"
+    sequence: "counter -> compare with duty_cycle -> pwm_out; compare with period -> rollover"
+
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen"
+  state_variables:
+    - { name: "counter", source: "internal", reset: 0, description: "Free-running counter, wraps at period" }
+  transactions:
+    - id: "FM1"
+      name: "pwm_active_high"
+      preconditions:
+        - "enable == 1"
+        - "counter < duty_cycle"
+      inputs:
+        - "duty_cycle"
+        - "period"
+      outputs:
+        - name: "pwm_out"
+          value: 1
+      output_rules:
+        - { name: "pwm_out_high", expr: "1", width: 1, port: "pwm_out" }
+      state_updates:
+        - { name: "counter_next", expr: "counter + 1 if (counter + 1) < period else 0", width: "COUNTER_WIDTH" }
+      side_effects:
+        - "counter increments by 1"
+      error_cases: []
+
+    - id: "FM2"
+      name: "pwm_active_low"
+      preconditions:
+        - "enable == 1"
+        - "counter >= duty_cycle"
+      inputs:
+        - "duty_cycle"
+        - "period"
+      outputs:
+        - name: "pwm_out"
+          value: 0
+      output_rules:
+        - { name: "pwm_out_low", expr: "0", width: 1, port: "pwm_out" }
+      state_updates:
+        - { name: "counter_next", expr: "counter + 1 if (counter + 1) < period else 0", width: "COUNTER_WIDTH" }
+      side_effects:
+        - "counter increments by 1"
+      error_cases: []
+
+    - id: "FM3"
+      name: "pwm_idle"
+      preconditions:
+        - "enable == 0"
+      inputs: []
+      outputs:
+        - name: "pwm_out"
+          value: 0
+      output_rules:
+        - { name: "pwm_out_off", expr: "0", width: 1, port: "pwm_out" }
+      state_updates:
+        - { name: "counter_next", expr: "0", width: "COUNTER_WIDTH" }
+      side_effects:
+        - "counter resets to 0"
+      error_cases: []
+
+  invariants:
+    - "pwm_out is 0 whenever enable is 0"
+    - "counter resets to 0 when it reaches period"
+    - "counter is 0 whenever enable is 0"
+
+cycle_model:
+  purpose: "Cycle-accurate contract for rtl-gen"
+  executable: "python"
+  clock: "clk"
+  reset:
+    assertion: "rst_n low asynchronously clears counter to 0 and pwm_out to 0"
+    deassertion: "state is usable on the first rising edge after synchronized deassertion"
+  latency:
+    counter_update: { min_cycles: 1, max_cycles: 1, description: "Counter increments or wraps every clock edge when enabled" }
+    pwm_output: { min_cycles: 1, max_cycles: 1, description: "pwm_out reflects counter vs duty_cycle comparison on same edge" }
+  handshake_rules:
+    - { signal: "pwm_out", rule: "Combinational output derived from counter vs duty_cycle comparison; no valid/ready handshake" }
+  pipeline:
+    - { stage: "S0_COUNTER_UPDATE", cycle: 1, action: "Increment counter or wrap to 0 when enable=1; hold at 0 when enable=0" }
+    - { stage: "S1_COMPARE_OUTPUT", cycle: 1, action: "Compare counter with duty_cycle; drive pwm_out accordingly" }
+  ordering:
+    - "Counter update and output comparison occur in the same clock cycle."
+  backpressure: []
+  performance:
+    frequency_mhz: 100
+    throughput: { sustained_operations_per_cycle: 1, condition: "enable asserted and period > 0" }
+    outstanding: { max: 1, description: "Single-cycle counter operation" }
+    depth: { pipeline_stages: 1, description: "Single-stage counter and compare" }
+  observability:
+    - "counter value is observable via internal state"
+    - "pwm_out is the primary observable output"
+
+clock_reset_domains:
+  domains:
+    - { name: "clk", frequency_mhz: 100, description: "System clock" }
+  reset_scheme:
+    signal: "rst_n"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC required"
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No reset domain crossings"
+
+registers:
+  config:
+    register_width: 0
+    addr_width: 0
+    byte_addressable: false
+    note: "No register map — all inputs are direct ports"
+  no_registers: true
+  reason: "Educational PWM IP uses direct input ports instead of a register map; no bus interface required"
+  register_list: []
+
+memory:
+  instances: []
+  note: "No internal memory — counter is a simple register"
+
+interrupts:
+  sources: []
+  output: null
+  note: "No interrupts"
+
+fsm:
+  pwm_fsm:
+    states:
+      - "IDLE"
+      - "RUNNING"
+    transitions:
+      - { from: "IDLE",    to: "RUNNING", condition: "enable == 1" }
+      - { from: "RUNNING", to: "IDLE",    condition: "enable == 0" }
+    description: "Simple enable-gated FSM"
+
+rtl_contract:
+  transaction: "FM1, FM2, FM3"
+  sample_condition: "enable == 1"
+  input_map:
+    enable: "enable"
+    duty_cycle: "duty_cycle"
+    period: "period"
+  output_map:
+    pwm_out: "pwm_out"
+  state_updates:
+    - { name: "counter", reset: 0, expr: "(counter + 1) % period when enable else 0" }
+
+timing:
+  target_clocks:
+    - { name: "clk", frequency_mhz: 100, duty_cycle: 0.5, uncertainty_ns: 0.1 }
+  latency_budget:
+    pwm_update_cycles: { min: 1, max: 1, measured_from: "rising edge", measured_to: "pwm_out stable" }
+  throughput:
+    sustained_operations_per_cycle: 1
+    conditions: "Enable asserted, valid period > 0"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "all_inputs_except_clocks_resets", clock: "clk", delay_ns: 0.2, source: "system-level timing budget" }
+    outputs:
+      - { ports: "all_outputs", clock: "clk", delay_ns: 0.2, source: "system-level timing budget" }
+  false_paths: []
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: []
+
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["clk"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "Educational tiny IP — no power management"
+  reset_retention:
+    retention_required: false
+  power_states:
+    - { name: "ON", entry: "rst_n deasserted", exit: "rst_n asserted", guarantees: ["All behavior active"] }
+  upf_required: false
+
+security:
+  classification: "non_secure_control_ip"
+  assets:
+    - { name: "pwm_out", protection: "Output is not protected; direct port drive" }
+  threat_model:
+    - { threat: "glitch on pwm_out", mitigation: "No protection; downstream system must handle glitching if critical" }
+  privilege_model: "No privilege levels"
+  safety_goals:
+    - "No silent output corruption on input change"
+
+error_handling:
+  error_sources:
+    - { id: "ERR_NONE", condition: "No error sources in this minimal IP", architectural_effect: "N/A" }
+  propagation:
+    - "No error propagation in this educational IP."
+  recovery:
+    - { action: "reset", clears: ["counter", "pwm_out"], preserves: [] }
+
+debug_observability:
+  waveform_must_probe:
+    - "counter"
+    - "pwm_out"
+    - "enable"
+  status_outputs: []
+  trace_events:
+    - { name: "pwm_enable", trigger: "enable rising edge" }
+    - { name: "pwm_disable", trigger: "enable falling edge" }
+    - { name: "counter_rollover", trigger: "counter wraps to 0" }
+  debug_registers: []
+
+integration:
+  bus_attachment: "none"
+  connections: []
+  address_map_requirements: { note: "No bus interface" }
+  dependencies:
+    external_modules: []
+    external_clocks: ["clk"]
+    external_resets: ["rst_n"]
+  integration_notes:
+    - "Standalone IP, no bus integration required."
+
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "rst_n controllable"
+    clocks: ["clk"]
+  observability:
+    required_internal_points: ["counter", "pwm_out"]
+  mbist_required: false
+  notes: "Educational IP, no DFT"
+
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "simple_pwm"
+  technology:
+    pdk: "generic"
+    standard_cell_library: "generic"
+  constraints:
+    - "No inferred latches"
+    - "All flops reset via rst_n"
+    - "No package/interface/modport/function/task/for/while constructs"
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 100
+  required_outputs:
+    - "rtl/simple_pwm.sv"
+
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
+  required_outputs: []
+  note: "Educational IP, no physical implementation required"
+
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge clk or negedge rst_n)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset with if (!rst_n)"
+    - "Parameterize widths with COUNTER_WIDTH"
+    - "ALLOW: input logic / output logic ANSI ports"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / interface / modport / function / task / for / while / *_pkg.sv"
+  lint_waivers: []
+
+reuse_modules: []
+
+custom:
+  note: "Educational tiny PWM controller — minimal configuration"
+
+dir_structure:
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+  yaml_dir: "yaml/"
+
+filelist:
+  headers: []
+  rtl:
+    - "rtl/simple_pwm.sv"
+
+test_requirements:
+  scenarios:
+    - id: "SC1"
+      name: "Basic PWM generation"
+      stimulus: "Set period=10, duty_cycle=3, enable=1 for 30 clock cycles"
+      expected: "3 clocks of pwm_out=1, 7 clocks of pwm_out=0, repeating 3 times"
+      checker: "Scoreboard counts pwm_out=1 and pwm_out=0 per period and verifies ratio"
+      coverage: ["FM1", "FM2"]
+
+    - id: "SC2"
+      name: "Duty cycle variation"
+      stimulus: "Start with duty_cycle=3, period=10; change duty_cycle to 7 after first period"
+      expected: "First period: 3 high / 7 low; second period: 7 high / 3 low"
+      checker: "Scoreboard verifies duty ratio changes in the period following the input change"
+      coverage: ["FM1", "FM2"]
+
+    - id: "SC3"
+      name: "Period rollover"
+      stimulus: "Set period=5, duty_cycle=2, enable=1 for 15 clock cycles"
+      expected: "Counter: 0,1,2,3,4,0,1,2,3,4,0,1,2,3,4; pwm_out: 1,1,0,0,0 repeating"
+      checker: "Scoreboard verifies counter wraps at period and pwm pattern repeats"
+      coverage: ["FM1", "FM2"]
+
+    - id: "SC4"
+      name: "Disable behavior"
+      stimulus: "Enable PWM with period=10, duty_cycle=3; disable after 5 clocks; re-enable after 5 more clocks"
+      expected: "When enable=0: pwm_out=0, counter=0. When re-enabled: starts from counter=0"
+      checker: "Scoreboard verifies pwm_out=0 and counter=0 during idle, restart from 0 on re-enable"
+      coverage: ["FM3"]
+
+  scoreboard_checks: 4
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Cycle-independent behavioral intent coverage"
+      bins:
+        - { id: "FCOV_PWM_HIGH", source_ref: "function_model.transactions.FM1", class: "transaction", description: "FM1 pwm_active_high observed: pwm_out=1 when counter < duty_cycle" }
+        - { id: "FCOV_PWM_LOW", source_ref: "function_model.transactions.FM2", class: "transaction", description: "FM2 pwm_active_low observed: pwm_out=0 when counter >= duty_cycle" }
+        - { id: "FCOV_PWM_IDLE", source_ref: "function_model.transactions.FM3", class: "transaction", description: "FM3 pwm_idle observed: pwm_out=0 and counter=0 when enable=0" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake coverage"
+      bins:
+        - { id: "CCOV_COUNTER_INCREMENT", source_ref: "cycle_model.pipeline.S0_COUNTER_UPDATE", class: "pipeline_stage", description: "Counter increments when enabled" }
+        - { id: "CCOV_COUNTER_ROLLOVER", source_ref: "cycle_model.pipeline.S0_COUNTER_UPDATE", class: "pipeline_stage", description: "Counter wraps to 0 when reaching period" }
+        - { id: "CCOV_COMPARE_HIGH", source_ref: "cycle_model.pipeline.S1_COMPARE_OUTPUT", class: "pipeline_stage", description: "Comparison produces pwm_out=1" }
+        - { id: "CCOV_COMPARE_LOW", source_ref: "cycle_model.pipeline.S1_COMPARE_OUTPUT", class: "pipeline_stage", description: "Comparison produces pwm_out=0" }
+        - { id: "CCOV_FSM_IDLE_TO_RUNNING", source_ref: "fsm.pwm_fsm.transitions", class: "state_transition", description: "IDLE to RUNNING transition observed" }
+        - { id: "CCOV_FSM_RUNNING_TO_IDLE", source_ref: "fsm.pwm_fsm.transitions", class: "state_transition", description: "RUNNING to IDLE transition observed" }
+    functional: "Legacy alias: function + cycle coverage must both close"
+    code: "line >= 90%, branch >= 85%"
+
+quality_gates:
+  ssot:
+    pass: "All canonical sections present, no TBD placeholders, internally consistent"
+    evidence: ["check_ssot_disk.sh PASS"]
+  rtl_gen:
+    profile: "standard"
+    pass: "RTL compiles and lints clean; implements counter + duty comparison + period rollover"
+    evidence: ["rtl/rtl_compile.json", "lint/dut_lint.json"]
+  rtl:
+    pass: "RTL matches function_model behavior"
+    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard"]
+  dv:
+    pass: "All test scenarios pass; FL-vs-RTL equivalence 100%"
+    evidence: ["sim/results.xml", "sim/scoreboard_events.jsonl"]
+  coverage:
+    pass: "All declared function and cycle bins hit"
+    evidence: ["cov/coverage.json"]
+  eda:
+    pass: "Not applicable for educational-tiny IP; synthesis not required"
+    evidence: ["N/A — educational IP skips EDA stages"]
+  signoff:
+    pass: "All required stages have approved evidence"
+    evidence: ["rtl/rtl_compile.json", "lint/dut_lint.json", "sim/results.xml", "cov/coverage.json"]
+
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "simple_pwm.sv (module name)" }
+    - { yaml: "parameters", output: "COUNTER_WIDTH parameter in simple_pwm.sv" }
+    - { yaml: "io_list.interfaces", output: "simple_pwm.sv (port list)" }
+    - { yaml: "function_model", output: "simple_pwm.sv counter + compare logic + tb/cocotb scoreboard" }
+    - { yaml: "cycle_model", output: "simple_pwm.sv single-cycle update logic" }
+    - { yaml: "fsm", output: "simple_pwm.sv enable-gated FSM" }
+    - { yaml: "test_requirements.scenarios", output: "tb/cocotb test scenarios" }
+
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_001"
+      content: "Implement PWM counter with period rollover"
+      detail: "Implement a free-running counter that increments each clock cycle when enable=1 and wraps to 0 when it reaches the period input value. When enable=0, counter stays at 0."
+      criteria:
+        - "Counter increments when enable=1"
+        - "Counter wraps to 0 when counter+1 == period"
+        - "Counter stays at 0 when enable=0"
+        - "Counter width is COUNTER_WIDTH parameter"
+      source_refs: ["function_model.transactions.FM1", "function_model.transactions.FM2", "function_model.transactions.FM3"]
+      owner_module: "simple_pwm"
+      owner_file: "rtl/simple_pwm.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_002"
+      content: "Implement duty-cycle comparison and pwm_out output"
+      detail: "Compare counter value with duty_cycle input each clock cycle. Drive pwm_out=1 when counter < duty_cycle, pwm_out=0 when counter >= duty_cycle. When enable=0, force pwm_out=0."
+      criteria:
+        - "pwm_out=1 when enable=1 and counter < duty_cycle"
+        - "pwm_out=0 when enable=1 and counter >= duty_cycle"
+        - "pwm_out=0 when enable=0"
+        - "Comparison is combinational (same-cycle)"
+      source_refs: ["function_model.transactions.FM1", "function_model.transactions.FM2", "function_model.transactions.FM3"]
+      owner_module: "simple_pwm"
+      owner_file: "rtl/simple_pwm.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh simple_pwm", description: "Validate SSOT structure" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model simple_pwm", description: "Generate functional model" }
+    - { name: "handoff_rtl", command: "/ssot-rtl simple_pwm", description: "Generate RTL" }
+    - { name: "handoff_tb", command: "/ssot-tb simple_pwm", description: "Generate testbench" }
+    - { name: "handoff_sim", command: "/sim simple_pwm", description: "Run simulation" }
+    - { name: "handoff_coverage", command: "/coverage simple_pwm", description: "Measure coverage" }

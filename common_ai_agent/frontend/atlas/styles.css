@@ -483,6 +483,17 @@
   min-width: 58px;
   max-width: 76px;
 }
+.dir-select.policy {
+  min-width: 104px;
+  max-width: 122px;
+}
+.dir-select.exec {
+  min-width: 126px;
+  max-width: 146px;
+}
+.dir-select-wrap.run-policy {
+  border-color: color-mix(in oklch, var(--accent) 38%, var(--line));
+}
 .dir-select:focus {
   border-color: var(--accent);
 }
@@ -2275,6 +2286,36 @@ code,
 .pipe-review-chip {
   border-color: var(--err) !important;
   color: var(--err) !important;
+  cursor: pointer;
+}
+.pipe-review-chip:hover {
+  background: color-mix(in oklch, var(--err) 10%, transparent);
+}
+.pipe-review-chip:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+.pipe-run-mode-chip {
+  border-color: color-mix(in oklch, var(--accent) 45%, var(--line)) !important;
+  color: var(--fg) !important;
+}
+.pipe-exec-mode-chip {
+  border-color: var(--line) !important;
+  color: var(--fg-mute) !important;
+}
+.pipe-exec-mode-on {
+  border-color: var(--cyan) !important;
+  color: var(--cyan) !important;
+  background: color-mix(in oklch, var(--cyan) 10%, transparent);
+}
+.pipe-policy-warn {
+  border-color: var(--warn) !important;
+  color: var(--warn) !important;
+}
+.pipe-policy-blocked {
+  border-color: var(--err) !important;
+  color: var(--err) !important;
+  background: color-mix(in oklch, var(--err) 10%, transparent);
 }
 .pipe-stage-take {
   border-color: var(--warn) !important;

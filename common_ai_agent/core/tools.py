@@ -6174,8 +6174,8 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
                   Lazy-builds the graph by invoking
                   workflow/wiki/build_graph.py when the index is missing
                   or older than the IP directory.
-    topic = case-insensitive substring matched against id / title / tags;
-            empty matches everything.
+    topic = case-insensitive keyword query matched against id / title / tags /
+            path / status / digest / summary; empty matches everything.
     depth = 1 (id + title), 2 (+ status digest + meta), 3 (+ summary).
     max_nodes caps the rendered output to keep token cost predictable.
     Returns a compact markdown block. Read-only — never mutates wiki content.
@@ -6213,14 +6213,26 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
         rebuild_cmd = ["python3", str(builder), "--wiki", str(wiki_root), "--quiet"]
 
     needs_build = not graph_path.is_file()
-    if not needs_build and ip:
+    if not needs_build:
         try:
             graph_mtime = graph_path.stat().st_mtime
-            for sub in ("yaml", "rtl", "sim", "lint", "cov", "verify", "logs", "model"):
-                sub_dir = project_root / ip / sub
-                if sub_dir.is_dir() and sub_dir.stat().st_mtime > graph_mtime:
-                    needs_build = True
-                    break
+            if ip:
+                for sub in ("wiki", "yaml", "rtl", "sim", "lint", "cov", "verify", "logs", "model"):
+                    sub_dir = project_root / ip / sub
+                    if not sub_dir.is_dir():
+                        continue
+                    for child in sub_dir.rglob("*"):
+                        if child.is_file() and child.stat().st_mtime > graph_mtime:
+                            needs_build = True
+                            break
+                    if needs_build:
+                        break
+            else:
+                wiki_root = project_root / "doc" / "wiki"
+                for child in wiki_root.glob("*.md"):
+                    if child.is_file() and child.stat().st_mtime > graph_mtime:
+                        needs_build = True
+                        break
         except Exception:
             needs_build = True
     if needs_build and builder.is_file():
@@ -6239,10 +6251,11 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
     depth = max(1, min(3, int(depth) if isinstance(depth, int) else 2))
     max_nodes = max(1, min(40, int(max_nodes) if isinstance(max_nodes, int) else 12))
     topic_l = str(topic or "").strip().lower()
+    topic_terms = [t for t in topic_l.replace("/", " ").replace("_", " ").split() if t]
     nodes = graph.get("nodes") or []
 
     def _match(node: dict) -> bool:
-        if not topic_l:
+        if not topic_terms:
             return True
         haystack = " ".join(
             [
@@ -6250,12 +6263,59 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
                 str(node.get("title") or ""),
                 " ".join(str(t) for t in node.get("tags") or []),
                 str(node.get("type") or ""),
+                str(node.get("path") or ""),
+                str(node.get("status") or ""),
+                str(node.get("digest") or ""),
+                str(node.get("summary") or ""),
             ]
-        ).lower()
-        return topic_l in haystack
+        ).replace("/", " ").replace("_", " ").lower()
+        return all(term in haystack for term in topic_terms)
+
+    def _score(node: dict) -> int:
+        if not topic_terms:
+            return 0
+        nid = str(node.get("id") or "").replace("_", " ").lower()
+        title = str(node.get("title") or "").replace("_", " ").lower()
+        path = str(node.get("path") or "").replace("/", " ").replace("_", " ").lower()
+        tags = " ".join(str(t) for t in node.get("tags") or []).replace("_", " ").lower()
+        meta = " ".join(
+            [
+                str(node.get("type") or ""),
+                str(node.get("status") or ""),
+                str(node.get("digest") or ""),
+            ]
+        ).replace("_", " ").lower()
+        summary = str(node.get("summary") or "").replace("/", " ").replace("_", " ").lower()
+        score = 0
+        for term in topic_terms:
+            if term in nid:
+                score += 8
+            if term in title:
+                score += 7
+            if term in path:
+                score += 5
+            if term in tags:
+                score += 4
+            if term in meta:
+                score += 3
+            if term in summary:
+                score += 2
+        raw_path = str(node.get("path") or "")
+        if node.get("id") == "index" or raw_path.endswith("/wiki/index.md") or raw_path.endswith("doc/wiki/index.md"):
+            score += 20
+        if "readme" in topic_terms and "README.md" in raw_path:
+            score += 15
+        return score
 
     matched = [n for n in nodes if _match(n)]
-    matched.sort(key=lambda n: (str(n.get("updated") or ""), str(n.get("id") or "")), reverse=True)
+    matched.sort(
+        key=lambda n: (
+            _score(n),
+            str(n.get("updated") or ""),
+            str(n.get("id") or ""),
+        ),
+        reverse=True,
+    )
     capped = matched[:max_nodes]
 
     header_scope = f"ip={ip}" if ip else "scope=project"

@@ -1384,7 +1384,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // the dedicated ask_user pane with breadcrumb-tabbed batched questions.
   // Double-clicking a file in the left tree sets previewPath + flips tab.
   const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview | sim_summary | debug | coverage | workflow_report
-  const [previewPath, setPreviewPath] = React.useState(null);
+  const [previewPath, setPreviewPath] = React.useState(() => {
+    try {
+      const saved = localStorage.getItem('atlasPreviewPath');
+      return saved ? String(saved) : null;
+    } catch (_) {
+      return null;
+    }
+  });
   // Git diff display: when the GitPanel emits atlas-git-show with a
   // commit sha, the center pane swaps in GitDiffPane to render the
   // unified diff instead of the file preview. Setting it back to null
@@ -1577,6 +1584,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       const path = String(ev?.detail?.path || '').trim();
       if (!path) return;
       setPreviewPath(path);
+      try { localStorage.setItem('atlasPreviewPath', path); } catch (_) {}
       // Snap to split-or-full view so the file is actually visible.
       setMainTab(t => (t === 'split' || t === 'preview') ? t : 'split');
     };
@@ -3440,6 +3448,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                     if (n.type === 'file') {
                       readAtlasAsyncResource('file', fullPath).catch(() => {});
                       setPreviewPath(fullPath);
+                      try { localStorage.setItem('atlasPreviewPath', fullPath); } catch (_) {}
                       setMainTab('split');
                     } else {
                       const wasDeep = fileExpand === 'deep';

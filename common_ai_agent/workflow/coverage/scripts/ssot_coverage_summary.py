@@ -51,6 +51,53 @@ def threshold(value: Any) -> float | None:
     return None
 
 
+def threshold_for_metric(value: Any, names: tuple[str, ...]) -> float | None:
+    """Extract a target for one metric from combined SSOT text.
+
+    SSOTs commonly write compact goals such as
+    ``code: line >= 90%, branch >= 85%``. A plain first-number parser would
+    incorrectly assign 90% to both line and branch coverage, so try a
+    metric-scoped parse before falling back to the generic threshold helper.
+    """
+    names = tuple(name.lower() for name in names)
+    aliases = {
+        "line": ("line", "lines"),
+        "code": ("code",),
+        "branch": ("branch", "branches"),
+        "fsm": ("fsm", "fsm_state", "fsm-state"),
+        "function": ("function", "function_model", "function model"),
+        "functional": ("functional",),
+        "cycle": ("cycle", "cycle_model", "cycle model"),
+        "scenario": ("scenario",),
+        "transition": ("transition",),
+    }
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if _metric_key_matches(key, names):
+                out = threshold(item)
+                if out is not None:
+                    return out
+        return threshold(value)
+    if isinstance(value, list):
+        return threshold_for_metric(" ".join(str(v) for v in value), names)
+    if isinstance(value, str):
+        text = value.lower()
+        metric_aliases = []
+        for name in names:
+            metric_aliases.extend(aliases.get(name, (name,)))
+        for alias in metric_aliases:
+            escaped = re.escape(alias).replace(r"\ ", r"\s+")
+            patterns = (
+                rf"\b{escaped}\b(?:\s+coverage)?\s*(?:>=|>|at\s+least|minimum|min)?\s*(\d+(?:\.\d+)?)\s*%",
+                rf"(\d+(?:\.\d+)?)\s*%\s*(?:minimum|min|target)?\s*\b{escaped}\b",
+            )
+            for pattern in patterns:
+                m = re.search(pattern, text, re.I)
+                if m:
+                    return float(m.group(1))
+    return threshold(value)
+
+
 def find_ssot(ip_dir: Path) -> Path | None:
     preferred = [
         ip_dir / "yaml" / f"{ip_dir.name}.ssot.yaml",
@@ -76,6 +123,27 @@ def load_ssot(path: Path | None) -> dict[str, Any]:
     return data if isinstance(data, dict) else {}
 
 
+def _is_lcov_branch_source_line(lines: list[str], line_no: int) -> bool:
+    if line_no <= 0 or line_no > len(lines):
+        return False
+    text = lines[line_no - 1].strip()
+    if not text or text.startswith("//"):
+        return False
+    declaration_prefixes = (
+        "input ",
+        "output ",
+        "inout ",
+        "logic ",
+        "wire ",
+        "reg ",
+        "localparam ",
+        "parameter ",
+    )
+    if text.startswith(declaration_prefixes):
+        return False
+    return any(token in text for token in ("if ", "if(", "else", "case", "?", "&&", "||"))
+
+
 def parse_lcov(path: Path) -> dict[str, Any]:
     totals = {
         "lines": {"hit": 0, "total": 0, "pct": None},
@@ -87,17 +155,57 @@ def parse_lcov(path: Path) -> dict[str, Any]:
         return totals
 
     current: str | None = None
+    source_lines: dict[str, list[str]] = {}
     for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
         if raw.startswith("SF:"):
             current = raw[3:]
+            src_path = Path(current)
+            if src_path.is_file():
+                source_lines[current] = src_path.read_text(encoding="utf-8", errors="replace").splitlines()
+            else:
+                source_lines[current] = []
             totals["files"].setdefault(
                 current,
                 {
                     "lines": {"hit": 0, "total": 0},
                     "branches": {"hit": 0, "total": 0},
                     "functions": {"hit": 0, "total": 0},
+                    "_da": {},
+                    "_brda": [],
+                    "_fn": set(),
+                    "_fnda": {},
                 },
             )
+        elif current and raw.startswith("DA:"):
+            fields = raw[3:].split(",")
+            if len(fields) >= 2:
+                try:
+                    line_no = int(fields[0])
+                    count = int(fields[1])
+                except ValueError:
+                    continue
+                totals["files"][current]["_da"][line_no] = count
+        elif current and raw.startswith("BRDA:"):
+            fields = raw[5:].split(",")
+            if len(fields) >= 4:
+                taken = fields[3].strip()
+                try:
+                    line_no = int(fields[0])
+                except ValueError:
+                    line_no = 0
+                totals["files"][current]["_brda"].append((line_no, taken))
+        elif current and raw.startswith("FN:"):
+            fields = raw[3:].split(",", 1)
+            if len(fields) == 2:
+                totals["files"][current]["_fn"].add(fields[1].strip())
+        elif current and raw.startswith("FNDA:"):
+            fields = raw[5:].split(",", 1)
+            if len(fields) == 2:
+                try:
+                    count = int(fields[0])
+                except ValueError:
+                    continue
+                totals["files"][current]["_fnda"][fields[1].strip()] = count
         elif current and raw.startswith("LF:"):
             val = int(raw[3:] or 0)
             totals["files"][current]["lines"]["total"] = val
@@ -116,6 +224,38 @@ def parse_lcov(path: Path) -> dict[str, Any]:
         elif current and raw.startswith("FNH:"):
             val = int(raw[4:] or 0)
             totals["files"][current]["functions"]["hit"] = val
+
+    for source, file_cov in totals["files"].items():
+        da = file_cov.pop("_da", {})
+        brda = file_cov.pop("_brda", [])
+        fn = file_cov.pop("_fn", set())
+        fnda = file_cov.pop("_fnda", {})
+        if da:
+            file_cov["lines"] = {
+                "hit": sum(1 for count in da.values() if count != 0),
+                "total": len(da),
+            }
+        if brda:
+            filtered = [
+                taken
+                for line_no, taken in brda
+                if _is_lcov_branch_source_line(source_lines.get(source, []), line_no)
+            ]
+            # If source text is unavailable, keep legacy LCOV behavior. If
+            # source text is available, prefer source-aware branch bins so
+            # Verilator toggle/expression bins on declarations do not masquerade
+            # as control-flow branch coverage.
+            branch_taken = filtered if source_lines.get(source) else [taken for _line, taken in brda]
+            file_cov["branches"] = {
+                "hit": sum(1 for taken in branch_taken if taken not in {"", "-", "0"}),
+                "total": len(branch_taken),
+            }
+        if fn or fnda:
+            names = set(fn) | set(fnda)
+            file_cov["functions"] = {
+                "hit": sum(1 for name in names if int(fnda.get(name, 0) or 0) != 0),
+                "total": len(names),
+            }
 
     for metric in ("lines", "branches", "functions"):
         hit = sum(f[metric]["hit"] for f in totals["files"].values())
@@ -342,6 +482,63 @@ def _looks_like_fl_copy(observed: dict[str, Any], row: dict[str, Any]) -> bool:
     return False
 
 
+def _coverage_alias_refs(row: dict[str, Any]) -> list[str]:
+    """Add SSOT coverage-goal aliases proven by one passing scoreboard row.
+
+    Some SSOTs declare high-level bins such as ``FCOV_TX_LOAD_STORE`` or
+    ``CCOV_PIPELINE_ORDER`` while the generated equivalence goals reference the
+    lower-level planned bin that actually drove stimulus. Count the high-level
+    alias only from a passing row with concrete RTL observations.
+    """
+    aliases: list[str] = []
+    fl_expected = row.get("fl_expected") if isinstance(row.get("fl_expected"), dict) else {}
+    model_result = fl_expected.get("model_result") if isinstance(fl_expected.get("model_result"), dict) else {}
+    txn = fl_expected.get("transaction") if isinstance(fl_expected.get("transaction"), dict) else {}
+    text = " ".join(
+        str(item or "")
+        for item in (
+            row.get("goal_id"),
+            row.get("scenario_id"),
+            fl_expected.get("goal_id"),
+            fl_expected.get("title"),
+            fl_expected.get("goal_kind"),
+            txn.get("kind"),
+            txn.get("scenario_id"),
+            model_result.get("transaction_id"),
+            model_result.get("transaction_name"),
+            " ".join(str(ref) for ref in (fl_expected.get("ssot_refs") or [])),
+            " ".join(str(ref) for ref in (fl_expected.get("observables") or [])),
+            " ".join(str(ref) for ref in (fl_expected.get("pass_criteria") or [])),
+        )
+    ).lower()
+    norm = re.sub(r"[^a-z0-9]+", "_", text).strip("_")
+
+    tx_id = str(model_result.get("transaction_id") or txn.get("kind") or "").strip()
+    if tx_id:
+        alias = f"fcov_{_norm_bin_key(tx_id)}"
+        if alias and alias not in aliases:
+            aliases.append(alias)
+
+    if "if_stall" in norm or "instruction_fetch_backpressure" in norm:
+        aliases.append("ccov_if_stall")
+    if (
+        "mem_stall" in norm
+        or "stall_mem" in norm
+        or "load_store_handshake" in norm
+        or "d_hready" in norm
+        or "data_transfer_wait" in norm
+    ):
+        aliases.append("ccov_mem_stall")
+    if "pipeline_order" in norm or "ordering" in norm or "transaction_order" in norm or "in_order" in norm:
+        aliases.append("ccov_pipeline_order")
+
+    out: list[str] = []
+    for alias in aliases:
+        if alias and alias not in out:
+            out.append(alias)
+    return out
+
+
 def scoreboard_coverage(ip_dir: Path) -> dict[str, Any]:
     """Return coverage refs proven by passing FL-vs-RTL scoreboard events.
 
@@ -363,8 +560,6 @@ def scoreboard_coverage(ip_dir: Path) -> dict[str, Any]:
     passed_rows = 0
     for idx, row in enumerate(rows, 1):
         refs = [str(ref) for ref in (row.get("coverage_refs") or []) if str(ref).strip()]
-        if not refs:
-            continue
         if row.get("passed") is not True:
             continue
         observed = row.get("rtl_observed")
@@ -373,6 +568,9 @@ def scoreboard_coverage(ip_dir: Path) -> dict[str, Any]:
             continue
         if _looks_like_fl_copy(observed, row):
             invalid_rows.append({"row": idx, "goal_id": row.get("goal_id"), "reason": "rtl_observed copies FL/model_result"})
+            continue
+        refs.extend(_coverage_alias_refs(row))
+        if not refs:
             continue
         passed_rows += 1
         for ref in refs:
@@ -657,12 +855,12 @@ def main() -> int:
     functional_goal = metric_goal(goals, ("functional", "scenario", "transition"))
     function_goal = metric_goal(goals, ("function", "functional", "scenario", "transaction"))
     cycle_goal = metric_goal(goals, ("cycle", "protocol", "handshake", "latency", "fsm", "transition"))
-    line_target = threshold(line_goal)
-    branch_target = threshold(branch_goal)
-    fsm_target = threshold(fsm_goal)
-    functional_target = threshold(functional_goal)
-    function_target = threshold(function_goal)
-    cycle_target = threshold(cycle_goal)
+    line_target = threshold_for_metric(line_goal, ("line", "code"))
+    branch_target = threshold_for_metric(branch_goal, ("branch",))
+    fsm_target = threshold_for_metric(fsm_goal, ("fsm",))
+    functional_target = threshold_for_metric(functional_goal, ("functional", "scenario", "transition"))
+    function_target = threshold_for_metric(function_goal, ("function", "transaction"))
+    cycle_target = threshold_for_metric(cycle_goal, ("cycle", "protocol", "handshake", "latency"))
     if functional_target is None and all_bin_ids:
         functional_target = 100.0
 

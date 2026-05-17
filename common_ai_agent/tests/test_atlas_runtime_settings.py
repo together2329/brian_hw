@@ -40,9 +40,11 @@ def test_reasoning_effort_endpoint_persists_config(tmp_path, monkeypatch):
     assert response.json()["reasoning_effort"] == "medium"
     assert os.environ["REASONING_MODE"] == "medium"
     assert os.environ["REASONING_EFFORT"] == "medium"
+    assert os.environ["GLM_THINKING_TYPE"] == "enabled"
     saved = (tmp_path / ".config").read_text(encoding="utf-8")
     assert "REASONING_MODE=medium" in saved
     assert "REASONING_EFFORT=medium" in saved
+    assert "GLM_THINKING_TYPE=enabled" in saved
 
 
 def test_model_endpoint_uses_non_empty_dropdown_slots(tmp_path, monkeypatch):

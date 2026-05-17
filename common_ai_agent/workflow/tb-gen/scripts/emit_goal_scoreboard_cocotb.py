@@ -136,6 +136,61 @@ def _state_observable_names(ssot: dict[str, Any]) -> list[str]:
     return names
 
 
+def _rtl_signal_names(sources: list[str]) -> list[str]:
+    """Return simple RTL signal names declared in generated source files.
+
+    This is deliberately lightweight. It does not elaborate RTL; it only gives
+    the generated TB a safe list of internal names it may try as state-observable
+    aliases when the SSOT state variable is named architecturally.
+    """
+    names: set[str] = set()
+    decl_re = re.compile(
+        r"\b(?:input|output|inout|logic|wire|reg)\b"
+        r"(?:\s+(?:logic|wire|reg|signed|unsigned))*"
+        r"(?:\s*\[[^\]]+\])*"
+        r"\s+([^;]+);"
+    )
+    for raw in sources:
+        path = Path(raw)
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for match in decl_re.finditer(text):
+            decl = match.group(1)
+            for piece in decl.split(","):
+                token = piece.split("=", 1)[0].strip()
+                token = re.sub(r"\[[^\]]+\]", "", token).strip()
+                if re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", token):
+                    names.add(token)
+    return sorted(names)
+
+
+def _state_observable_aliases(state_names: list[str], rtl_names: list[str]) -> dict[str, list[str]]:
+    aliases: dict[str, list[str]] = {}
+    norm_to_rtl = {re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_"): name for name in rtl_names}
+    for state_name in state_names:
+        norm = re.sub(r"[^a-z0-9]+", "_", state_name.lower()).strip("_")
+        stems = {norm}
+        for suffix in ("_state", "_next", "_set_next", "_w1c_next"):
+            if norm.endswith(suffix):
+                stems.add(norm[: -len(suffix)])
+        found: list[str] = []
+        for rtl_norm, rtl_name in norm_to_rtl.items():
+            if rtl_name == state_name:
+                continue
+            if any(
+                rtl_norm == stem
+                or rtl_norm.startswith(f"{stem}_")
+                or rtl_norm.endswith(f"_{stem}")
+                for stem in stems
+                if stem
+            ):
+                found.append(rtl_name)
+        if found:
+            aliases[state_name] = sorted(found)
+    return aliases
+
+
 def _as_ports(ssot: dict[str, Any]) -> list[dict[str, Any]]:
     ports: list[dict[str, Any]] = []
     params = _param_defaults(ssot)
@@ -341,7 +396,17 @@ def _build_manifest(ip: str, root: Path) -> tuple[dict[str, Any], list[dict[str,
     rtl_doc = _load_json(ip_dir / "rtl" / "rtl_contract.json", "RTL contract")
 
     ports = _as_ports(ssot)
-    top = str(rtl_doc.get("top") or ip)
+    # SSOT.top_module.name is the single source of truth for the RTL top.
+    # rtl_contract.json's `top` field may drift to the IP name when rtl-gen
+    # regenerates; preferring SSOT closes that drift class. The IP-name fallback
+    # is kept only when SSOT lacks a declared top, which should not happen for
+    # a valid SSOT.
+    ssot_top = ""
+    if isinstance(ssot, dict):
+        tm = ssot.get("top_module")
+        if isinstance(tm, dict):
+            ssot_top = str(tm.get("name") or "").strip()
+    top = ssot_top or str(rtl_doc.get("top") or ip)
     if rtl_doc.get("type") == "generic_ssot_rule_rtl_contract" and isinstance(rtl_doc.get("contract"), dict):
         contract = rtl_doc["contract"]
         contract_source = "rtl_contract_json"
@@ -504,11 +569,13 @@ def _build_manifest(ip: str, root: Path) -> tuple[dict[str, Any], list[dict[str,
             "cocotb_test must compile the generated DUT before scoreboard evidence is valid.",
         ))
 
+    state_observables = _state_observable_names(ssot)
+    rtl_signal_names = _rtl_signal_names(sources)
     manifest = {
         "schema_version": 1,
         "type": "generic_goal_scoreboard_cocotb_manifest",
         "ip": ip,
-        "top": str(rtl_doc.get("top") or contract.get("top") or ip),
+        "top": top,
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "common_ai_agent_root": str(SOURCE_ROOT),
         "runtime_dir": str(RUNTIME_DIR),
@@ -522,7 +589,9 @@ def _build_manifest(ip: str, root: Path) -> tuple[dict[str, Any], list[dict[str,
         "latency_cycles": _latency_cycles(ssot),
         "parameters": _param_defaults(ssot),
         "registers": _register_manifest(ssot),
-        "state_observables": _state_observable_names(ssot),
+        "state_observables": state_observables,
+        "state_observable_aliases": _state_observable_aliases(state_observables, rtl_signal_names),
+        "rtl_signal_names": rtl_signal_names,
         "ports": ports,
         "port_widths": {port["name"]: port.get("width", 1) for port in ports},
         "input_ports": sorted(input_ports),
@@ -795,6 +864,14 @@ def _get_signal(dut, name: str) -> int | str:
 
 def _default_field_value(field: str, idx: int) -> int:
     low = field.lower()
+    if low in {"rst", "reset", "areset", "reset_n", "rst_n", "aresetn"}:
+        return 0
+    if low.endswith("_hresp") or low == "hresp" or low.endswith("_resp"):
+        return 0
+    if low.endswith("_hready") or low == "hready":
+        return 1
+    if low.endswith("_hrdata") or low == "hrdata":
+        return 0
     bool_exact = {
         "valid", "in_valid", "cfg_valid", "req_valid", "ready", "result_valid",
         "packet_ok", "ack", "nack", "rw", "read", "write", "broadcast",
@@ -863,6 +940,31 @@ def _goal_stimulus_text(goal: dict[str, Any]) -> str:
     return f"{text} {normalized}"
 
 
+def _constraint_field_value(manifest: dict[str, Any], goal: dict[str, Any], field: str) -> int | None:
+    contract = goal.get("stimulus_contract") if isinstance(goal.get("stimulus_contract"), dict) else {}
+    text = " ".join(str(item).lower() for item in contract.get("constraints") or [])
+    compact = re.sub(r"\s+", "", text)
+    low = field.lower()
+    active_reset = 0 if manifest.get("reset_active") == "low" else 1
+    inactive_reset = 1 - active_reset
+    if low in {"rst", "reset", "areset", "reset_n", "rst_n", "aresetn"}:
+        if any(token in text for token in ("rst deasserted", "reset deasserted", "reset released")):
+            return inactive_reset
+        if any(token in text for token in ("rst asserted", "reset asserted", "reset active")):
+            return active_reset
+    if low.endswith("_hready") or low == "hready":
+        if f"{low}==0" in compact or f"{low}=0" in compact or f"deassert{low}" in compact:
+            return 0
+        if f"{low}==1" in compact or f"{low}=1" in compact or f"assert{low}" in compact:
+            return 1
+    if low.endswith("_hresp") or low == "hresp" or low.endswith("_resp"):
+        if f"{low}==error" in compact or f"{low}=error" in compact:
+            return 1
+        if f"{low}==okay" in compact or f"{low}=okay" in compact or f"{low}==ok" in compact:
+            return 0
+    return None
+
+
 def _norm_token(value: Any) -> str:
     text = str(value or "").strip().lower()
     text = re.sub(r"[^a-z0-9]+", "_", text)
@@ -882,6 +984,7 @@ def _infer_access_op(goal: dict[str, Any], tx_type: str = "") -> str:
     text = _goal_identity_text(goal, tx_type)
     contract = goal.get("stimulus_contract") if isinstance(goal.get("stimulus_contract"), dict) else {}
     text += " " + str(contract.get("transaction_type") or "")
+    text += " " + _goal_stimulus_text(goal)
     tokens = _word_tokens(text.replace("_", " ").replace("-", " "))
     if {"wr", "write"} & tokens:
         return "write"
@@ -912,11 +1015,17 @@ def _is_csr_goal(goal: dict[str, Any], tx_type: str) -> bool:
     goal_kind = _norm_token(goal.get("kind"))
     tx_norm = _norm_token(tx_type)
     identity = _goal_identity_text(goal, tx_type)
+    stimulus_text = _goal_stimulus_text(goal)
+    full_text = _goal_text(goal)
     if goal_kind == "register":
         return True
     if tx_norm in {"csr", "csr_access", "register", "register_access", "control_status_access", "fm_csr"}:
         return True
     if any(token in tx_norm for token in ("csr", "register", "control_status", "apb")):
+        return True
+    if any(token in stimulus_text for token in ("apb_valid", "apb_access", "paddr", "psel", "penable", "pwrite", "addr ==")):
+        return True
+    if any(token in full_text for token in ("apb", "pstrb", "pready", "pslverr", "psel_penable")):
         return True
     return any(token in identity for token in ("register access", "control status", "apb", "csr"))
 
@@ -927,16 +1036,21 @@ def _is_reset_goal(goal: dict[str, Any], tx_type: str, *, is_csr: bool = False) 
     goal_kind = _norm_token(goal.get("kind"))
     tx_norm = _norm_token(tx_type)
     identity = _goal_identity_text(goal, tx_type)
+    contract = goal.get("stimulus_contract") if isinstance(goal.get("stimulus_contract"), dict) else {}
+    constraints_text = " ".join(str(item).lower() for item in contract.get("constraints") or [])
     if "backpressure" in identity or "ready is high after reset" in identity:
         return False
+    if any(token in constraints_text for token in ("rst deasserted", "reset deasserted", "reset released")):
+        return False
+    if any(token in constraints_text for token in ("rst asserted", "reset asserted", "reset active")):
+        return True
     return (
         goal_kind == "reset"
-        or "reset" in tx_norm
+        or tx_norm in {"reset", "fm_reset", "sc_reset", "reset_defaults", "reset_boot"}
         or "fm_reset" in identity
         or "sc_reset" in identity
         or "reset_defaults" in identity
         or "reset boot" in identity
-        or "reset" in identity
     )
 
 
@@ -1063,19 +1177,65 @@ def _register_access_allowed(row: dict[str, Any], op: str) -> bool:
     return True
 
 
+def _register_row_for_goal(manifest: dict[str, Any], goal: dict[str, Any]) -> dict[str, Any] | None:
+    text = _goal_stimulus_text(goal)
+    text_norm = _norm_token(text)
+    for row in _register_rows(manifest):
+        name = str(row.get("name") or "")
+        norm = _norm_token(name)
+        if norm and (norm in text_norm or name.lower() in text):
+            return row
+    return None
+
+
+def _adjust_register_op_for_access(row: dict[str, Any] | None, op: str) -> str:
+    if row is None or _register_access_allowed(row, op):
+        return op
+    if _register_access_allowed(row, "read"):
+        return "read"
+    if _register_access_allowed(row, "write"):
+        return "write"
+    return op
+
+
+def _wants_error_access(goal: dict[str, Any]) -> bool:
+    text = _goal_stimulus_text(goal)
+    if "always high during access phase for legal and illegal accesses" in text:
+        return False
+    return any(
+        token in text
+        for token in (
+            "illegal_offset",
+            "illegal offset",
+            "offset is illegal",
+            "invalid address",
+            "addr_valid == 0",
+            "complete with error",
+            "outside register",
+            "non-register",
+            "unmapped",
+            "error_qualify",
+            "pslverr is high",
+            "write to read-only",
+            "write to readonly",
+            "not equal to supported",
+            "not ((addr ==",
+            "not (addr ==",
+        )
+    )
+
+
 def _register_offset_for_goal(manifest: dict[str, Any], goal: dict[str, Any], idx: int, default: int) -> int:
     rows = _register_rows(manifest)
     if not rows:
         return default
     text = _goal_stimulus_text(goal)
-    if any(token in text for token in ("invalid address", "addr_valid == 0", "outside register", "non-register", "unmapped")):
+    if _wants_error_access(goal) and not _register_row_for_goal(manifest, goal):
         max_offset = max(int(row.get("offset", 0)) for row in rows)
         return max_offset + 4
-    for row in rows:
-        name = str(row.get("name") or "")
-        norm = _norm_token(name)
-        if norm and (norm in _norm_token(text) or name.lower() in text):
-            return int(row.get("offset", default))
+    row = _register_row_for_goal(manifest, goal)
+    if row is not None:
+        return int(row.get("offset", default))
     op = _infer_access_op(goal, _contract_tx_type(goal.get("stimulus_contract") or {}, manifest))
     candidates = [row for row in rows if _register_access_allowed(row, op)]
     if not candidates:
@@ -1115,9 +1275,16 @@ def _selected_window(manifest: dict[str, Any], goal: dict[str, Any]) -> dict[str
 
 def _address_value_for_goal(manifest: dict[str, Any], goal: dict[str, Any], idx: int, default: int) -> int:
     text = _goal_text(goal)
+    stimulus_text = _goal_stimulus_text(goal)
+    rows = _register_rows(manifest)
+    if rows and _wants_error_access(goal) and not _register_row_for_goal(manifest, goal):
+        max_offset = max(int(row.get("offset", 0)) for row in rows)
+        return max_offset + 4
     for pattern in (
         r"['\\\"]offset['\\\"]\s*:\s*(0x[0-9a-fA-F]+|\d+)",
         r"\\boffset\s*(?:=|:)\s*(0x[0-9a-fA-F]+|\d+)",
+        r"\\b(?:paddr|addr)\s*==\s*(0x[0-9a-fA-F]+|\d+)",
+        r"\\b(?:paddr|addr)\s*(?:=|:)\s*(0x[0-9a-fA-F]+|\d+)",
         r"\\bat\s+(0x[0-9a-fA-F]+)",
     ):
         match = re.search(pattern, text)
@@ -1282,6 +1449,10 @@ def _stimulus_value_for_field(manifest: dict[str, Any], field: str, idx: int, go
         value = 1 if "unsupported" in text else 0
     elif low in {"axi_error", "invalid_operand", "undefined_instr", "watchdog_timeout", "kill_req"}:
         value = 1 if any(token in text for token in ("error", "fault", "abort", "illegal", "invalid", "undefined", "watchdog", "kill", "halt")) else 0
+    elif low.endswith("_hresp") or low == "hresp" or low.endswith("_resp"):
+        stimulus_text = _goal_stimulus_text(goal)
+        if any(token in stimulus_text for token in ("bus error", "bus_error", "fault_halt", "fault halt", "hresp==error", "hresp == error")):
+            value = 1
     elif low in {"op_is_load", "is_load"} or low.endswith("_is_load"):
         value = 0 if goal_kind == "memory" and "write" in text else (1 if "read" in text or ("memory" in text and "write" not in text) else 0)
     elif low in {"op_is_store", "is_store"} or low.endswith("_is_store"):
@@ -1313,7 +1484,9 @@ def _stimulus_value_for_field(manifest: dict[str, Any], field: str, idx: int, go
             value = 0
     elif "rdata" in low or "read_data" in low:
         route = _field_route_prefix(field)
-        if selected_token and outside_selected and selected_token in route:
+        if low.endswith("_hrdata") and low.startswith("i_") and any(token in text for token in ("load", "store", "stall_mem", "d_hresp")):
+            value = 0x8000 if "store" in text and "load" not in text else 0x7000
+        elif selected_token and outside_selected and selected_token in route:
             value = 0x0BAD0000 + idx
         elif selected_token and outside_selected and route.startswith(("mem", "memory")):
             value = 0x5A000000 + idx
@@ -1323,6 +1496,9 @@ def _stimulus_value_for_field(manifest: dict[str, Any], field: str, idx: int, go
             value = 0x5A000000 + idx
         elif "memory" in text and route.startswith(("mem", "memory")):
             value = 0x5A000000 + idx
+    constraint_value = _constraint_field_value(manifest, goal, field)
+    if constraint_value is not None:
+        value = constraint_value
     port = (manifest.get("input_map") or {}).get(field)
     if port:
         value = _fit_port_value(manifest, str(port), value)
@@ -1346,8 +1522,7 @@ def _stimulus_for_goal(goal: dict[str, Any], manifest: dict[str, Any], idx: int)
         "observed_signals": {},
     }
     for field in manifest.get("input_map", {}):
-        if field in required:
-            stimulus[field] = _stimulus_value_for_field(manifest, field, idx, goal)
+        stimulus[field] = _stimulus_value_for_field(manifest, field, idx, goal)
     for field in required:
         if field in {"kind", "scenario_id", "cycle", "observed_signals"}:
             continue
@@ -1359,8 +1534,14 @@ def _stimulus_for_goal(goal: dict[str, Any], manifest: dict[str, Any], idx: int)
         _set_sample_activity(stimulus, manifest, False)
         return stimulus
     if is_csr_goal:
-        stimulus.setdefault("op", _stimulus_value_for_field(manifest, "op", idx, goal))
-        addr = stimulus.get("addr_or_name", stimulus.get("addr", _stimulus_value_for_field(manifest, "addr", idx, goal)))
+        matched_row = _register_row_for_goal(manifest, goal)
+        inferred_op = _infer_access_op(goal, tx_type)
+        op_norm = inferred_op if _wants_error_access(goal) else _adjust_register_op_for_access(matched_row, inferred_op)
+        stimulus.setdefault("op", op_norm)
+        if matched_row is not None:
+            addr = int(matched_row.get("offset", _stimulus_value_for_field(manifest, "addr", idx, goal)))
+        else:
+            addr = stimulus.get("addr_or_name", stimulus.get("addr", _stimulus_value_for_field(manifest, "addr", idx, goal)))
         stimulus.setdefault("addr", addr)
         generic_register_goal = goal_kind == "register" or _norm_token(tx_type) in {
             "csr", "csr_access", "register", "register_access", "control_status_access", "fm_csr",
@@ -1372,7 +1553,6 @@ def _stimulus_for_goal(goal: dict[str, Any], manifest: dict[str, Any], idx: int)
         stimulus.setdefault("data", data)
         stimulus.setdefault("value", data)
         input_ports = set(manifest.get("input_ports") or [])
-        op_norm = _infer_access_op(goal, tx_type)
         stimulus["op"] = op_norm
         if "psel" in input_ports:
             stimulus["psel"] = 1
@@ -1411,7 +1591,25 @@ def _stimulus_for_goal(goal: dict[str, Any], manifest: dict[str, Any], idx: int)
     return stimulus
 
 
-async def _reset_dut(dut, manifest: dict[str, Any]) -> None:
+def _goal_wait_cycles(goal: dict[str, Any], manifest: dict[str, Any]) -> int:
+    base = max(int(manifest.get("latency_cycles") or 1), 1)
+    text = _goal_text(goal)
+    if any(token in text for token in ("stall_mem", "load/store", "load store", "d_hresp", "d_hready")):
+        return max(base, 3)
+    if any(token in text for token in ("bus_error", "bus error", "fault_halt", "fault halt")):
+        return max(base, 3)
+    return base
+
+
+def _idle_input_value(manifest: dict[str, Any], port: str) -> int:
+    input_map = manifest.get("input_map") or {}
+    for field, mapped_port in input_map.items():
+        if str(mapped_port) == str(port):
+            return _fit_port_value(manifest, str(port), _stimulus_value_for_field(manifest, str(field), 0, {}))
+    return _fit_port_value(manifest, str(port), _default_field_value(str(port), 0))
+
+
+async def _reset_dut(dut, manifest: dict[str, Any], *, release: bool = True) -> None:
     input_ports = set(manifest.get("input_ports") or [])
     inout_ports = _inout_ports(manifest)
     clock = manifest["clock"]
@@ -1424,10 +1622,11 @@ async def _reset_dut(dut, manifest: dict[str, Any]) -> None:
         if port in inout_ports and port != reset:
             _set_signal(dut, port, _highz_value(manifest, port))
             continue
-        _set_signal(dut, port, active if port == reset else 0)
+        _set_signal(dut, port, active if port == reset else _idle_input_value(manifest, str(port)))
     await ClockCycles(getattr(dut, clock), 3)
+    if not release:
+        return
     _set_signal(dut, reset, inactive)
-    await ClockCycles(getattr(dut, clock), 2)
 
 
 def _drive_inputs(dut, manifest: dict[str, Any], stimulus: dict[str, Any]) -> None:
@@ -1437,6 +1636,8 @@ def _drive_inputs(dut, manifest: dict[str, Any], stimulus: dict[str, Any]) -> No
     inout_ports = _inout_ports(manifest)
     driven = {clock, reset}
     for field, port in input_map.items():
+        if port in {clock, reset}:
+            continue
         if port in inout_ports and not _should_drive_inout_port(manifest, stimulus, str(port)):
             _set_signal(dut, port, _highz_value(manifest, str(port)))
             driven.add(port)
@@ -1474,7 +1675,7 @@ def _drive_inputs(dut, manifest: dict[str, Any], stimulus: dict[str, Any]) -> No
             if port in inout_ports and port != reset:
                 _set_signal(dut, port, _highz_value(manifest, str(port)))
             else:
-                _set_signal(dut, port, 0)
+                _set_signal(dut, port, _idle_input_value(manifest, str(port)))
 
 
 def _clear_sample_inputs(dut, manifest: dict[str, Any]) -> None:
@@ -1489,10 +1690,106 @@ def _clear_sample_inputs(dut, manifest: dict[str, Any]) -> None:
             if port in inout_ports:
                 _set_signal(dut, str(port), _highz_value(manifest, str(port)))
             else:
-                _set_signal(dut, str(port), 0)
+                _set_signal(dut, str(port), _idle_input_value(manifest, str(port)))
     for port in ("psel", "penable", "pwrite", "paddr", "pwdata", "pstrb"):
         if port in set(manifest.get("input_ports") or []):
             _set_signal(dut, port, 0)
+
+
+def _sweep_values_for_port(manifest: dict[str, Any], port: str) -> list[int]:
+    width = _port_width(manifest, port)
+    mask = (1 << width) - 1
+    a5 = int("a5" * max((width + 7) // 8, 1), 16) & mask
+    values = [0, mask, 1 & mask, (mask ^ 1) & mask, a5, (~a5) & mask]
+    if width > 1:
+        values.append(1 << (width - 1))
+    out: list[int] = []
+    for value in values:
+        value = int(value) & mask
+        if value not in out:
+            out.append(value)
+    return out
+
+
+def _apb_sweep_vectors(manifest: dict[str, Any]) -> list[dict[str, int]]:
+    input_ports = set(manifest.get("input_ports") or [])
+    if not {"psel", "penable", "paddr"}.issubset(input_ports):
+        return []
+    rows = _register_rows(manifest)
+    offsets = [int(row.get("offset", 0)) for row in rows] or [0]
+    illegal_offset = max(offsets) + 4
+    addrs = offsets + [illegal_offset]
+    pstrb_values = [1]
+    if "pstrb" in input_ports:
+        strobe_mask = (1 << _port_width(manifest, "pstrb")) - 1
+        if _port_width(manifest, "pstrb") <= 4:
+            pstrb_values = list(range(strobe_mask + 1))
+        else:
+            pstrb_values = [1 & strobe_mask, 2 & strobe_mask, strobe_mask]
+    data_values = _sweep_values_for_port(manifest, "pwdata") if "pwdata" in input_ports else [0]
+    vectors: list[dict[str, int]] = []
+    for addr in addrs:
+        for write in ([0, 1] if "pwrite" in input_ports else [0]):
+            strobes = pstrb_values
+            for strobe in strobes:
+                data = data_values[(len(vectors) + addr + write + strobe) % len(data_values)]
+                vectors.append({"addr": addr, "write": write, "data": data, "pstrb": strobe})
+    return vectors
+
+
+async def _drive_apb_sweep_access(dut, manifest: dict[str, Any], vector: dict[str, int]) -> None:
+    clock = manifest["clock"]
+    input_ports = set(manifest.get("input_ports") or [])
+    await FallingEdge(getattr(dut, clock))
+    _set_signal(dut, "psel", 1)
+    _set_signal(dut, "penable", 0)
+    _set_signal(dut, "paddr", _fit_port_value(manifest, "paddr", vector["addr"]))
+    if "pwrite" in input_ports:
+        _set_signal(dut, "pwrite", vector["write"])
+    if "pwdata" in input_ports:
+        _set_signal(dut, "pwdata", _fit_port_value(manifest, "pwdata", vector["data"]))
+    if "pstrb" in input_ports:
+        _set_signal(dut, "pstrb", _fit_port_value(manifest, "pstrb", vector["pstrb"]))
+    await RisingEdge(getattr(dut, clock))
+    await FallingEdge(getattr(dut, clock))
+    _set_signal(dut, "penable", 1)
+    await RisingEdge(getattr(dut, clock))
+    await FallingEdge(getattr(dut, clock))
+    _set_signal(dut, "psel", 0)
+    _set_signal(dut, "penable", 0)
+    if "pwrite" in input_ports:
+        _set_signal(dut, "pwrite", 0)
+
+
+async def _run_static_coverage_sweep(dut, manifest: dict[str, Any]) -> None:
+    """Exercise generic input/code paths after scoreboard signoff.
+
+    The equivalence scoreboard remains the functional authority. This sweep is
+    only for reusable Verilator line/branch/toggle evidence and intentionally
+    avoids writing scoreboard rows.
+    """
+    clock = manifest["clock"]
+    reset = manifest["reset"]
+    inout_ports = _inout_ports(manifest)
+    input_ports = [
+        str(port)
+        for port in manifest.get("input_ports") or []
+        if str(port) not in {clock, reset} and str(port) not in inout_ports
+    ]
+    for port in input_ports:
+        if port in {"psel", "penable"}:
+            continue
+        for value in _sweep_values_for_port(manifest, port)[:6]:
+            await FallingEdge(getattr(dut, clock))
+            _set_signal(dut, port, _fit_port_value(manifest, port, value))
+            await RisingEdge(getattr(dut, clock))
+    for idx, vector in enumerate(_apb_sweep_vectors(manifest)[:512]):
+        if "gpio_in" in input_ports:
+            gpio_values = _sweep_values_for_port(manifest, "gpio_in")
+            _set_signal(dut, "gpio_in", gpio_values[idx % len(gpio_values)])
+        await _drive_apb_sweep_access(dut, manifest, vector)
+    await FallingEdge(getattr(dut, clock))
+    _clear_sample_inputs(dut, manifest)
 
 
 def _observe_outputs(dut, manifest: dict[str, Any], stimulus: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -1501,10 +1798,18 @@ def _observe_outputs(dut, manifest: dict[str, Any], stimulus: dict[str, Any] | N
         observed[str(item["name"])] = _get_signal(dut, str(item["port"]))
     for _kind, port in (manifest.get("special_outputs") or {}).items():
         observed[str(port)] = _get_signal(dut, str(port))
-    if _is_reset_stimulus(stimulus or {}):
-        for name in manifest.get("state_observables") or []:
-            if _has_signal(dut, str(name)):
-                observed[str(name)] = _get_signal(dut, str(name))
+    aliases = manifest.get("state_observable_aliases") if isinstance(manifest.get("state_observable_aliases"), dict) else {}
+    for name in manifest.get("state_observables") or []:
+        if _has_signal(dut, str(name)):
+            observed[str(name)] = _get_signal(dut, str(name))
+            continue
+        for alias in aliases.get(str(name), []) or []:
+            if not _has_signal(dut, str(alias)):
+                continue
+            value = _get_signal(dut, str(alias))
+            observed[str(name)] = value
+            observed[str(alias)] = value
+            break
     return observed
 
 
@@ -1534,18 +1839,19 @@ async def fl_rtl_equivalence_goals(dut):
         goal_id = str(goal["goal_id"])
         stimulus = _stimulus_for_goal(goal, manifest, idx)
         if _is_reset_stimulus(stimulus):
-            await _reset_dut(dut, manifest)
+            await _reset_dut(dut, manifest, release=False)
         else:
+            await _reset_dut(dut, manifest)
             await FallingEdge(getattr(dut, clock))
             _drive_inputs(dut, manifest, stimulus)
-            for _ in range(max(int(manifest.get("latency_cycles") or 1), 1)):
+            for _ in range(_goal_wait_cycles(goal, manifest)):
                 await RisingEdge(getattr(dut, clock))
         await ReadOnly()
         observed = _observe_outputs(dut, manifest, stimulus)
         row = scoreboard.check_goal(
             goal_id,
             scenario_id=stimulus["scenario_id"],
-            cycle=idx + max(int(manifest.get("latency_cycles") or 1), 1),
+            cycle=idx + _goal_wait_cycles(goal, manifest),
             stimulus=stimulus,
             rtl_observed=observed,
         )
@@ -1554,6 +1860,7 @@ async def fl_rtl_equivalence_goals(dut):
         _clear_sample_inputs(dut, manifest)
 
     scoreboard.final_check()
+    await _run_static_coverage_sweep(dut, manifest)
     coverage.write(ip_dir)
 '''
 
@@ -1607,6 +1914,20 @@ def _with_icarus_vcd_dump(sources: list[str], build_dir: Path, top: str, ip: str
         encoding="utf-8",
     )
     return [*sources, str(dump_src)], [top, dump_module]
+
+
+def _verilator_compile_args(simulator: str) -> list[str]:
+    if simulator != "verilator":
+        return []
+    enabled = os.environ.get("ATLAS_VERILATOR_COVERAGE", "1").strip().lower()
+    if enabled in {"0", "false", "no", "off"}:
+        return []
+    return [
+        "--coverage",
+        "--coverage-line",
+        "--coverage-expr",
+        "--coverage-toggle",
+    ]
 
 
 def _parse_results(path: Path) -> tuple[int, int, int]:
@@ -1697,6 +2018,7 @@ def main() -> int:
             force_compile=True,
             extra_env=env,
             includes=[str(ip_dir / "rtl")],
+            verilog_compile_args=_verilator_compile_args(simulator),
         )
     except BaseException as exc:
         (sim_dir / "sim_report.txt").write_text(

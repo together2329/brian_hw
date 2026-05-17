@@ -1,9 +1,453 @@
 {
+  "schema_version": 1,
+  "type": "fl_rtl_compare",
   "ip": "arm_m0_min",
-  "source": "sim/scoreboard_events.jsonl",
-  "total_rows": 37,
-  "pass_rows": 37,
-  "mismatch_count": 0,
-  "all_matched": true,
-  "mismatches": []
+  "generated_at": "2026-05-17T01:49:32Z",
+  "status": "pass",
+  "sources": {
+    "equivalence_goals": "arm_m0_min/verify/equivalence_goals.json",
+    "scoreboard_events": "arm_m0_min/sim/scoreboard_events.jsonl",
+    "results_xml": "arm_m0_min/sim/results.xml",
+    "coverage": "arm_m0_min/cov/coverage.json",
+    "fl_model_check": "arm_m0_min/model/fl_model_check.json"
+  },
+  "summary": {
+    "total": 39,
+    "goals_checked": 39,
+    "goals_passed": 39,
+    "goals_failed": 0,
+    "goals_blocked": 0,
+    "goals_untested": 0,
+    "scoreboard_events": 39,
+    "orphan_scoreboard_events": 0,
+    "missing_evidence": [],
+    "stale_evidence": [],
+    "stale_oracle_evidence": [],
+    "sim_results": {
+      "exists": true,
+      "total": 1,
+      "fail": 0,
+      "errors": 0,
+      "source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/sim/results.xml",
+      "failures": 0
+    }
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "function_alu_compare_branch"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_TX_LOAD_STORE",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "function_single_transfer_memory_access"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_ALU",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_ALU_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_CMP_BRANCH",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_CMP_BRANCH_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_LOAD_STORE",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_LOAD_STORE_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_IF_STALL",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_IF_STALL_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_BUS_ERROR",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_BUS_ERROR_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_LOAD_STORE_executed",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_LOAD_STORE_executed",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_LOAD_STORE_executed",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_MEMORY_IF_ID_INSTR",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "function_single_transfer_memory_access"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_MEMORY_ID_EX_CTRL",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "function_single_transfer_memory_access"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_ERROR_I_BUS_ERROR",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_BUS_ERROR_executed",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "error_i_bus_error",
+        "error_d_bus_error"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_ERROR_D_BUS_ERROR",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_BUS_ERROR_executed",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "error_i_bus_error",
+        "error_d_bus_error"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RESET_TO_RUN_0",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RUN_TO_STALL_IF_1",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_STALL_IF_TO_RUN_2",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RUN_TO_STALL_MEM_3",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_STALL_MEM_TO_RUN_4",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RUN_TO_FAULT_HALT_5",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7",
+        "error_i_bus_error",
+        "error_d_bus_error"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_STALL_MEM_TO_FAULT_HALT_6",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7",
+        "error_i_bus_error",
+        "error_d_bus_error"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7",
+        "error_i_bus_error",
+        "error_d_bus_error"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_IF",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_ID",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_EX",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_RF",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_LT_MIN",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "latency_fetch_accept_lt_min"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_AT_MIN",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "latency_fetch_accept_at_min"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_UNBOUNDED",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "latency_fetch_accept_unbounded"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_LT_MIN",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "latency_alu_instr_lt_min"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MIN",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "latency_alu_instr_at_min"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MAX",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "latency_alu_instr_at_max"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_GT_MAX",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "latency_alu_instr_gt_max"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_LT_MIN",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "latency_load_store_instr_lt_min"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_AT_MIN",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "latency_load_store_instr_at_min"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "latency_load_store_instr_unbounded"
+      ],
+      "coverage_hit": true
+    }
+  ]
 }

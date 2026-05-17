@@ -121,6 +121,7 @@ _START_TIME = time.time()
 
 # Per-worker state (set once in serve())
 _SERVER_PORT: int = 8000
+_SERVER_WORKFLOW: str = ""    # Workflow this worker was started with (--workflow). Empty = unrestricted.
 _worker_todo_tracker = None   # TodoTracker instance shared across all runs on this worker
 
 # Log directory for persistent audit trail
@@ -1247,8 +1248,15 @@ def create_app():
 
     @app.get("/health")
     async def health():
-        """Liveness check."""
-        return {"status": "ok", "runs": len(_runs)}
+        """Liveness check.
+
+        Exposes the worker's startup `workflow` binding so the
+        dispatcher can verify it before posting `/run`.
+        """
+        body = {"status": "ok", "runs": len(_runs)}
+        if _SERVER_WORKFLOW:
+            body["workflow"] = _SERVER_WORKFLOW
+        return body
 
     @app.get("/metrics")
     async def metrics():
@@ -1423,6 +1431,19 @@ def create_app():
             raise HTTPException(status_code=400, detail="'task' is required")
         if session_raw.strip() and not session_name:
             raise HTTPException(status_code=400, detail="invalid 'session'")
+        # Workflow binding guard: when this worker was started with
+        # --workflow=<wf>, refuse /run requests for a different workflow so the
+        # worker can be addressed as "the rtl-gen worker" or "the tb-gen worker"
+        # without silently accepting cross-workflow work. See
+        # doc/wiki/multi-user-worker-conflicts.md F3.
+        if _SERVER_WORKFLOW and workflow.strip() and workflow.strip() != _SERVER_WORKFLOW:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    f"worker is bound to workflow '{_SERVER_WORKFLOW}'; "
+                    f"request asked for '{workflow.strip()}'"
+                ),
+            )
         template_ip = str(request.get("ip", "")).strip()
         project_root = str(request.get("project_root", "")).strip()
         rtl_version_id = str(request.get("rtl_version_id", "")).strip()
@@ -1587,20 +1608,25 @@ def create_app():
 
 def serve(port: int = 8000, host: str = "0.0.0.0", verbose: bool = False,
           coordinator: str = "", worker_name: str = "",
-          session_name: str = ""):
+          session_name: str = "", startup_workflow: str = ""):
     """
     Start the agent HTTP server.
 
     This is called by main.py when --serve flag is used.
 
     Args:
-        port:        HTTP port
-        host:        Bind address
-        verbose:     Print ReAct log to terminal in real-time
-        coordinator: Coordinator URL to register with (e.g. http://localhost:8000)
-        worker_name: Name this worker registers as (e.g. 'lint_worker')
+        port:             HTTP port
+        host:             Bind address
+        verbose:          Print ReAct log to terminal in real-time
+        coordinator:      Coordinator URL to register with (e.g. http://localhost:8000)
+        worker_name:      Name this worker registers as (e.g. 'lint_worker')
+        startup_workflow: Workflow this worker is bound to (`--workflow` arg).
+                          When set, /run requests whose `workflow` field does not
+                          match are rejected with 403 to prevent cross-workflow
+                          worker reuse (multi-user-worker-conflicts F3).
     """
-    global _VERBOSE, _VERBOSE_FILTER, _SERVER_PORT, _worker_todo_tracker
+    global _VERBOSE, _VERBOSE_FILTER, _SERVER_PORT, _SERVER_WORKFLOW, _worker_todo_tracker
+    _SERVER_WORKFLOW = (startup_workflow or "").strip()
     _VERBOSE = verbose or os.getenv("AGENT_SERVER_VERBOSE", "").lower() in ("1", "true", "yes")
     _VERBOSE_FILTER = os.getenv("AGENT_SERVER_VERBOSE_FILTER", "")
     _SERVER_PORT = port

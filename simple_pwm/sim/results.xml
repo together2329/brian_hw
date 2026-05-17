@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="simple_pwm" tests="4" failures="0" time="10.86">
+    <testcase name="SC1_basic_pwm" classname="simple_pwm" time="3.0"/>
+    <testcase name="SC2_duty_variation" classname="simple_pwm" time="2.0"/>
+    <testcase name="SC3_period_rollover" classname="simple_pwm" time="1.5"/>
+    <testcase name="SC4_disable" classname="simple_pwm" time="2.0"/>
+  </testsuite>
+</testsuites>

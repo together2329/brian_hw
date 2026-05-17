@@ -1,0 +1,291 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage",
+  "status": "partial",
+  "timestamp_iso": "2026-05-17T11:50:00Z",
+  "functional": {
+    "hit": 46,
+    "total": 58,
+    "pct": 79.3,
+    "bins": {
+      "SC_001_executed": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "SC_002_executed": {
+        "hit": true,
+        "scenario_id": "SC_002",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "SC_003_executed": {
+        "hit": true,
+        "scenario_id": "SC_003",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "SC_004_executed": {
+        "hit": true,
+        "scenario_id": "SC_004",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "SC_005_executed": {
+        "hit": false,
+        "source": "test_not_implemented"
+      },
+      "SC_006_executed": {
+        "hit": false,
+        "source": "test_not_implemented"
+      },
+      "SC_007_executed": {
+        "hit": true,
+        "scenario_id": "SC_007",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "SC_008_executed": {
+        "hit": true,
+        "scenario_id": "SC_008",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "SC_009_executed": {
+        "hit": false,
+        "source": "test_not_implemented"
+      },
+      "function_dma_step": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "function_dma_error_align": {
+        "hit": true,
+        "scenario_id": "SC_002",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "function_dma_error_zero_len": {
+        "hit": true,
+        "scenario_id": "SC_003",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "function_dma_error_bus": {
+        "hit": false,
+        "source": "test_not_implemented"
+      },
+      "function_dma_busy_reject": {
+        "hit": true,
+        "scenario_id": "SC_004",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "function_dma_multi_ch": {
+        "hit": false,
+        "source": "test_not_implemented"
+      },
+      "function_dma_global_enable": {
+        "hit": true,
+        "scenario_id": "SC_007",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "function_dma_irq_clear": {
+        "hit": true,
+        "scenario_id": "SC_008",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "function_dma_apb_err": {
+        "hit": false,
+        "source": "test_not_implemented"
+      },
+      "cycle_pipeline_idle": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_pipeline_cfg": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_pipeline_request": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_pipeline_read": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_pipeline_write": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_pipeline_update": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_pipeline_done": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_pipeline_error": {
+        "hit": true,
+        "scenario_id": "SC_002",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_arb_round_robin": {
+        "hit": false,
+        "source": "test_not_implemented"
+      },
+      "cycle_burst_latency": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "function_dma_start": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "function_dma_complete": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "function_dma_error": {
+        "hit": true,
+        "scenario_id": "SC_002",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "function_arb_grant": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_apb_access": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_ahb_address_phase": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_ahb_data_phase": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_arb_grant_rule": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_start_accept": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_ordering_2": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_ordering_3": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "scenario_id": "SC_004",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "cycle_backpressure_1": {
+        "hit": false,
+        "source": "test_not_implemented"
+      },
+      "cycle_backpressure_2": {
+        "hit": false,
+        "source": "test_not_implemented"
+      },
+      "cycle_perf_throughput": {
+        "hit": false,
+        "source": "test_not_implemented"
+      },
+      "fsm_per_channel_idle_to_cfg_0": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "fsm_per_channel_idle_to_error_1": {
+        "hit": true,
+        "scenario_id": "SC_002",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "fsm_per_channel_cfg_to_request_2": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "fsm_per_channel_request_to_read_3": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "fsm_per_channel_read_to_write_4": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "fsm_per_channel_write_to_update_5": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "fsm_per_channel_update_to_read_6": {
+        "hit": false,
+        "source": "test_not_implemented"
+      },
+      "fsm_per_channel_update_to_done_7": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "fsm_per_channel_done_to_idle_8": {
+        "hit": true,
+        "scenario_id": "SC_001",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "fsm_per_channel_error_to_idle_9": {
+        "hit": true,
+        "scenario_id": "SC_002",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "error_error_0": {
+        "hit": true,
+        "scenario_id": "SC_002",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "error_error_1": {
+        "hit": true,
+        "scenario_id": "SC_003",
+        "source": "rtl_observed_cocotb_sim"
+      },
+      "error_error_2": {
+        "hit": false,
+        "source": "test_not_implemented"
+      }
+    }
+  }
+}

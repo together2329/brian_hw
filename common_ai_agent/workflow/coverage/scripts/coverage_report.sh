@@ -57,7 +57,7 @@ if [ ${WANT_HTML} -eq 1 ]; then
 fi
 
 echo ""
-echo "=== Summary (line / branch %) ==="
+echo "=== Raw LCOV summary (line / all BRDA %) ==="
 LINES_TOTAL=$(grep -c "^DA:" "${OUT}/coverage.info" 2>/dev/null || echo 0)
 LINES_HIT=$(awk -F'[:,]' '/^DA:/ && $3 != "0" {n++} END{print n+0}' "${OUT}/coverage.info")
 BRS_TOTAL=$(grep -c "^BRDA:" "${OUT}/coverage.info" 2>/dev/null || echo 0)
@@ -72,7 +72,8 @@ else
 fi
 if [ "${BRS_TOTAL}" -gt 0 ]; then
     BPCT=$(awk -v h="${BRS_HIT}" -v f="${BRS_TOTAL}" 'BEGIN{printf "%.2f", (h/f)*100}')
-    echo "Branches : ${BRS_HIT}/${BRS_TOTAL}  (${BPCT}%)"
+    echo "All BRDA : ${BRS_HIT}/${BRS_TOTAL}  (${BPCT}%)"
+    echo "           raw Verilator BRDA may include toggle/expression bins; SSOT summary filters control-flow branches."
 else
     BPCT="0.00"
 fi
@@ -116,6 +117,38 @@ python3 "${SCRIPT_DIR}/ssot_coverage_summary.py" "${DUT}" || {
         exit "${RC}"
     fi
 }
+
+python3 - "${OUT}/coverage.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+if path.is_file():
+    doc = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+    lines = doc.get("lines") or {}
+    branches = doc.get("branches") or {}
+    print("")
+    print("=== SSOT-filtered coverage summary ===")
+    print(
+        "Lines    : {}/{}  ({}%) target={} status={}".format(
+            lines.get("hit", 0),
+            lines.get("total", 0),
+            lines.get("pct"),
+            lines.get("target_pct"),
+            "PASS" if lines.get("meets_target") else "BLOCKED",
+        )
+    )
+    print(
+        "Branches : {}/{}  ({}%) target={} status={}".format(
+            branches.get("hit", 0),
+            branches.get("total", 0),
+            branches.get("pct"),
+            branches.get("target_pct"),
+            "PASS" if branches.get("meets_target") else "BLOCKED",
+        )
+    )
+PY
 
 echo ""
 echo "Annotated dir : ${OUT}/annotated/"

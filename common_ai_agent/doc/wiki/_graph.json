@@ -1,17 +1,21 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-16T12:24:59Z",
+  "generated_at": "2026-05-17T04:24:52Z",
   "root": "doc/wiki",
-  "node_count": 25,
-  "edge_count": 135,
+  "node_count": 38,
+  "edge_count": 231,
   "tags": {},
   "types": {
     "reference": [
+      "agent-autonomous-ip-implementation-pattern",
+      "arm-m0-min-current-status",
       "arm-m0-min-pipeline-run",
+      "atcuart100-pipeline-run",
       "atlas-pipeline-db-state",
       "atlas-pipeline-screen",
       "common-ai-agent-map",
       "deterministic-emit-stages",
+      "dma-real-sim-debug-knowhow",
       "full-flow-pipeline",
       "golden-todo-evidence",
       "gpio-orchestrator-multiworker-run",
@@ -20,21 +24,78 @@
       "index",
       "karpathy-llm-wiki-pattern",
       "log",
+      "mini-cpu-rerun-20260517",
+      "multi-user-worker-conflicts",
+      "multi-user-worker-isolation",
+      "octa-ddr-spi-orch-run-20260517",
       "orchestrator-worker-handoff",
       "orchestrator-worker-handoff-review",
       "parallel-todo-sub-agent-workers",
+      "pipeline-progress-debugging",
       "provider-and-llm-call-accounting",
+      "quad-spi-orch-run-20260517",
       "rtl-gen-ssot-contract",
       "rtl-version-run-history",
+      "run-mode-and-provenance-policy",
+      "ssot-gen-pass-pipeline",
       "ssot-qa-workbench",
       "triple-llm-rv32i-experiment",
       "ui-design-references",
       "wiki-curation-policy",
       "workflow-feedback-and-scheduling",
+      "workflow-improvement-candidates",
       "workflow-ownership-and-boundaries"
     ]
   },
   "nodes": [
+    {
+      "id": "agent-autonomous-ip-implementation-pattern",
+      "title": "에이전트 자율 IP 구현 패턴 — \"Wiki만 보고 DMA 끝까지 완주한 이야기\"",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "full-flow-pipeline",
+        "workflow-ownership-and-boundaries",
+        "common-ai-agent-map",
+        "deterministic-emit-stages",
+        "rtl-gen-ssot-contract",
+        "golden-todo-evidence",
+        "multi-user-worker-isolation",
+        "pipeline-progress-debugging",
+        "provider-and-llm-call-accounting",
+        "ui-design-references"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "> **작성일**: 2026-05-17 > **대상 IP**: `dma_real` (4-channel DMA controller, APB slave / AHB-Lite master) > **최종 성과**: Simulation 6/6 PASS · Coverage 100% (58/58 bins) · Goal Audit 15/16 > **핵심 질문**: \"사용자가 wiki만 보여주고 '이거 구현해'라고 했을 때, 에이전트는 **무엇을 어떻게** 했는가?\"",
+      "path": "doc/wiki/agent-autonomous-ip-implementation-pattern.md",
+      "size_bytes": 16813
+    },
+    {
+      "id": "arm-m0-min-current-status",
+      "title": "arm_m0_min CPU Handoff Approval README Status",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "arm-m0-min-pipeline-run",
+        "human-review-and-escalation",
+        "golden-todo-evidence",
+        "rtl-version-run-history"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Current project-level entry point for `arm_m0_min/README.md`, CPU handoff, approval, `req` signoff state, and the `approve_locked_scope` human decision. Use this page when an agent or human asks for \"cpu approval req\", \"arm m0 handoff\", or \"readme cpu\" from the project wiki instead of the IP-local wiki.",
+      "path": "doc/wiki/arm-m0-min-current-status.md",
+      "size_bytes": 3016
+    },
     {
       "id": "arm-m0-min-pipeline-run",
       "title": "arm_m0_min — Reference Pipeline Run (2026-05-15)",
@@ -53,6 +114,8 @@
         "log"
       ],
       "incoming": [
+        "arm-m0-min-current-status",
+        "atcuart100-pipeline-run",
         "deterministic-emit-stages",
         "full-flow-pipeline",
         "index",
@@ -64,7 +127,36 @@
       "updated": "",
       "summary": "End-to-end run of common_ai_agent on a minimal ARMv6-M Thumb CPU, `SSOT → fl-model-gen → rtl-gen → tb-gen → sim → lint`. This page is the **reference run** for CPU-class IPs and the first IP-on-DB-stack run captured in the wiki. Detailed run report lives at [`arm_m0_min/PIPELINE_SUMMARY.md`](../../arm_m0_min/PIPELINE_SUMMARY.md).",
       "path": "doc/wiki/arm-m0-min-pipeline-run.md",
-      "size_bytes": 7510
+      "size_bytes": 13939
+    },
+    {
+      "id": "atcuart100-pipeline-run",
+      "title": "atcuart100 — Andes 16550-class APB UART Pipeline Run (2026-05-17)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "full-flow-pipeline",
+        "workflow-ownership-and-boundaries",
+        "golden-todo-evidence",
+        "rtl-gen-ssot-contract",
+        "parallel-todo-sub-agent-workers",
+        "multi-user-worker-isolation",
+        "deterministic-emit-stages",
+        "arm-m0-min-pipeline-run",
+        "gpio-orchestrator-multiworker-run",
+        "common-ai-agent-map",
+        "multi-user-worker-conflicts"
+      ],
+      "incoming": [
+        "index",
+        "workflow-improvement-candidates"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "End-to-end run of common_ai_agent on the Andes ATCUART100 peripheral (8 SystemVerilog modules, dual-clock APB UART with FIFO/DMA/modem control), driven directly from this Claude session after the multi-LLM SSOT-gen attempt failed across 5 providers.",
+      "path": "doc/wiki/atcuart100-pipeline-run.md",
+      "size_bytes": 13171
     },
     {
       "id": "atlas-pipeline-db-state",
@@ -108,6 +200,8 @@
         "atlas-pipeline-db-state",
         "index",
         "log",
+        "pipeline-progress-debugging",
+        "run-mode-and-provenance-policy",
         "ui-design-references"
       ],
       "broken_refs": [],
@@ -130,6 +224,8 @@
         "human-review-and-escalation"
       ],
       "incoming": [
+        "agent-autonomous-ip-implementation-pattern",
+        "atcuart100-pipeline-run",
         "full-flow-pipeline",
         "index"
       ],
@@ -155,19 +251,38 @@
         "log"
       ],
       "incoming": [
+        "agent-autonomous-ip-implementation-pattern",
+        "atcuart100-pipeline-run",
         "atlas-pipeline-screen",
         "gpio-serial-pipeline-run",
         "index",
         "karpathy-llm-wiki-pattern",
         "log",
         "ui-design-references",
-        "wiki-curation-policy"
+        "wiki-curation-policy",
+        "workflow-improvement-candidates"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "Some pipeline stages do **not** call an LLM. They are mechanical translators that read SSOT and write a Python or JSON artifact whose content is fully determined by the SSOT input. This page explains why that design choice exists, which stages it applies to today, and what the failure modes look like.",
       "path": "doc/wiki/deterministic-emit-stages.md",
       "size_bytes": 7504
+    },
+    {
+      "id": "dma-real-sim-debug-knowhow",
+      "title": "dma_real Sim-Debug & Goal-Audit 노하우",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "> **작성일**: 2026-05-17 > **IP**: dma_real (4-channel DMA controller, APB slave / AHB-Lite master) > **최종 성과**: Simulation 6/6 PASS · Coverage 100% (58/58 bins) · Goal Audit 15/16",
+      "path": "doc/wiki/dma-real-sim-debug-knowhow.md",
+      "size_bytes": 14533
     },
     {
       "id": "full-flow-pipeline",
@@ -184,7 +299,9 @@
         "golden-todo-evidence"
       ],
       "incoming": [
+        "agent-autonomous-ip-implementation-pattern",
         "arm-m0-min-pipeline-run",
+        "atcuart100-pipeline-run",
         "atlas-pipeline-db-state",
         "atlas-pipeline-screen",
         "common-ai-agent-map",
@@ -194,10 +311,14 @@
         "gpio-serial-pipeline-run",
         "human-review-and-escalation",
         "index",
+        "octa-ddr-spi-orch-run-20260517",
         "orchestrator-worker-handoff",
         "parallel-todo-sub-agent-workers",
         "provider-and-llm-call-accounting",
+        "quad-spi-orch-run-20260517",
         "rtl-gen-ssot-contract",
+        "run-mode-and-provenance-policy",
+        "ssot-gen-pass-pipeline",
         "ssot-qa-workbench",
         "triple-llm-rv32i-experiment",
         "ui-design-references",
@@ -220,7 +341,10 @@
         "full-flow-pipeline"
       ],
       "incoming": [
+        "agent-autonomous-ip-implementation-pattern",
+        "arm-m0-min-current-status",
         "arm-m0-min-pipeline-run",
+        "atcuart100-pipeline-run",
         "atlas-pipeline-db-state",
         "common-ai-agent-map",
         "deterministic-emit-stages",
@@ -230,14 +354,18 @@
         "human-review-and-escalation",
         "index",
         "provider-and-llm-call-accounting",
+        "quad-spi-orch-run-20260517",
         "rtl-gen-ssot-contract",
+        "run-mode-and-provenance-policy",
+        "ssot-gen-pass-pipeline",
+        "workflow-improvement-candidates",
         "workflow-ownership-and-boundaries"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "The todo list is not a prompt checklist. It is a contract between SSOT, generated artifacts, and evidence.",
       "path": "doc/wiki/golden-todo-evidence.md",
-      "size_bytes": 1368
+      "size_bytes": 1640
     },
     {
       "id": "gpio-orchestrator-multiworker-run",
@@ -254,13 +382,18 @@
         "rtl-version-run-history"
       ],
       "incoming": [
-        "index"
+        "atcuart100-pipeline-run",
+        "index",
+        "multi-user-worker-conflicts",
+        "quad-spi-orch-run-20260517",
+        "ssot-gen-pass-pipeline",
+        "workflow-improvement-candidates"
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "Status: active debug log for the `gpio_orch_scratch` scratch run on 2026-05-16.",
+      "summary": "Status: active debug log for GPIO orchestrator + multi-worker scratch runs on 2026-05-16.",
       "path": "doc/wiki/gpio-orchestrator-multiworker-run.md",
-      "size_bytes": 4908
+      "size_bytes": 49480
     },
     {
       "id": "gpio-serial-pipeline-run",
@@ -299,11 +432,15 @@
         "full-flow-pipeline"
       ],
       "incoming": [
+        "arm-m0-min-current-status",
         "arm-m0-min-pipeline-run",
         "common-ai-agent-map",
         "gpio-serial-pipeline-run",
         "index",
+        "octa-ddr-spi-orch-run-20260517",
         "orchestrator-worker-handoff",
+        "quad-spi-orch-run-20260517",
+        "ssot-gen-pass-pipeline",
         "ssot-qa-workbench",
         "workflow-ownership-and-boundaries"
       ],
@@ -311,7 +448,7 @@
       "updated": "",
       "summary": "Use `human_review_needed` when the system lacks authority to decide product or spec truth. Do not hide these items inside ordinary rejected todo rows.",
       "path": "doc/wiki/human-review-and-escalation.md",
-      "size_bytes": 1279
+      "size_bytes": 2955
     },
     {
       "id": "index",
@@ -322,36 +459,51 @@
       "outgoing": [
         "common-ai-agent-map",
         "workflow-ownership-and-boundaries",
+        "atlas-pipeline-screen",
+        "pipeline-progress-debugging",
+        "run-mode-and-provenance-policy",
+        "arm-m0-min-current-status",
+        "multi-user-worker-isolation",
+        "multi-user-worker-conflicts",
+        "orchestrator-worker-handoff",
+        "orchestrator-worker-handoff-review",
+        "golden-todo-evidence",
+        "wiki-curation-policy",
+        "agent-autonomous-ip-implementation-pattern",
         "ssot-qa-workbench",
+        "ssot-gen-pass-pipeline",
         "full-flow-pipeline",
         "rtl-gen-ssot-contract",
         "workflow-feedback-and-scheduling",
-        "orchestrator-worker-handoff",
-        "orchestrator-worker-handoff-review",
         "parallel-todo-sub-agent-workers",
         "rtl-version-run-history",
-        "golden-todo-evidence",
         "provider-and-llm-call-accounting",
         "human-review-and-escalation",
         "deterministic-emit-stages",
         "karpathy-llm-wiki-pattern",
-        "wiki-curation-policy",
-        "atlas-pipeline-screen",
         "atlas-pipeline-db-state",
         "ui-design-references",
         "arm-m0-min-pipeline-run",
+        "mini-cpu-rerun-20260517",
         "gpio-serial-pipeline-run",
-        "gpio-orchestrator-multiworker-run"
+        "gpio-orchestrator-multiworker-run",
+        "quad-spi-orch-run-20260517",
+        "octa-ddr-spi-orch-run-20260517",
+        "atcuart100-pipeline-run",
+        "dma-real-sim-debug-knowhow",
+        "workflow-improvement-candidates"
       ],
       "incoming": [
         "karpathy-llm-wiki-pattern",
-        "wiki-curation-policy"
+        "log",
+        "wiki-curation-policy",
+        "workflow-improvement-candidates"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 5097
+      "size_bytes": 12548
     },
     {
       "id": "karpathy-llm-wiki-pattern",
@@ -385,6 +537,10 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "run-mode-and-provenance-policy",
+        "index",
+        "pipeline-progress-debugging",
+        "multi-user-worker-isolation",
         "orchestrator-worker-handoff",
         "orchestrator-worker-handoff-review",
         "gpio-serial-pipeline-run",
@@ -407,9 +563,98 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Review of [[orchestrator-worker-handoff]] captured at [[orchestrator-worker-handoff-review]]. Gap audit against `src/atlas_api_jobs.py`, `core/delegate_runner.py`, `core/atlas_db.py`, `frontend/atlas/pipeline.jsx`, and `src/headless_workflow.py`: the orchestrator-mode switches (`ATLAS_ORCHESTRATOR_MODE`, gateway flag, path-prefix `/api/workers/<wf>`…",
+      "summary": "- Added `arm_m0_min/review/prompt_to_artifact_checklist.json`, a machine-readable map from the original CPU request to concrete SSOT, model, RTL, TB, sim, equivalence, coverage, wiki, and approval-gate evidence. The open req review decision now exposes this JSON as a `review_aids[]` entry so UI/orchestrator/future agents can distinguish machine-green…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 24688
+      "size_bytes": 49381
+    },
+    {
+      "id": "mini-cpu-rerun-20260517",
+      "title": "mini_cpu Rerun (2026-05-17)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "index",
+        "multi-user-worker-conflicts",
+        "ssot-gen-pass-pipeline"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Purpose: rerun the existing `mini_cpu` artifact as a CPU-class regression and separate SSOT/workflow blockers from RTL/sim failures.",
+      "path": "doc/wiki/mini-cpu-rerun-20260517.md",
+      "size_bytes": 3878
+    },
+    {
+      "id": "multi-user-worker-conflicts",
+      "title": "Multi-User Worker Conflicts",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "orchestrator-worker-handoff",
+        "orchestrator-worker-handoff-review",
+        "workflow-ownership-and-boundaries",
+        "parallel-todo-sub-agent-workers",
+        "gpio-orchestrator-multiworker-run",
+        "mini-cpu-rerun-20260517"
+      ],
+      "incoming": [
+        "atcuart100-pipeline-run",
+        "index",
+        "octa-ddr-spi-orch-run-20260517",
+        "quad-spi-orch-run-20260517",
+        "ssot-gen-pass-pipeline"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Status: operational risk note, 2026-05-17. This page captures the structural conflict surface for the current worker fleet and what is already happening on this machine right now. It complements [[orchestrator-worker-handoff]] and [[orchestrator-worker-handoff-review]] which describe the *target* multi-user isolation design that is not shipped yet.",
+      "path": "doc/wiki/multi-user-worker-conflicts.md",
+      "size_bytes": 9851
+    },
+    {
+      "id": "multi-user-worker-isolation",
+      "title": "Multi-User Worker Isolation",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "agent-autonomous-ip-implementation-pattern",
+        "atcuart100-pipeline-run",
+        "index",
+        "log",
+        "pipeline-progress-debugging"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Status: risk review captured on 2026-05-17 KST.",
+      "path": "doc/wiki/multi-user-worker-isolation.md",
+      "size_bytes": 6684
+    },
+    {
+      "id": "octa-ddr-spi-orch-run-20260517",
+      "title": "OCTA DDR SPI Orchestrator Run (2026-05-17)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "quad-spi-orch-run-20260517",
+        "ssot-gen-pass-pipeline",
+        "orchestrator-worker-handoff",
+        "parallel-todo-sub-agent-workers",
+        "multi-user-worker-conflicts",
+        "full-flow-pipeline",
+        "human-review-and-escalation"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Status: pipeline reaches `sim-debug` clean owner-routing. SSOT, FL/CL/equiv, RTL (compile+lint clean), TB, sim cocotb PASS. 24 SOFT_EQ_MISMATCH after fresh oracle regen — owner split 18 → `rtl-gen`, 6 → `tb-gen`. Same Frontier pattern as [[quad-spi-orch-run-20260517]] but reproduced from scratch with the workflow fixes that QUAD SPI surfaced.",
+      "path": "doc/wiki/octa-ddr-spi-orch-run-20260517.md",
+      "size_bytes": 7446
     },
     {
       "id": "orchestrator-worker-handoff",
@@ -430,9 +675,15 @@
         "gpio-orchestrator-multiworker-run",
         "index",
         "log",
+        "multi-user-worker-conflicts",
+        "octa-ddr-spi-orch-run-20260517",
         "orchestrator-worker-handoff-review",
         "parallel-todo-sub-agent-workers",
-        "workflow-feedback-and-scheduling"
+        "pipeline-progress-debugging",
+        "quad-spi-orch-run-20260517",
+        "run-mode-and-provenance-policy",
+        "workflow-feedback-and-scheduling",
+        "workflow-improvement-candidates"
       ],
       "broken_refs": [],
       "updated": "",
@@ -454,6 +705,7 @@
       "incoming": [
         "index",
         "log",
+        "multi-user-worker-conflicts",
         "orchestrator-worker-handoff"
       ],
       "broken_refs": [],
@@ -476,14 +728,44 @@
         "wiki-curation-policy"
       ],
       "incoming": [
+        "atcuart100-pipeline-run",
         "index",
-        "log"
+        "log",
+        "multi-user-worker-conflicts",
+        "octa-ddr-spi-orch-run-20260517",
+        "quad-spi-orch-run-20260517",
+        "workflow-improvement-candidates"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "Background worker fanout that lets the main agent hand a *batch* of TODOs to `parallel_todo_dispatch(...)` and wait for aggregated results, instead of walking the workflow TODO tracker one item at a time.",
       "path": "doc/wiki/parallel-todo-sub-agent-workers.md",
       "size_bytes": 9201
+    },
+    {
+      "id": "pipeline-progress-debugging",
+      "title": "Pipeline Progress Debugging",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "atlas-pipeline-screen",
+        "orchestrator-worker-handoff",
+        "multi-user-worker-isolation",
+        "ssot-gen-pass-pipeline",
+        "wiki-curation-policy"
+      ],
+      "incoming": [
+        "agent-autonomous-ip-implementation-pattern",
+        "index",
+        "log",
+        "wiki-curation-policy"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "This page defines how ATLAS should debug progress for pipeline and worker runs without guessing from scattered files.",
+      "path": "doc/wiki/pipeline-progress-debugging.md",
+      "size_bytes": 5225
     },
     {
       "id": "provider-and-llm-call-accounting",
@@ -496,6 +778,7 @@
         "full-flow-pipeline"
       ],
       "incoming": [
+        "agent-autonomous-ip-implementation-pattern",
         "arm-m0-min-pipeline-run",
         "common-ai-agent-map",
         "deterministic-emit-stages",
@@ -509,6 +792,32 @@
       "size_bytes": 1421
     },
     {
+      "id": "quad-spi-orch-run-20260517",
+      "title": "QUAD SPI Orchestrator + Multi-Worker + Multi-Sub-Agent Run (2026-05-17)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "orchestrator-worker-handoff",
+        "parallel-todo-sub-agent-workers",
+        "ssot-gen-pass-pipeline",
+        "full-flow-pipeline",
+        "golden-todo-evidence",
+        "multi-user-worker-conflicts",
+        "gpio-orchestrator-multiworker-run",
+        "human-review-and-escalation"
+      ],
+      "incoming": [
+        "index",
+        "octa-ddr-spi-orch-run-20260517"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Status: pipeline reached `sim-debug` with 60/60 scoreboard rows, 29 goals passing and 31 owner-classified mismatches (28 `rtl-gen`, 3 `tb-gen`). RTL compile/lint are clean and `tb-gen` is green; the remaining work is a real FL-vs-RTL behavior closure loop on the SSOT-derived RTL.",
+      "path": "doc/wiki/quad-spi-orch-run-20260517.md",
+      "size_bytes": 16631
+    },
+    {
       "id": "rtl-gen-ssot-contract",
       "title": "RTL-Gen SSOT Contract",
       "type": "reference",
@@ -520,11 +829,15 @@
         "workflow-ownership-and-boundaries"
       ],
       "incoming": [
+        "agent-autonomous-ip-implementation-pattern",
         "arm-m0-min-pipeline-run",
+        "atcuart100-pipeline-run",
         "deterministic-emit-stages",
         "gpio-orchestrator-multiworker-run",
         "gpio-serial-pipeline-run",
-        "index"
+        "index",
+        "ssot-gen-pass-pipeline",
+        "workflow-improvement-candidates"
       ],
       "broken_refs": [],
       "updated": "",
@@ -542,6 +855,7 @@
         "arm-m0-min-pipeline-run"
       ],
       "incoming": [
+        "arm-m0-min-current-status",
         "arm-m0-min-pipeline-run",
         "gpio-orchestrator-multiworker-run",
         "index",
@@ -555,6 +869,60 @@
       "size_bytes": 4493
     },
     {
+      "id": "run-mode-and-provenance-policy",
+      "title": "Run Mode And SSOT Provenance Policy",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "atlas-pipeline-screen",
+        "ssot-gen-pass-pipeline",
+        "full-flow-pipeline",
+        "golden-todo-evidence",
+        "orchestrator-worker-handoff"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Status: product/design decision, 2026-05-17.",
+      "path": "doc/wiki/run-mode-and-provenance-policy.md",
+      "size_bytes": 11881
+    },
+    {
+      "id": "ssot-gen-pass-pipeline",
+      "title": "SSOT-Gen Pass Pipeline",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "full-flow-pipeline",
+        "rtl-gen-ssot-contract",
+        "workflow-ownership-and-boundaries",
+        "golden-todo-evidence",
+        "gpio-orchestrator-multiworker-run",
+        "multi-user-worker-conflicts",
+        "human-review-and-escalation",
+        "ssot-qa-workbench",
+        "mini-cpu-rerun-20260517"
+      ],
+      "incoming": [
+        "index",
+        "octa-ddr-spi-orch-run-20260517",
+        "pipeline-progress-debugging",
+        "quad-spi-orch-run-20260517",
+        "run-mode-and-provenance-policy",
+        "workflow-improvement-candidates"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "How `ssot-gen` moves from \"LLM produced something\" to `status=pass`. This page exists because the QUAD SPI run on 2026-05-17 only reached pass after a deterministic→deterministic→LLM-repair→deterministic→validator chain, and the behavior is not obvious from the stage name alone.",
+      "path": "doc/wiki/ssot-gen-pass-pipeline.md",
+      "size_bytes": 9769
+    },
+    {
       "id": "ssot-qa-workbench",
       "title": "SSOT Q&A Workbench",
       "type": "reference",
@@ -566,7 +934,9 @@
         "workflow-ownership-and-boundaries"
       ],
       "incoming": [
-        "index"
+        "index",
+        "ssot-gen-pass-pipeline",
+        "workflow-improvement-candidates"
       ],
       "broken_refs": [],
       "updated": "",
@@ -587,7 +957,9 @@
         "wiki-curation-policy",
         "karpathy-llm-wiki-pattern"
       ],
-      "incoming": [],
+      "incoming": [
+        "workflow-improvement-candidates"
+      ],
       "broken_refs": [],
       "updated": "",
       "summary": "Reference page for the side-by-side test of three LLM providers running the same SSOT input through the entire common_ai_agent pipeline (`ssot-gen → fl-model-gen → cl-model-gen → equiv-goals → rtl-gen → tb-gen → sim → sim-debug → lint → coverage → goal-audit`).",
@@ -608,6 +980,7 @@
         "deterministic-emit-stages"
       ],
       "incoming": [
+        "agent-autonomous-ip-implementation-pattern",
         "atlas-pipeline-db-state",
         "atlas-pipeline-screen",
         "index",
@@ -629,19 +1002,22 @@
         "karpathy-llm-wiki-pattern",
         "index",
         "log",
-        "deterministic-emit-stages"
+        "deterministic-emit-stages",
+        "pipeline-progress-debugging"
       ],
       "incoming": [
         "index",
         "log",
         "parallel-todo-sub-agent-workers",
-        "triple-llm-rv32i-experiment"
+        "pipeline-progress-debugging",
+        "triple-llm-rv32i-experiment",
+        "workflow-improvement-candidates"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "Working policy for `common_ai_agent/doc/wiki/` and the per-IP `<ip>/wiki/` directories. Lives here so it can be revised in place as we learn from real use. Until this page is rewritten, the rules below apply.",
       "path": "doc/wiki/wiki-curation-policy.md",
-      "size_bytes": 5175
+      "size_bytes": 6067
     },
     {
       "id": "workflow-feedback-and-scheduling",
@@ -661,13 +1037,44 @@
         "orchestrator-worker-handoff-review",
         "orchestrator-worker-handoff",
         "parallel-todo-sub-agent-workers",
-        "ui-design-references"
+        "ui-design-references",
+        "workflow-improvement-candidates"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "This page defines how common_ai_agent should run multiple IP workflows without turning the system into either a slow serial script or an unsafe free-for-all.",
       "path": "doc/wiki/workflow-feedback-and-scheduling.md",
       "size_bytes": 7662
+    },
+    {
+      "id": "workflow-improvement-candidates",
+      "title": "Workflow Improvement Candidates",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "atcuart100-pipeline-run",
+        "wiki-curation-policy",
+        "ssot-gen-pass-pipeline",
+        "parallel-todo-sub-agent-workers",
+        "gpio-orchestrator-multiworker-run",
+        "rtl-gen-ssot-contract",
+        "deterministic-emit-stages",
+        "triple-llm-rv32i-experiment",
+        "workflow-feedback-and-scheduling",
+        "orchestrator-worker-handoff",
+        "ssot-qa-workbench",
+        "golden-todo-evidence",
+        "index"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Status: **open ideas, not decided design.** Captured 2026-05-17 after the [[atcuart100-pipeline-run]] and the discussion around what to change next. Each candidate below is a parking-lot entry: problem statement, proposed shape, use cases, and decision questions. None has been promoted to code or to a normative wiki page yet.",
+      "path": "doc/wiki/workflow-improvement-candidates.md",
+      "size_bytes": 12709
     },
     {
       "id": "workflow-ownership-and-boundaries",
@@ -681,7 +1088,9 @@
         "human-review-and-escalation"
       ],
       "incoming": [
+        "agent-autonomous-ip-implementation-pattern",
         "arm-m0-min-pipeline-run",
+        "atcuart100-pipeline-run",
         "atlas-pipeline-screen",
         "common-ai-agent-map",
         "deterministic-emit-stages",
@@ -692,9 +1101,11 @@
         "index",
         "karpathy-llm-wiki-pattern",
         "log",
+        "multi-user-worker-conflicts",
         "orchestrator-worker-handoff-review",
         "orchestrator-worker-handoff",
         "rtl-gen-ssot-contract",
+        "ssot-gen-pass-pipeline",
         "ssot-qa-workbench",
         "ui-design-references"
       ],

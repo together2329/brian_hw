@@ -43,6 +43,8 @@ from text_utils import strip_metadata_tokens as _strip_metadata_tokens
 actual_token_cache = {}
 last_input_tokens = 0  # Last reported input tokens from API
 last_output_tokens = 0  # Last reported output tokens from API
+_last_debug_prompt_text = ""
+_last_debug_messages = None
 
 
 def get_active_model() -> str:
@@ -354,9 +356,13 @@ def _normalize_reasoning_effort(mode) -> str:
     mode = str(mode or 'medium').lower().strip()
     if mode in ('off', 'false', 'disabled', 'disable', 'minimal', 'min'):
         return 'medium'
-    if mode in ('med', 'mid'):
+    if mode in ('l',):
+        return 'low'
+    if mode in ('m', 'med', 'mid'):
         return 'medium'
-    if mode in ('extra_high', 'extra-high', 'xhi', 'max'):
+    if mode in ('h', 'hi'):
+        return 'high'
+    if mode in ('x', 'xh', 'xhi', 'extra_high', 'extra-high', 'max'):
         return 'xhigh'
     return mode if mode in ('none', 'low', 'medium', 'high', 'xhigh') else 'medium'
 
@@ -374,6 +380,51 @@ def _get_responses_reasoning_mode() -> str:
     """
     mode = getattr(config, 'REASONING_MODE', getattr(config, 'REASONING_EFFORT', 'medium'))
     return _normalize_reasoning_effort(mode)
+
+
+def _deepseek_reasoning_effort_for_chat(effort: str) -> str:
+    """Map local effort tiers to DeepSeek chat/completions effort values."""
+    effort = _normalize_reasoning_effort(effort)
+    if effort == 'xhigh':
+        return 'max'
+    if effort in ('low', 'medium', 'high'):
+        return 'high'
+    return ''
+
+
+def _apply_chat_reasoning_controls(data: dict, model: str, url: str) -> tuple[str, str]:
+    """Apply provider-specific reasoning controls for Chat Completions."""
+    effort = _get_responses_reasoning_mode()
+    model_lower = (model or '').lower()
+    url_lower = (url or '').lower()
+
+    if 'deepseek' in model_lower or 'deepseek' in url_lower:
+        if effort == 'none':
+            data["thinking"] = {"type": "disabled"}
+            data.pop("reasoning_effort", None)
+            return effort, "DeepSeek thinking.type=disabled"
+        deepseek_effort = _deepseek_reasoning_effort_for_chat(effort)
+        data["thinking"] = {"type": "enabled"}
+        if deepseek_effort:
+            data["reasoning_effort"] = deepseek_effort
+        if effort in ('low', 'medium'):
+            return effort, f"DeepSeek reasoning_effort={deepseek_effort} (provider maps {effort}->high)"
+        return effort, f"DeepSeek reasoning_effort={deepseek_effort}"
+
+    if 'glm' in model_lower or 'z.ai' in url_lower:
+        thinking_type = "disabled" if effort == 'none' else getattr(config, "GLM_THINKING_TYPE", "enabled")
+        if effort != 'none' and thinking_type not in ("enabled", "disabled"):
+            thinking_type = "enabled"
+        clear_thinking = getattr(config, "GLM_CLEAR_THINKING", True)
+        data["thinking"] = {
+            "type": thinking_type,
+            "clear_thinking": clear_thinking,
+        }
+        if effort == 'none':
+            return effort, "GLM thinking.type=disabled"
+        return effort, f"GLM thinking.type={thinking_type}; no provider effort tier"
+
+    return effort, "local config only; not sent in chat/completions body"
 
 
 def compute_safe_max_tokens(used_tokens: int = 0) -> int:
@@ -1484,6 +1535,7 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
     global last_input_tokens, last_output_tokens
     global last_cache_creation_tokens, last_cache_read_tokens
     global total_cache_created, total_cache_read
+    global _last_debug_prompt_text, _last_debug_messages
 
     _RETRY_DELAYS = [30, 60, 120, 180, 300]
     max_retries = len(_RETRY_DELAYS) + 1
@@ -3248,6 +3300,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     global last_input_tokens, last_output_tokens
     global last_cache_creation_tokens, last_cache_read_tokens
     global total_cache_created, total_cache_read
+    global _last_debug_prompt_text, _last_debug_messages
 
     # cursor-agent backend dispatch
     if getattr(config, "CURSOR_AGENT_ENABLE", False):
@@ -3657,14 +3710,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         data["tools"] = tools
         data["tool_choice"] = "auto"
 
-    # GLM thinking control — explicit thinking param for interleaved reasoning + tool calls
-    if 'glm-' in _model_lower:
-        _thinking_type = getattr(config, "GLM_THINKING_TYPE", "enabled")
-        _clear_thinking = getattr(config, "GLM_CLEAR_THINKING", True)
-        data["thinking"] = {
-            "type": _thinking_type,
-            "clear_thinking": _clear_thinking,
-        }
+    _chat_effort_cfg, _chat_effort_note = _apply_chat_reasoning_controls(data, resolved_model, url)
 
     # Debug: Log request details
     if config.DEBUG_MODE:
@@ -3677,13 +3723,47 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         has_structured = any(isinstance(m.get('content'), list) for m in processed_messages)
         _tool_names = [t.get("function", {}).get("name", "?") for t in (data.get("tools") or [])]
         _max_tok = data.get("max_completion_tokens") or data.get("max_tokens")
+        _prompt_debug_text = ""
+        _common_tok = None
+        _common_pct = None
+        _first_diff = None
+        try:
+            _prompt_debug_text = json.dumps(
+                {"messages": processed_messages, "tools": data.get("tools") or []},
+                ensure_ascii=False,
+                sort_keys=True,
+                default=str,
+            )
+            if _last_debug_prompt_text:
+                _common_chars = 0
+                _limit = min(len(_last_debug_prompt_text), len(_prompt_debug_text))
+                while _common_chars < _limit and _last_debug_prompt_text[_common_chars] == _prompt_debug_text[_common_chars]:
+                    _common_chars += 1
+                _common_tok = _common_chars // 4
+                _common_pct = int(100 * _common_chars / max(1, len(_prompt_debug_text)))
+            if _last_debug_messages is not None:
+                _min_len = min(len(_last_debug_messages), len(processed_messages))
+                for _idx in range(_min_len):
+                    _prev_msg = json.dumps(_last_debug_messages[_idx], ensure_ascii=False, sort_keys=True, default=str)
+                    _cur_msg = json.dumps(processed_messages[_idx], ensure_ascii=False, sort_keys=True, default=str)
+                    if _prev_msg != _cur_msg:
+                        _first_diff = (_idx, processed_messages[_idx].get("role", "?"))
+                        break
+                if _first_diff is None and len(_last_debug_messages) != len(processed_messages):
+                    _first_diff = (_min_len, "length")
+        except Exception:
+            pass
         print(Color.info(f"\n[Request Debug]{tag}"))
         print(Color.info(f"  URL:         {url}"))
         print(Color.info(f"  Model:       {resolved_model}"))
         print(Color.info(f"  Stream:      {data.get('stream', True)}"))
         print(Color.info(f"  Messages:    {len(processed_messages)}  ({_role_str})"))
         print(Color.info(f"  Est.tokens:  {estimated_tokens:,}"))
-        print(Color.info(f"  Caching:     {has_structured}"))
+        print(Color.info(f"  Cache blocks: {has_structured}  (structured prompt blocks, not GLM hit-rate)"))
+        if _common_tok is not None:
+            print(Color.info(f"  Prompt reuse:{_common_tok:,} est.tok prefix ({_common_pct}%) vs previous request"))
+        if _first_diff is not None:
+            print(Color.info(f"  First diff:  message[{_first_diff[0]}] role={_first_diff[1]}"))
         if data.get("temperature") is not None:
             print(Color.info(f"  Temperature: {data['temperature']}"))
         if _max_tok:
@@ -3693,11 +3773,20 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         if _tool_names:
             print(Color.info(f"  Tools:       {len(_tool_names)}  [{', '.join(_tool_names[:5])}{'...' if len(_tool_names)>5 else ''}]"))
             print(Color.info(f"  Tool choice: {data.get('tool_choice', 'auto')}"))
+        print(Color.info(f"  Effort cfg:  {_chat_effort_cfg}  ({_chat_effort_note})"))
+        if data.get("reasoning_effort"):
+            print(Color.info(f"  Reasoning:   effort={data['reasoning_effort']}"))
         if data.get("store") is not None:
             print(Color.info(f"  Store:       {data['store']}"))
         if data.get("thinking"):
             _th = data["thinking"]
             print(Color.info(f"  Thinking:    type={_th.get('type')} clear={_th.get('clear_thinking')}"))
+        if _prompt_debug_text:
+            _last_debug_prompt_text = _prompt_debug_text
+            try:
+                _last_debug_messages = copy.deepcopy(processed_messages)
+            except Exception:
+                _last_debug_messages = None
 
         # FULL_PROMPT_DEBUG: Show complete input messages
         if getattr(config, 'FULL_PROMPT_DEBUG', False):
@@ -4023,6 +4112,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 if usage_info and config.DEBUG_MODE:
                     total_tokens = input_tokens + output_tokens
                     _new_input = input_tokens - _cache_read_tok - _cache_creation_tok
+                    _cache_hit_pct = (_cache_read_tok / input_tokens * 100.0) if input_tokens else 0.0
                     _tc_names = [tc.get("name", "?") for tc in _pending_tool_calls.values() if tc.get("name")] if "_pending_tool_calls" in dir() else []
                     _reasoning_tok = usage_info.get("thinking_input_tokens", 0) or \
                         (usage_info.get("usage", {}) or {}).get("thinking_input_tokens", 0)
@@ -4038,6 +4128,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                         _cache_detail += f"  (cached: {_cache_read_tok:,} / new: {_new_input:,})"
                     _out_detail = f"  (reasoning: {_reasoning_tok:,} / content: {_content_tok:,})" if _reasoning_tok > 0 else ""
                     print(Color.info(f"  Input:       {input_tokens:,}{_cache_detail}"))
+                    if _cache_read_tok > 0:
+                        print(Color.info(f"  Cache hit:   {_cache_hit_pct:.1f}%"))
                     print(Color.info(f"  Output:      {output_tokens:,}{_out_detail}"))
                     print(Color.info(f"  Total:       {total_tokens:,}"))
                     if _tc_names:

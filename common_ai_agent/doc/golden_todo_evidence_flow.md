@@ -66,6 +66,15 @@ Supported policies:
 If the policy is unknown, treat it as `evidence_required`. If evidence cannot be
 produced and the decision is semantic, move the item to `human_review_needed`.
 
+Requirement approval is a special case of `human_review_required`: a long
+markdown file under `<ip>/req/` is not enough. Final signoff requires an
+approved requirement markdown plus `<ip>/req/approval_manifest.json`; the
+manifest must name the human approver, include `approved_at_utc`, and contain
+matching SHA256 values for both the approved target and the source review
+packet. If a requirement approval review queue item exists, it must be
+`resolved`. This keeps requirement signoff traceable and prevents agents from
+fabricating approval evidence.
+
 ## Todo States
 
 Recommended state set:

@@ -1,0 +1,11 @@
+{
+    "ip": "simple_pwm",
+    "stage": "rtl-gen",
+    "compile_tool": "iverilog",
+    "compile_flags": ["-g2012", "-Wall"],
+    "rtl_files": ["rtl/simple_pwm.sv"],
+    "errors": 0,
+    "warnings": 0,
+    "status": "pass",
+    "timestamp": "2026-05-17T04:05:00Z"
+}

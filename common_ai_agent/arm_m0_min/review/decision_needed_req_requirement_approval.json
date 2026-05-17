@@ -1,0 +1,67 @@
+{
+  "created_at": "2026-05-17T00:00:00Z",
+  "decision_needed": "Approve or reject the locked arm_m0_min CPU requirement packet before final signoff. Approval promotes the reviewed packet into arm_m0_min/req/; rejection reopens SSOT scope.",
+  "evidence": {
+    "approval_target": {
+      "path": "arm_m0_min/doc/arm_m0_min_requirement_review.md",
+      "sha256": "e0b6e6a3d2078930bb046fd241a2422712af3155b4e823b2ec2da1bd64942a07"
+    },
+    "completion_audit": "arm_m0_min/doc/arm_m0_min_completion_audit.md",
+    "final_audit": "arm_m0_min/sim/fl_rtl_goal_audit.json",
+    "human_facing_request": "arm_m0_min/review/approval_request.md",
+    "machine_evidence_snapshot": {
+      "completion_audit_sha256": "a4d6ab7670a86ef355893425d1dc9f002ce985373185bca4f91879ecb852e69a",
+      "coverage_sha256": "2c24f41bc8fa8ecc67054d8776d51483f56ac992f9f8adbafe63cbf14644f4ed",
+      "fl_rtl_compare_sha256": "b7f758f1ecfd3a20ecab9472ec4f53834628fd9b9f1e057aa497a30a3319a062",
+      "ssot_sha256": "e51bbfba2a76b06e76af0c3ac503043171014bd48d50cf5a9239137ab09e18ef"
+    },
+    "review_aids": [
+      "arm_m0_min/review/completion_readiness_checklist.md",
+      "arm_m0_min/review/prompt_to_artifact_checklist.json",
+      "arm_m0_min/review/prompt_to_artifact_checklist_audit.json",
+      "doc/wiki/arm-m0-min-current-status.md",
+      "arm_m0_min/doc/arm_m0_min_review_index.md",
+      "arm_m0_min/doc/arm_m0_min_user_handoff.md",
+      "arm_m0_min/doc/arm_m0_min_rtl_inventory.md",
+      "arm_m0_min/doc/arm_m0_min_isa_decode_inventory.md"
+    ],
+    "review_packet": "arm_m0_min/doc/arm_m0_min_requirement_review.md",
+    "stop_condition": {
+      "req_ok": false,
+      "signoff_evidence_backed": false
+    }
+  },
+  "ip": "arm_m0_min",
+  "next_action": "Human reviewer approves or rejects arm_m0_min/doc/arm_m0_min_requirement_review.md. If approved, run workflow/req-gen/scripts/promote_requirement_review.py and rerun workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py.",
+  "options": [
+    {
+      "id": "approve_locked_scope",
+      "label": "Approve locked minimal CPU scope",
+      "result": "Promote arm_m0_min/doc/arm_m0_min_requirement_review.md into arm_m0_min/req/, resolve this review decision, and rerun final audit."
+    },
+    {
+      "id": "reject_reopen_scope",
+      "label": "Reject and reopen SSOT scope",
+      "result": "Keep final audit blocked, reopen SSOT requirements, and update CPU scope before rerunning downstream workflow stages."
+    }
+  ],
+  "recommended_option": "approve_locked_scope",
+  "resolution": {
+    "approved_at_utc": "2026-05-17T02:24:36Z",
+    "approved_by": "brian",
+    "decision": "approved",
+    "promoted_to": "arm_m0_min/req/arm_m0_min_requirements.md"
+  },
+  "resolved_at": "2026-05-17T02:24:36Z",
+  "review_summary": {
+    "machine_evidence": "SSOT, RTL compile, DUT lint, cocotb sim, FL-vs-RTL compare, and function/cycle coverage are green.",
+    "remaining_blocker": "Human approval of the locked requirement packet.",
+    "scope_warning": "Approve only if the intended CPU is a minimal ARMv6-M-like teaching/reference CPU without interrupts, privilege, debug, MPU/MMU/cache, NVIC, or SysTick."
+  },
+  "schema_version": 1,
+  "severity": "signoff_blocker",
+  "status": "resolved",
+  "topic": "requirement_approval",
+  "type": "review_decision_needed",
+  "workflow": "req"
+}

@@ -1,0 +1,1991 @@
+{
+  "ip": "simple_pwm",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "simple_pwm/yaml/simple_pwm.ssot.yaml",
+    "functional_model": "simple_pwm/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "simple_pwm/model/decomposition.json",
+    "coverage_plan": "simple_pwm/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "simple_pwm/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "simple_pwm/yaml/simple_pwm.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "simple_pwm/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "simple_pwm/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "simple_pwm/yaml/simple_pwm.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "simple_pwm/yaml/simple_pwm.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "simple_pwm/rtl/",
+        "simple_pwm/tb/",
+        "simple_pwm/sim/",
+        "simple_pwm/reports/",
+        "simple_pwm/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 26,
+    "required": 26,
+    "optional": 0,
+    "blocked": 0,
+    "unverified": 0,
+    "module_total": 1,
+    "module_required": 1,
+    "module_blocked": 0,
+    "module_unverified": 0
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM1",
+      "title": "Transaction pwm_active_high matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_pwm_high",
+        "function_pwm_active_high"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM2",
+      "title": "Transaction pwm_active_low matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_pwm_low",
+        "function_pwm_active_low"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_low",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter >= duty_cycle"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 0}",
+          "pwm_out_low"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM3",
+      "title": "Transaction pwm_idle matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[2]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_pwm_idle",
+        "function_pwm_idle"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_idle",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 0}",
+          "pwm_out_off"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "counter resets to 0",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "title": "Scenario SC1: Basic PWM generation",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Set period=10, duty_cycle=3, enable=1 for 30 clock cycles",
+          "enable == 1",
+          "counter < duty_cycle"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "3 clocks of pwm_out=1, 7 clocks of pwm_out=0, repeating 3 times",
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "title": "Scenario SC2: Duty cycle variation",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "SC2_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Start with duty_cycle=3, period=10; change duty_cycle to 7 after first period",
+          "enable == 1",
+          "counter < duty_cycle"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "First period: 3 high / 7 low; second period: 7 high / 3 low",
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "title": "Scenario SC3: Period rollover",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "SC3_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Set period=5, duty_cycle=2, enable=1 for 15 clock cycles",
+          "enable == 1",
+          "counter < duty_cycle"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Counter: 0,1,2,3,4,0,1,2,3,4,0,1,2,3,4; pwm_out: 1,1,0,0,0 repeating",
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "title": "Scenario SC4: Disable behavior",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_idle",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Enable PWM with period=10, duty_cycle=3; disable after 5 clocks; re-enable after 5 more clocks",
+          "enable == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "When enable=0: pwm_out=0, counter=0. When re-enabled: starts from counter=0",
+          "{'name': 'pwm_out', 'value': 0}",
+          "pwm_out_off"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "counter resets to 0",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm_protocol_model",
+        "simple_pwm_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'pwm_out', 'rule': 'Combinational output derived from counter vs duty_cycle comparison; no valid/ready handshake'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'counter_update': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Counter increments or wraps every clock edge when enabled'}, 'pwm_output': {'min_cycles': 1, 'max_cycles': 1, 'description': 'pwm_out reflects counter vs duty_cycle comparison on same edge'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm_protocol_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Counter update and output comparison occur in the same clock cycle."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'counter_update': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Counter increments or wraps every clock edge when enabled'}, 'pwm_output': {'min_cycles': 1, 'max_cycles': 1, 'description': 'pwm_out reflects counter vs duty_cycle comparison on same edge'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm_protocol_model",
+        "simple_pwm_error_model"
+      ],
+      "coverage_refs": [
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "None",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'id': 'ERR_NONE', 'condition': 'No error sources in this minimal IP', 'architectural_effect': 'N/A'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "['No error propagation in this educational IP.']"
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_PWM_FSM_IDLE_TO_RUNNING_0",
+      "title": "FSM transition pwm_fsm: IDLE -> RUNNING",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.pwm_fsm.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm_fsm_model"
+      ],
+      "coverage_refs": [
+        "fcov_pwm_idle",
+        "ccov_fsm_idle_to_running",
+        "ccov_fsm_running_to_idle",
+        "function_pwm_idle",
+        "fsm_pwm_fsm_idle_to_running_0",
+        "fsm_pwm_fsm_running_to_idle_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_fsm_IDLE_to_RUNNING_0",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "enable == 1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "pwm_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_PWM_FSM_RUNNING_TO_IDLE_1",
+      "title": "FSM transition pwm_fsm: RUNNING -> IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.pwm_fsm.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm_fsm_model"
+      ],
+      "coverage_refs": [
+        "fcov_pwm_idle",
+        "ccov_fsm_idle_to_running",
+        "ccov_fsm_running_to_idle",
+        "function_pwm_idle",
+        "fsm_pwm_fsm_idle_to_running_0",
+        "fsm_pwm_fsm_running_to_idle_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_fsm_RUNNING_to_IDLE_1",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "enable == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "pwm_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "title": "Required debug/waveform observability exists",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "debug_observability.waveform_must_probe"
+      ],
+      "decomposition_refs": [
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "debug_probe_capture",
+        "required_fields": [
+          "waveform_path"
+        ],
+        "constraints": [
+          "counter",
+          "pwm_out",
+          "enable"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "waveform contains required probes"
+        ],
+        "latency": "throughout simulation window",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Waveform includes SSOT-required debug probes",
+        "sim_debug can inspect those probes around checked scenarios"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "tb",
+          "coverage",
+          "rtl",
+          "ssot",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_MODULE_SIMPLE_PWM",
+      "title": "Module simple_pwm functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "simple_pwm",
+        "rtl_file": "rtl/simple_pwm.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.pwm_out",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline.s0_counter_update",
+        "cycle_model.pipeline.s1_compare_output",
+        "cycle_model.reset",
+        "features.dynamic_reconfiguration",
+        "features.pwm_generation",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables.counter",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.inputs.input_1",
+        "function_model.transactions.fm1.output_rules.pwm_out_high",
+        "function_model.transactions.fm1.outputs.pwm_out",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.preconditions.precondition_1",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm1.state_updates.counter_next",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.inputs.input_1",
+        "function_model.transactions.fm2.output_rules.pwm_out_low",
+        "function_model.transactions.fm2.outputs.pwm_out",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.preconditions.precondition_1",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.state_updates.counter_next",
+        "function_model.transactions.fm3",
+        "function_model.transactions.fm3.output_rules.pwm_out_off",
+        "function_model.transactions.fm3.outputs.pwm_out",
+        "function_model.transactions.fm3.preconditions.precondition_0",
+        "function_model.transactions.fm3.side_effects.side_effect_0",
+        "function_model.transactions.fm3.state_updates.counter_next",
+        "parameters.counter_width",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.note",
+        "registers.config.register_width",
+        "rtl_contract",
+        "top_module"
+      ],
+      "decomposition_refs": [
+        "simple_pwm"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_COUNTER_INCREMENT",
+      "title": "Functional coverage bin ccov_counter_increment: Counter increments when enabled",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_COUNTER_UPDATE"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_counter_increment"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "Counter increments when enabled"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_COUNTER_ROLLOVER",
+      "title": "Functional coverage bin ccov_counter_rollover: Counter wraps to 0 when reaching period",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_COUNTER_UPDATE"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_counter_rollover"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "Counter wraps to 0 when reaching period"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_COMPARE_HIGH",
+      "title": "Functional coverage bin ccov_compare_high: Comparison produces pwm_out=1",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_COMPARE_OUTPUT"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_compare_high"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "Comparison produces pwm_out=1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_COMPARE_LOW",
+      "title": "Functional coverage bin ccov_compare_low: Comparison produces pwm_out=0",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_COMPARE_OUTPUT"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_compare_low"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "Comparison produces pwm_out=0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_COUNTER_UPDATE",
+      "title": "Functional coverage bin cycle_latency_counter_update: {'min_cycles': 1, 'max_cycles': 1, 'description': 'Counter increments or wraps every clock edge when enabled'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.counter_update"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_latency_counter_update"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "{'min_cycles': 1, 'max_cycles': 1, 'description': 'Counter increments or wraps every clock edge when enabled'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_PWM_OUTPUT",
+      "title": "Functional coverage bin cycle_latency_pwm_output: {'min_cycles': 1, 'max_cycles': 1, 'description': 'pwm_out reflects counter vs duty_cycle comparison on same edge'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.pwm_output"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_latency_pwm_output"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "{'min_cycles': 1, 'max_cycles': 1, 'description': 'pwm_out reflects counter vs duty_cycle comparison on same edge'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_COUNTER_UPDATE",
+      "title": "Functional coverage bin cycle_pipeline_s0_counter_update: Increment counter or wrap to 0 when enable=1; hold at 0 when enable=0",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[0]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s0_counter_update"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "Increment counter or wrap to 0 when enable=1; hold at 0 when enable=0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_COMPARE_OUTPUT",
+      "title": "Functional coverage bin cycle_pipeline_s1_compare_output: Compare counter with duty_cycle; drive pwm_out accordingly",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[1]"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s1_compare_output"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "Compare counter with duty_cycle; drive pwm_out accordingly"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "title": "Functional coverage bin cycle_perf_outstanding: {'max': 1, 'description': 'Single-cycle counter operation'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.outstanding"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_outstanding"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "{'max': 1, 'description': 'Single-cycle counter operation'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "title": "Functional coverage bin cycle_perf_depth: {'pipeline_stages': 1, 'description': 'Single-stage counter and compare'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.depth"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_depth"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "{'pipeline_stages': 1, 'description': 'Single-stage counter and compare'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "title": "Functional coverage bin cycle_perf_frequency_mhz: 100",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.frequency_mhz"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "100"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "title": "Functional coverage bin cycle_perf_throughput: {'sustained_operations_per_cycle': 1, 'condition': 'enable asserted and period > 0'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.throughput"
+      ],
+      "decomposition_refs": [
+        "simple_pwm",
+        "simple_pwm_protocol_model",
+        "simple_pwm_register_model",
+        "simple_pwm_datapath_model",
+        "simple_pwm_fsm_model",
+        "simple_pwm_error_model",
+        "simple_pwm_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_throughput"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pwm_active_high",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "enable == 1",
+          "counter < duty_cycle",
+          "{'sustained_operations_per_cycle': 1, 'condition': 'enable asserted and period > 0'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "{'name': 'pwm_out', 'value': 1}",
+          "pwm_out_high"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "counter increments by 1",
+          "counter_next"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    }
+  ]
+}

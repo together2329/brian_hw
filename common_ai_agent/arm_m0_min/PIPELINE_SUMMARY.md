@@ -1,5 +1,12 @@
 # arm_m0_min — Pipeline Summary
 
+Current status note, 2026-05-17: this file is a historical run summary. For
+the current approval/signoff state, use
+`arm_m0_min/review/completion_readiness_checklist.md` and
+`arm_m0_min/doc/arm_m0_min_user_handoff.md`. The current final goal audit is a
+16-check signoff audit and intentionally reports `15/16 blockers=req` until the
+locked CPU scope is human-approved and promoted into `arm_m0_min/req/`.
+
 End-to-end run of common_ai_agent on a minimal ARMv6-M Thumb core,
 SSOT → fl-model-gen → rtl-gen → tb-gen → sim → lint.
 

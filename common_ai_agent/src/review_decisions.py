@@ -156,13 +156,19 @@ def list_open_decisions(ip_dir: Path) -> list[dict[str, Any]]:
     if not review_dir.is_dir():
         return []
     records: list[dict[str, Any]] = []
-    for path in review_dir.glob("decision_needed_pipeline_repeated_*.json"):
+    # Count every Review Decision Needed record under the IP review queue.
+    # Older pipeline repair records use
+    # `decision_needed_pipeline_repeated_*.json`; headless/common-engine
+    # semantic blockers use `decision_needed_<workflow>_<topic>.json`.
+    # Both are signoff blockers and must be visible to the pipeline UI.
+    for path in review_dir.glob("decision_needed*.json"):
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             continue
         if record.get("resolved_at"):
             continue
+        record.setdefault("path", str(path.relative_to(ip_dir.parent)))
         records.append(record)
     records.sort(key=lambda r: r.get("created_at", ""))
     return records

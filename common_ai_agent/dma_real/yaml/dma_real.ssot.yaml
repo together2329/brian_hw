@@ -1,0 +1,1712 @@
+top_module:
+  name: dma_real_top
+  description: Multi-channel DMA controller with APB slave configuration and AHB-Lite
+    master data-transfer interface. Four independent channels with round-robin arbitration,
+    per-channel interrupts, and error reporting.
+  file: rtl/dma_real_top.sv
+  owner: ssot-manual
+  quality_profile: standard
+sub_modules:
+- name: dma_real_apb_cfg
+  file: rtl/dma_real_apb_cfg.sv
+  ownership: manifest
+  rtl_emit: true
+  implements:
+  - registers.register_list
+  - io_list.interfaces.apb_slave
+  source_sections:
+  - registers
+  - io_list
+  function_model_refs:
+  - function_model.state_variables
+  register_refs:
+  - registers.register_list
+  description: APB slave register decode and configuration distribution to channels.
+- name: dma_real_arbiter
+  file: rtl/dma_real_arbiter.sv
+  ownership: manifest
+  rtl_emit: true
+  implements:
+  - function_model.transactions.FM_ARB_GRANT
+  source_sections:
+  - function_model
+  - cycle_model
+  function_model_refs:
+  - function_model.transactions.FM_ARB_GRANT
+  cycle_model_refs:
+  - cycle_model.handshake_rules
+  - cycle_model.performance
+  description: Round-robin arbiter granting AHB bus access to active channels.
+- name: dma_real_channel
+  file: rtl/dma_real_channel.sv
+  ownership: manifest
+  rtl_emit: true
+  implements:
+  - function_model.transactions.FM_DMA_STEP
+  - function_model.transactions.FM_DMA_START
+  - function_model.transactions.FM_DMA_COMPLETE
+  - function_model.transactions.FM_DMA_ERROR
+  - fsm.per_channel
+  source_sections:
+  - io_list
+  - parameters
+  - registers
+  - function_model
+  - cycle_model
+  - fsm
+  - error_handling
+  function_model_refs:
+  - function_model.transactions.FM_DMA_STEP
+  - function_model.transactions.FM_DMA_START
+  - function_model.state_variables
+  - function_model.invariants
+  cycle_model_refs:
+  - cycle_model.pipeline
+  - cycle_model.handshake_rules
+  - cycle_model.performance
+  register_refs:
+  - registers.register_list
+  fsm_refs:
+  - fsm.per_channel
+  description: Per-channel FSM, address counters, remaining counter, and burst control.
+- name: dma_real_ahb_master
+  file: rtl/dma_real_ahb_master.sv
+  ownership: manifest
+  rtl_emit: true
+  implements:
+  - io_list.interfaces.ahb_master
+  - cycle_model.pipeline
+  source_sections:
+  - io_list
+  - cycle_model
+  function_model_refs:
+  - function_model.transactions.FM_DMA_STEP
+  cycle_model_refs:
+  - cycle_model.pipeline
+  - cycle_model.handshake_rules
+  description: AHB-Lite master protocol engine driving address and data phases.
+- name: dma_real_irq
+  file: rtl/dma_real_irq.sv
+  ownership: manifest
+  rtl_emit: true
+  implements:
+  - io_list.interfaces.irq_outputs
+  - interrupts
+  source_sections:
+  - interrupts
+  - registers
+  function_model_refs:
+  - function_model.state_variables
+  register_refs:
+  - registers.register_list
+  description: Interrupt aggregation with per-channel mask and combined IRQ output.
+decomposition:
+  units:
+  - id: apb_decode
+    kind: control
+    source_refs:
+    - registers.register_list
+    - io_list.interfaces.apb_slave
+    rtl_candidates:
+    - dma_real_apb_cfg
+  - id: channel_config
+    kind: control
+    source_refs:
+    - registers.register_list
+    - function_model.transactions.FM_DMA_START
+    rtl_candidates:
+    - dma_real_apb_cfg
+    - dma_real_channel
+  - id: arbitration
+    kind: control
+    source_refs:
+    - function_model.transactions.FM_ARB_GRANT
+    - cycle_model.performance
+    rtl_candidates:
+    - dma_real_arbiter
+  - id: transfer_control
+    kind: datapath_control
+    source_refs:
+    - function_model.transactions.FM_DMA_STEP
+    - fsm.per_channel
+    rtl_candidates:
+    - dma_real_channel
+  - id: ahb_protocol
+    kind: datapath
+    source_refs:
+    - io_list.interfaces.ahb_master
+    - cycle_model.pipeline
+    rtl_candidates:
+    - dma_real_ahb_master
+  - id: completion_status
+    kind: status
+    source_refs:
+    - function_model.transactions.FM_DMA_COMPLETE
+    - function_model.transactions.FM_DMA_ERROR
+    - function_model.invariants
+    rtl_candidates:
+    - dma_real_channel
+    - dma_real_irq
+  - id: irq_aggregation
+    kind: status
+    source_refs:
+    - interrupts
+    - registers.register_list
+    rtl_candidates:
+    - dma_real_irq
+parameters:
+- name: ADDR_WIDTH
+  type: int
+  default: 32
+  description: Address bus width for APB and AHB-Lite
+  user_editable: true
+- name: DATA_WIDTH
+  type: int
+  default: 32
+  description: Data bus width (must be 32)
+  user_editable: false
+- name: N_CHANNELS
+  type: int
+  default: 4
+  description: Number of independent DMA channels
+  user_editable: true
+- name: BURST_MAX
+  type: int
+  default: 16
+  description: Maximum burst length per AHB beat (1..16)
+  user_editable: true
+- name: FIFO_DEPTH
+  type: int
+  default: 8
+  description: Per-channel read FIFO depth in words
+  user_editable: true
+io_list:
+  clock_domains:
+  - name: pclk_domain
+    ports:
+    - name: pclk
+      direction: input
+      width: 1
+      description: System clock (single domain)
+  resets:
+  - name: presetn_domain
+    active: low
+    ports:
+    - name: presetn
+      direction: input
+      width: 1
+      description: Active-low reset
+  interfaces:
+  - name: apb_slave
+    type: apb
+    clock_domain: pclk_domain
+    ports:
+    - name: psel
+      direction: input
+      width: 1
+      description: APB select
+    - name: penable
+      direction: input
+      width: 1
+      description: APB enable
+    - name: pwrite
+      direction: input
+      width: 1
+      description: APB write direction
+    - name: paddr
+      direction: input
+      width: 12
+      description: APB address bus
+    - name: pwdata
+      direction: input
+      width: 32
+      description: APB write data
+    - name: prdata
+      direction: output
+      width: 32
+      description: APB read data
+    - name: pready
+      direction: output
+      width: 1
+      description: APB ready (always 1)
+    - name: pslverr
+      direction: output
+      width: 1
+      description: APB slave error (unmapped address)
+    protocol:
+      timing: two-phase (setup + access)
+      rules:
+      - psel asserted before penable
+      - write data sampled when penable and pwrite are high
+      - pready always high (no wait states)
+      - pslverr asserted when paddr targets unmapped register space
+  - name: ahb_master
+    type: ahb_lite
+    clock_domain: pclk_domain
+    ports:
+    - name: haddr
+      direction: output
+      width: ADDR_WIDTH
+      parameter_ref: ADDR_WIDTH
+      description: AHB-Lite address
+    - name: hwrite
+      direction: output
+      width: 1
+      description: AHB-Lite write indicator
+    - name: htrans
+      direction: output
+      width: 2
+      description: AHB-Lite transfer type (00=IDLE, 10=NONSEQ, 11=SEQ)
+    - name: hsize
+      direction: output
+      width: 3
+      description: AHB-Lite transfer size (010=word)
+    - name: hburst
+      direction: output
+      width: 3
+      description: AHB-Lite burst type (000=SINGLE, 001=INCR4, 010=INCR8, 011=INCR16)
+    - name: hwdata
+      direction: output
+      width: DATA_WIDTH
+      parameter_ref: DATA_WIDTH
+      description: AHB-Lite write data
+    - name: hrdata
+      direction: input
+      width: DATA_WIDTH
+      parameter_ref: DATA_WIDTH
+      description: AHB-Lite read data
+    - name: hready
+      direction: input
+      width: 1
+      description: AHB-Lite ready from slave
+    - name: hresp
+      direction: input
+      width: 1
+      description: AHB-Lite response (0=OKAY, 1=ERROR)
+    - name: hbusreq
+      direction: output
+      width: 1
+      description: AHB-Lite bus request
+    - name: hgrant
+      direction: input
+      width: 1
+      description: AHB-Lite bus grant
+    protocol:
+      timing: address phase then data phase, pipelined
+      rules:
+      - haddr and control signals valid during address phase
+      - hwdata valid during data phase (one cycle after address phase)
+      - htrans=NONSEQ for first beat of burst, SEQ for subsequent beats
+      - hburst encodes burst length based on remaining transfer count
+      - hresp=ERROR triggers transfer abort and error status latch
+  - name: irq_outputs
+    type: irq
+    clock_domain: pclk_domain
+    ports:
+    - name: irq
+      direction: output
+      width: N_CHANNELS
+      parameter_ref: N_CHANNELS
+      description: Per-channel interrupt (done or error)
+    - name: irq_combined
+      direction: output
+      width: 1
+      description: Combined interrupt (OR of all enabled channel IRQs)
+    protocol:
+      timing: level-sensitive, active-high
+      rules:
+      - irq[ch] asserted when (ch_status.done OR ch_status.error) AND int_enable[ch]
+      - irq_combined is OR of all per-channel IRQ outputs
+      - IRQ deasserted when INT_CLEAR written and condition clears
+  - name: dma_status
+    type: status
+    clock_domain: pclk_domain
+    ports:
+    - name: ch_busy
+      direction: output
+      width: N_CHANNELS
+      parameter_ref: N_CHANNELS
+      description: Per-channel busy flag (1 = channel active)
+    - name: ch_done
+      direction: output
+      width: N_CHANNELS
+      parameter_ref: N_CHANNELS
+      description: Per-channel done pulse (1 = transfer complete)
+    - name: ch_error
+      direction: output
+      width: N_CHANNELS
+      parameter_ref: N_CHANNELS
+      description: Per-channel error flag (1 = error detected)
+    - name: ch_err_code
+      direction: output
+      width: 8
+      description: Packed per-channel 2-bit error code (bits [2*ch+1:2*ch])
+    - name: arb_grant
+      direction: output
+      width: 3
+      description: Current arbiter grant channel index
+    protocol:
+      timing: combinational status outputs, registered on pclk edge
+      rules:
+      - ch_busy[ch] reflects per-channel FSM not in IDLE state
+      - ch_done[ch] pulses for one cycle on transfer completion
+      - ch_error[ch] latched until INT_CLEAR written
+      - ch_err_code packed 2-bit code per channel
+      - arb_grant shows current round-robin grant target
+features:
+  - id: multi_channel
+    description: Four independent DMA channels with separate configuration and status
+    source_refs:
+    - parameters.N_CHANNELS
+    - registers.register_list
+  - id: round_robin_arb
+    description: Round-robin arbitration among active channels requesting AHB access
+    source_refs:
+    - function_model.transactions.FM_ARB_GRANT
+    - cycle_model.performance
+  - id: burst_transfer
+    description: INCR4/INCR8/INCR16 burst support on AHB-Lite master interface
+    source_refs:
+    - parameters.BURST_MAX
+    - io_list.interfaces.ahb_master
+  - id: per_channel_irq
+    description: Per-channel done/error interrupt with mask and combined output
+    source_refs:
+    - interrupts
+    - io_list.interfaces.irq_outputs
+  - id: error_detection
+    description: Alignment, zero-length, and bus-error detection per channel
+    source_refs:
+    - error_handling
+    - function_model.transactions.FM_DMA_ERROR
+dataflow:
+  sequence:
+  - Software configures channel registers via APB (SRC_ADDR, DST_ADDR, LEN, CTRL).
+  - Software sets CTRL.ch_start to initiate transfer.
+  - Channel FSM transitions IDLE to CFG to latch parameters.
+  - Channel requests AHB bus via arbiter.
+  - Arbiter grants bus (round-robin among active channels).
+  - Channel reads burst from source address via AHB master.
+  - Channel writes burst to destination address via AHB master.
+  - Repeat read/write bursts until remaining count reaches zero.
+  - Channel asserts done status and triggers IRQ if enabled.
+  ordering:
+  - Configuration must complete before transfer starts.
+  - Arbiter grant must precede AHB address phase.
+  - Read burst completion must precede write burst of same data.
+  - Address update must precede next burst request.
+function_model:
+  purpose: Behavioral DMA reference independent of micro-architectural details.
+  state_variables:
+  - name: ch_busy_q
+    width: N_CHANNELS
+    reset: 0
+    description: Per-channel busy flag
+  - name: ch_done_q
+    width: N_CHANNELS
+    reset: 0
+    description: Per-channel done latch
+  - name: ch_error_q
+    width: N_CHANNELS
+    reset: 0
+    description: Per-channel error latch
+  - name: ch_remaining_q
+    width: 32
+    reset: 0
+    description: Per-channel remaining word count
+  - name: ch_src_addr_q
+    width: ADDR_WIDTH
+    reset: 0
+    description: Per-channel current source address
+  - name: ch_dst_addr_q
+    width: ADDR_WIDTH
+    reset: 0
+    description: Per-channel current destination address
+  - name: dma_en_q
+    width: 1
+    reset: 0
+    description: Global DMA enable
+  - name: int_enable_q
+    width: N_CHANNELS
+    reset: 0
+    description: Per-channel interrupt enable mask
+  - name: arb_ptr_q
+    width: 3
+    reset: 0
+    description: Round-robin arbiter pointer
+  transactions:
+  - id: FM_DMA_START
+    name: dma_start
+    required_fields:
+    - ch_id
+    - src_addr
+    - dst_addr
+    - length
+    preconditions:
+    - presetn is deasserted
+    - dma_en_q == 1
+    - ch_busy_q[ch_id] == 0
+    outputs:
+    - ch_busy
+    - ch_error
+    - ch_error_code
+    output_rules:
+    - name: ch_busy_next
+      port: ch_busy
+      width: 1
+      expr: 1 if (dma_en_q and not ch_busy_q[ch_id] and length > 0 and (src_addr
+        % 4 == 0) and (dst_addr % 4 == 0)) else 0
+    - name: ch_error_flag
+      port: ch_error
+      width: 1
+      expr: 1 if (length == 0 or src_addr % 4 != 0 or dst_addr % 4 != 0) else 0
+    - name: ch_err_code_val
+      port: ch_err_code
+      width: 2
+      expr: 2 if (length == 0) else 1 if (src_addr % 4 != 0 or dst_addr % 4 != 0)
+        else 0
+    side_effects:
+    - ch_remaining_q[ch_id] set to length on valid start
+    - ch_src_addr_q[ch_id] set to src_addr on valid start
+    - ch_dst_addr_q[ch_id] set to dst_addr on valid start
+    error_cases:
+    - zero length (length == 0)
+    - misaligned source address (src_addr % 4 != 0)
+    - misaligned destination address (dst_addr % 4 != 0)
+    - start while busy (ignored, preserves state)
+  - id: FM_DMA_STEP
+    name: dma_step
+    required_fields:
+    - ch_id
+    - burst_len
+    preconditions:
+    - ch_busy_q[ch_id] == 1
+    - arbiter has granted bus to ch_id
+    outputs:
+    - ch_busy
+    - ch_done
+    output_rules:
+    - name: busy_next
+      port: ch_busy
+      width: 1
+      expr: 1 if (ch_remaining_q[ch_id] > burst_len) else 0
+    - name: done_pulse
+      port: ch_done
+      width: 1
+      expr: 1 if (ch_remaining_q[ch_id] <= burst_len and ch_remaining_q[ch_id] >
+        0) else 0
+    state_updates:
+    - name: remaining_next
+      expr: ch_remaining_q[ch_id] - burst_len if ch_remaining_q[ch_id] > burst_len
+        else 0
+      width: 32
+    - name: src_addr_next
+      expr: ch_src_addr_q[ch_id] + burst_len * 4
+      width: ADDR_WIDTH
+    - name: dst_addr_next
+      expr: ch_dst_addr_q[ch_id] + burst_len * 4
+      width: ADDR_WIDTH
+    side_effects:
+    - ch_remaining_q decrements by burst_len
+    - ch_src_addr_q increments by burst_len * 4
+    - ch_dst_addr_q increments by burst_len * 4
+    - done pulses on terminal step
+    error_cases:
+    - bus error during AHB transfer (hresp == ERROR)
+  - id: FM_DMA_COMPLETE
+    name: dma_complete
+    required_fields:
+    - ch_id
+    preconditions:
+    - ch_remaining_q[ch_id] == 0
+    - ch_busy_q[ch_id] == 1
+    outputs:
+    - ch_busy
+    - ch_done
+    - irq
+    output_rules:
+    - name: busy_clear
+      port: ch_busy
+      width: 1
+      expr: 0
+    - name: done_assert
+      port: ch_done
+      width: 1
+      expr: 1
+    - name: irq_assert
+      port: irq
+      width: 1
+      expr: 1 if (int_enable_q[ch_id]) else 0
+    side_effects:
+    - ch_done_q[ch_id] set to 1
+    - ch_busy_q[ch_id] cleared
+    - IRQ asserted if enabled
+  - id: FM_DMA_ERROR
+    name: dma_error
+    required_fields:
+    - ch_id
+    - error_code
+    preconditions:
+    - error condition detected (alignment, zero-length, or bus error)
+    outputs:
+    - ch_error
+    - ch_error_code
+    - irq
+    output_rules:
+    - name: error_assert
+      port: ch_error
+      width: 1
+      expr: 1
+    - name: error_code_out
+      port: ch_err_code
+      width: 2
+      expr: error_code
+    - name: irq_error
+      port: irq
+      width: 1
+      expr: 1 if (int_enable_q[ch_id]) else 0
+    side_effects:
+    - ch_error_q[ch_id] set to 1
+    - ch_busy_q[ch_id] cleared
+    - Error code latched in status register
+    error_cases:
+    - alignment error (code 1)
+    - zero length (code 2)
+    - bus error (code 3)
+  - id: FM_ARB_GRANT
+    name: arb_grant
+    required_fields:
+    - requester_mask
+    preconditions:
+    - at least one channel is requesting bus access
+    outputs:
+    - grant_ch
+    output_rules:
+    - name: grant_next
+      port: arb_grant
+      width: 3
+      expr: (arb_ptr_q + 1) % N_CHANNELS if requester_mask[arb_ptr_q] == 0 else
+        arb_ptr_q
+    state_updates:
+    - name: arb_ptr_update
+      expr: (grant_ch + 1) % N_CHANNELS
+      width: 3
+    side_effects:
+    - arb_ptr_q updated to next channel after grant
+    - granted channel gains AHB bus access
+    error_cases: []
+  invariants:
+  - ch_busy and ch_done are not asserted together for the same channel.
+  - ch_error is asserted only for invalid requests or bus errors.
+  - ch_remaining_q never underflows below zero.
+  - irq[ch] reflects (done_q[ch] OR error_q[ch]) AND int_enable_q[ch].
+  - irq_combined reflects OR of all per-channel irq outputs.
+cycle_model:
+  executable: pymtl3
+  backend_policy: Use PyMTL3 shell for cycle behavior. FunctionalModel remains oracle.
+  clock: pclk
+  reset: presetn
+  latency: 4
+  handshake_rules:
+  - name: apb_access
+    description: APB accesses sample on pclk with psel and penable. No wait states.
+  - name: ahb_address_phase
+    description: AHB address phase drives haddr, htrans, hsize, hburst, hwrite for
+      one cycle.
+  - name: ahb_data_phase
+    description: AHB data phase follows address phase by one cycle with hwdata or
+      hrdata.
+  - name: arb_grant_rule
+    description: Arbiter evaluates requests every cycle and grants to next round-robin
+      contender.
+  - name: start_accept
+    description: ch_start accepted only when ch_busy is low and dma_en is high.
+  pipeline:
+  - stage: IDLE
+    cycle: 0
+    action: wait for valid start/config
+  - stage: CFG
+    cycle: 1
+    action: latch src_addr, dst_addr, remaining count
+  - stage: REQUEST
+    cycle: 2
+    action: request AHB bus via arbiter
+  - stage: READ
+    cycle: 3
+    action: AHB read burst from source address into FIFO
+  - stage: WRITE
+    cycle: 4
+    action: AHB write burst from FIFO to destination address
+  - stage: UPDATE
+    cycle: 5
+    action: update remaining count, src_addr, dst_addr
+  - stage: DONE
+    cycle: 6
+    action: assert done, update status, trigger IRQ
+  - stage: ERROR
+    cycle: 2
+    action: assert error, latch error code, return to IDLE
+  ordering:
+  - Configuration (CFG) precedes transfer execution (READ/WRITE).
+  - Read burst completion precedes write burst for same data.
+  - Address update (UPDATE) precedes next burst request.
+  - Transfer completion (DONE) precedes done pulse observation.
+  backpressure:
+  - New starts blocked while channel busy.
+  - AHB transfers stall when hready is low.
+  - Arbiter queues requests when bus is occupied.
+  performance:
+    outstanding_limit: N_CHANNELS
+    throughput: one burst per channel per arbiter round
+clock_reset_domains:
+  domains:
+  - name: pclk_domain
+    clock: pclk
+    reset: presetn
+    reset_active: low
+    description: Single synchronous clock domain for all logic
+cdc_requirements:
+  policy: no_cdc
+  description: Single clock domain. No clock domain crossing logic required.
+rdc_requirements:
+  policy: no_rdc
+  description: Single reset domain synchronous to pclk.
+registers:
+  register_list:
+  - name: GLOBAL_CTRL
+    offset: 0
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Global DMA control register
+    fields:
+    - name: dma_en
+      lsb: 0
+      width: 1
+      access: rw
+      reset: 0
+      description: Global DMA enable. When 0, no new transfers start and in-progress
+        transfers pause after current burst.
+      write_effect: enables or disables DMA globally
+    - name: reserved_31_1
+      lsb: 1
+      width: 31
+      access: rw
+      reset: 0
+      description: Reserved
+      write_effect: no side effect
+  - name: INT_STATUS
+    offset: 4
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Per-channel interrupt status (bit per channel)
+    fields:
+    - name: ch_status
+      lsb: 0
+      width: 4
+      access: ro
+      reset: 0
+      description: Bit[ch] is 1 when channel ch has pending interrupt (done or error)
+      write_effect: read-only, no write effect
+  - name: INT_ENABLE
+    offset: 8
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Per-channel interrupt enable mask
+    fields:
+    - name: ch_enable
+      lsb: 0
+      width: 4
+      access: rw
+      reset: 0
+      description: Bit[ch] = 1 enables interrupt for channel ch
+      write_effect: updates interrupt mask
+  - name: INT_CLEAR
+    offset: 12
+    width: 32
+    access: wo
+    reset: 0x00000000
+    description: Write-1-to-clear per-channel interrupt
+    fields:
+    - name: ch_clear
+      lsb: 0
+      width: 4
+      access: wo
+      reset: 0
+      description: Writing 1 to bit[ch] clears done_q and error_q for channel ch
+      write_effect: clears latched done and error status for selected channels
+  - name: CH0_CTRL
+    offset: 128
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 0 control register
+    fields:
+    - name: ch_en
+      lsb: 0
+      width: 1
+      access: rw
+      reset: 0
+      description: Channel enable. Must be set before ch_start is accepted.
+      write_effect: enables or disables the channel
+    - name: ch_start
+      lsb: 1
+      width: 1
+      access: rw
+      reset: 0
+      description: Write 1 to start transfer. Self-clearing.
+      write_effect: initiates DMA transfer if ch_en and dma_en are set
+    - name: ch_mode
+      lsb: 2
+      width: 1
+      access: rw
+      reset: 0
+      description: Transfer mode (0 = memory-to-memory). Fixed at 0 for this version.
+      write_effect: selects transfer mode
+  - name: CH0_SRC_ADDR
+    offset: 132
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 0 source start address (must be word-aligned)
+    fields:
+    - name: src_addr
+      lsb: 0
+      width: ADDR_WIDTH
+      access: rw
+      reset: 0
+      description: Source address. Bits [1:0] must be 0.
+      write_effect: latches source address for transfer
+  - name: CH0_DST_ADDR
+    offset: 136
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 0 destination start address (must be word-aligned)
+    fields:
+    - name: dst_addr
+      lsb: 0
+      width: ADDR_WIDTH
+      access: rw
+      reset: 0
+      description: Destination address. Bits [1:0] must be 0.
+      write_effect: latches destination address for transfer
+  - name: CH0_LEN
+    offset: 140
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 0 transfer length in words (1..65536). 0 is invalid.
+    fields:
+    - name: length
+      lsb: 0
+      width: 16
+      access: rw
+      reset: 0
+      description: Transfer length in words
+      write_effect: sets number of words to transfer
+  - name: CH0_STATUS
+    offset: 144
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 0 status register
+    fields:
+    - name: busy
+      lsb: 0
+      width: 1
+      access: ro
+      reset: 0
+      description: Channel is actively transferring
+      write_effect: read-only
+    - name: done
+      lsb: 1
+      width: 1
+      access: ro
+      reset: 0
+      description: Transfer completed successfully. Cleared by INT_CLEAR.
+      write_effect: read-only, cleared via INT_CLEAR
+    - name: error
+      lsb: 2
+      width: 1
+      access: ro
+      reset: 0
+      description: Error occurred. Cleared by INT_CLEAR.
+      write_effect: read-only, cleared via INT_CLEAR
+    - name: err_code
+      lsb: 3
+      width: 2
+      access: ro
+      reset: 0
+      description: Error code (0=none, 1=alignment, 2=zero_len, 3=bus_err)
+      write_effect: read-only
+  - name: CH1_CTRL
+    offset: 160
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 1 control register
+    fields:
+    - name: ch_en
+      lsb: 0
+      width: 1
+      access: rw
+      reset: 0
+      description: Channel enable
+      write_effect: enables or disables the channel
+    - name: ch_start
+      lsb: 1
+      width: 1
+      access: rw
+      reset: 0
+      description: Write 1 to start transfer
+      write_effect: initiates DMA transfer
+    - name: ch_mode
+      lsb: 2
+      width: 1
+      access: rw
+      reset: 0
+      description: Transfer mode (0 = memory-to-memory)
+      write_effect: selects transfer mode
+  - name: CH1_SRC_ADDR
+    offset: 164
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 1 source start address
+    fields:
+    - name: src_addr
+      lsb: 0
+      width: ADDR_WIDTH
+      access: rw
+      reset: 0
+      description: Source address
+      write_effect: latches source address
+  - name: CH1_DST_ADDR
+    offset: 168
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 1 destination start address
+    fields:
+    - name: dst_addr
+      lsb: 0
+      width: ADDR_WIDTH
+      access: rw
+      reset: 0
+      description: Destination address
+      write_effect: latches destination address
+  - name: CH1_LEN
+    offset: 172
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 1 transfer length in words
+    fields:
+    - name: length
+      lsb: 0
+      width: 16
+      access: rw
+      reset: 0
+      description: Transfer length
+      write_effect: sets transfer length
+  - name: CH1_STATUS
+    offset: 176
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 1 status register
+    fields:
+    - name: busy
+      lsb: 0
+      width: 1
+      access: ro
+      reset: 0
+      description: Channel busy
+      write_effect: read-only
+    - name: done
+      lsb: 1
+      width: 1
+      access: ro
+      reset: 0
+      description: Transfer done
+      write_effect: read-only, cleared via INT_CLEAR
+    - name: error
+      lsb: 2
+      width: 1
+      access: ro
+      reset: 0
+      description: Error flag
+      write_effect: read-only, cleared via INT_CLEAR
+    - name: err_code
+      lsb: 3
+      width: 2
+      access: ro
+      reset: 0
+      description: Error code
+      write_effect: read-only
+  - name: CH2_CTRL
+    offset: 192
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 2 control register
+    fields:
+    - name: ch_en
+      lsb: 0
+      width: 1
+      access: rw
+      reset: 0
+      description: Channel enable
+      write_effect: enables or disables the channel
+    - name: ch_start
+      lsb: 1
+      width: 1
+      access: rw
+      reset: 0
+      description: Write 1 to start transfer
+      write_effect: initiates DMA transfer
+    - name: ch_mode
+      lsb: 2
+      width: 1
+      access: rw
+      reset: 0
+      description: Transfer mode (0 = memory-to-mem)
+      write_effect: selects transfer mode
+  - name: CH2_SRC_ADDR
+    offset: 196
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 2 source start address
+    fields:
+    - name: src_addr
+      lsb: 0
+      width: ADDR_WIDTH
+      access: rw
+      reset: 0
+      description: Source address
+      write_effect: latches source address
+  - name: CH2_DST_ADDR
+    offset: 200
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 2 destination start address
+    fields:
+    - name: dst_addr
+      lsb: 0
+      width: ADDR_WIDTH
+      access: rw
+      reset: 0
+      description: Destination address
+      write_effect: latches destination address
+  - name: CH2_LEN
+    offset: 204
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 2 transfer length in words
+    fields:
+    - name: length
+      lsb: 0
+      width: 16
+      access: rw
+      reset: 0
+      description: Transfer length
+      write_effect: sets transfer length
+  - name: CH2_STATUS
+    offset: 208
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 2 status register
+    fields:
+    - name: busy
+      lsb: 0
+      width: 1
+      access: ro
+      reset: 0
+      description: Channel busy
+      write_effect: read-only
+    - name: done
+      lsb: 1
+      width: 1
+      access: ro
+      reset: 0
+      description: Transfer done
+      write_effect: read-only, cleared via INT_CLEAR
+    - name: error
+      lsb: 2
+      width: 1
+      access: ro
+      reset: 0
+      description: Error flag
+      write_effect: read-only, cleared via INT_CLEAR
+    - name: err_code
+      lsb: 3
+      width: 2
+      access: ro
+      reset: 0
+      description: Error code
+      write_effect: read-only
+  - name: CH3_CTRL
+    offset: 224
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 3 control register
+    fields:
+    - name: ch_en
+      lsb: 0
+      width: 1
+      access: rw
+      reset: 0
+      description: Channel enable
+      write_effect: enables or disables the channel
+    - name: ch_start
+      lsb: 1
+      width: 1
+      access: rw
+      reset: 0
+      description: Write 1 to start transfer
+      write_effect: initiates DMA transfer
+    - name: ch_mode
+      lsb: 2
+      width: 1
+      access: rw
+      reset: 0
+      description: Transfer mode (0 = memory-to-mem)
+      write_effect: selects transfer mode
+  - name: CH3_SRC_ADDR
+    offset: 228
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 3 source start address
+    fields:
+    - name: src_addr
+      lsb: 0
+      width: ADDR_WIDTH
+      access: rw
+      reset: 0
+      description: Source address
+      write_effect: latches source address
+  - name: CH3_DST_ADDR
+    offset: 232
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 3 destination start address
+    fields:
+    - name: dst_addr
+      lsb: 0
+      width: ADDR_WIDTH
+      access: rw
+      reset: 0
+      description: Destination address
+      write_effect: latches destination address
+  - name: CH3_LEN
+    offset: 236
+    width: 32
+    access: rw
+    reset: 0x00000000
+    description: Channel 3 transfer length in words
+    fields:
+    - name: length
+      lsb: 0
+      width: 16
+      access: rw
+      reset: 0
+      description: Transfer length
+      write_effect: sets transfer length
+  - name: CH3_STATUS
+    offset: 240
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 3 status register
+    fields:
+    - name: busy
+      lsb: 0
+      width: 1
+      access: ro
+      reset: 0
+      description: Channel busy
+      write_effect: read-only
+    - name: done
+      lsb: 1
+      width: 1
+      access: ro
+      reset: 0
+      description: Transfer done
+      write_effect: read-only, cleared via INT_CLEAR
+    - name: error
+      lsb: 2
+      width: 1
+      access: ro
+      reset: 0
+      description: Error flag
+      write_effect: read-only, cleared via INT_CLEAR
+    - name: err_code
+      lsb: 3
+      width: 2
+      access: ro
+      reset: 0
+      description: Error code
+      write_effect: read-only
+memory:
+  internal:
+  - name: ch_fifo
+    kind: fifo
+    width: DATA_WIDTH
+    depth: FIFO_DEPTH
+    per_instance: true
+    instances:
+    - ch0_fifo
+    - ch1_fifo
+    - ch2_fifo
+    - ch3_fifo
+    description: Per-channel FIFO buffering read data before write phase
+interrupts:
+  outputs:
+  - name: irq
+    width: N_CHANNELS
+    active_level: high
+    trigger: level
+    description: Per-channel interrupt for done or error
+  - name: irq_combined
+    width: 1
+    active_level: high
+    trigger: level
+    description: Combined interrupt OR of all enabled channel IRQs
+  mask_registers:
+  - INT_ENABLE
+  clear_registers:
+  - INT_CLEAR
+  status_registers:
+  - INT_STATUS
+fsm:
+  per_channel:
+    states:
+    - IDLE
+    - CFG
+    - REQUEST
+    - READ
+    - WRITE
+    - UPDATE
+    - DONE
+    - ERROR
+    initial: IDLE
+    transitions:
+    - from: IDLE
+      to: CFG
+      condition: ch_start && ch_en && dma_en && valid_cfg
+    - from: IDLE
+      to: ERROR
+      condition: ch_start && ch_en && !valid_cfg
+    - from: CFG
+      to: REQUEST
+      condition: next_cycle
+    - from: REQUEST
+      to: READ
+      condition: arb_grant
+    - from: READ
+      to: WRITE
+      condition: read_burst_complete
+    - from: WRITE
+      to: UPDATE
+      condition: write_burst_complete
+    - from: UPDATE
+      to: READ
+      condition: remaining_gt_0
+    - from: UPDATE
+      to: DONE
+      condition: remaining_eq_0
+    - from: DONE
+      to: IDLE
+      condition: status_sampled
+    - from: ERROR
+      to: IDLE
+      condition: status_sampled
+timing:
+  target_clocks:
+  - clock: pclk
+    target_freq_mhz: 100
+    description: Target operating frequency for single clock domain
+  latency_budget:
+    apb_access: 2
+    channel_start_to_first_read: 4
+    burst_read_latency: BURST_MAX
+    burst_write_latency: BURST_MAX
+    completion_to_irq: 2
+power:
+  domains:
+  - name: pd_core
+    clocks:
+    - pclk
+    description: Single power domain for all logic
+  power_states:
+  - state: active
+    description: All logic powered and clocked
+  - state: idle
+    description: No active transfers, clock gating possible
+security:
+  classification: internal
+  assets:
+  - name: channel_config
+    type: configuration
+    description: DMA channel source/destination/length registers
+  - name: transfer_data
+    type: data
+    description: Data words in transit through FIFO
+  threat_model:
+  - threat: unauthorized_channel_access
+    mitigation: APB bus access restricted by system bus matrix
+    severity: medium
+  - threat: dma_transfer_corruption
+    mitigation: Error detection and reporting per channel
+    severity: high
+error_handling:
+  error_sources:
+  - id: ERR_ALIGN
+    source: channel_start
+    condition: src_addr[1:0] != 0 or dst_addr[1:0] != 0
+    code: 1
+    description: Misaligned source or destination address
+  - id: ERR_ZERO_LEN
+    source: channel_start
+    condition: CHx_LEN == 0
+    code: 2
+    description: Zero-length transfer requested
+  - id: ERR_BUS
+    source: ahb_transfer
+    condition: hresp == ERROR
+    code: 3
+    description: AHB bus error during transfer
+  propagation:
+  - error latched in CHx_STATUS.error
+  - error code latched in CHx_STATUS.err_code
+  - irq[ch] asserted if int_enable[ch] is set
+  - irq_combined reflects OR of all enabled irq outputs
+  recovery:
+  - Software reads CHx_STATUS to identify error code
+  - Software writes INT_CLEAR to clear error and done latches
+  - Channel returns to IDLE after status is cleared
+  - No automatic retry
+debug_observability:
+  waveform_must_probe:
+  - pclk
+  - presetn
+  - psel, penable, pwrite, paddr, pwdata, prdata, pready, pslverr
+  - haddr, htrans, hsize, hburst, hwrite, hwdata, hrdata, hready, hresp, hbusreq,
+    hgrant
+  - irq, irq_combined
+  - per_channel state FSM
+  - per_channel remaining counter
+  - per_channel src_addr and dst_addr counters
+  trace_events:
+  - channel_start
+  - burst_read_start
+  - burst_read_complete
+  - burst_write_start
+  - burst_write_complete
+  - transfer_done
+  - transfer_error
+  - arbiter_grant
+integration:
+  bus_attachment:
+    apb_slave: connects to APB bus matrix for configuration
+    ahb_master: connects to AHB-Lite bus matrix for data transfer
+  dependencies:
+  - APB bus matrix provides psel, penable, pwrite, paddr, pwdata
+  - AHB-Lite bus matrix provides hready, hrdata, hresp, hgrant
+  - System interrupt controller receives irq_combined
+synthesis:
+  dialect: systemverilog-2012
+  constraints:
+  - clock: pclk
+    period_ns: 10.0
+    uncertainty_ns: 0.5
+  required_outputs:
+  - prdata
+  - pready
+  - pslverr
+  - haddr
+  - hwrite
+  - htrans
+  - hsize
+  - hburst
+  - hwdata
+  - hbusreq
+  - irq
+  - irq_combined
+coding_rules:
+  - use input logic / output logic port style
+  - no always_ff / always_comb / for / while / typedef / enum
+  - no package / import / interface / modport / function / task
+  - use always @(posedge) / always @(*) style
+  - all state registers have async reset
+reuse_modules: []
+custom:
+  assumptions:
+  - single_clock_domain: pclk is the only clock
+  - word_aligned_addresses: all addresses are 32-bit word aligned
+  - max_burst_16: burst length does not exceed 16
+  - no_scatter_gather: contiguous address transfers only
+dir_structure:
+  rtl: rtl/
+  tb: tb/cocotb/
+  sim: sim/
+  lint: lint/
+  cov: cov/
+  model: model/
+  verify: verify/
+  list: list/
+filelist:
+  rtl:
+  - rtl/dma_real_top.sv
+  - rtl/dma_real_apb_cfg.sv
+  - rtl/dma_real_arbiter.sv
+  - rtl/dma_real_channel.sv
+  - rtl/dma_real_ahb_master.sv
+  - rtl/dma_real_irq.sv
+test_requirements:
+  scenarios:
+  - id: SC_001
+    name: single_channel_transfer
+    stimulus: configure CH0 with aligned src=0x1000, dst=0x2000, len=4, start transfer
+    expected: CH0_STATUS.done=1, 4 words transferred, irq[0] asserted
+    checker: scoreboard compares FL vs RTL per-busy/done/error
+    coverage:
+    - function_dma_step
+  - id: SC_002
+    name: alignment_error
+    stimulus: configure CH0 with src=0x1001 (misaligned), len=4, start
+    expected: CH0_STATUS.error=1, err_code=1, no transfer occurs
+    checker: scoreboard verifies error output matches FL
+    coverage:
+    - function_dma_error_align
+  - id: SC_003
+    name: zero_length_error
+    stimulus: configure CH0 with aligned addresses, len=0, start
+    expected: CH0_STATUS.error=1, err_code=2, no transfer occurs
+    checker: scoreboard verifies error output matches FL
+    coverage:
+    - function_dma_error_zero_len
+  - id: SC_004
+    name: busy_reject
+    stimulus: start CH0 transfer, then start again while busy
+    expected: second start ignored, transfer continues
+    checker: scoreboard verifies busy remains high and no duplicate transfer
+    coverage:
+    - function_dma_busy_reject
+  - id: SC_005
+    name: multi_channel_round_robin
+    stimulus: start CH0 and CH1 simultaneously with len=8 each
+    expected: both complete, arbiter alternates grants, both irq asserted
+    checker: scoreboard verifies both channels complete with correct data
+    coverage:
+    - function_dma_multi_ch
+    - cycle_arb_round_robin
+  - id: SC_006
+    name: bus_error_during_transfer
+    stimulus: configure CH0, start transfer, inject hresp=ERROR on first read
+    expected: CH0_STATUS.error=1, err_code=3, transfer aborted
+    checker: scoreboard verifies error after bus error response
+    coverage:
+    - function_dma_error_bus
+  - id: SC_007
+    name: global_enable_disable
+    stimulus: start CH0 transfer, then clear dma_en mid-transfer
+    expected: current burst completes, then pauses. Resume when dma_en re-asserted
+    checker: scoreboard verifies pause and resume behavior
+    coverage:
+    - function_dma_global_enable
+  - id: SC_008
+    name: interrupt_clear
+    stimulus: complete CH0 transfer, verify irq[0] asserted, write INT_CLEAR
+    expected: irq[0] deasserted, CH0_STATUS.done cleared
+    checker: scoreboard verifies IRQ deassertion
+    coverage:
+    - function_dma_irq_clear
+  - id: SC_009
+    name: apb_unmapped_address
+    stimulus: APB read from unmapped address (e.g. 0xFFC)
+    expected: pslverr=1, prdata=0
+    checker: scoreboard verifies pslverr response
+    coverage:
+    - function_dma_apb_err
+  scoreboard_checks:
+  - per-channel busy/done/error output matches FunctionalModel
+  - per-channel remaining counter matches FL state
+  - per-channel src/dst address counters match FL state
+  - arbiter grant matches round-robin policy
+  - IRQ outputs match mask and status
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      bins:
+      - id: function_dma_step
+        source_ref: function_model.transactions.FM_DMA_STEP
+        class: transaction
+        description: Valid DMA step with burst transfer
+      - id: function_dma_error_align
+        source_ref: function_model.transactions.FM_DMA_ERROR
+        class: error
+        description: Alignment error path
+      - id: function_dma_error_zero_len
+        source_ref: function_model.transactions.FM_DMA_ERROR
+        class: error
+        description: Zero-length error path
+      - id: function_dma_error_bus
+        source_ref: function_model.transactions.FM_DMA_ERROR
+        class: error
+        description: Bus error during AHB transfer
+      - id: function_dma_busy_reject
+        source_ref: function_model.transactions.FM_DMA_START
+        class: error_case
+        description: Start while busy rejected
+      - id: function_dma_multi_ch
+        source_ref: function_model.transactions.FM_ARB_GRANT
+        class: arbitration
+        description: Multiple channels active simultaneously
+      - id: function_dma_global_enable
+        source_ref: function_model.state_variables.dma_en_q
+        class: control
+        description: Global enable disable with in-progress transfer
+      - id: function_dma_irq_clear
+        source_ref: function_model.state_variables.int_enable_q
+        class: interrupt
+        description: Interrupt clear via INT_CLEAR register
+      - id: function_dma_apb_err
+        source_ref: function_model.transactions.FM_DMA_START
+        class: protocol
+        description: APB error on unmapped address access
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      bins:
+      - id: cycle_pipeline_idle
+        source_ref: cycle_model.pipeline[0]
+        class: state
+        description: Channel FSM IDLE state visited
+      - id: cycle_pipeline_cfg
+        source_ref: cycle_model.pipeline[1]
+        class: state
+        description: Channel FSM CFG state visited
+      - id: cycle_pipeline_request
+        source_ref: cycle_model.pipeline[2]
+        class: state
+        description: Channel FSM REQUEST state visited
+      - id: cycle_pipeline_read
+        source_ref: cycle_model.pipeline[3]
+        class: state
+        description: Channel FSM READ state visited
+      - id: cycle_pipeline_write
+        source_ref: cycle_model.pipeline[4]
+        class: state
+        description: Channel FSM WRITE state visited
+      - id: cycle_pipeline_update
+        source_ref: cycle_model.pipeline[5]
+        class: state
+        description: Channel FSM UPDATE state visited
+      - id: cycle_pipeline_done
+        source_ref: cycle_model.pipeline[6]
+        class: state
+        description: Channel FSM DONE state visited
+      - id: cycle_pipeline_error
+        source_ref: cycle_model.pipeline[7]
+        class: state
+        description: Channel FSM ERROR state visited
+      - id: cycle_arb_round_robin
+        source_ref: cycle_model.performance
+        class: arbitration
+        description: Round-robin arbitration switching between channels
+      - id: cycle_burst_latency
+        source_ref: cycle_model.handshake_rules.ahb_address_phase
+        class: timing
+        description: Burst completion latency measured
+quality_gates:
+  ssot:
+    pass: SSOT YAML passes check_ssot_disk.sh validator with no missing sections
+    evidence: yaml/dma_real.ssot.yaml
+  rtl:
+    pass: RTL compile and lint clean with 0 errors
+    evidence: rtl/rtl_compile.json, lint/dut_lint.json
+  dv:
+    pass: All equivalence goals pass with 0 FL-vs-RTL mismatches
+    evidence: sim/results.xml, sim/scoreboard_events.jsonl
+  coverage:
+    pass: 100% of planned functional and cycle coverage bins hit
+    evidence: cov/coverage_functional.json, cov/fcov_plan.json
+traceability:
+  yaml_to_output:
+  - ssot_section: top_module
+    output: rtl/dma_real_top.sv
+  - ssot_section: sub_modules
+    output: rtl/dma_real_*.sv
+  - ssot_section: io_list
+    output: port declarations in all RTL modules
+  - ssot_section: registers
+    output: register decode in rtl/dma_real_apb_cfg.sv
+  - ssot_section: function_model
+    output: model/functional_model.py
+  - ssot_section: cycle_model
+    output: model/cycle_model.py
+  - ssot_section: fsm
+    output: FSM logic in rtl/dma_real_channel.sv
+  - ssot_section: error_handling
+    output: error detection in rtl/dma_real_channel.sv
+  - ssot_section: interrupts
+    output: IRQ logic in rtl/dma_real_irq.sv
+  - ssot_section: test_requirements
+    output: tb/cocotb/test_dma_real.py
+workflow_todos:
+  rtl-gen:
+  - content: Implement top-level DMA wiring module connecting APB, AHB, arbiter, channels,
+      and IRQ
+    detail: dma_real_top.sv instantiates apb_cfg, arbiter, 4x channel, ahb_master,
+      and irq. Wire APB slave ports, AHB master ports, and IRQ outputs per io_list.
+    criteria:
+    - top module ports match SSOT io_list exactly
+    - all sub-modules instantiated and connected
+    - compile clean with iverilog -g2012
+    source_refs:
+    - io_list
+    - sub_modules
+    - integration
+  - content: Implement APB slave configuration decode with register read/write
+    detail: dma_real_apb_cfg decodes paddr to global and per-channel registers. Write
+      data latched, read data muxed. pslverr on unmapped addresses.
+    criteria:
+    - all register offsets decoded correctly per SSOT register map
+    - write_effect implemented for each field
+    - read returns correct field values
+    - pslverr asserted for unmapped addresses
+    source_refs:
+    - registers.register_list
+    - io_list.interfaces.apb_slave
+  - content: Implement round-robin arbiter for AHB bus access
+    detail: dma_real_arbiter accepts request from each active channel and grants bus
+      to next channel in round-robin order. One grant per burst.
+    criteria:
+    - round-robin pointer advances after each grant
+    - only one channel granted at a time
+    - idle channels not considered
+    source_refs:
+    - function_model.transactions.FM_ARB_GRANT
+    - cycle_model.performance
+  - content: Implement per-channel FSM with address counters and burst control
+    detail: dma_real_channel implements IDLE/CFG/REQUEST/READ/WRITE/UPDATE/DONE/ERROR
+      FSM. Latches src_addr, dst_addr, remaining from config. Increments addresses
+      after each burst. Detects alignment and zero-length errors.
+    criteria:
+    - all FSM states and transitions match SSOT
+    - address counters increment by burst_len * 4
+    - remaining counter decrements correctly
+    - error detection for alignment, zero-length
+    - busy/done/error status outputs match FL
+    source_refs:
+    - fsm.per_channel
+    - function_model.transactions.FM_DMA_START
+    - function_model.transactions.FM_DMA_STEP
+    - function_model.transactions.FM_DMA_COMPLETE
+    - function_model.transactions.FM_DMA_ERROR
+    - error_handling
+  - content: Implement AHB-Lite master protocol engine
+    detail: dma_real_ahb_master drives haddr, htrans, hsize, hburst, hwrite, hwdata
+      per AHB-Lite protocol. Supports INCR4/8/16 bursts. Monitors hready and hresp.
+    criteria:
+    - address phase and data phase timing correct
+    - NONSEQ for first beat, SEQ for subsequent
+    - hburst encoded based on remaining count
+    - hresp=ERROR triggers error reporting
+    source_refs:
+    - io_list.interfaces.ahb_master
+    - cycle_model.pipeline
+    - cycle_model.handshake_rules
+  - content: Implement interrupt aggregation with mask and combined output
+    detail: dma_real_irq aggregates per-channel done/error status with INT_ENABLE mask.
+      Generates per-channel irq and combined irq_combined outputs.
+    criteria:
+    - irq[ch] reflects (done_q[ch] OR error_q[ch]) AND int_enable_q[ch]
+    - irq_combined is OR of all per-channel irq
+    - INT_CLEAR clears done_q and error_q for selected channels
+    source_refs:
+    - interrupts
+    - io_list.interfaces.irq_outputs
+    - registers.register_list
+  tb-gen:
+  - content: Generate SSOT-driven cocotb testbench for DMA scenarios
+    detail: cocotb TB with APB driver, AHB-Lite slave model, scoreboard, and coverage
+      collector. Stimulus covers all 9 scenarios from test_requirements.
+    criteria:
+    - APB driver exercises register read/write
+    - AHB slave model responds to read/write with configurable hready and hresp
+    - scoreboard checks FL-vs-RTL equivalence per goal
+    - coverage bins sampled from passing scoreboard rows
+    source_refs:
+    - test_requirements.scenarios
+    - test_requirements.coverage_goals
+    - io_list.interfaces.apb_slave
+    - io_list.interfaces.ahb_master
+generation_flow:
+  stages:
+  - name: ssot-gen
+    tool: manual_or_llm
+    evidence: yaml/dma_real.ssot.yaml passes check_ssot_disk.sh
+  - name: fl-model-gen
+    tool: deterministic
+    evidence: model/functional_model.py and model/fl_model_check.json
+  - name: cl-model-gen
+    tool: deterministic
+    evidence: model/cycle_model.py and CL self-check
+  - name: equiv-goals
+    tool: deterministic
+    evidence: verify/equivalence_goals.json with blocked=0
+  - name: rtl-gen
+    tool: llm
+    evidence: rtl/*.sv files, rtl/rtl_compile.json, lint/dut_lint.json
+  - name: lint
+    tool: deterministic
+    evidence: lint/dut_lint.json
+  - name: tb-gen
+    tool: llm
+    evidence: tb/cocotb/*.py, tb/cocotb/tb_manifest.json
+  - name: sim
+    tool: deterministic
+    evidence: sim/results.xml, sim/scoreboard_events.jsonl
+  - name: sim-debug
+    tool: deterministic
+    evidence: sim/mismatch_classification.json
+  - name: coverage
+    tool: deterministic
+    evidence: cov/coverage_functional.json
+  - name: goal-audit
+    tool: deterministic
+    evidence: sim/fl_rtl_goal_audit.json
+rtl_contract:
+  clock: pclk
+  reset: presetn
+  reset_active: low
+  transaction: FM_DMA_STEP
+  sample_condition: ch_start or ch_busy or ch_done or ch_error or irq
+  input_map:
+    ch_id: ch_id
+    src_addr: CHx_SRC_ADDR
+    dst_addr: CHx_DST_ADDR
+    length: CHx_LEN
+    ch_en: CHx_CTRL.ch_en
+    ch_start: CHx_CTRL.ch_start
+    dma_en: GLOBAL_CTRL.dma_en
+  output_map:
+    ch_busy_next: ch_busy
+    done_pulse: ch_done
+    error_flag: ch_error
+    error_code_val: ch_err_code
+    irq_assert: irq
+    grant_next: arb_grant

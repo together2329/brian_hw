@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "simple_pwm",
+  "source": "model/cycle_model.py",
+  "backend": "python",
+  "pymtl3_available": true,
+  "timestamp": "2026-05-16T19:04:07Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "python",
+    "pymtl3_available": true,
+    "transactions": 3,
+    "results_observed": 2,
+    "coverage_bins": 5,
+    "coverage_hit": 5,
+    "performance_targets": {
+      "frequency_mhz": 100,
+      "throughput": {
+        "sustained_operations_per_cycle": 1,
+        "condition": "enable asserted and period > 0"
+      },
+      "outstanding": {
+        "max": 1,
+        "description": "Single-cycle counter operation"
+      },
+      "pipeline_stages": 1,
+      "queue_depth": null
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 100,
+    "throughput": {
+      "sustained_operations_per_cycle": 1,
+      "condition": "enable asserted and period > 0"
+    },
+    "outstanding": {
+      "max": 1,
+      "description": "Single-cycle counter operation"
+    },
+    "pipeline_stages": 1,
+    "queue_depth": null
+  },
+  "decomposition_units": 1,
+  "fcov_bins": 5
+}

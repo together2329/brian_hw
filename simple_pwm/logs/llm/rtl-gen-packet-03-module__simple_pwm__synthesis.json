@@ -1,0 +1,15 @@
+{
+  "error": "ATLAS_RUN_REAL_LLM_TDD=1 is not set",
+  "finish_reason": "",
+  "finished_at": "2026-05-16T19:06:02Z",
+  "input_hash": "8b1b37a1371f21f553f329017146e3df12260bae90d1bb391bd6e9b9fcf0c87c",
+  "model": "gpt-5.3-codex",
+  "output_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "parsed_artifacts": [],
+  "prompt_hash": "0964181790f506d9a84e114dcfbeddc06688237d4117d5e352e1d58253d02f61",
+  "raw_response": "",
+  "stage": "rtl-gen",
+  "started_at": "2026-05-16T19:06:02Z",
+  "status": "blocked",
+  "usage": {}
+}

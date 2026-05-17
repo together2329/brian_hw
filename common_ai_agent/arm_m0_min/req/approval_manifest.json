@@ -1,0 +1,13 @@
+{
+  "approved_at_utc": "2026-05-17T02:24:36Z",
+  "approved_by": "brian",
+  "decision_note": "approved locked minimal CPU scope",
+  "ip": "arm_m0_min",
+  "resolved_review_decision": "arm_m0_min/review/decision_needed_req_requirement_approval.json",
+  "schema_version": 1,
+  "source": "arm_m0_min/doc/arm_m0_min_requirement_review.md",
+  "source_sha256": "e0b6e6a3d2078930bb046fd241a2422712af3155b4e823b2ec2da1bd64942a07",
+  "target": "arm_m0_min/req/arm_m0_min_requirements.md",
+  "target_sha256": "2d404c587d766f70e00b7e6bf9a6135f73b46c06b51eb937794e22eeada2d8ec",
+  "type": "requirement_approval_manifest"
+}

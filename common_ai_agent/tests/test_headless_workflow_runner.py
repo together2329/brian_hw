@@ -628,12 +628,16 @@ def test_rtl_packet_prompt_includes_manifest_rtl_interface_digest(tmp_path: Path
     (ip_dir / "rtl" / "authoring_packets").mkdir(parents=True)
     (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
         "\n".join(
-            [
-                "top_module:",
-                f"  name: {ip}",
-                "sub_modules:",
-                f"  - name: {ip}",
-                f"    file: rtl/{ip}.sv",
+                [
+                    "top_module:",
+                    f"  name: {ip}",
+                    "error_handling:",
+                    "  error_sources:",
+                    "    - id: illegal_byte_access_pattern",
+                    "      condition: none",
+                    "sub_modules:",
+                    f"  - name: {ip}",
+                    f"    file: rtl/{ip}.sv",
                 "    ownership: manifest",
                 f"  - name: {ip}_child",
                 f"    file: rtl/{ip}_child.sv",
@@ -689,6 +693,10 @@ def test_rtl_gate_packet_prompt_includes_audit_digest_and_all_rtl_snapshots(tmp_
             [
                 "top_module:",
                 f"  name: {ip}",
+                "error_handling:",
+                "  error_sources:",
+                "  - id: illegal_byte_access_pattern",
+                "    condition: none",
                 "sub_modules:",
                 f"  - name: {ip}",
                 f"    file: rtl/{ip}.sv",
@@ -753,6 +761,48 @@ def test_rtl_gate_packet_prompt_includes_audit_digest_and_all_rtl_snapshots(tmp_
                                 "rule": "UNUSEDSIGNAL",
                                 "file": f"rtl/{ip}_irq.sv",
                                 "message": "Signal is not used: reg_irq_status_set_next",
+                            },
+                            {
+                                "rule": "UNUSEDSIGNAL",
+                                "file": f"rtl/{ip}_apb.sv",
+                                "line": 22,
+                                "message": "Bits of signal are not used: 'reg_data_out_next_word'[31:8]",
+                                "source": "logic [31:0] reg_data_out_next_word;",
+                            },
+                            {
+                                "rule": "UNUSEDSIGNAL",
+                                "file": f"rtl/{ip}_apb.sv",
+                                "line": 12,
+                                "message": "Bits of signal are not used: 'pwdata'[31:8]",
+                                "source": "input logic [31:0] pwdata,",
+                            },
+                            {
+                                "rule": "UNUSEDSIGNAL",
+                                "file": f"rtl/{ip}_apb.sv",
+                                "line": 44,
+                                "message": "Signal is not used: 'no_apb_backpressure_generated'",
+                                "source": "logic no_apb_backpressure_generated;",
+                            },
+                            {
+                                "rule": "UNUSEDSIGNAL",
+                                "file": f"rtl/{ip}_top_int.sv",
+                                "line": 58,
+                                "message": "Bits of signal are not used: 'data_out_reserved_zero'[31:16]",
+                                "source": "logic [DATA_WIDTH-1:0] data_out_reserved_zero;",
+                            },
+                            {
+                                "rule": "WIDTHEXPAND",
+                                "file": f"rtl/{ip}_top_int.sv",
+                                "line": 89,
+                                "message": "Output port connection 'data_out_reg' expects 32 bits on the pin connection, but pin connection's VARREF 'data_out_reg_full' generates 16 bits.",
+                                "source": ".data_out_reg(data_out_reg_full),",
+                            },
+                            {
+                                "rule": "UNUSEDSIGNAL",
+                                "file": f"rtl/{ip}_apb.sv",
+                                "line": 45,
+                                "message": "Signal is not used: 'every_function_model_transaction_has_cycle_model_stage_mapping'",
+                                "source": "logic every_function_model_transaction_has_cycle_model_stage_mapping;",
                             }
                         ],
                     }
@@ -831,12 +881,36 @@ def test_rtl_gate_packet_prompt_includes_audit_digest_and_all_rtl_snapshots(tmp_
     _, prompt = runner._rtl_packet_prompt(ip, {}, {"packets": [packet]}, packet, attempt=1)
 
     assert "Current RTL gate audit digest" in prompt
+    assert "Current mandatory lint repair directives" in prompt
+    assert "SSOT bus/byte-lane policy" in prompt
+    assert '"illegal_byte_access_pattern_condition": "none"' in prompt
+    assert "upper byte lanes are not an APB error for legal offsets" in prompt
     assert "Current RTL file snapshots for gate/tool-evidence repair" in prompt
     assert "Gate/tool-evidence packets may edit any declared RTL file" in prompt
     assert f"### rtl/{ip}_apb.sv" in prompt
     assert f"### rtl/{ip}_irq.sv" in prompt
     assert "no_parameterized_part_select_in_procedural_block" in prompt
     assert "UNUSEDSIGNAL" in prompt
+    assert "repair_hints" in prompt
+    assert "reg_data_out_next_word" in prompt
+    assert "narrow the helper to the actual consumed width" in prompt
+    assert "Do not narrow an externally defined bus port" in prompt
+    assert "Only assert a bus error when" in prompt
+    assert "Do not add marker-only reduction wires" in prompt
+    assert "mechanical_fix" in prompt
+    assert "logic [GPIO_WIDTH-1:0]" in prompt
+    assert "completion_condition" in prompt
+    assert "Adding a second narrower copy" in prompt
+    assert "renaming or copying the signal" in prompt
+    assert "producer[GPIO_WIDTH-1:0]" in prompt
+    assert "another DATA_WIDTH masked/full helper" in prompt
+    assert "WIDTHEXPAND" in prompt
+    assert "producer module port declaration" in prompt
+    assert "child port still expects the old width" in prompt
+    assert "Static evidence terms are search/audit hints, not required signal names" in prompt
+    assert "no_apb_backpressure_generated" in prompt
+    assert "static-evidence marker signal" in prompt
+    assert "Do not declare signals whose only purpose is to match static evidence terms" in prompt
     assert "set_and_clear_same_bit_same_observation_window_is_set_dominant" in prompt
     assert "apb_w1c_mask <= pwdata[GPIO_WIDTH-1:0];" in prompt
 
@@ -1188,6 +1262,48 @@ def test_rtl_repairability_does_not_treat_target_scale_only_as_llm_work(tmp_path
     assert runner._rtl_result_repairable_by_llm(result) is False
 
 
+def test_rtl_repairability_continues_target_scale_draft_when_packets_remain(tmp_path: Path):
+    ip = "pl330_like"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="fake-contract-model",
+        llm_provider=FakeLLMProvider(),
+    )
+    rtl_dir = tmp_path / "work" / ip / "rtl"
+    rtl_dir.mkdir(parents=True)
+    (rtl_dir / "rtl_authoring_plan.json").write_text(
+        json.dumps(
+            {
+                "execution_policy": {
+                    "draft_allowed": True,
+                    "deferred_human_qa_allowed": True,
+                },
+                "packets": [
+                    {
+                        "packet_id": "module__pl330_like_core",
+                        "kind": "module",
+                        "json": "rtl/authoring_packets/module__pl330_like_core.json",
+                        "summary": {"open_required_count": 1},
+                        "execution_policy": {"llm_actionable_open_count": 1},
+                    }
+                ],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    result = StageEngineResult(
+        stage="ssot-rtl",
+        ip=ip,
+        status="human_gate",
+        headline="[RTL BLOCKED]",
+        message="rtl-gen waiting for target scale",
+        metadata={"rtl_blocked": {"questions": [{"id": "RTL_TARGET_SCALE_POLICY"}]}},
+    )
+
+    assert runner._rtl_result_repairable_by_llm(result) is True
+
+
 def test_llm_provider_empty_output_is_retryable_blocker_not_human_gate(tmp_path: Path):
     runner = HeadlessWorkflowRunner(
         root=tmp_path / "work",
@@ -1204,6 +1320,45 @@ def test_llm_provider_empty_output_is_retryable_blocker_not_human_gate(tmp_path:
     assert result.status == "blocked"
     assert result.blocker == ""
     assert not (tmp_path / "work" / "packet_ip" / "questions" / "rtl_gen_packet_module.json").exists()
+
+
+def test_pipeline_repair_request_prefers_majority_owner_over_static_priority(tmp_path: Path):
+    ip = "mixed_owner_ip"
+    root = tmp_path / "work"
+    sim_dir = root / ip / "sim"
+    sim_dir.mkdir(parents=True)
+    classifications = []
+    for idx in range(3):
+        classifications.append(
+            {
+                "goal_id": f"EQ_TB_{idx}",
+                "classification": "tb_bug",
+                "owner": "tb-gen",
+                "llm_loop_allowed": True,
+                "repair_prompt": "Repair TB stimulus",
+                "reason": "missing APB stimulus",
+            }
+        )
+    classifications.append(
+        {
+            "goal_id": "EQ_RTL_0",
+            "classification": "rtl_bug",
+            "owner": "rtl-gen",
+            "llm_loop_allowed": True,
+            "repair_prompt": "Repair RTL",
+            "reason": "one RTL mismatch",
+        }
+    )
+    (sim_dir / "mismatch_classification.json").write_text(
+        json.dumps({"classifications": classifications}) + "\n",
+        encoding="utf-8",
+    )
+    runner = HeadlessWorkflowRunner(root=root, model="fake-contract-model", llm_provider=FakeLLMProvider())
+
+    request = runner._pipeline_repair_request(ip)
+
+    assert request["owner"] == "tb-gen"
+    assert request["goal_ids"] == ["EQ_TB_0", "EQ_TB_1", "EQ_TB_2"]
 
 
 def test_rtl_packet_pass_without_artifacts_is_retryable_blocker(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -1299,6 +1454,53 @@ def test_real_llm_rtl_gen_without_artifacts_blocks(monkeypatch: pytest.MonkeyPat
 
     assert response.status == "blocked"
     assert "files[] rtl-gen artifact" in response.error
+
+
+def test_real_llm_provider_retries_malformed_artifact_response(monkeypatch: pytest.MonkeyPatch):
+    calls = {"count": 0}
+
+    def fake_run(*_args, **_kwargs) -> subprocess.CompletedProcess[str]:
+        calls["count"] += 1
+        if calls["count"] == 1:
+            raw = '{"files": [{"path": "retry_ip/rtl/retry_ip.sv", "kind": "rtl", "content": "module retry_ip;'
+        else:
+            raw = json.dumps(
+                {
+                    "files": [
+                        {
+                            "path": "retry_ip/rtl/retry_ip.sv",
+                            "kind": "rtl",
+                            "content": "module retry_ip; endmodule\n",
+                        }
+                    ]
+                }
+            )
+        return subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout=json.dumps({"raw": raw, "usage": {}, "cost": {}}) + "\n",
+            stderr="",
+        )
+
+    monkeypatch.setenv("ATLAS_RUN_REAL_LLM_TDD", "1")
+    monkeypatch.setenv("ZAI_API_KEY", "test-key")
+    monkeypatch.setenv("ATLAS_HEADLESS_LLM_RETRIES", "1")
+    monkeypatch.setenv("ATLAS_HEADLESS_LLM_RETRY_BACKOFF_S", "0")
+    monkeypatch.setattr("src.headless_workflow.subprocess.run", fake_run)
+
+    response = RealLLMProvider().complete(
+        stage="rtl-gen",
+        model="glm-5.1",
+        system_prompt="",
+        prompt="",
+        context={"ip": "retry_ip"},
+    )
+
+    assert response.status == "pass"
+    assert calls["count"] == 2
+    assert response.parsed_artifacts == [
+        {"path": "retry_ip/rtl/retry_ip.sv", "content": "module retry_ip; endmodule\n", "kind": "rtl"}
+    ]
 
 
 def test_real_llm_provider_resolves_profile_model(monkeypatch: pytest.MonkeyPatch):

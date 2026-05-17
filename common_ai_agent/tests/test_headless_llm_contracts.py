@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import subprocess
 from pathlib import Path
 
@@ -74,10 +75,10 @@ def _base_ssot_doc(ip: str) -> dict:
     return yaml.safe_load(_structured_ssot_yaml(ip, "sample data_in when valid and double it. " * 20))
 
 
-def _run_check_ssot(root: Path, ip: str) -> subprocess.CompletedProcess[str]:
+def _run_check_ssot(root: Path, ip: str, extra_args: list[str] | None = None) -> subprocess.CompletedProcess[str]:
     script = Path(__file__).resolve().parents[1] / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
     return subprocess.run(
-        ["bash", str(script), ip],
+        ["bash", str(script), ip, *(extra_args or [])],
         cwd=str(root),
         text=True,
         capture_output=True,
@@ -119,6 +120,15 @@ def _run_derive_rtl_todos(root: Path, ip: str, *, audit_rtl: bool = False) -> su
         capture_output=True,
         timeout=30,
     )
+
+
+def _load_derive_rtl_todos():
+    path = Path(__file__).resolve().parents[1] / "workflow" / "rtl-gen" / "scripts" / "derive_rtl_todos.py"
+    spec = importlib.util.spec_from_file_location("derive_rtl_todos_under_test", path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_parse_llm_artifacts_tolerates_trailing_json_mode_noise():
@@ -234,6 +244,102 @@ def test_ssot_prompt_for_headless_real_provider_requires_json_artifact_only(tmp_
     assert "machine-readable integration.connections" in call["prompt"]
     log = json.loads((tmp_path / "work" / ip / "logs" / "llm" / "ssot-gen.json").read_text(encoding="utf-8"))
     assert "files[]" in log["error"]
+
+
+def test_check_ssot_disk_starter_accepts_minimal_ssot(tmp_path: Path):
+    ip = "starter_pwm"
+    doc = {
+        "top_module": {
+            "name": ip,
+            "description": "Starter-mode PWM requirement. User-authored intent only; downstream boilerplate can be generated defaults.",
+        },
+        "io_list": {
+            "interfaces": [
+                {
+                    "name": "pins",
+                    "type": "raw",
+                    "ports": [
+                        {"name": "clk", "direction": "input", "width": 1},
+                        {"name": "rst_n", "direction": "input", "width": 1},
+                        {"name": "enable", "direction": "input", "width": 1},
+                        {"name": "pwm_o", "direction": "output", "width": 1},
+                    ],
+                }
+            ],
+        },
+        "function_model": {
+            "description": "When enabled, pwm_o is high while the counter is below duty.",
+            "transactions": [
+                {"id": "tick", "description": "Advance one PWM cycle from user intent."},
+            ],
+        },
+    }
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    result = _run_check_ssot(tmp_path, ip, ["--mode", "starter"])
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "mode=starter" in result.stdout
+
+
+def test_headless_runner_uses_starter_mode_for_ssot_contract_check(tmp_path: Path):
+    ip = "runner_starter_pwm"
+    doc = {
+        "top_module": {"name": ip, "description": "Minimal starter SSOT."},
+        "io_list": {"interfaces": [{"name": "pins", "ports": [{"name": "clk", "direction": "input", "width": 1}]}]},
+        "function_model": {"description": "Starter behavior intent.", "transactions": [{"id": "tick"}]},
+    }
+    _write_ssot_doc(tmp_path, ip, doc)
+    runner = HeadlessWorkflowRunner(root=tmp_path, llm_provider=FakeLLMProvider(), run_mode="starter")
+
+    result = runner._check_ssot_contract(ip, emit_gate=False)
+
+    assert result.status == "pass"
+
+
+def test_check_ssot_disk_engineering_allows_signoff_only_sections_to_be_absent(tmp_path: Path):
+    ip = "engineering_no_pnr_dft"
+    doc = _base_ssot_doc(ip)
+    doc["top_module"]["file"] = f"rtl/{ip}.sv"
+    doc["sub_modules"] = [
+        sub for sub in (doc.get("sub_modules") or [])
+        if not (isinstance(sub, dict) and sub.get("name") == ip)
+    ]
+    doc.pop("dft", None)
+    doc.pop("pnr", None)
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    engineering = _run_check_ssot(tmp_path, ip, ["--mode", "engineering"])
+    signoff = _run_check_ssot(tmp_path, ip, ["--mode", "signoff"])
+
+    assert engineering.returncode == 0, engineering.stdout + engineering.stderr
+    assert "mode=engineering" in engineering.stdout
+    assert signoff.returncode != 0
+    assert "required sections" in signoff.stdout or "top-level section keys" in signoff.stdout
+
+
+def test_repair_ssot_schema_writes_provenance_sidecar_for_generated_defaults(tmp_path: Path):
+    ip = "starter_repair_provenance"
+    doc = _base_ssot_doc(ip)
+    doc.pop("dft", None)
+    doc.pop("pnr", None)
+    doc.pop("quality_gates", None)
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    result = _run_repair_ssot(tmp_path, ip, ["--mode", "starter"])
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    sidecar = tmp_path / ip / "yaml" / f"{ip}.ssot.provenance.json"
+    assert sidecar.is_file()
+    provenance = json.loads(sidecar.read_text(encoding="utf-8"))
+    assert provenance["run_mode"] == "starter"
+    fields = {item["path"]: item for item in provenance["fields"]}
+    assert fields["quality_gates"]["authority"] == "generated_default"
+    assert fields["quality_gates"]["review_needed_for"] == "signoff"
+    assert fields["quality_gates.ssot.pass"]["authority"] == "generated_default"
+    assert fields["quality_gates.ssot.pass"]["signoff_critical"] is True
+    assert fields["top_module"]["authority"] == "user"
+    assert fields["top_module.name"]["authority"] == "user"
 
 
 def test_check_ssot_disk_requires_production_rtl_gen_gate(tmp_path: Path):
@@ -580,9 +686,34 @@ def test_repair_ssot_schema_derives_apb_helpers_and_breaks_output_self_dependenc
     tx["id"] = "FM_APB_WRITE_RW"
     tx["preconditions"] = ["apb_valid_write == 1", "addr == 0x00"]
     tx["inputs"] = ["paddr", "pwdata", "pstrb"]
+    doc["registers"] = {
+        "config": {"register_width": 32, "addr_width": 12},
+        "register_list": [
+            {"name": "CTRL", "offset": 0, "width": 32, "access": "rw"},
+            {"name": "STATUS", "offset": 4, "width": 32, "access": "ro"},
+        ],
+    }
+    doc["function_model"]["state_variables"].extend(
+        [
+            {"name": "ctrl_reg", "reset": 0, "width": 32},
+            {"name": "status_reg", "reset": 0, "width": 32},
+        ]
+    )
+    doc["function_model"]["derived_signals"] = [
+        {
+            "name": "wmask",
+            "expr": "((pstrb & 0xF) * 255)",
+            "width": 32,
+            "description": "stale non-byte-lane APB mask from LLM draft",
+        }
+    ]
     tx["output_rules"] = [
         {"name": "apb_write_pready", "port": "pready", "width": 1, "expr": "1 if apb_valid_write else pready"},
         {"name": "apb_write_pslverr", "port": "pslverr", "width": 1, "expr": "0 if apb_valid_write else pslverr"},
+        {"name": "apb_read_prdata", "port": "prdata", "width": 32, "expr": "read_mux if legal_addr else 0"},
+    ]
+    tx["state_updates"] = [
+        {"name": "ctrl_reg_next", "expr": "pwdata if wr_ctrl else ctrl_reg", "width": 32},
     ]
     doc["rtl_contract"] = {
         "transaction": "FM_APB_WRITE_RW",
@@ -603,14 +734,156 @@ def test_repair_ssot_schema_derives_apb_helpers_and_breaks_output_self_dependenc
     assert derived["apb_valid_write"]["expr"] == "psel and penable and pwrite"
     assert derived["apb_valid_read"]["expr"] == "psel and penable and not pwrite"
     assert derived["addr"]["expr"] == "paddr"
+    assert derived["wmask"]["expr"] == (
+        "((0x000000FF if (pstrb & 0x1) != 0 else 0) | "
+        "(0x0000FF00 if (pstrb & 0x2) != 0 else 0) | "
+        "(0x00FF0000 if (pstrb & 0x4) != 0 else 0) | "
+        "(0xFF000000 if (pstrb & 0x8) != 0 else 0))"
+    )
+    assert derived["legal_addr"]["expr"] == "(addr == 0) or (addr == 4)"
+    assert derived["wr_ctrl"]["expr"] == "apb_valid_write and (addr == 0)"
+    assert derived["rd_status"]["expr"] == "apb_valid_read and (addr == 4)"
+    assert "ctrl_reg if addr == 0 else" in derived["read_mux"]["expr"]
     tx = loaded["function_model"]["transactions"][0]
     expr_by_port = {rule["port"]: rule["expr"] for rule in tx["output_rules"]}
     assert expr_by_port["pready"] == "1"
     assert expr_by_port["pslverr"] == "0"
     preflight = _run_ssot_to_rtl(tmp_path, ip)
     assert "RTL_INPUT_MAP_APB_VALID_WRITE" not in preflight.stdout
+    assert "RTL_INPUT_MAP_LEGAL_ADDR" not in preflight.stdout
+    assert "RTL_INPUT_MAP_READ_MUX" not in preflight.stdout
+    assert "RTL_INPUT_MAP_WR_CTRL" not in preflight.stdout
+    assert "RTL_EXPR_APB_READ_PRDATA" not in preflight.stdout
     assert "RTL_OUTPUT_DEP_APB_WRITE_PREADY" not in preflight.stdout
     assert "RTL_OUTPUT_DEP_APB_WRITE_PSLVERR" not in preflight.stdout
+
+
+def test_repair_ssot_schema_accepts_parameterized_apb_addr_width_and_backfills_outputs(tmp_path: Path):
+    ip = "repair_apb_param_width_ip"
+    doc = _base_ssot_doc(ip)
+    doc["parameters"] = [
+        {"name": "ADDR_WIDTH", "default": 12},
+        {"name": "DATA_WIDTH", "default": 32},
+    ]
+    doc["io_list"] = {
+        "clock_domains": [{"name": "bus", "ports": [{"name": "pclk", "direction": "input", "width": 1}]}],
+        "resets": [{"name": "presetn", "polarity": "active_low", "ports": [{"name": "presetn", "direction": "input", "width": 1}]}],
+        "interfaces": [
+            {
+                "name": "apb4",
+                "type": "apb4",
+                "role": "target",
+                "clock_domain": "bus",
+                "ports": [
+                    {"name": "paddr", "direction": "input", "width": "ADDR_WIDTH"},
+                    {"name": "psel", "direction": "input", "width": 1},
+                    {"name": "penable", "direction": "input", "width": 1},
+                    {"name": "pwrite", "direction": "input", "width": 1},
+                    {"name": "pwdata", "direction": "input", "width": "DATA_WIDTH"},
+                    {"name": "pstrb", "direction": "input", "width": 4},
+                    {"name": "prdata", "direction": "output", "width": "DATA_WIDTH"},
+                    {"name": "pready", "direction": "output", "width": 1},
+                    {"name": "pslverr", "direction": "output", "width": 1},
+                ],
+            }
+        ],
+    }
+    tx = doc["function_model"]["transactions"][0]
+    tx["id"] = "FM_APB_WRITE"
+    tx["name"] = "apb_write"
+    tx["preconditions"] = ["apb_valid_write == 1"]
+    tx.pop("outputs", None)
+    tx["output_rules"] = [
+        {"name": "pready_o", "port": "pready", "expr": 1, "width": 1},
+        {"name": "pslverr_o", "port": "pslverr", "expr": 0, "width": 1},
+    ]
+    tx["state_updates"] = [
+        {"name": "data_out_reg_next", "expr": "pwdata", "width": "DATA_WIDTH"},
+    ]
+    doc["rtl_contract"] = {
+        "transaction": "FM_APB_WRITE",
+        "clock": "pclk",
+        "reset": "presetn",
+        "sample_condition": "apb_valid_write",
+        "input_map": {"paddr": "paddr", "psel": "psel", "penable": "penable", "pwrite": "pwrite"},
+        "output_map": {"pready": "pready", "pslverr": "pslverr", "prdata": "prdata"},
+        "output_rules": list(tx["output_rules"]),
+    }
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip)
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    derived = {item["name"]: item for item in loaded["function_model"]["derived_signals"]}
+    assert derived["addr"]["width"] == "ADDR_WIDTH"
+    tx = loaded["function_model"]["transactions"][0]
+    assert tx["outputs"]
+    assert any(item.get("port") == "pready" for item in tx["outputs"] if isinstance(item, dict))
+    assert any(item.get("state") == "data_out_reg_next" for item in tx["outputs"] if isinstance(item, dict))
+    result = _run_check_ssot(tmp_path, ip)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_repair_ssot_schema_loads_wrapped_expression_scalars(tmp_path: Path):
+    ip = "repair_wrapped_expr_ip"
+    doc = _base_ssot_doc(ip)
+    doc["io_list"] = {
+        "clock_domains": [{"name": "bus", "ports": [{"name": "pclk", "direction": "input", "width": 1}]}],
+        "resets": [{"name": "presetn", "polarity": "active_low", "ports": [{"name": "presetn", "direction": "input", "width": 1}]}],
+        "interfaces": [
+            {
+                "name": "apb4",
+                "type": "apb4",
+                "role": "target",
+                "ports": [
+                    {"name": "paddr", "direction": "input", "width": 12},
+                    {"name": "psel", "direction": "input", "width": 1},
+                    {"name": "penable", "direction": "input", "width": 1},
+                    {"name": "pwrite", "direction": "input", "width": 1},
+                    {"name": "pstrb", "direction": "input", "width": 4},
+                    {"name": "pwdata", "direction": "input", "width": 32},
+                    {"name": "prdata", "direction": "output", "width": 32},
+                    {"name": "pready", "direction": "output", "width": 1},
+                    {"name": "pslverr", "direction": "output", "width": 1},
+                ],
+            }
+        ],
+    }
+    tx = doc["function_model"]["transactions"][0]
+    tx["id"] = "FM_APB_WRITE"
+    tx["output_rules"] = [{"name": "pready_o", "port": "pready", "expr": 1, "width": 1}]
+    tx["state_updates"] = [
+        {
+            "name": "byte_mask",
+            "expr": "((0x000000FF if (pstrb & 0x1) != 0 else 0) | (0x0000FF00 if (pstrb & 0x2) != 0 else 0) | (0x00FF0000 if (pstrb & 0x4) != 0 else 0) | (0xFF000000 if (pstrb & 0x8) != 0 else 0))",
+            "width": 32,
+        }
+    ]
+    doc["rtl_contract"] = {
+        "transaction": "FM_APB_WRITE",
+        "clock": "pclk",
+        "reset": "presetn",
+        "sample_condition": "1",
+        "input_map": {"pstrb": "pstrb", "psel": "psel", "penable": "penable", "pwrite": "pwrite"},
+        "output_map": {"pready": "pready", "pslverr": "pslverr", "prdata": "prdata"},
+        "output_rules": list(tx["output_rules"]),
+    }
+    _write_ssot_doc(tmp_path, ip, doc)
+    ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+    text = ssot_path.read_text(encoding="utf-8")
+    text = text.replace(
+        "expr: ((0x000000FF if (pstrb & 0x1) != 0 else 0) | (0x0000FF00 if (pstrb & 0x2) != 0 else 0) | (0x00FF0000 if (pstrb & 0x4) != 0 else 0) | (0xFF000000 if (pstrb & 0x8) != 0 else 0))",
+        "expr: ((0x000000FF if (pstrb & 0x1) != 0 else 0) | (0x0000FF00 if (pstrb & 0x2) != 0 else 0) | (0x00FF0000 if (pstrb & 0x4) != 0 else 0)\n        | (0xFF000000 if (pstrb & 0x8) != 0 else 0))",
+    )
+    ssot_path.write_text(text, encoding="utf-8")
+
+    repaired = _run_repair_ssot(tmp_path, ip)
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load(ssot_path.read_text(encoding="utf-8"))
+    expr = loaded["function_model"]["transactions"][0]["state_updates"][0]["expr"]
+    assert "0xFF000000" in expr
 
 
 def test_repair_ssot_schema_adds_register_write_effects(tmp_path: Path):
@@ -786,6 +1059,162 @@ def test_derive_rtl_todos_assigns_memory_owner_from_function_state_update(tmp_pa
     assert memory_task["owner_module"] == f"{ip}_irq"
     assert memory_task["owner_file"] == f"rtl/{ip}_irq.sv"
     assert memory_task["owner_match"].startswith("function_model_memory_owner:")
+
+
+def test_derive_rtl_todos_assigns_sync_memory_owner_from_semantic_refs(tmp_path: Path):
+    ip = "memory_owner_ip"
+    doc = _base_ssot_doc(ip)
+    doc["sub_modules"] = [
+        {
+            "name": f"{ip}_sync2",
+            "file": f"rtl/{ip}_sync2.sv",
+            "ownership": "manifest",
+            "function_model_refs": ["function_model.transactions.FM_SYNC_SAMPLE"],
+            "cycle_model_refs": ["cycle_model.pipeline", "cycle_model.latency.sync_visibility"],
+            "dataflow_refs": ["dataflow.input_path"],
+            "source_sections": ["function_model", "cycle_model", "dataflow"],
+        },
+        {"name": ip, "file": f"rtl/{ip}.sv", "ownership": "manifest", "description": "top"},
+    ]
+    doc["memory"] = {
+        "instances": [
+            {"name": "sync_stage1_ff", "type": "register", "width": "GPIO_WIDTH", "depth": 1, "latency": 0},
+            {"name": "sync_prev_ff", "type": "register", "width": "GPIO_WIDTH", "depth": 1, "latency": 0},
+        ]
+    }
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    derived = _run_derive_rtl_todos(tmp_path, ip)
+
+    assert derived.returncode in {0, 2}, derived.stdout + derived.stderr
+    plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    by_ref = {task["source_ref"]: task for task in plan["tasks"]}
+    for name in ("sync_stage1_ff", "sync_prev_ff"):
+        memory_task = by_ref[f"memory.instances.{name}"]
+        assert memory_task["owner_module"] == f"{ip}_sync2"
+        assert memory_task["owner_file"] == f"rtl/{ip}_sync2.sv"
+        assert memory_task["owner_match"].startswith("memory_semantic_terms:")
+
+
+def test_connection_contract_parser_accepts_from_to_module_port_rows():
+    derive = _load_derive_rtl_todos()
+    modules = [
+        {"name": "gpio_apb_regs", "file": "rtl/gpio_apb_regs.sv", "refs": [], "raw": {}},
+        {"name": "gpio_top_int", "file": "rtl/gpio_top_int.sv", "refs": [], "raw": {}},
+    ]
+    doc = {
+        "integration": {
+            "connections": [
+                {
+                    "from_module": "gpio_apb_regs",
+                    "from_port": "data_out_reg",
+                    "to_module": "gpio_top_int",
+                    "to_port": "gpio_out_drv",
+                    "signal": "data_out_reg",
+                }
+            ]
+        }
+    }
+
+    contracts = derive._collect_connection_contracts(doc, modules, "gpio_top")
+
+    assert len(contracts) == 1
+    assert contracts[0]["source_ref"] == "integration.connections[0]"
+    assert contracts[0]["module"] == "gpio_top_int"
+    assert contracts[0]["port"] == "gpio_out_drv"
+    assert contracts[0]["signal"] == "data_out_reg"
+    assert contracts[0]["signal_terms"] == ["data_out_reg"]
+    assert contracts[0]["machine_readable"] is True
+
+
+def test_connection_contract_audit_accepts_internal_wiring_module_signal(tmp_path: Path):
+    derive = _load_derive_rtl_todos()
+    ip = "internal_contract_ip"
+    ip_dir = tmp_path / ip
+    rtl_dir = ip_dir / "rtl"
+    rtl_dir.mkdir(parents=True)
+    (rtl_dir / f"{ip}.sv").write_text(
+        f"""
+module {ip}(input logic clk, output logic [15:0] gpio_out);
+  {ip}_top_int u_top_int(.clk(clk), .gpio_out(gpio_out));
+endmodule
+""",
+        encoding="utf-8",
+    )
+    (rtl_dir / f"{ip}_top_int.sv").write_text(
+        f"""
+module {ip}_top_int(input logic clk, output logic [15:0] gpio_out);
+  logic [31:0] data_out_reg;
+  logic [15:0] gpio_out_drv;
+  {ip}_apb_regs u_regs(.clk(clk), .data_out_reg(data_out_reg));
+  assign gpio_out_drv = data_out_reg[15:0];
+  assign gpio_out = gpio_out_drv;
+endmodule
+""",
+        encoding="utf-8",
+    )
+    (rtl_dir / f"{ip}_apb_regs.sv").write_text(
+        f"""
+module {ip}_apb_regs(input logic clk, output logic [31:0] data_out_reg);
+  always @(posedge clk) data_out_reg <= 32'h0;
+endmodule
+""",
+        encoding="utf-8",
+    )
+    plan = {
+        "top": ip,
+        "summary": {
+            "owner_modules": [
+                {"name": f"{ip}_apb_regs", "file": f"rtl/{ip}_apb_regs.sv", "wiring_only": False},
+                {"name": f"{ip}_top_int", "file": f"rtl/{ip}_top_int.sv", "wiring_only": True},
+                {"name": ip, "file": f"rtl/{ip}.sv", "wiring_only": False},
+            ],
+            "rtl_quality_profile": "standard",
+        },
+        "ssot_connection_contracts": [
+            {
+                "source_ref": "integration.connections[0]",
+                "module": f"{ip}_top_int",
+                "port": "gpio_out_drv",
+                "signal": "data_out_reg",
+                "signal_terms": ["data_out_reg"],
+                "machine_readable": True,
+            }
+        ],
+    }
+
+    evidence = derive._audit_manifest_hierarchy(ip_dir, plan)
+
+    assert evidence["status"] == "pass"
+    assert evidence["port_connection_status"] == "pass"
+    assert evidence["connection_contract_status"] == "pass"
+    assert evidence["connection_contract_issues"] == []
+
+
+def test_reserved_register_field_uses_parent_register_evidence_terms():
+    derive = _load_derive_rtl_todos()
+
+    terms = derive._evidence_terms(
+        "registers.field",
+        "registers.register_list.IRQ_EN_RISE.fields.reserved",
+        {"name": "reserved", "reset": 0, "access": "rw"},
+    )
+
+    assert "reserved" not in terms
+    assert {"IRQ_EN_RISE", "IRQ", "EN", "RISE", "GPIO_MASK", "mask"}.issubset(set(terms))
+
+
+def test_register_field_alias_can_use_parent_register_evidence_terms():
+    derive = _load_derive_rtl_todos()
+
+    terms = derive._evidence_terms(
+        "registers.field",
+        "registers.register_list.DATA_OUT.fields.dout",
+        {"name": "dout", "reset": 0, "access": "rw"},
+    )
+
+    assert "dout" in terms
+    assert {"DATA_OUT", "DATA", "OUT"}.issubset(set(terms))
 
 
 def test_repair_ssot_schema_collapses_leaf_manifest_to_top_only(tmp_path: Path):
@@ -1196,9 +1625,13 @@ def test_headless_rtl_gen_can_drive_authoring_packets(tmp_path: Path, monkeypatc
     assert "Packet execution rules" in first_prompt
     assert "active packets" in first_prompt
     assert "closed packets skipped" in first_prompt
+    assert "dummy" not in first_prompt.lower()
+    authoring_plan_text = (tmp_path / "work" / ip / "rtl" / "rtl_authoring_plan.json").read_text(encoding="utf-8")
+    assert "dummy" not in authoring_plan_text.lower()
     packet_paths = sorted((tmp_path / "work" / ip / "rtl" / "authoring_packets").glob("module__rtl_packet_mode_ip_core*.json"))
     assert packet_paths
     packet_json = json.loads(packet_paths[0].read_text(encoding="utf-8"))
+    assert "dummy" not in json.dumps(packet_json).lower()
     assert any("ssot_context" in task for task in packet_json["tasks"])
     provenance = json.loads((tmp_path / "work" / ip / "rtl" / "rtl_authoring_provenance.json").read_text(encoding="utf-8"))
     assert provenance["surface"] == "headless_common_engine"

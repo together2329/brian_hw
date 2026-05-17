@@ -1,0 +1,95 @@
+{
+  "blocked_items": [],
+  "completion_ready": true,
+  "errors": [],
+  "final_audit": {
+    "blockers": [],
+    "passed": "16/16",
+    "status": "pass"
+  },
+  "ip": "arm_m0_min",
+  "items": [
+    {
+      "declared_status": "pass",
+      "errors": [],
+      "evidence_count": 2,
+      "id": "cpu_ip_exists",
+      "missing_count": 0
+    },
+    {
+      "declared_status": "pass",
+      "errors": [],
+      "evidence_count": 3,
+      "id": "wiki_guidance_used",
+      "missing_count": 0
+    },
+    {
+      "declared_status": "pass",
+      "errors": [],
+      "evidence_count": 1,
+      "id": "ssot_exists",
+      "missing_count": 0
+    },
+    {
+      "declared_status": "pass",
+      "errors": [],
+      "evidence_count": 4,
+      "id": "models_exist",
+      "missing_count": 0
+    },
+    {
+      "declared_status": "pass",
+      "errors": [],
+      "evidence_count": 9,
+      "id": "rtl_exists",
+      "missing_count": 0
+    },
+    {
+      "declared_status": "pass",
+      "errors": [],
+      "evidence_count": 2,
+      "id": "compile_and_lint",
+      "missing_count": 0
+    },
+    {
+      "declared_status": "pass",
+      "errors": [],
+      "evidence_count": 3,
+      "id": "tb_and_sim",
+      "missing_count": 0
+    },
+    {
+      "declared_status": "pass",
+      "errors": [],
+      "evidence_count": 2,
+      "id": "equivalence",
+      "missing_count": 0
+    },
+    {
+      "declared_status": "pass",
+      "errors": [],
+      "evidence_count": 1,
+      "id": "coverage",
+      "missing_count": 0
+    },
+    {
+      "declared_status": "pass",
+      "errors": [],
+      "evidence_count": 4,
+      "id": "human_req_approval",
+      "missing_count": 0
+    },
+    {
+      "declared_status": "pass",
+      "errors": [],
+      "evidence_count": 1,
+      "id": "final_audit",
+      "missing_count": 0
+    }
+  ],
+  "schema_version": 1,
+  "source": "arm_m0_min/review/prompt_to_artifact_checklist.json",
+  "status": "pass",
+  "type": "prompt_to_artifact_checklist_audit",
+  "written_to": "arm_m0_min/review/prompt_to_artifact_checklist_audit.json"
+}

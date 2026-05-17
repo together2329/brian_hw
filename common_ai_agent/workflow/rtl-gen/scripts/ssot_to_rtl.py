@@ -16,6 +16,7 @@ import argparse
 import ast
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import sys
@@ -23,6 +24,22 @@ import time
 from typing import Any
 
 import yaml
+
+
+RUN_MODES = {"starter", "engineering", "signoff"}
+
+
+def _normalize_run_mode(value: object) -> str:
+    text = str(value or "signoff").strip().lower().replace("_", "-")
+    aliases = {
+        "eng": "engineering",
+        "sign-off": "signoff",
+        "preview": "starter",
+    }
+    text = aliases.get(text, text)
+    if text not in RUN_MODES:
+        raise SystemExit("[ssot_to_rtl] --mode must be starter, engineering, or signoff")
+    return text
 
 
 def _top_name(doc: dict, fallback: str) -> str:
@@ -389,6 +406,162 @@ def _ast_to_rtl_width(
     return expr
 
 
+def _starter_wrap_nested(node: ast.AST, expr: str) -> str:
+    if isinstance(node, (ast.Name, ast.Constant, ast.Subscript, ast.Call, ast.UnaryOp)):
+        return expr
+    return f"({expr})"
+
+
+def _starter_bool_expr(node: ast.AST, env: dict[str, str], widths: dict[str, int]) -> str:
+    expr, width = _starter_ast_to_rtl_typed(node, env, widths, 1)
+    if width == 1:
+        return _starter_wrap_nested(node, expr)
+    return f"(|{_sv_width_cast(width, expr)})"
+
+
+def _starter_ast_to_rtl_typed(
+    node: ast.AST,
+    env: dict[str, str],
+    widths: dict[str, int],
+    preferred_width: int | None = None,
+) -> tuple[str, int]:
+    """Lower Starter preview rules to reviewable RTL.
+
+    The full rtl-gen path keeps aggressively defensive casts. Starter is an
+    inspection lane, so single-bit boolean rules should read like handwritten
+    combinational RTL while still rejecting unsupported expressions.
+    """
+
+    if isinstance(node, ast.Expression):
+        return _starter_ast_to_rtl_typed(node.body, env, widths, preferred_width)
+    if isinstance(node, ast.Constant):
+        return _rtl_const(node.value), _const_width(node.value)
+    if isinstance(node, ast.Name):
+        if node.id in {"true", "True"}:
+            return "1'b1", 1
+        if node.id in {"false", "False"}:
+            return "1'b0", 1
+        if node.id not in env:
+            raise KeyError(f"unknown name {node.id!r} in SSOT rule expression")
+        return env[node.id], max(int(widths.get(node.id, 32) or 32), 1)
+    if isinstance(node, ast.BoolOp):
+        op = "&" if isinstance(node.op, ast.And) else "|" if isinstance(node.op, ast.Or) else ""
+        if not op:
+            raise ValueError(f"unsupported boolean operator {type(node.op).__name__}")
+        parts = [_starter_bool_expr(value, env, widths) for value in node.values]
+        return f" {op} ".join(parts), 1
+    if isinstance(node, ast.UnaryOp):
+        if isinstance(node.op, ast.Not):
+            return f"~{_starter_bool_expr(node.operand, env, widths)}", 1
+        operand, width = _starter_ast_to_rtl_typed(node.operand, env, widths, preferred_width)
+        ops = {ast.UAdd: "+", ast.USub: "-", ast.Invert: "~"}
+        op = ops.get(type(node.op))
+        if op is None:
+            raise ValueError(f"unsupported unary operator {type(node.op).__name__}")
+        width = max(width, int(preferred_width or 0), 1)
+        return f"{op}{_sv_width_cast(width, operand)}", width
+    if isinstance(node, ast.BinOp):
+        left, left_w = _starter_ast_to_rtl_typed(node.left, env, widths, preferred_width)
+        right, right_w = _starter_ast_to_rtl_typed(node.right, env, widths, preferred_width)
+        ops = {
+            ast.Add: "+",
+            ast.Sub: "-",
+            ast.Mult: "*",
+            ast.FloorDiv: "/",
+            ast.Div: "/",
+            ast.Mod: "%",
+            ast.LShift: "<<",
+            ast.RShift: ">>",
+            ast.BitAnd: "&",
+            ast.BitOr: "|",
+            ast.BitXor: "^",
+        }
+        op = ops.get(type(node.op))
+        if op is None:
+            raise ValueError(f"unsupported binary operator {type(node.op).__name__}")
+        if isinstance(node.op, (ast.BitAnd, ast.BitOr, ast.BitXor)):
+            width = max(left_w, right_w, int(preferred_width or 0), 1)
+            if width == left_w == right_w == 1:
+                return f"{_starter_wrap_nested(node.left, left)} {op} {_starter_wrap_nested(node.right, right)}", 1
+            return f"({_sv_width_cast(width, left)} {op} {_sv_width_cast(width, right)})", width
+        if isinstance(node.op, (ast.LShift, ast.RShift)):
+            width = max(left_w, int(preferred_width or 0), 1)
+            return f"({_sv_width_cast(width, left)} {op} {right})", width
+        width = max(left_w, right_w, int(preferred_width or 0), 1)
+        return f"({left} {op} {right})", width
+    if isinstance(node, ast.Compare):
+        ops = {
+            ast.Eq: "==",
+            ast.NotEq: "!=",
+            ast.Lt: "<",
+            ast.LtE: "<=",
+            ast.Gt: ">",
+            ast.GtE: ">=",
+        }
+        left_node = node.left
+        left, left_w = _starter_ast_to_rtl_typed(left_node, env, widths, None)
+        parts: list[str] = []
+        for op_node, comparator in zip(node.ops, node.comparators):
+            op = ops.get(type(op_node))
+            if op is None:
+                raise ValueError(f"unsupported comparison {type(op_node).__name__}")
+            right, right_w = _starter_ast_to_rtl_typed(comparator, env, widths, None)
+            width = max(left_w, right_w, 1)
+            parts.append(f"{_sv_width_cast(width, left)} {op} {_sv_width_cast(width, right)}")
+            left, left_w = right, right_w
+        return " & ".join(f"({part})" for part in parts), 1
+    if isinstance(node, ast.IfExp):
+        test = _starter_bool_expr(node.test, env, widths)
+        body, body_w = _starter_ast_to_rtl_typed(node.body, env, widths, preferred_width)
+        other, other_w = _starter_ast_to_rtl_typed(node.orelse, env, widths, preferred_width)
+        width = max(body_w, other_w, int(preferred_width or 0), 1)
+        return f"({test} ? {_sv_width_cast(width, body)} : {_sv_width_cast(width, other)})", width
+    if isinstance(node, ast.Subscript):
+        value, _value_w = _starter_ast_to_rtl_typed(node.value, env, widths, None)
+        slice_node = node.slice
+        if isinstance(slice_node, ast.Constant):
+            index = _rtl_const(slice_node.value)
+            return f"{value}[{index}]", 1
+        if isinstance(slice_node, ast.UnaryOp) and isinstance(slice_node.op, (ast.UAdd, ast.USub)):
+            index, _index_w = _starter_ast_to_rtl_typed(slice_node, env, widths, None)
+            return f"{value}[{index}]", 1
+        if isinstance(slice_node, ast.Slice):
+            if slice_node.lower is None or slice_node.upper is None or slice_node.step is not None:
+                raise ValueError("unsupported subscript slice")
+            low, _low_w = _starter_ast_to_rtl_typed(slice_node.lower, env, widths, None)
+            high_exclusive, _high_w = _starter_ast_to_rtl_typed(slice_node.upper, env, widths, None)
+            if not re.fullmatch(r"[0-9]+", low) or not re.fullmatch(r"[0-9]+", high_exclusive):
+                raise ValueError("unsupported dynamic subscript slice")
+            high = max(int(high_exclusive) - 1, int(low))
+            return f"{value}[{high}:{low}]", max(high - int(low) + 1, 1)
+        index, _index_w = _starter_ast_to_rtl_typed(slice_node, env, widths, None)
+        return f"{value}[{index}]", 1
+    if isinstance(node, ast.Call):
+        func = node.func.id if isinstance(node.func, ast.Name) else ""
+        args = list(node.args)
+        if func in {"reduction_or", "reduce_or"} and len(args) == 1:
+            arg, arg_w = _starter_ast_to_rtl_typed(args[0], env, widths, None)
+            return f"(|{_sv_width_cast(arg_w, arg)})", 1
+        if func == "parity" and len(args) == 1:
+            arg, arg_w = _starter_ast_to_rtl_typed(args[0], env, widths, None)
+            return f"(^{_sv_width_cast(arg_w, arg)})", 1
+        raise ValueError(f"unsupported expression call {func or type(node.func).__name__}")
+    raise ValueError(f"unsupported expression node {type(node).__name__}")
+
+
+def _starter_assign_expr(
+    node: ast.AST,
+    env: dict[str, str],
+    widths: dict[str, int],
+    output_width: int,
+) -> str:
+    expr, expr_width = _starter_ast_to_rtl_typed(node, env, widths, output_width)
+    output_width = max(int(output_width or 1), 1)
+    if output_width == expr_width:
+        return expr
+    return _sv_width_cast(output_width, expr)
+
+
 def _rtl_bool(expr: str) -> str:
     text = str(expr or "").strip()
     if text in {"1'b1", "1", "true", "True"}:
@@ -552,21 +725,58 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
         env_widths[name] = int(state_vars[name]["width"])
         sample_env_widths[name] = int(state_vars[name]["width"])
 
+    derived_pending: list[dict] = []
     for item in _derived_signal_items(fm):
         name = _ident(item.get("name") or item.get("signal") or item.get("id") or "")
         raw_expr = item.get("expr", item.get("expression", item.get("value")))
         if not name or raw_expr is None or str(raw_expr).strip() == "":
             continue
-        width = max(_int_value(item.get("width"), 32), 1)
-        try:
-            expr = _ast_to_rtl_width(_parse_rule_expr(raw_expr), env, env_widths, width)
-        except Exception:
+        derived_pending.append({
+            "name": name,
+            "raw_expr": raw_expr,
+            "width": max(_int_value(item.get("width"), 32), 1),
+        })
+    derived_names = {item["name"] for item in derived_pending}
+    unresolved_derived_errors: dict[str, str] = {}
+    while derived_pending:
+        progressed = False
+        next_pending: list[dict] = []
+        for item in derived_pending:
+            name = item["name"]
+            raw_expr = item["raw_expr"]
+            width = int(item["width"])
+            missing_derived_deps = (_expr_names(raw_expr) & derived_names) - set(env)
+            if missing_derived_deps:
+                next_pending.append(item)
+                continue
+            try:
+                expr = _ast_to_rtl_width(_parse_rule_expr(raw_expr), env, env_widths, width)
+            except Exception as exc:
+                still_missing = (_expr_names(raw_expr) & derived_names) - set(env)
+                if still_missing:
+                    next_pending.append(item)
+                    continue
+                unresolved_derived_errors[name] = str(exc)
+                continue
+            casted = _sv_cast(width, expr)
+            env[name] = casted
+            sample_env[name] = casted
+            env_widths[name] = width
+            sample_env_widths[name] = width
+            progressed = True
+        if not next_pending:
+            break
+        if progressed:
+            derived_pending = next_pending
             continue
-        casted = _sv_cast(width, expr)
-        env[name] = casted
-        sample_env[name] = casted
-        env_widths[name] = width
-        sample_env_widths[name] = width
+        for item in next_pending:
+            deps = sorted((_expr_names(item["raw_expr"]) & derived_names) - set(env))
+            unresolved_derived_errors[item["name"]] = (
+                f"unresolved derived signal dependency: {', '.join(deps)}"
+                if deps
+                else "derived signal expression could not be lowered"
+            )
+        break
 
     # Infer field-to-port bindings only when the SSOT uses the same name for
     # the transaction field and DUT input. Ambiguous names remain blockers.
@@ -595,6 +805,16 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
     needed_names |= _expr_names(sample_condition)
     for name in sorted(needed_names):
         if name in env or name in {"true", "false", "True", "False"}:
+            continue
+        if name in derived_names:
+            questions.append(_question(
+                f"RTL_DERIVED_EXPR_{_ident(name).upper()}",
+                f"Rewrite derived signal {name!r} using the supported expression DSL.",
+                unresolved_derived_errors.get(name, f"Derived signal {name!r} could not be lowered to RTL."),
+                ["Use integer, field names, helper names, +, -, *, /, %, <<, >>, &, |, ^, comparisons, if/else expressions, and Python-style and/or/not."],
+                "Keep derived_signals machine-checkable and order-independent.",
+                "Output rules can reuse SSOT helper signals without treating them as DUT input ports.",
+            ))
             continue
         if name in input_ports:
             env[name] = _rtl_eval_ref(name, port_widths.get(name, 32))
@@ -849,6 +1069,193 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
     }, []
 
 
+def _function_model_output_rules(fm: dict) -> list[dict]:
+    rules: list[dict] = []
+    if not isinstance(fm, dict):
+        return rules
+    rules.extend(_rule_items(fm.get("output_rules")))
+    for tx in fm.get("transactions") or []:
+        if isinstance(tx, dict):
+            rules.extend(_rule_items(tx.get("output_rules")))
+    return rules
+
+
+def _function_model_state_updates(fm: dict) -> list[dict]:
+    updates: list[dict] = []
+    if not isinstance(fm, dict):
+        return updates
+    updates.extend(_rule_items(fm.get("state_updates")))
+    for tx in fm.get("transactions") or []:
+        if isinstance(tx, dict):
+            updates.extend(_rule_items(tx.get("state_updates")))
+    return updates
+
+
+def _starter_preview_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict, list[dict], list[dict]]:
+    """Build the lowest-risk Starter RTL preview contract.
+
+    Starter is a fast feedback lane, not signoff. It accepts a compact SSOT
+    with top_module/io_list/function_model, lowers only direct combinational
+    output_rules, and reports everything else as soft/deferred gate evidence.
+    """
+
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    hard_questions: list[dict] = []
+    soft_gates: list[dict] = []
+    if not ports:
+        hard_questions.append(_question(
+            "STARTER_IO_LIST_PORTS",
+            "Declare at least one concrete DUT port before Starter RTL preview.",
+            "io_list did not contain parsable ports.",
+            ["Add io_list.interfaces[].ports[] with name, direction, and width."],
+            "Keep Starter input small, but make pin names explicit.",
+            "The preview generator can emit a compile-checkable module port list.",
+        ))
+        return {}, hard_questions, soft_gates
+
+    if not _contract_value_present(doc.get("cycle_model")):
+        soft_gates.append({
+            "id": "STARTER_CYCLE_MODEL_DEFERRED",
+            "severity": "warning",
+            "status": "deferred",
+            "message": "cycle_model is missing; Starter treats direct output_rules as same-cycle combinational preview only.",
+        })
+
+    state_updates = _function_model_state_updates(fm)
+    state_vars = fm.get("state_variables") if isinstance(fm, dict) else []
+    if state_updates or state_vars:
+        hard_questions.append(_question(
+            "STARTER_SEQUENTIAL_CONTRACT",
+            "Add clock/reset or use Engineering mode for sequential Starter preview.",
+            "function_model has state_variables/state_updates, so a combinational preview would hide state behavior.",
+            ["Add rtl_contract.clock/reset/reset_active and rerun.", "Use --mode engineering for the full rtl-gen authoring loop."],
+            "Keep Starter combinational unless the sequential timing contract is explicit.",
+            "Prevents a fast preview from pretending stateful RTL is complete.",
+        ))
+
+    by_name = {p["name"]: p for p in ports}
+    input_ports = {p["name"] for p in ports if str(p.get("direction") or "").lower() in {"input", "inout"}}
+    output_ports = {p["name"] for p in ports if str(p.get("direction") or "").lower() in {"output", "inout"}}
+    if not output_ports:
+        hard_questions.append(_question(
+            "STARTER_OUTPUT_PORT",
+            "Declare at least one DUT output port before Starter RTL preview.",
+            "io_list has no output/inout port that output_rules can drive.",
+            ["Add an output port under io_list.interfaces[].ports[]."],
+            "Expose the observable behavior as a DUT output.",
+            "The preview can compile and be inspected immediately.",
+        ))
+
+    contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
+    output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
+    input_map = contract.get("input_map") if isinstance(contract.get("input_map"), dict) else {}
+    env: dict[str, str] = {"true": "1'b1", "false": "1'b0", "True": "1'b1", "False": "1'b0"}
+    widths: dict[str, int] = {"true": 1, "false": 1, "True": 1, "False": 1}
+    for port in ports:
+        env[port["name"]] = port["name"]
+        widths[port["name"]] = _port_width(port)
+    for field, port in input_map.items():
+        port_name = _ident(port)
+        env[_ident(field)] = port_name
+        widths[_ident(field)] = widths.get(port_name, 32)
+    for param in _param_items(doc.get("parameters")):
+        name = _ident(param.get("name") or "")
+        if not name:
+            continue
+        value = _int_value(param.get("default", param.get("value", 0)), 0)
+        env[name] = str(value)
+        widths[name] = max(int(value).bit_length(), 1)
+
+    raw_rules = _function_model_output_rules(fm)
+    if not raw_rules:
+        hard_questions.append(_question(
+            "STARTER_OUTPUT_RULES",
+            "Add direct function_model.output_rules before Starter RTL preview.",
+            "Starter can only emit deterministic preview RTL from machine-checkable output_rules.",
+            ["Add function_model.output_rules[] or function_model.transactions[].output_rules[] with name/expr/port."],
+            "Use prose for context, but put preview behavior in output_rules.",
+            "The preview RTL and later FL/TB checks share the same expression contract.",
+        ))
+
+    outputs: list[dict] = []
+    driven: set[str] = set()
+    for idx, rule in enumerate(raw_rules):
+        name = _ident(rule.get("name") or rule.get("output") or rule.get("port") or f"output_{idx}")
+        port = _ident(rule.get("port") or output_map.get(name) or output_map.get(rule.get("name")) or name)
+        if port not in output_ports:
+            hard_questions.append(_question(
+                f"STARTER_OUTPUT_MAP_{name.upper()}",
+                f"Map Starter output rule {name!r} to a declared DUT output.",
+                f"Rule targets {port!r}, but io_list does not declare that output port.",
+                [f"Set output_rules[{idx}].port or rtl_contract.output_map.{name} to a declared output."],
+                "Make every Starter rule land on a concrete DUT pin.",
+                "The generated preview can compile without inventing output ports.",
+            ))
+            continue
+        raw_expr = rule.get("expr", rule.get("expression", rule.get("value")))
+        if raw_expr is None or str(raw_expr).strip() == "":
+            hard_questions.append(_question(
+                f"STARTER_EXPR_{name.upper()}",
+                f"Give Starter output rule {name!r} an executable expression.",
+                "The rule has no expr/expression/value.",
+                ["Use input names, constants, arithmetic, bitwise, comparison, and/or/not expressions."],
+                "Keep Starter preview deterministic.",
+                "The expression can be lowered directly to RTL.",
+            ))
+            continue
+        missing = sorted(_expr_names(raw_expr) - set(env) - {"true", "false", "True", "False"})
+        for missing_name in missing:
+            hard_questions.append(_question(
+                f"STARTER_INPUT_MAP_{_ident(missing_name).upper()}",
+                f"Map expression name {missing_name!r} to a declared input port.",
+                f"Rule {name!r} references {missing_name!r}, but no matching port or rtl_contract.input_map exists.",
+                [f"Rename the expression to a declared input port or add rtl_contract.input_map.{missing_name}: <port>."],
+                "Keep Starter expressions tied to concrete DUT pins.",
+                "The preview can compile without guessing interface vocabulary.",
+            ))
+        if missing:
+            continue
+        try:
+            expr = _starter_assign_expr(_parse_rule_expr(raw_expr), env, widths, _port_width(by_name[port]))
+        except Exception as exc:
+            hard_questions.append(_question(
+                f"STARTER_EXPR_{name.upper()}",
+                f"Rewrite Starter output rule {name!r} using the supported expression DSL.",
+                str(exc),
+                ["Use constants, input names, +, -, *, /, %, <<, >>, &, |, ^, comparisons, if/else, and/or/not."],
+                "Keep Starter preview machine-checkable.",
+                "The preview generator can lower the rule directly to RTL.",
+            ))
+            continue
+        outputs.append({
+            "name": name,
+            "port": port,
+            "expr": expr,
+            "width": _port_width(by_name[port]),
+            "source": rule,
+        })
+        driven.add(port)
+
+    undriven = sorted(output_ports - driven)
+    if undriven:
+        soft_gates.append({
+            "id": "STARTER_UNDRIVEN_OUTPUTS_DEFAULT_ZERO",
+            "severity": "warning",
+            "status": "deferred",
+            "message": "Starter ties undeclared-output-rule outputs to zero for preview only.",
+            "ports": undriven,
+        })
+
+    if hard_questions:
+        return {}, hard_questions, soft_gates
+    return {
+        "top": top,
+        "outputs": outputs,
+        "undriven_outputs": undriven,
+        "source": "starter:function_model.output_rules",
+    }, [], soft_gates
+
+
 def _sv_cast(width: int, expr: str) -> str:
     return _sv_width_cast(width, expr)
 
@@ -990,6 +1397,122 @@ def _has_resolved_optional_policy(doc: dict) -> bool:
     return False
 
 
+def _has_explicit_apb_illegal_access_policy(doc: dict, regs: object, low: str) -> bool:
+    """Detect concrete APB error policy already captured in SSOT.
+
+    This gate should ask a human only when the SSOT mentions illegal/unmapped
+    APB accesses without saying what the bus-visible response is. Accept the
+    policy when the SSOT explicitly defines pslverr plus at least one concrete
+    response surface such as read data, ready timing, or state side effects.
+    """
+    rtl_contract = doc.get("rtl_contract") if isinstance(doc, dict) else {}
+    if isinstance(rtl_contract, dict):
+        for key in ("apb_illegal_access_policy", "illegal_access_policy", "unmapped_access_policy"):
+            policy = rtl_contract.get(key)
+            if not isinstance(policy, dict):
+                continue
+            response = policy.get("response") if isinstance(policy.get("response"), dict) else policy
+            has_error = _scalar_one(response.get("pslverr")) or _scalar_one(response.get("error"))
+            has_surface = (
+                _scalar_one(response.get("pready"))
+                or _scalar_zero(response.get("prdata"))
+                or str(policy.get("state_update") or policy.get("state_updates") or "").strip().lower() in {
+                    "none",
+                    "no state update",
+                    "no state updates",
+                }
+            )
+            if has_error and has_surface:
+                return True
+
+    text = "\n".join(
+        [
+            low,
+            _text_blob(regs).lower(),
+            _text_blob(rtl_contract).lower(),
+            _text_blob(doc.get("function_model") if isinstance(doc, dict) else {}).lower(),
+            _text_blob(doc.get("error_handling") if isinstance(doc, dict) else {}).lower(),
+            _text_blob(doc.get("requirements") if isinstance(doc, dict) else {}).lower(),
+            _text_blob(doc.get("custom") if isinstance(doc, dict) else {}).lower(),
+        ]
+    )
+    if not any(tok in text for tok in ("illegal address", "illegal access", "unsupported address", "unmapped")):
+        return False
+
+    pslverr_policy = "pslverr_on_decode_error" in text or (
+        "pslverr" in text
+        and any(
+            tok in text
+            for tok in (
+                "pslverr=1",
+                "pslverr = 1",
+                "pslverr: 1",
+                "forces pslverr",
+                "assert pslverr",
+                "pslverr asserts",
+                "pslverr asserted",
+            )
+        )
+    )
+    read_policy = any(
+        tok in text
+        for tok in (
+            "illegal_read_returns",
+            "unmapped_read_data",
+            "prdata=0",
+            "prdata = 0",
+            "prdata: 0",
+            "read returns prdata=0",
+            "read returns 0",
+            "unmapped reads return 0",
+            "read data zero",
+            "returns zero",
+            "read as zero",
+        )
+    )
+    ready_policy = "pready" in text and any(
+        tok in text
+        for tok in (
+            "pready=1",
+            "pready = 1",
+            "pready: 1",
+            "pready asserted",
+            "no slave backpressure",
+        )
+    )
+    state_policy = "illegal_write_policy" in text or any(
+        tok in text
+        for tok in (
+            "no state update",
+            "no state updates",
+            "do not modify state",
+            "does not modify state",
+            "without changing",
+            "writes ignored",
+            "illegal writes are ignored",
+            "no side effect",
+            "no side effects",
+        )
+    )
+    return pslverr_policy and (read_policy or ready_policy or state_policy)
+
+
+def _scalar_one(value: object) -> bool:
+    if value is True:
+        return True
+    if isinstance(value, (int, float)) and value == 1:
+        return True
+    return str(value).strip().lower() in {"1", "1'b1", "true", "assert", "asserted", "yes"}
+
+
+def _scalar_zero(value: object) -> bool:
+    if value is False:
+        return True
+    if isinstance(value, (int, float)) and value == 0:
+        return True
+    return str(value).strip().lower() in {"0", "0'b0", "false", "zero", "none"}
+
+
 def _question(qid: str, decision: str, evidence: str, options: list[str], recommended: str, effect: str) -> dict:
     return {
         "id": qid,
@@ -1111,7 +1634,7 @@ def _rtl_contract_questions(doc: dict, top: str) -> list[dict]:
                 "illegal_read_returns",
                 "illegal_write_policy",
                 "unmapped_read_data",
-            ))
+            )) or _has_explicit_apb_illegal_access_policy(doc, regs, low)
             if not explicit_error:
                 questions.append(_question(
                     "APB_ILLEGAL_ACCESS_POLICY",
@@ -1220,7 +1743,7 @@ def _source_sections_from_refs(refs: list[str]) -> set[str]:
     return sections
 
 
-def _module_contract_ready(sm: dict) -> bool:
+def _module_contract_ready(sm: dict, doc: dict | None = None) -> bool:
     wiring_only = sm.get("wiring_only") is True or str(sm.get("kind") or "").lower() in {
         "wrapper",
         "adapter",
@@ -1228,13 +1751,18 @@ def _module_contract_ready(sm: dict) -> bool:
         "tie_off",
     }
     if wiring_only:
-        return (
+        direct_contract = (
             _contract_value_present(sm.get("ports"))
             and (
                 _contract_value_present(sm.get("connections"))
                 or _contract_value_present(sm.get("internal_interfaces"))
             )
         )
+        if direct_contract:
+            return True
+        refs = _module_declared_refs(sm)
+        has_wiring_refs = any(ref == "integration" or ref.startswith("integration.") for ref in refs)
+        return bool(has_wiring_refs and doc is not None and _module_has_global_integration_connections(doc, str(sm.get("name") or "")))
     behavior_ref_keys = (
         "function_model_refs",
         "decomposition_refs",
@@ -1258,6 +1786,35 @@ def _module_contract_ready(sm: dict) -> bool:
         and has_source_sections
         and has_behavior_refs
     )
+
+
+def _module_has_global_integration_connections(doc: dict, module_name: str) -> bool:
+    if not module_name:
+        return False
+    integration = doc.get("integration") if isinstance(doc, dict) else {}
+    rows = integration.get("connections") if isinstance(integration, dict) else []
+    if not isinstance(rows, list):
+        return False
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        participants = {
+            str(row.get("module") or "").strip(),
+            str(row.get("from_module") or "").strip(),
+            str(row.get("to_module") or "").strip(),
+        }
+        if module_name not in participants:
+            continue
+        has_signal = _contract_value_present(row.get("signal"))
+        has_port = (
+            _contract_value_present(row.get("port"))
+            or _contract_value_present(row.get("from_port"))
+            or _contract_value_present(row.get("to_port"))
+            or _contract_value_present(row.get("port_map"))
+        )
+        if has_signal and has_port:
+            return True
+    return False
 
 
 def _collect_named_refs(items, prefix: str, key: str = "name", limit: int = 32) -> list[str]:
@@ -1657,7 +2214,7 @@ def _module_contract_questions(doc: dict, top: str) -> list[dict]:
         is_top = name in top_names or Path(rel).stem in top_names
         if is_top:
             continue
-        if _module_contract_ready(sm):
+        if _module_contract_ready(sm, doc):
             continue
         missing_contracts.append(f"{name}:{rel}")
     questions: list[dict] = []
@@ -1860,6 +2417,25 @@ def _reference_scale_gap(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _target_scale_policy_requires_review(ip_dir: Path, plan: dict[str, Any]) -> bool:
+    """Return true only when target-scale review has real reference evidence.
+
+    Target scale is a production signoff policy. It should not stop draft RTL
+    or ordinary small-IP pipeline runs when no calibration/reference profile is
+    present. If a reference candidate or scale-gap report exists, keep the
+    human lock/waiver requirement.
+    """
+    reference_profile = plan.get("reference_profile") if isinstance(plan.get("reference_profile"), dict) else {}
+    candidate = (
+        reference_profile.get("suggested_ssot_target_scale")
+        if isinstance(reference_profile.get("suggested_ssot_target_scale"), dict)
+        else {}
+    )
+    gap = _reference_scale_gap(ip_dir, plan)
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    return bool(candidate or gap or summary.get("reference_profile_present"))
+
+
 def _connection_contract_gap_blocks_human_gate(ip_dir: Path, plan: dict[str, Any]) -> bool:
     gap = _connection_contract_gap(ip_dir, plan)
     return gap.get("required_for_profile") is True and gap.get("status") == "missing"
@@ -1891,7 +2467,11 @@ def _dynamic_todo_blocker_ids(ip_dir: Path) -> set[str]:
         if gate.get("kind") == "target_scale_policy" and completion.get("status") != "pass":
             target_scale = plan.get("target_scale") if isinstance(plan.get("target_scale"), dict) else {}
             waiver = plan.get("target_scale_waiver") if isinstance(plan.get("target_scale_waiver"), dict) else {}
-            if not target_scale and not (waiver.get("approved") is True and waiver.get("reason")):
+            if (
+                _target_scale_policy_requires_review(ip_dir, plan)
+                and not target_scale
+                and not (waiver.get("approved") is True and waiver.get("reason"))
+            ):
                 ids.add("RTL_TARGET_SCALE_POLICY")
         if (
             gate.get("kind") == "manifest_connection_contract_evidence"
@@ -2118,9 +2698,10 @@ def _write_blocked(ip_dir: Path, ip: str, top: str, questions: list[dict]) -> No
     path.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
 
 
-def preflight(ip: str, root: Path) -> None:
+def preflight(ip: str, root: Path, mode: str = "signoff") -> None:
     """Validate that the SSOT has enough semantic contract for rtl-gen."""
 
+    mode = _normalize_run_mode(mode)
     ip_dir = root / ip
     ssot = ip_dir / "yaml" / f"{ip}.ssot.yaml"
     if not ssot.is_file():
@@ -2129,8 +2710,27 @@ def preflight(ip: str, root: Path) -> None:
     if not isinstance(doc, dict):
         raise SystemExit("[ssot_to_rtl] SSOT top-level must be mapping")
     top = _ident(_top_name(doc, ip))
+    ports = _io_ports(doc) or _as_ports(doc)
     (ip_dir / "rtl").mkdir(parents=True, exist_ok=True)
     blocked_path = ip_dir / "rtl" / "rtl_blocked.json"
+    if mode == "starter":
+        contract, hard_questions, soft_gates = _starter_preview_contract(doc, top, ports)
+        deferred_questions = _rtl_contract_questions(doc, top) + _merge_existing_dynamic_blocker_questions(ip_dir, [])
+        if hard_questions:
+            _write_blocked(ip_dir, ip, top, hard_questions)
+            print(f"[SSOT QUESTION] starter rtl preview blocked for {ip}: {len(hard_questions)} hard gate(s)")
+            for q in hard_questions:
+                print(f"- {q['id']}: {q['decision_needed']}")
+            raise SystemExit(2)
+        gates = _starter_preview_gate_report(ip, top, soft_gates, deferred_questions, status="ready")
+        (ip_dir / "rtl" / "rtl_preview_gates.json").write_text(json.dumps(gates, indent=2) + "\n", encoding="utf-8")
+        if blocked_path.exists():
+            blocked_path.unlink()
+        print(
+            f"[rtl-preflight] PASS: {ip} starter preview contract ready "
+            f"(soft={len(soft_gates)} deferred={len(deferred_questions)})"
+        )
+        return
     questions = _rtl_contract_questions(doc, top)
     if questions:
         merged_questions = _merge_existing_dynamic_blocker_questions(ip_dir, questions)
@@ -2464,6 +3064,136 @@ def _write_generic_rule_artifacts(ip_dir: Path, ip: str, top: str, ports: list[d
     (rtl_dir / "rtl_authoring_provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
 
 
+def _starter_preview_rtl_source(ip: str, top: str, ports: list[dict], contract: dict) -> str:
+    by_name = {p["name"]: p for p in ports}
+    output_ports = {p["name"] for p in ports if str(p.get("direction") or "").lower() in {"output", "inout"}}
+    driven = {_ident(item.get("port") or "") for item in contract.get("outputs") or [] if isinstance(item, dict)}
+    lines: list[str] = [
+        f"module {top} (",
+    ]
+    for idx, port in enumerate(ports):
+        suffix = "," if idx < len(ports) - 1 else ""
+        lines.append(f"    {_sv_port_decl(port, driven)}{suffix}")
+    lines += [
+        ");",
+        "",
+        f"    // Starter RTL preview generated from {ip}/yaml/{ip}.ssot.yaml.",
+        "    // Preview-only: deferred gates must close before Engineering or Signoff approval.",
+    ]
+    for item in contract.get("outputs") or []:
+        if not isinstance(item, dict):
+            continue
+        port = _ident(item.get("port") or item.get("name") or "")
+        if not port:
+            continue
+        width = _port_width(by_name.get(port, {"width": item.get("width", 1)}))
+        lines.append(f"    assign {port} = {str(item.get('expr') or _sv_zero(width)).strip()};")
+    for port in sorted(output_ports - driven):
+        width = _port_width(by_name.get(port, {"width": 1}))
+        lines.append(f"    assign {port} = {_sv_zero(width)};")
+    lines += [
+        "endmodule",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def _starter_preview_gate_report(
+    ip: str,
+    top: str,
+    soft_gates: list[dict],
+    deferred_questions: list[dict],
+    *,
+    status: str = "pass",
+) -> dict[str, Any]:
+    deferred = [
+        {
+            "id": str(q.get("id") or ""),
+            "severity": "deferred",
+            "status": "deferred",
+            "decision_needed": q.get("decision_needed"),
+            "evidence": q.get("evidence"),
+        }
+        for q in deferred_questions
+        if isinstance(q, dict)
+    ]
+    return {
+        "schema_version": 1,
+        "type": "starter_rtl_preview_gates",
+        "ip": ip,
+        "top": top,
+        "mode": "starter",
+        "status": status,
+        "hard_gates": [
+            {"id": "STARTER_TOP_MODULE", "status": "pass"},
+            {"id": "STARTER_IO_LIST", "status": "pass"},
+            {"id": "STARTER_FUNCTION_MODEL", "status": "pass"},
+            {"id": "STARTER_RTL_PREVIEW", "status": "pass" if status == "pass" else status},
+        ],
+        "soft_gates": soft_gates,
+        "deferred_gates": deferred,
+        "policy": (
+            "Starter produces fast RTL preview evidence only. Deferred gates remain non-blocking in Starter "
+            "and become blocking in Engineering/Signoff as applicable."
+        ),
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+
+
+def _write_starter_preview_artifacts(
+    ip_dir: Path,
+    ip: str,
+    top: str,
+    ports: list[dict],
+    contract: dict,
+    soft_gates: list[dict],
+    deferred_questions: list[dict],
+) -> None:
+    rtl_dir = ip_dir / "rtl"
+    list_dir = ip_dir / "list"
+    rtl_dir.mkdir(parents=True, exist_ok=True)
+    list_dir.mkdir(parents=True, exist_ok=True)
+    rtl_rel = f"rtl/{top}.sv"
+    (ip_dir / rtl_rel).write_text(_starter_preview_rtl_source(ip, top, ports, contract), encoding="utf-8")
+    (list_dir / f"{ip}.f").write_text(f"{rtl_rel}\n", encoding="utf-8")
+    contract_doc = {
+        "schema_version": 1,
+        "type": "starter_rtl_preview_contract",
+        "ip": ip,
+        "top": top,
+        "mode": "starter",
+        "contract": contract,
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    (rtl_dir / "rtl_contract.json").write_text(json.dumps(contract_doc, indent=2) + "\n", encoding="utf-8")
+    traceability = {
+        "schema_version": 1,
+        "type": "rtl_traceability",
+        "ip": ip,
+        "top": top,
+        "mode": "starter",
+        "rtl_files": [rtl_rel],
+        "source_refs": ["top_module", "io_list", "function_model.output_rules"],
+        "rule": "Starter preview is derived from direct machine-checkable output_rules and is not signoff evidence.",
+    }
+    (rtl_dir / "rtl_traceability.json").write_text(json.dumps(traceability, indent=2) + "\n", encoding="utf-8")
+    provenance = {
+        "schema_version": 1,
+        "type": "rtl_authoring_provenance",
+        "agent": "common_ai_agent",
+        "workflow": "rtl-gen",
+        "surface": "headless_common_engine",
+        "generator": "starter_ssot_preview_seed",
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "rtl_files": [rtl_rel],
+        "authoring_packets": ["starter_function_model_output_rules"],
+        "mode": "starter",
+    }
+    (rtl_dir / "rtl_authoring_provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+    gates = _starter_preview_gate_report(ip, top, soft_gates, deferred_questions)
+    (rtl_dir / "rtl_preview_gates.json").write_text(json.dumps(gates, indent=2) + "\n", encoding="utf-8")
+
+
 def _sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -2600,7 +3330,8 @@ def _existing_rtl_preflight_questions(ip_dir: Path, ip: str, top: str, doc: dict
     return questions
 
 
-def generate(ip: str, root: Path) -> None:
+def generate(ip: str, root: Path, mode: str = "signoff") -> None:
+    mode = _normalize_run_mode(mode)
     ip_dir = root / ip
     ssot = ip_dir / "yaml" / f"{ip}.ssot.yaml"
     if not ssot.is_file():
@@ -2613,6 +3344,24 @@ def generate(ip: str, root: Path) -> None:
     (ip_dir / "rtl").mkdir(parents=True, exist_ok=True)
     (ip_dir / "list").mkdir(parents=True, exist_ok=True)
     blocked_path = ip_dir / "rtl" / "rtl_blocked.json"
+
+    if mode == "starter":
+        contract, hard_questions, soft_gates = _starter_preview_contract(doc, top, ports)
+        deferred_questions = _rtl_contract_questions(doc, top) + _merge_existing_dynamic_blocker_questions(ip_dir, [])
+        if hard_questions:
+            _write_blocked(ip_dir, ip, top, hard_questions)
+            print(f"[SSOT QUESTION] starter rtl preview blocked for {ip}: {len(hard_questions)} hard gate(s)")
+            for q in hard_questions:
+                print(f"- {q['id']}: {q['decision_needed']}")
+            raise SystemExit(2)
+        _write_starter_preview_artifacts(ip_dir, ip, top, ports, contract, soft_gates, deferred_questions)
+        if blocked_path.exists():
+            blocked_path.unlink()
+        print(
+            f"[ssot_to_rtl] starter preview generated for {ip}: rtl/{top}.sv "
+            f"(soft={len(soft_gates)} deferred={len(deferred_questions)})"
+        )
+        return
 
     contract_questions = _rtl_contract_questions(doc, top)
     if contract_questions:
@@ -2669,12 +3418,14 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("ip")
     ap.add_argument("--root", default=".")
+    ap.add_argument("--mode", default="", help="starter, engineering, or signoff; defaults to ATLAS_RUN_MODE/signoff")
     ap.add_argument("--preflight-only", action="store_true", help="only check SSOT readiness and write rtl_blocked.json on semantic gaps")
     ns = ap.parse_args()
+    mode = _normalize_run_mode(ns.mode or os.environ.get("ATLAS_RUN_MODE") or "signoff")
     if ns.preflight_only:
-        preflight(ns.ip, Path(ns.root).resolve())
+        preflight(ns.ip, Path(ns.root).resolve(), mode=mode)
         return 0
-    generate(ns.ip, Path(ns.root).resolve())
+    generate(ns.ip, Path(ns.root).resolve(), mode=mode)
     return 0
 
 

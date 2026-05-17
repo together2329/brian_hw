@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "ip": "dma_real",
+  "top_module": "dma_real_top",
+  "tb_module": "dma_real_tb",
+  "dut_instance": "u_dut",
+  "test_framework": "cocotb",
+  "language": "systemverilog",
+  "files": {
+    "tb_wrapper": "tb/cocotb/dma_real_tb.sv",
+    "test_main": "tb/cocotb/test_dma_real.py"
+  },
+  "scenarios": [
+    {"id": "SC_001", "name": "single_channel_transfer", "function": "test_sc001_single_channel_transfer"},
+    {"id": "SC_002", "name": "alignment_error", "function": "test_sc002_alignment_error"},
+    {"id": "SC_003", "name": "zero_length_error", "function": "test_sc003_zero_length_error"},
+    {"id": "SC_004", "name": "busy_reject", "function": "test_sc004_busy_reject"},
+    {"id": "SC_007", "name": "global_enable_disable", "function": "test_sc007_global_enable_disable"},
+    {"id": "SC_008", "name": "interrupt_clear", "function": "test_sc008_interrupt_clear"}
+  ],
+  "interfaces": {
+    "apb_slave": {"driver": "APBDriver", "ports": ["psel", "penable", "pwrite", "paddr", "pwdata", "prdata", "pready", "pslverr"]},
+    "ahb_slave_model": {"type": "memory", "ports": ["haddr", "hwrite", "htrans", "hsize", "hburst", "hwdata", "hrdata", "hready", "hresp", "hbusreq", "hgrant"]},
+    "irq_outputs": {"monitor": "irq, irq_combined"},
+    "dma_status": {"monitor": "ch_busy, ch_done, ch_error, ch_err_code, arb_grant"}
+  },
+  "compile": {
+    "rtl_files": ["rtl/dma_real_top.sv", "rtl/dma_real_apb_cfg.sv", "rtl/dma_real_arbiter.sv", "rtl/dma_real_channel.sv", "rtl/dma_real_ahb_master.sv", "rtl/dma_real_irq.sv"],
+    "tb_files": ["tb/cocotb/dma_real_tb.sv"],
+    "iverilog_flags": "-g2012",
+    "top": "dma_real_tb"
+  }
+}

@@ -1,0 +1,407 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 7,
+      "key": "fsm",
+      "module_task_count": 70,
+      "rule": "Owner module simple_pwm is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/simple_pwm.sv",
+      "name": "simple_pwm",
+      "refs": [
+        "top_module",
+        "function_model",
+        "cycle_model"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/simple_pwm.sv",
+        "name": "simple_pwm",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "enable",
+          "pwm_control_enable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "enable",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "duty_cycle",
+          "pwm_control_duty_cycle"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "duty_cycle",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "COUNTER_WIDTH"
+      },
+      {
+        "aliases": [
+          "period",
+          "pwm_control_period"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "period",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "COUNTER_WIDTH"
+      },
+      {
+        "aliases": [
+          "pwm_out",
+          "pwm_output_pwm_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pwm_out",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 4,
+    "open_required_count": 4,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "simple_pwm",
+  "kind": "module",
+  "owner_file": "rtl/simple_pwm.sv",
+  "owner_module": "simple_pwm",
+  "packet_id": "module__simple_pwm__fsm",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "fsm.state": 2,
+      "fsm.transition": 2
+    },
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 7,
+      "key": "fsm",
+      "module_task_count": 70,
+      "rule": "Owner module simple_pwm is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 4,
+    "required_count": 4,
+    "source_refs": [
+      "fsm.pwm_fsm.states.state_0",
+      "fsm.pwm_fsm.states.state_1",
+      "fsm.pwm_fsm.transitions.transition_0",
+      "fsm.pwm_fsm.transitions.transition_1"
+    ],
+    "status_counts": {
+      "open": 4
+    },
+    "task_count": 4
+  },
+  "tasks": [
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state pwm_fsm.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.pwm_fsm.states.state_0",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.pwm_fsm.states.state_0.\nOwner: simple_pwm in rtl/simple_pwm.sv via single_owner.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0066",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.pwm_fsm.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.pwm_fsm.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state pwm_fsm.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.pwm_fsm.states.state_1",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.pwm_fsm.states.state_1.\nOwner: simple_pwm in rtl/simple_pwm.sv via single_owner.\nSSOT item context: value=RUNNING.",
+      "evidence_terms": [
+        "RUNNING"
+      ],
+      "id": "RTL-0067",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.pwm_fsm.states.state_1",
+      "ssot_context": {
+        "value": "RUNNING"
+      },
+      "ssot_refs": [
+        "fsm.pwm_fsm.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RUNNING"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition pwm_fsm.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.pwm_fsm.transitions.transition_0",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "fsm.pwm_fsm.transitions.transition_0 condition is implemented as RTL control logic: enable == 1",
+        "fsm.pwm_fsm.transitions.transition_0 transition path IDLE -> RUNNING is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.pwm_fsm.transitions.transition_0.\nOwner: simple_pwm in rtl/simple_pwm.sv via single_owner.\nSSOT item context: from=IDLE; to=RUNNING; condition=enable == 1.",
+      "evidence_terms": [
+        "IDLE",
+        "RUNNING"
+      ],
+      "id": "RTL-0068",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.pwm_fsm.transitions.transition_0",
+      "ssot_context": {
+        "condition": "enable == 1",
+        "from": "IDLE",
+        "to": "RUNNING"
+      },
+      "ssot_refs": [
+        "fsm.pwm_fsm.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RUNNING"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition pwm_fsm.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.pwm_fsm.transitions.transition_1",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "fsm.pwm_fsm.transitions.transition_1 condition is implemented as RTL control logic: enable == 0",
+        "fsm.pwm_fsm.transitions.transition_1 transition path RUNNING -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.pwm_fsm.transitions.transition_1.\nOwner: simple_pwm in rtl/simple_pwm.sv via single_owner.\nSSOT item context: from=RUNNING; to=IDLE; condition=enable == 0.",
+      "evidence_terms": [
+        "IDLE",
+        "RUNNING"
+      ],
+      "id": "RTL-0069",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.pwm_fsm.transitions.transition_1",
+      "ssot_context": {
+        "condition": "enable == 0",
+        "from": "RUNNING",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.pwm_fsm.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RUNNING"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "97147a83467339f3d8bdf10370e6366a4b8a3eeca0cb4ad8bac3bf660a00d118",
+  "top": "simple_pwm",
+  "type": "rtl_authoring_packet"
+}

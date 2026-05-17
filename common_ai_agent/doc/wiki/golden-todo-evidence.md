@@ -35,6 +35,14 @@ Use `human_review_required` for product/spec decisions, waivers, architecture
 tradeoffs, security/safety policy, unreachable coverage, and any proposal to
 change locked authority.
 
+For requirement approval, `human_review_required` must resolve to an approved
+artifact plus manifest, not just prose:
+
+- `<ip>/req/*.md`
+- `<ip>/req/approval_manifest.json`
+- matching source/target SHA256 values
+- resolved review decision when a review queue item exists
+
 Use `llm_reason_allowed` only for low-risk docs, comments, explanation, or
 non-behavioral cleanup.
 

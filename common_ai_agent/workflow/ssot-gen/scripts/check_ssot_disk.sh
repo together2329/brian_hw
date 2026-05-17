@@ -7,15 +7,48 @@
 #
 # Inputs (env):
 #   IP_NAME — IP slug (auto-detected from cwd if missing)
-#   MIN_YAML — minimum bytes for <ip>.ssot.yaml (default 4000)
-#   MIN_SECTIONS — minimum top-level section count (default 34)
+#   ATLAS_RUN_MODE — starter | engineering | signoff
+#   MIN_YAML — minimum bytes for <ip>.ssot.yaml (mode default)
+#   MIN_SECTIONS — minimum top-level section count (mode default)
 #
 # Exit 0 = real SSOT YAML exists, has section keys, parses as YAML.
 # Exit 1 = file missing / too small / sections missing / not valid YAML.
 
 set -u
 
-IP="${IP_NAME:-${1:-}}"
+RUN_MODE="${ATLAS_RUN_MODE:-signoff}"
+IP="${IP_NAME:-}"
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --mode)
+            RUN_MODE="${2:-}"
+            shift 2
+            ;;
+        --mode=*)
+            RUN_MODE="${1#--mode=}"
+            shift
+            ;;
+        --run-mode)
+            RUN_MODE="${2:-}"
+            shift 2
+            ;;
+        --run-mode=*)
+            RUN_MODE="${1#--run-mode=}"
+            shift
+            ;;
+        *)
+            [ -z "$IP" ] && IP="$1"
+            shift
+            ;;
+    esac
+done
+RUN_MODE=$(printf '%s' "$RUN_MODE" | tr '[:upper:]_' '[:lower:]-')
+case "$RUN_MODE" in
+    starter|engineering|signoff) ;;
+    eng) RUN_MODE="engineering" ;;
+    sign-off) RUN_MODE="signoff" ;;
+    *) echo "[check_ssot_disk] FAIL: --mode must be starter, engineering, or signoff"; exit 1 ;;
+esac
 if [ -z "$IP" ]; then
     IP=$(find . -maxdepth 3 -type f -name "*.ssot.yaml" 2>/dev/null \
          | sort -t/ -k2 | head -1 | awk -F/ '{print $(NF-2)}')
@@ -29,14 +62,28 @@ for cand in "$IP/yaml/$IP.ssot.yaml" "$IP/yaml/${IP}_ssot.yaml" "$IP/yaml/$IP.ss
 done
 [ -z "$YAML" ] && { echo "[check_ssot_disk] FAIL: no SSOT YAML at $IP/yaml/${IP}.ssot.yaml or _ssot.yaml"; exit 1; }
 
-MIN_YAML="${MIN_YAML:-4000}"
-MIN_SECTIONS="${MIN_SECTIONS:-34}"
+case "$RUN_MODE" in
+    starter)
+        MIN_YAML="${MIN_YAML:-120}"
+        MIN_SECTIONS="${MIN_SECTIONS:-3}"
+        REQUIRED='top_module|io_list|function_model'
+        ;;
+    engineering)
+        MIN_YAML="${MIN_YAML:-3000}"
+        MIN_SECTIONS="${MIN_SECTIONS:-30}"
+        REQUIRED='top_module|sub_modules|decomposition|rtl_contract|parameters|io_list|features|dataflow|function_model|cycle_model|clock_reset_domains|cdc_requirements|rdc_requirements|registers|memory|interrupts|fsm|timing|power|security|error_handling|debug_observability|integration|synthesis|coding_rules|reuse_modules|custom|dir_structure|filelist|test_requirements|quality_gates|traceability|workflow_todos|generation_flow'
+        ;;
+    signoff)
+        MIN_YAML="${MIN_YAML:-4000}"
+        MIN_SECTIONS="${MIN_SECTIONS:-34}"
+        REQUIRED='top_module|sub_modules|decomposition|rtl_contract|parameters|io_list|features|dataflow|function_model|cycle_model|clock_reset_domains|cdc_requirements|rdc_requirements|registers|memory|interrupts|fsm|timing|power|security|error_handling|debug_observability|integration|dft|synthesis|pnr|coding_rules|reuse_modules|custom|dir_structure|filelist|test_requirements|quality_gates|traceability|workflow_todos|generation_flow'
+        ;;
+esac
 
 SZ=$(wc -c < "$YAML" | tr -d ' ')
 [ "$SZ" -lt "$MIN_YAML" ] && { echo "[check_ssot_disk] FAIL: $YAML = ${SZ}B (need ≥${MIN_YAML})"; exit 1; }
 
 # Required canonical keys (spelling matches ssot-template.yaml).
-REQUIRED='top_module|sub_modules|decomposition|rtl_contract|parameters|io_list|features|dataflow|function_model|cycle_model|clock_reset_domains|cdc_requirements|rdc_requirements|registers|memory|interrupts|fsm|timing|power|security|error_handling|debug_observability|integration|dft|synthesis|pnr|coding_rules|reuse_modules|custom|dir_structure|filelist|test_requirements|quality_gates|traceability|workflow_todos|generation_flow'
 HITS=$(grep -cE "^($REQUIRED):" "$YAML" || echo 0)
 if [ "$HITS" -lt "$MIN_SECTIONS" ]; then
     echo "[check_ssot_disk] FAIL: $YAML only has $HITS top-level section keys (need ≥$MIN_SECTIONS)"
@@ -45,13 +92,14 @@ fi
 
 # YAML parseability via python.
 if command -v python3 >/dev/null 2>&1; then
-    python3 - "$YAML" <<'PY' 2>/tmp/_ssot_yaml.err
+    python3 - "$YAML" "$RUN_MODE" <<'PY' 2>/tmp/_ssot_yaml.err
 import re
 import sys
 from pathlib import Path
 import yaml
 
 path = sys.argv[1]
+run_mode = (sys.argv[2] if len(sys.argv) > 2 else "signoff").strip().lower().replace("_", "-")
 ip = Path(path).parents[1].name
 doc = yaml.safe_load(open(path, encoding="utf-8"))
 if not isinstance(doc, dict):
@@ -174,6 +222,42 @@ def require_present(value, path):
         raise SystemExit(f"{path} is required")
     return value
 
+def require_top_sub_module_consistency(doc, ip):
+    top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+    top_name = str(ci_get(top, "name") or "").strip()
+    top_file = str(ci_get(top, "file") or "").strip()
+    if not top_name:
+        raise SystemExit("top_module.name is required")
+    if not top_file and run_mode == "signoff":
+        raise SystemExit("top_module.file is required")
+    subs = as_list(doc.get("sub_modules"))
+    for idx, sub in enumerate(subs):
+        if not isinstance(sub, dict):
+            continue
+        sname = str(ci_get(sub, "name") or "").strip()
+        sfile = str(ci_get(sub, "file") or "").strip()
+        wiring_only = bool(ci_get(sub, "wiring_only"))
+        spath = f"sub_modules[{idx}]"
+        if sname and sname == ip and not wiring_only:
+            raise SystemExit(
+                f"{spath}.name='{sname}' duplicates the IP name; rename, drop, "
+                "or mark wiring_only:true so rtl-gen can tell it from the top wrapper"
+            )
+        # Reject sub_module name == top_module.name only when the top name
+        # differs from the IP name (new convention `<ip>_top`). Legacy IPs
+        # where top_module.name == ip historically declare the top wrapper
+        # twice; tolerate that pattern so existing reference runs stay valid.
+        if sname and sname == top_name and top_name != ip:
+            raise SystemExit(
+                f"{spath}.name='{sname}' duplicates top_module.name; the top is "
+                "declared by top_module and must not appear as a sub_module entry"
+            )
+        if sfile and sfile == top_file and not wiring_only:
+            raise SystemExit(
+                f"{spath}.file='{sfile}' collides with top_module.file; mark this "
+                "entry wiring_only:true or change its file path"
+            )
+
 def require_bit_range(field, path):
     bits = ci_get(field, "bits", "bit_range", "range")
     if isinstance(bits, list) and len(bits) == 2 and all(present(v) for v in bits):
@@ -272,12 +356,31 @@ def require_coverage_contract(tr):
             if model not in source_ref and not (domain == "cycle" and source_ref.startswith("fsm.")):
                 raise SystemExit(f"{bpath}.source_ref must trace to {model} or a declared FSM for cycle coverage")
 
-required = "top_module sub_modules decomposition rtl_contract parameters io_list features dataflow function_model cycle_model clock_reset_domains cdc_requirements rdc_requirements registers memory interrupts fsm timing power security error_handling debug_observability integration dft synthesis pnr coding_rules reuse_modules custom dir_structure filelist test_requirements quality_gates traceability workflow_todos generation_flow".split()
+required_by_mode = {
+    "starter": "top_module io_list function_model".split(),
+    "engineering": "top_module sub_modules decomposition rtl_contract parameters io_list features dataflow function_model cycle_model clock_reset_domains cdc_requirements rdc_requirements registers memory interrupts fsm timing power security error_handling debug_observability integration synthesis coding_rules reuse_modules custom dir_structure filelist test_requirements quality_gates traceability workflow_todos generation_flow".split(),
+    "signoff": "top_module sub_modules decomposition rtl_contract parameters io_list features dataflow function_model cycle_model clock_reset_domains cdc_requirements rdc_requirements registers memory interrupts fsm timing power security error_handling debug_observability integration dft synthesis pnr coding_rules reuse_modules custom dir_structure filelist test_requirements quality_gates traceability workflow_todos generation_flow".split(),
+}
+required = required_by_mode.get(run_mode, required_by_mode["signoff"])
 missing = [key for key in required if key not in doc]
 if "decomposition" in missing and "rtl_contract" in doc:
     missing.remove("decomposition")
 if missing:
     raise SystemExit("missing required sections: " + ", ".join(missing))
+
+if run_mode == "starter":
+    top = require_present(doc.get("top_module"), "top_module")
+    if not isinstance(top, dict):
+        raise SystemExit("top_module must be a mapping")
+    io_min = require_present(doc.get("io_list"), "io_list")
+    if not isinstance(io_min, dict):
+        raise SystemExit("io_list must be a mapping")
+    fm_min = require_present(doc.get("function_model"), "function_model")
+    if not isinstance(fm_min, dict):
+        raise SystemExit("function_model must be a mapping")
+    if not any(present(fm_min.get(key)) for key in ("transactions", "invariants", "state_variables", "description", "rules")):
+        raise SystemExit("function_model needs transactions, invariants, state_variables, description, or rules")
+    sys.exit(0)
 
 fm = doc.get("function_model")
 if not isinstance(fm, dict):
@@ -359,6 +462,8 @@ def require_mapping(section: str, keys: tuple[str, ...] = ()) -> dict:
             raise SystemExit(f"{section}.{key} is required")
     return value
 
+require_top_sub_module_consistency(doc, ip)
+
 io = require_mapping("io_list", ("clock_domains", "resets", "interfaces"))
 require_interface_contract(io)
 
@@ -390,7 +495,8 @@ if not isinstance(debug.get("waveform_must_probe"), list) or not debug["waveform
     raise SystemExit("debug_observability.waveform_must_probe must be a non-empty list")
 
 require_mapping("integration", ("bus_attachment", "dependencies"))
-require_mapping("dft", ("scan_required", "controllability", "observability"))
+if run_mode == "signoff":
+    require_mapping("dft", ("scan_required", "controllability", "observability"))
 require_mapping("synthesis", ("dialect", "constraints", "required_outputs"))
 
 tr = require_mapping("test_requirements", ("scenarios", "scoreboard_checks", "coverage_goals"))
@@ -405,7 +511,8 @@ for idx, sc in enumerate(tr.get("scenarios") or []):
             raise SystemExit(f"test_requirements.scenarios[{idx}].{key} is required")
 
 qg = require_mapping("quality_gates")
-for gate in ("ssot", "rtl", "dv", "coverage", "eda", "signoff"):
+quality_gate_names = ("ssot", "rtl", "dv", "coverage", "eda", "signoff") if run_mode == "signoff" else ("ssot", "rtl", "dv", "coverage")
+for gate in quality_gate_names:
     item = qg.get(gate)
     if not isinstance(item, dict) or not item.get("pass") or not item.get("evidence"):
         raise SystemExit(f"quality_gates.{gate}.pass and .evidence are required")
@@ -476,10 +583,15 @@ fi
 # No live <TBD> markers in non-comment lines (template placeholders).
 TBD_COUNT=$(grep -vE '^\s*#' "$YAML" | grep -cE '<TBD>|<placeholder>|TODO: confirm' | head -1 | tr -d '[:space:]')
 TBD_COUNT="${TBD_COUNT:-0}"
-if [ "$TBD_COUNT" -gt 5 ]; then
-    echo "[check_ssot_disk] FAIL: $YAML has $TBD_COUNT live TBD markers (limit 5 — resolve via /grill-me)"
+case "$RUN_MODE" in
+    starter) TBD_LIMIT="${TBD_LIMIT:-25}" ;;
+    engineering) TBD_LIMIT="${TBD_LIMIT:-10}" ;;
+    *) TBD_LIMIT="${TBD_LIMIT:-5}" ;;
+esac
+if [ "$TBD_COUNT" -gt "$TBD_LIMIT" ]; then
+    echo "[check_ssot_disk] FAIL: $YAML has $TBD_COUNT live TBD markers (limit ${TBD_LIMIT} — resolve via /grill-me)"
     exit 1
 fi
 
-echo "[check_ssot_disk] PASS: $YAML = ${SZ}B, ${HITS} sections, ${TBD_COUNT} TBDs"
+echo "[check_ssot_disk] PASS: $YAML = ${SZ}B, ${HITS} sections, ${TBD_COUNT} TBDs, mode=${RUN_MODE}"
 exit 0

@@ -90,6 +90,169 @@ _STAGE_ARTIFACT_TYPES = {
     "rtl": "rtl",
     "tb": "tb",
 }
+_RUN_MODES = ("starter", "engineering", "signoff")
+_EXEC_MODES = ("single-worker", "orchestrator")
+
+
+def _normalize_run_mode(value: Any) -> str:
+    mode = str(value or "").strip().lower().replace("_", "-")
+    aliases = {
+        "start": "starter",
+        "first-green": "starter",
+        "firstgreen": "starter",
+        "eng": "engineering",
+        "engineer": "engineering",
+        "sign-off": "signoff",
+        "sign off": "signoff",
+    }
+    mode = aliases.get(mode, mode)
+    return mode if mode in _RUN_MODES else ""
+
+
+def _current_run_mode() -> str:
+    return _normalize_run_mode(os.environ.get("ATLAS_RUN_MODE")) or "engineering"
+
+
+def _normalize_exec_mode(value: Any) -> str:
+    mode = str(value or "").strip().lower().replace("_", "-")
+    aliases = {
+        "single": "single-worker",
+        "single-worker": "single-worker",
+        "single worker": "single-worker",
+        "worker": "single-worker",
+        "serial": "single-worker",
+        "orch": "orchestrator",
+        "orchestrator-mode": "orchestrator",
+        "multi-worker": "orchestrator",
+        "multi worker": "orchestrator",
+    }
+    mode = aliases.get(mode, mode)
+    return mode if mode in _EXEC_MODES else ""
+
+
+def _current_exec_mode() -> str:
+    return "orchestrator" if _orchestrator_mode_enabled() else "single-worker"
+
+
+def _provenance_summary(ip_dir: Path, run_mode: str) -> dict[str, Any]:
+    """Summarize sidecar SSOT provenance without loading it into the main YAML.
+
+    The sidecar format is intentionally permissive while the policy is still
+    settling: accept either a path->entry map, {"fields": {...}}, or
+    {"entries": [...]}. The UI only needs counts and a small reason list.
+    """
+    summary: dict[str, Any] = {
+        "generated_defaults": 0,
+        "review_needed": 0,
+        "user": 0,
+        "derived": 0,
+        "tool_evidence": 0,
+        "critical_generated_defaults": 0,
+        "signoff_blocked": False,
+        "source": "",
+        "examples": [],
+    }
+    yaml_dir = ip_dir / "yaml"
+    if not yaml_dir.is_dir():
+        return summary
+    paths = sorted(yaml_dir.glob("*.ssot.provenance.json"))
+    if not paths:
+        paths = sorted(yaml_dir.glob("*provenance*.json"))
+    if not paths:
+        return summary
+
+    path = paths[0]
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        summary["source"] = path.relative_to(ip_dir).as_posix()
+        return summary
+    summary["source"] = path.relative_to(ip_dir).as_posix()
+
+    entries: list[tuple[str, dict[str, Any]]] = []
+    if isinstance(doc, dict):
+        fields = doc.get("fields")
+        if isinstance(fields, dict):
+            entries = [(str(k), v) for k, v in fields.items() if isinstance(v, dict)]
+        elif isinstance(doc.get("entries"), list):
+            entries = [
+                (str(v.get("path") or v.get("field") or f"entry_{i}"), v)
+                for i, v in enumerate(doc["entries"])
+                if isinstance(v, dict)
+            ]
+        else:
+            entries = [(str(k), v) for k, v in doc.items() if isinstance(v, dict)]
+    elif isinstance(doc, list):
+        entries = [
+            (str(v.get("path") or v.get("field") or f"entry_{i}"), v)
+            for i, v in enumerate(doc)
+            if isinstance(v, dict)
+        ]
+
+    examples: list[dict[str, str]] = []
+    authority_counts = {
+        "user": "user",
+        "derived": "derived",
+        "generated_default": "generated_defaults",
+        "generated-default": "generated_defaults",
+        "review_needed": "review_needed",
+        "review-needed": "review_needed",
+        "tool_evidence": "tool_evidence",
+        "tool-evidence": "tool_evidence",
+    }
+    critical_paths = {
+        "cycle_model",
+        "dft",
+        "error_handling",
+        "pnr",
+        "quality_gates",
+        "security.assets",
+        "synthesis",
+        "test_requirements.coverage_goals",
+        "timing.io_delays",
+    }
+
+    def _norm_field_path(raw: str) -> str:
+        return str(raw or "").strip().lstrip("/").replace("/", ".")
+
+    def _is_signoff_critical_path(raw: str) -> bool:
+        field = _norm_field_path(raw)
+        for prefix in critical_paths:
+            if field == prefix or field.startswith(prefix + ".") or field.startswith(prefix + "["):
+                return True
+        return False
+
+    for field_path, entry in entries:
+        authority = str(entry.get("authority") or entry.get("origin") or "").strip().lower()
+        count_key = authority_counts.get(authority)
+        if count_key:
+            summary[count_key] += 1
+        if authority == "generated-default":
+            authority = "generated_default"
+        elif authority == "review-needed":
+            authority = "review_needed"
+        elif authority == "tool-evidence":
+            authority = "tool_evidence"
+
+        mode_allowed = entry.get("mode_allowed")
+        allowed = {str(v).strip().lower().replace("_", "-") for v in mode_allowed} if isinstance(mode_allowed, list) else set()
+        signoff_critical = bool(entry.get("signoff_critical") or entry.get("critical") or _is_signoff_critical_path(field_path))
+        signoff_blocks = (
+            run_mode == "signoff"
+            and authority in {"generated_default", "review_needed"}
+            and (signoff_critical or (allowed and "signoff" not in allowed))
+        )
+        if signoff_blocks:
+            summary["critical_generated_defaults"] += 1
+            summary["signoff_blocked"] = True
+        if len(examples) < 5 and authority in {"generated_default", "review_needed"}:
+            examples.append({
+                "path": field_path,
+                "authority": authority,
+                "review": str(entry.get("review") or entry.get("reason") or ""),
+            })
+    summary["examples"] = examples
+    return summary
 
 
 def _job_dependency_ids(job: dict[str, Any]) -> list[str]:
@@ -186,6 +349,93 @@ def get_jobs_state() -> tuple[dict[str, dict[str, Any]], threading.Lock]:
     """Return (_jobs, _jobs_lock) for callers in atlas_ui.py that need
     read access to the job tracker (e.g. /api/session/state)."""
     return _jobs, _jobs_lock
+
+
+def _summarize_worker_progress(ip_jobs: list[dict[str, Any]]) -> dict[str, Any]:
+    now = time.time()
+    active_states = {"pending", "queued", "running", "blocked"}
+    status_counts: dict[str, int] = {}
+    for job in ip_jobs:
+        status = str(job.get("status") or "unknown")
+        status_counts[status] = status_counts.get(status, 0) + 1
+
+    def _job_item(job: dict[str, Any]) -> dict[str, Any]:
+        started_at = float(job.get("started_at") or 0.0)
+        finished_at = float(job.get("finished_at") or 0.0)
+        last_polled = float(job.get("_last_polled") or 0.0)
+        item: dict[str, Any] = {
+            "job_id": job.get("job_id") or "",
+            "run_id": job.get("run_id") or "",
+            "pipeline_id": job.get("pipeline_id") or "",
+            "pipeline_index": job.get("pipeline_index"),
+            "workflow": job.get("workflow") or "",
+            "stage_id": job.get("stage_id") or "",
+            "status": job.get("status") or "",
+            "worker": job.get("worker") or "",
+            "model": job.get("model") or "",
+            "session": job.get("session") or "",
+            "scope_path": job.get("scope_path") or "",
+            "depends_on": job.get("depends_on") or "",
+            "iterations": job.get("iterations") or 0,
+            "result_summary": (job.get("result_summary") or "")[-300:],
+            "error": job.get("error") or "",
+        }
+        if started_at:
+            item["started_at_epoch"] = started_at
+            item["elapsed_sec"] = round(max(0.0, (finished_at or now) - started_at), 3)
+        if finished_at:
+            item["finished_at_epoch"] = finished_at
+        if last_polled:
+            item["last_polled_age_sec"] = round(max(0.0, now - last_polled), 3)
+        return item
+
+    active = [
+        _job_item(job)
+        for job in sorted(ip_jobs, key=lambda j: float(j.get("started_at") or 0.0), reverse=True)
+        if str(job.get("status") or "") in active_states
+    ]
+    latest = [
+        _job_item(job)
+        for job in sorted(
+            ip_jobs,
+            key=lambda j: float(j.get("finished_at") or j.get("started_at") or 0.0),
+            reverse=True,
+        )[:8]
+    ]
+
+    if active:
+        state = "running_worker_jobs"
+        severity = "info"
+        message = f"{len(active)} worker job(s) active."
+    elif ip_jobs:
+        state = "worker_jobs_idle"
+        severity = "info"
+        message = "No active worker jobs; latest worker records are available."
+    else:
+        state = "no_worker_jobs"
+        severity = "info"
+        message = "No worker jobs are registered for this IP in the current UI process."
+
+    return {
+        "diagnosis": {"state": state, "severity": severity, "message": message},
+        "status_counts": status_counts,
+        "active": active,
+        "latest": latest,
+    }
+
+
+def _combine_progress_debug(headless: dict[str, Any], worker: dict[str, Any]) -> dict[str, Any]:
+    worker_state = ((worker.get("diagnosis") or {}).get("state") or "")
+    headless_diag = headless.get("diagnosis") if isinstance(headless.get("diagnosis"), dict) else {}
+    if worker_state in {"running_worker_jobs", "worker_jobs_idle"}:
+        diagnosis = worker.get("diagnosis") or {}
+    else:
+        diagnosis = headless_diag or worker.get("diagnosis") or {}
+    return {
+        "diagnosis": diagnosis,
+        "worker": worker,
+        "headless": headless,
+    }
 
 
 # ── Internal helpers ────────────────────────────────────────────────
@@ -727,6 +977,8 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
             "workflow": job["workflow"],
             "session":  job.get("session", ""),
             "model":    job.get("model", ""),
+            "run_mode": job.get("run_mode", ""),
+            "exec_mode": job.get("exec_mode", ""),
             "context":  context,
             "project_root": job.get("project_root", ""),
             "source_root": job.get("source_root", ""),
@@ -848,13 +1100,14 @@ def _orchestrator_block(
     """
     try:
         from src.handoff_queue import queue_totals, summary_by_workflow
-        from src.review_decisions import count_open_decisions
+        from src.review_decisions import count_open_decisions, list_open_decisions
     except ModuleNotFoundError:
         from handoff_queue import queue_totals, summary_by_workflow  # type: ignore[no-redef]
-        from review_decisions import count_open_decisions  # type: ignore[no-redef]
+        from review_decisions import count_open_decisions, list_open_decisions  # type: ignore[no-redef]
 
     totals = queue_totals(ip_dir, scope_filter=scope_filter)
     open_decisions = count_open_decisions(ip_dir)
+    decision_items = list_open_decisions(ip_dir)
     handoffs = summary_by_workflow(ip_dir, scope_filter=scope_filter)
 
     enabled = _orchestrator_mode_enabled()
@@ -870,6 +1123,20 @@ def _orchestrator_block(
         "claimed_handoffs": totals["claimed_handoffs"],
         "review_decisions": totals["review_decisions"],
         "decisions_needed": open_decisions,
+        "decision_items": [
+            {
+                "path": item.get("path") or "",
+                "workflow": item.get("workflow") or item.get("owner") or "",
+                "topic": item.get("topic") or item.get("signature") or "",
+                "status": item.get("status") or "",
+                "severity": item.get("severity") or "",
+                "decision_needed": item.get("decision_needed") or item.get("reason") or "",
+                "recommended_option": item.get("recommended_option") or "",
+                "evidence": item.get("evidence") if isinstance(item.get("evidence"), dict) else {},
+                "options": item.get("options") if isinstance(item.get("options"), list) else [],
+            }
+            for item in decision_items[:8]
+        ],
         "workers": {},
     }
     return orchestrator, handoffs
@@ -955,7 +1222,16 @@ def _job_artifact_recovery(
             "sim/coverage_report.md",
         )
     if stage == "goal-audit":
-        return _any_file("sim/fl_rtl_goal_audit.json")
+        audit_path = ip_dir / "sim" / "fl_rtl_goal_audit.json"
+        if not audit_path.is_file():
+            return False, ""
+        try:
+            doc = json.loads(audit_path.read_text(encoding="utf-8"))
+        except Exception:
+            return False, f"unparseable artifact: {ip}/sim/fl_rtl_goal_audit.json"
+        if str(doc.get("status") or "").lower() == "pass":
+            return True, f"recovered from passing artifact: {ip}/sim/fl_rtl_goal_audit.json"
+        return False, f"non-passing artifact: {ip}/sim/fl_rtl_goal_audit.json"
     if stage == "sim-debug" or (workflow == "sim_debug" and stage != "goal-audit"):
         sim_dir   = ip_dir / "sim"
         cov_dir   = ip_dir / "cov"
@@ -975,6 +1251,35 @@ def _job_artifact_recovery(
         return _any_file("pnr/out/routed.spef", "pnr/out/routed.v", "pnr/out/pnr.report.md")
     if stage == "sta-post" or workflow == "sta-post":
         return _any_file("sta-post/out/wns.json", "sta-post/out/sta.report.md")
+    return False, ""
+
+
+def _job_artifact_failure(
+    job: dict[str, Any],
+    project_root: Path,
+) -> tuple[bool, str]:
+    ip = str(job.get("ip") or "").strip()
+    if not ip or ".." in ip or "/" in ip:
+        return False, ""
+    ip_dir = project_root / ip
+    if not ip_dir.is_dir():
+        return False, ""
+    stage = str(job.get("stage_id") or job.get("workflow") or "").strip()
+    if stage != "goal-audit":
+        return False, ""
+    audit_path = ip_dir / "sim" / "fl_rtl_goal_audit.json"
+    if not audit_path.is_file():
+        return False, ""
+    try:
+        doc = json.loads(audit_path.read_text(encoding="utf-8"))
+    except Exception:
+        return True, f"unparseable artifact: {ip}/sim/fl_rtl_goal_audit.json"
+    status = str(doc.get("status") or "").lower()
+    if status != "pass":
+        blockers = doc.get("summary", {}).get("blockers") if isinstance(doc.get("summary"), dict) else []
+        if isinstance(blockers, list) and blockers:
+            return True, "blockers=" + ",".join(str(item) for item in blockers)
+        return True, f"status={status or 'missing'}"
     return False, ""
 
 
@@ -999,10 +1304,13 @@ def register_jobs_routes(
         pipeline_index: int = 0, depends_on: str | list[str] = "",
         worker_override: str = "", auto_start: bool = True, template: str = "",
         pipeline_schedule: str = "", rtl_version_id: str = "",
+        run_mode: str = "", exec_mode: str = "",
     ) -> dict[str, Any]:
         pr = project_root()
         stage_id    = stage_id or (_PIPELINE_BY_WORKFLOW.get(workflow, {}).get("id") or workflow)
         template    = template or _default_todo_template_for_job(workflow, stage_id, ip)
+        run_mode    = _normalize_run_mode(run_mode) or _current_run_mode()
+        exec_mode   = _normalize_exec_mode(exec_mode) or _current_exec_mode()
         session_name = normalize_session_name(session_name or (f"{ip}/{workflow}" if ip else workflow))
         if not session_name:
             raise ValueError("invalid session namespace")
@@ -1026,6 +1334,8 @@ def register_jobs_routes(
             f"- session_namespace: .session/{session_name}\n"
             f"- project_root: {pr}\n"
             f"- source_root: {_SOURCE_ROOT}\n"
+            f"- run_mode: {run_mode}\n"
+            f"- exec_mode: {exec_mode}\n"
             f"- scope_path: {rel_scope}\n"
             f"- write_boundary: only modify files under {rel_scope}/, "
             f"except workflow-owned status/session files under .session/{session_name}/. "
@@ -1059,6 +1369,8 @@ def register_jobs_routes(
             "depends_on":     depends_on,
             "pipeline_schedule": pipeline_schedule,
             "rtl_version_id":  rtl_version_id,
+            "run_mode":        run_mode,
+            "exec_mode":       exec_mode,
             "_last_polled":   0.0,
         }
         with _jobs_lock:
@@ -1094,6 +1406,8 @@ def register_jobs_routes(
         model           = (body.get("model")    or "").strip()
         template        = (body.get("template") or "").strip()
         rtl_version_id  = (body.get("rtl_version_id") or "").strip()
+        run_mode        = _normalize_run_mode(body.get("run_mode"))
+        exec_mode       = _normalize_exec_mode(body.get("exec_mode"))
         stage_raw       = (body.get("stage_id") or body.get("stage") or "").strip()
         session_raw     = (body.get("session")  or "").strip()
         session_name    = normalize_session_name(session_raw)
@@ -1112,6 +1426,10 @@ def register_jobs_routes(
             return JSONResponse({"error": f"invalid model {model!r}"}, status_code=400)
         if rtl_version_id and not re.match(r"^[A-Za-z0-9_.:\-]+$", rtl_version_id):
             return JSONResponse({"error": f"invalid rtl_version_id {rtl_version_id!r}"}, status_code=400)
+        if body.get("run_mode") is not None and not run_mode:
+            return JSONResponse({"error": "run_mode must be starter, engineering, or signoff"}, status_code=400)
+        if body.get("exec_mode") is not None and not exec_mode:
+            return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
         if session_raw and not session_name:
             return JSONResponse({"error": f"invalid session {session_raw!r}"}, status_code=400)
         if worker_override and not re.match(r"^https?://[A-Za-z0-9_.:\-/]+$", worker_override):
@@ -1122,7 +1440,7 @@ def register_jobs_routes(
             workflow=workflow, ip=ip, prompt=prompt, model=model,
             session_name=session_name, stage_id=stage_id,
             worker_override=worker_override, auto_start=True, template=template,
-            rtl_version_id=rtl_version_id,
+            rtl_version_id=rtl_version_id, run_mode=run_mode, exec_mode=exec_mode,
         )
         if job.get("status") == "error":
             return JSONResponse({"error": job.get("error"), "worker": job.get("worker")}, status_code=502)
@@ -1136,6 +1454,8 @@ def register_jobs_routes(
             "scope_path":     job["scope_path"],
             "stage_id":       job["stage_id"],
             "model":          model,
+            "run_mode":       job["run_mode"],
+            "exec_mode":      job["exec_mode"],
             "worker_command": job["worker_command"],
             "status":         job["status"],
         })
@@ -1176,6 +1496,8 @@ def register_jobs_routes(
             model           = (item.get("model")    or "").strip()
             template        = (item.get("template") or "").strip()
             rtl_version_id  = (item.get("rtl_version_id") or "").strip()
+            run_mode        = _normalize_run_mode(item.get("run_mode"))
+            exec_mode       = _normalize_exec_mode(item.get("exec_mode"))
             stage_raw       = (item.get("stage_id") or item.get("stage") or "").strip()
             session_raw     = (item.get("session")  or "").strip()
             session_name    = normalize_session_name(session_raw)
@@ -1199,6 +1521,12 @@ def register_jobs_routes(
             if rtl_version_id and not re.match(r"^[A-Za-z0-9_.:\-]+$", rtl_version_id):
                 errors.append({"index": idx, "error": f"invalid rtl_version_id {rtl_version_id!r}"})
                 continue
+            if item.get("run_mode") is not None and not run_mode:
+                errors.append({"index": idx, "error": "run_mode must be starter, engineering, or signoff"})
+                continue
+            if item.get("exec_mode") is not None and not exec_mode:
+                errors.append({"index": idx, "error": "exec_mode must be single-worker or orchestrator"})
+                continue
             if session_raw and not session_name:
                 errors.append({"index": idx, "error": f"invalid session {session_raw!r}"})
                 continue
@@ -1211,7 +1539,7 @@ def register_jobs_routes(
                 workflow=workflow, ip=ip, prompt=prompt, model=model,
                 session_name=session_name, stage_id=stage_id,
                 worker_override=worker_override, auto_start=True, template=template,
-                rtl_version_id=rtl_version_id,
+                rtl_version_id=rtl_version_id, run_mode=run_mode, exec_mode=exec_mode,
             )
             created.append(_public_job(job))
 
@@ -1226,6 +1554,22 @@ def register_jobs_routes(
     @app.get("/api/pipeline/stages")
     async def api_pipeline_stages():
         return JSONResponse({"stages": _PIPELINE_STAGES})
+
+    @app.get("/api/pipeline/progress-debug")
+    async def api_pipeline_progress_debug(ip: str = ""):
+        ip = ip.strip()
+        if not ip or len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+            return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
+        pr = project_root()
+        try:
+            from src.progress_debug import summarize_headless_progress
+        except ModuleNotFoundError:
+            from progress_debug import summarize_headless_progress
+        with _jobs_lock:
+            ip_jobs = [dict(j) for j in _jobs.values() if j.get("ip") == ip]
+        headless_debug = summarize_headless_progress(pr, ip)
+        worker_debug = _summarize_worker_progress(ip_jobs)
+        return JSONResponse(_combine_progress_debug(headless_debug, worker_debug))
 
     # ── /api/pipeline/state ────────────────────────────────────────
 
@@ -1262,11 +1606,19 @@ def register_jobs_routes(
 
         pr = project_root()
         ip_dir = pr / ip
+        run_mode = _current_run_mode()
+        exec_mode = _current_exec_mode()
+        provenance_summary = _provenance_summary(ip_dir, run_mode)
 
         try:
             from src.workflow_stage_surface import compute_kpi_dots, compute_kpi_dots_labeled
         except ModuleNotFoundError:
             from workflow_stage_surface import compute_kpi_dots, compute_kpi_dots_labeled
+        try:
+            from src.progress_debug import summarize_headless_progress
+        except ModuleNotFoundError:
+            from progress_debug import summarize_headless_progress
+        progress_debug = summarize_headless_progress(pr, ip)
 
         # latest rtl_version_id + DB-first state snapshot from workflow_runs.
         # DB is the source of truth for state (idle/running/passed/failed);
@@ -1324,6 +1676,10 @@ def register_jobs_routes(
         # snapshot of running jobs for this ip
         with _jobs_lock:
             ip_jobs = [dict(j) for j in _jobs.values() if j.get("ip") == ip]
+        progress_debug = _combine_progress_debug(
+            progress_debug,
+            _summarize_worker_progress(ip_jobs),
+        )
 
         def _running_job_for(stage_id: str) -> dict[str, Any] | None:
             for j in ip_jobs:
@@ -1429,12 +1785,16 @@ def register_jobs_routes(
 
         # determine which stages have passing artifacts (filesystem truth)
         passed_stages: set[str] = set()
+        failed_stages: dict[str, str] = {}
         for stage in _PIPELINE_STAGES:
             sid = stage["id"]
             fake_job = {"ip": ip, "stage_id": sid, "workflow": stage["workflow"]}
             ok, _ = _job_artifact_recovery(fake_job, pr)
+            failed, failure_reason = _job_artifact_failure(fake_job, pr)
             if ok:
                 passed_stages.add(sid)
+            elif failed:
+                failed_stages[sid] = failure_reason
 
         # Compute the orchestrator block once up front so each stage card can
         # carry its own per-workflow handoff summary (avoids a second loop
@@ -1457,6 +1817,8 @@ def register_jobs_routes(
                 state = "running"
             elif db_state is not None:
                 state = db_state  # DB is source of truth for completed runs
+            elif sid in failed_stages:
+                state = "failed"  # FS evidence exists but explicitly reports a failed audit
             elif sid in passed_stages:
                 state = "passed"  # FS evidence without a DB row (hand-placed)
             elif sid == "rtl" and _rtl_blocked:
@@ -1546,8 +1908,8 @@ def register_jobs_routes(
                 "history": _stage_history(sid),
                 "blame": stage_blame,
                 "locked_reason": locked_reason,
-                "error_summary": db_error if state == "failed" else None,
-                "source": "db" if db_state is not None else ("fs" if sid in passed_stages else "none"),
+                "error_summary": db_error if state == "failed" and db_error else failed_stages.get(sid),
+                "source": "db" if db_state is not None else ("fs" if sid in passed_stages or sid in failed_stages else "none"),
                 "workflow": stage_workflow,
                 "handoffs": stage_handoffs,
             }
@@ -1556,7 +1918,16 @@ def register_jobs_routes(
             "ip": ip,
             "rtl_version_id": rtl_version_id,
             "mode": "pipeline",
+            "run_mode": run_mode,
+            "exec_mode": exec_mode,
+            "policy": {
+                "run_mode": run_mode,
+                "exec_mode": exec_mode,
+                "provenance_summary": provenance_summary,
+            },
+            "provenance_summary": provenance_summary,
             "stages": stages_out,
+            "progress_debug": progress_debug,
         }
         payload["orchestrator"] = orchestrator_block
         payload["handoffs_by_workflow"] = handoffs_by_workflow
@@ -1578,12 +1949,18 @@ def register_jobs_routes(
         rtl_version_id = (body.get("rtl_version_id") or "").strip()
         user_prompt = (body.get("prompt") or "").strip()
         requested_schedule = (body.get("schedule") or "auto").strip().lower()
+        run_mode = _normalize_run_mode(body.get("run_mode")) or _current_run_mode()
+        exec_mode = _normalize_exec_mode(body.get("exec_mode")) or _current_exec_mode()
         if ip and not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
         if requested_schedule not in {"auto", "dag", "serial"}:
             return JSONResponse({"error": "schedule must be 'auto', 'dag', or 'serial'"}, status_code=400)
         if rtl_version_id and not re.match(r"^[A-Za-z0-9_.:\-]+$", rtl_version_id):
             return JSONResponse({"error": f"invalid rtl_version_id {rtl_version_id!r}"}, status_code=400)
+        if body.get("run_mode") is not None and not _normalize_run_mode(body.get("run_mode")):
+            return JSONResponse({"error": "run_mode must be starter, engineering, or signoff"}, status_code=400)
+        if body.get("exec_mode") is not None and not _normalize_exec_mode(body.get("exec_mode")):
+            return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
         requested = body.get("stages") or [s["id"] for s in _PIPELINE_STAGES]
         if not isinstance(requested, list) or not requested:
             return JSONResponse({"error": "stages must be a non-empty list"}, status_code=400)
@@ -1595,7 +1972,7 @@ def register_jobs_routes(
                 return JSONResponse({"error": f"unknown pipeline stage {key!r}"}, status_code=400)
             if not any(s["id"] == stage["id"] for s in resolved):
                 resolved.append(stage)
-        schedule = _resolve_pipeline_schedule(requested_schedule, resolved)
+        schedule = "serial" if requested_schedule == "auto" and exec_mode == "single-worker" else _resolve_pipeline_schedule(requested_schedule, resolved)
         resolved = _ordered_pipeline_stages(resolved)
         pipeline_id      = uuid.uuid4().hex[:12]
         jobs: list       = []
@@ -1604,6 +1981,11 @@ def register_jobs_routes(
         for idx, stage in enumerate(resolved):
             workflow     = stage["workflow"]
             stage_prompt = _default_workflow_prompt(workflow, ip, stage["id"])
+            stage_prompt += (
+                "\n\n[ATLAS RUN POLICY]\n"
+                f"- run_mode: {run_mode}\n"
+                f"- exec_mode: {exec_mode}\n"
+            )
             if user_prompt:
                 stage_prompt += f"\n\n[User pipeline goal]\n{user_prompt}"
             session = f"{ip or 'soc'}/pipeline/{pipeline_id}/{idx + 1:02d}-{workflow}"
@@ -1619,6 +2001,7 @@ def register_jobs_routes(
                 pipeline_index=idx, depends_on=depends_on,
                 auto_start=(not dep_job_ids), pipeline_schedule=schedule,
                 rtl_version_id=rtl_version_id if stage["id"] in _RTL_VERSION_DOWNSTREAM_STAGES else "",
+                run_mode=run_mode, exec_mode=exec_mode,
             )
             stage_job_ids[stage["id"]] = job["job_id"]
             jobs.append(_public_job(job))
@@ -1627,6 +2010,8 @@ def register_jobs_routes(
             "pipeline_id": pipeline_id,
             "schedule":    schedule,
             "requested_schedule": requested_schedule,
+            "run_mode":    run_mode,
+            "exec_mode":   exec_mode,
             "ip":          ip,
             "stages":      resolved,
             "jobs":        jobs,
@@ -1656,6 +2041,46 @@ def register_jobs_routes(
         _state_cache.clear()
         enabled = _orchestrator_mode_enabled()
         return JSONResponse({"enabled": enabled, "mode": "json" if enabled else None})
+
+    # ── /api/pipeline/run_policy ────────────────────────────────────
+
+    def _run_policy_payload() -> dict[str, Any]:
+        exec_mode = _current_exec_mode()
+        return {
+            "run_mode": _current_run_mode(),
+            "exec_mode": exec_mode,
+            "orchestrator_enabled": exec_mode == "orchestrator",
+            "run_modes": list(_RUN_MODES),
+            "exec_modes": list(_EXEC_MODES),
+        }
+
+    @app.get("/api/pipeline/run_policy")
+    async def api_pipeline_run_policy_get():
+        return JSONResponse(_run_policy_payload())
+
+    @app.post("/api/pipeline/run_policy")
+    async def api_pipeline_run_policy_set(request: Request):
+        try:
+            body = await request.json()
+        except Exception as e:
+            return JSONResponse({"error": f"bad json: {e}"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected JSON object"}, status_code=400)
+
+        if "run_mode" in body:
+            run_mode = _normalize_run_mode(body.get("run_mode"))
+            if not run_mode:
+                return JSONResponse({"error": "run_mode must be starter, engineering, or signoff"}, status_code=400)
+            os.environ["ATLAS_RUN_MODE"] = run_mode
+
+        if "exec_mode" in body:
+            exec_mode = _normalize_exec_mode(body.get("exec_mode"))
+            if not exec_mode:
+                return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
+            os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1" if exec_mode == "orchestrator" else "0"
+
+        _state_cache.clear()
+        return JSONResponse(_run_policy_payload())
 
     # ── /api/handoff/* ─────────────────────────────────────────────
     # User-driven actions for the orchestrator/handoff queue. Each request

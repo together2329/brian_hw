@@ -1,0 +1,48 @@
+===== pyslang =====
+command: pyslang rtl/dma_real_top.sv rtl/dma_real_apb_cfg.sv rtl/dma_real_arbiter.sv rtl/dma_real_channel.sv rtl/dma_real_ahb_master.sv rtl/dma_real_irq.sv
+returncode: 0
+errors: 0 warnings: 7
+pyslang files: 6
+errors=0 warnings=7
+warning: dma_real/rtl/dma_real_top.sv:102 implicit conversion truncates from 20 to 8 bits
+warning: dma_real/rtl/dma_real_apb_cfg.sv:197 implicit conversion expands from 29 to 32 bits
+warning: dma_real/rtl/dma_real_apb_cfg.sv:209 implicit conversion expands from 29 to 32 bits
+warning: dma_real/rtl/dma_real_apb_cfg.sv:221 implicit conversion expands from 29 to 32 bits
+warning: dma_real/rtl/dma_real_apb_cfg.sv:233 implicit conversion expands from 29 to 32 bits
+warning: dma_real/rtl/dma_real_channel.sv:126 arithmetic between operands of different types ('logic[31:0]' and 'logic[15:0]')
+warning: dma_real/rtl/dma_real_channel.sv:131 arithmetic between operands of different types ('logic[31:0]' and 'logic[15:0]')
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/dma_real.f --top-module dma_real
+returncode: 1
+errors: 1 warnings: 8
+%Warning-PINCONNECTEMPTY: rtl/dma_real_top.sv:193:40: Instance pin connected by name with empty reference: 'ahb_wdata'
+  193 |         .ahb_rdata(ahb_master_rdata), .ahb_wdata(),
+      |                                        ^~~~~~~~~
+                          ... For warning description see https://verilator.org/warn/PINCONNECTEMPTY?v=5.046
+                          ... Use "/* verilator lint_off PINCONNECTEMPTY */" and lint_on around source to disable this message.
+%Warning-PINCONNECTEMPTY: rtl/dma_real_top.sv:197:10: Instance pin connected by name with empty reference: 'fifo_rdata'
+  197 |         .fifo_rdata(), .fifo_ren(fifo_ren_0),
+      |          ^~~~~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/dma_real_top.sv:238:40: Instance pin connected by name with empty reference: 'ahb_wdata'
+  238 |         .ahb_rdata(ahb_master_rdata), .ahb_wdata(),
+      |                                        ^~~~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/dma_real_top.sv:242:10: Instance pin connected by name with empty reference: 'fifo_rdata'
+  242 |         .fifo_rdata(), .fifo_ren(fifo_ren_1),
+      |          ^~~~~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/dma_real_top.sv:283:40: Instance pin connected by name with empty reference: 'ahb_wdata'
+  283 |         .ahb_rdata(ahb_master_rdata), .ahb_wdata(),
+      |                                        ^~~~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/dma_real_top.sv:287:10: Instance pin connected by name with empty reference: 'fifo_rdata'
+  287 |         .fifo_rdata(), .fifo_ren(fifo_ren_2),
+      |          ^~~~~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/dma_real_top.sv:328:40: Instance pin connected by name with empty reference: 'ahb_wdata'
+  328 |         .ahb_rdata(ahb_master_rdata), .ahb_wdata(),
+      |                                        ^~~~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/dma_real_top.sv:332:10: Instance pin connected by name with empty reference: 'fifo_rdata'
+  332 |         .fifo_rdata(), .fifo_ren(fifo_ren_3),
+      |          ^~~~~~~~~~
+%Error: Specified --top-module 'dma_real' was not found in design.
+        ... Suggested alternative: 'dma_real_top'
+        ... See the manual at https://verilator.org/verilator_doc.html?v=5.046 for more assistance.
+%Error: Exiting due to 1 error(s), 8 warning(s)

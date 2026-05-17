@@ -1,0 +1,47 @@
+{
+  "error": "",
+  "finish_reason": "",
+  "finished_at": "2026-05-16T19:06:45Z",
+  "input_hash": "093d844ba9a207257074f616d1e1a5c41f971feaf697978600229b485ea18d72",
+  "model": "gpt-5.3-codex",
+  "output_hash": "617ec789e49f75ecc9f478e1bfd88929a90d76e57514d85ad14fd77528659bd5",
+  "parsed_artifacts": [
+    {
+      "content": "module simple_pwm #(\n    parameter integer COUNTER_WIDTH = 8\n) (\n    input  logic                     clk,\n    input  logic                     rst_n,\n    input  logic                     enable,\n    input  logic [COUNTER_WIDTH-1:0] duty_cycle,\n    input  logic [COUNTER_WIDTH-1:0] period,\n    output logic                     pwm_out\n);\n\n    // FM state variable owner: free-running PWM counter.\n    logic [COUNTER_WIDTH-1:0] counter;\n\n    // Explicit next-state datapath for function_model state_updates.counter_next.\n    logic [COUNTER_WIDTH-1:0] counter_plus_one;\n    logic [COUNTER_WIDTH-1:0] counter_next;\n\n    // Output rule names are represented as real control signals used by pwm_out logic.\n    logic pwm_out_high;\n    logic pwm_out_low;\n    logic pwm_out_off;\n\n    // Counter increment datapath used by FM1/FM2 side-effect: \"counter increments by 1\".\n    assign counter_plus_one = counter + {{(COUNTER_WIDTH-1){1'b0}}, 1'b1};\n\n    // FM1/FM2 state update expression:\n    // counter_next = counter + 1 if (counter + 1) < period else 0.\n    // Guard period==0 so modulo-by-zero behavior is deterministic: force 0.\n    assign counter_next = (period == {COUNTER_WIDTH{1'b0}}) ? {COUNTER_WIDTH{1'b0}} :\n                          ((counter_plus_one < period) ? counter_plus_one : {COUNTER_WIDTH{1'b0}});\n\n    // FM output rules mapped to real compare logic.\n    assign pwm_out_high = (counter < duty_cycle);\n    assign pwm_out_low  = (counter >= duty_cycle);\n    assign pwm_out_off  = 1'b0;\n\n    // Active-low asynchronous reset per SSOT coding rules.\n    // enable==0 implements FM3: counter=0 and pwm_out=0.\n    // enable==1 accepts FM1/FM2 every cycle and updates both state/output once.\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            counter  <= {COUNTER_WIDTH{1'b0}};\n            pwm_out  <= 1'b0;\n        end else if (enable) begin\n            counter  <= counter_next;\n            if (pwm_out_high) begin\n                pwm_out <= 1'b1;\n            end else if (pwm_out_low) begin\n                pwm_out <= 1'b0;\n            end else begin\n                pwm_out <= 1'b0;\n            end\n        end else begin\n            counter  <= {COUNTER_WIDTH{1'b0}};\n            pwm_out  <= pwm_out_off;\n        end\n    end\n\nendmodule\n",
+      "kind": "rtl",
+      "path": "simple_pwm/rtl/simple_pwm.sv"
+    },
+    {
+      "content": "simple_pwm/rtl/simple_pwm.sv\n",
+      "kind": "filelist",
+      "path": "simple_pwm/list/simple_pwm.f"
+    },
+    {
+      "content": "{\n  \"module\": \"simple_pwm\",\n  \"packet\": \"module__simple_pwm__function_model\",\n  \"todo_plan_sha256\": \"97147a83467339f3d8bdf10370e6366a4b8a3eeca0cb4ad8bac3bf660a00d118\",\n  \"implemented_from_ssot\": [\n    \"function_model.state_variables.counter\",\n    \"function_model.transactions.FM1\",\n    \"function_model.transactions.FM2\",\n    \"function_model.transactions.FM3\",\n    \"function_model.transactions.FM1.state_updates.counter_next\",\n    \"function_model.transactions.FM2.state_updates.counter_next\",\n    \"function_model.transactions.FM3.state_updates.counter_next\",\n    \"function_model.transactions.FM1.output_rules.pwm_out_high\",\n    \"function_model.transactions.FM2.output_rules.pwm_out_low\",\n    \"function_model.transactions.FM3.output_rules.pwm_out_off\"\n  ],\n  \"latency_contract\": {\n    \"counter_update_cycles\": 1,\n    \"pwm_output_cycles\": 1,\n    \"sample_condition\": \"enable == 1\"\n  },\n  \"notes\": [\n    \"No SSOT gaps found for this packet.\",\n    \"Module authored as single-file top per SSOT filelist.rtl.\"\n  ]\n}\n",
+      "kind": "rtl_contract",
+      "path": "simple_pwm/rtl/rtl_contract.json"
+    }
+  ],
+  "prompt_hash": "38cade33bc3f7ee6d981980838e077eaa7c607f5f48fc2d5f1ac0a1af11f1599",
+  "raw_response": "{\n  \"files\": [\n    {\n      \"path\": \"simple_pwm/rtl/simple_pwm.sv\",\n      \"kind\": \"rtl\",\n      \"content\": \"module simple_pwm #(\\n    parameter integer COUNTER_WIDTH = 8\\n) (\\n    input  logic                     clk,\\n    input  logic                     rst_n,\\n    input  logic                     enable,\\n    input  logic [COUNTER_WIDTH-1:0] duty_cycle,\\n    input  logic [COUNTER_WIDTH-1:0] period,\\n    output logic                     pwm_out\\n);\\n\\n    // FM state variable owner: free-running PWM counter.\\n    logic [COUNTER_WIDTH-1:0] counter;\\n\\n    // Explicit next-state datapath for function_model state_updates.counter_next.\\n    logic [COUNTER_WIDTH-1:0] counter_plus_one;\\n    logic [COUNTER_WIDTH-1:0] counter_next;\\n\\n    // Output rule names are represented as real control signals used by pwm_out logic.\\n    logic pwm_out_high;\\n    logic pwm_out_low;\\n    logic pwm_out_off;\\n\\n    // Counter increment datapath used by FM1/FM2 side-effect: \\\"counter increments by 1\\\".\\n    assign counter_plus_one = counter + {{(COUNTER_WIDTH-1){1'b0}}, 1'b1};\\n\\n    // FM1/FM2 state update expression:\\n    // counter_next = counter + 1 if (counter + 1) < period else 0.\\n    // Guard period==0 so modulo-by-zero behavior is deterministic: force 0.\\n    assign counter_next = (period == {COUNTER_WIDTH{1'b0}}) ? {COUNTER_WIDTH{1'b0}} :\\n                          ((counter_plus_one < period) ? counter_plus_one : {COUNTER_WIDTH{1'b0}});\\n\\n    // FM output rules mapped to real compare logic.\\n    assign pwm_out_high = (counter < duty_cycle);\\n    assign pwm_out_low  = (counter >= duty_cycle);\\n    assign pwm_out_off  = 1'b0;\\n\\n    // Active-low asynchronous reset per SSOT coding rules.\\n    // enable==0 implements FM3: counter=0 and pwm_out=0.\\n    // enable==1 accepts FM1/FM2 every cycle and updates both state/output once.\\n    always @(posedge clk or negedge rst_n) begin\\n        if (!rst_n) begin\\n            counter  <= {COUNTER_WIDTH{1'b0}};\\n            pwm_out  <= 1'b0;\\n        end else if (enable) begin\\n            counter  <= counter_next;\\n            if (pwm_out_high) begin\\n                pwm_out <= 1'b1;\\n            end else if (pwm_out_low) begin\\n                pwm_out <= 1'b0;\\n            end else begin\\n                pwm_out <= 1'b0;\\n            end\\n        end else begin\\n            counter  <= {COUNTER_WIDTH{1'b0}};\\n            pwm_out  <= pwm_out_off;\\n        end\\n    end\\n\\nendmodule\\n\"\n    },\n    {\n      \"path\": \"simple_pwm/list/simple_pwm.f\",\n      \"kind\": \"filelist\",\n      \"content\": \"simple_pwm/rtl/simple_pwm.sv\\n\"\n    },\n    {\n      \"path\": \"simple_pwm/rtl/rtl_contract.json\",\n      \"kind\": \"rtl_contract\",\n      \"content\": \"{\\n  \\\"module\\\": \\\"simple_pwm\\\",\\n  \\\"packet\\\": \\\"module__simple_pwm__function_model\\\",\\n  \\\"todo_plan_sha256\\\": \\\"97147a83467339f3d8bdf10370e6366a4b8a3eeca0cb4ad8bac3bf660a00d118\\\",\\n  \\\"implemented_from_ssot\\\": [\\n    \\\"function_model.state_variables.counter\\\",\\n    \\\"function_model.transactions.FM1\\\",\\n    \\\"function_model.transactions.FM2\\\",\\n    \\\"function_model.transactions.FM3\\\",\\n    \\\"function_model.transactions.FM1.state_updates.counter_next\\\",\\n    \\\"function_model.transactions.FM2.state_updates.counter_next\\\",\\n    \\\"function_model.transactions.FM3.state_updates.counter_next\\\",\\n    \\\"function_model.transactions.FM1.output_rules.pwm_out_high\\\",\\n    \\\"function_model.transactions.FM2.output_rules.pwm_out_low\\\",\\n    \\\"function_model.transactions.FM3.output_rules.pwm_out_off\\\"\\n  ],\\n  \\\"latency_contract\\\": {\\n    \\\"counter_update_cycles\\\": 1,\\n    \\\"pwm_output_cycles\\\": 1,\\n    \\\"sample_condition\\\": \\\"enable == 1\\\"\\n  },\\n  \\\"notes\\\": [\\n    \\\"No SSOT gaps found for this packet.\\\",\\n    \\\"Module authored as single-file top per SSOT filelist.rtl.\\\"\\n  ]\\n}\\n\"\n    }\n  ]\n}",
+  "stage": "rtl-gen",
+  "started_at": "2026-05-16T19:06:15Z",
+  "status": "pass",
+  "usage": {
+    "cache_created": 0,
+    "cache_read": 0,
+    "cost": {
+      "pricing_per_1m": {
+        "cache": 0.26,
+        "input": 1.4,
+        "output": 4.4
+      },
+      "usd": 0.07503539999999999
+    },
+    "input": 48675,
+    "output": 1566,
+    "total": 50241,
+    "total_cache_created": 0,
+    "total_cache_read": 0
+  }
+}

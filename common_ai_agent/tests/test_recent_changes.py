@@ -1372,6 +1372,177 @@ class TestFixMdTreeFencing(unittest.TestCase):
         result = self._fix(text)
         self.assertIn("```", result)
 
+    def test_inline_tree_entries_split_before_fencing(self):
+        """Collapsed tree output should become one tree entry per line."""
+        text = "simple_pwm/\n├── yaml/simple_pwm.ssot.yaml ├── rtl/simple_pwm.sv └── sim/results.xml\n"
+        result = self._fix(text)
+        lines = result.splitlines()
+        tree_lines = [line for line in lines if "──" in line]
+        self.assertEqual(len(tree_lines), 3)
+        self.assertTrue(all(line.count("──") == 1 for line in tree_lines))
+        self.assertIn("```", result)
+
+    def test_dense_pipeline_box_row_becomes_markdown_list(self):
+        """One-line boxed pipeline summaries should render as clean bullets."""
+        text = (
+            "│ simple_pwm Pipeline Results │ │ Stage │ Result │ │ "
+            "1. 디렉토리 생성 │ ✅ 14 subdirs │ │ "
+            "2. SSOT 검증 │ ✅ check_ssot_disk.sh PASS │"
+        )
+        result = self._fix(text)
+        self.assertIn("**simple_pwm Pipeline Results**", result)
+        self.assertIn("- **1. 디렉토리 생성:** ✅ 14 subdirs", result)
+        self.assertIn("- **2. SSOT 검증:** ✅ check_ssot_disk.sh PASS", result)
+        self.assertNotIn("│", result)
+
+    def test_accidentally_indented_markdown_summary_is_not_code_fenced(self):
+        """Indented prose summaries should stay Markdown, not render as code."""
+        text = (
+            "The key mental model:\n"
+            "    SSOT YAML = the contract/spec\n"
+            "    Workflow = factory assembly line\n"
+            "    LLM = worker on the line\n"
+            "\n"
+            "    # The Pipeline (14 stages)\n"
+            "\n"
+            "    requirement -> ssot-gen -> rtl-gen -> tb-gen -> sim\n"
+            "\n"
+            "    | Component | Status |\n"
+            "    | - | - |\n"
+            "    | Core pipeline | ✅ Shipped |\n"
+        )
+        result = self._fix(text)
+        self.assertNotIn("```", result)
+        self.assertIn("# The Pipeline (14 stages)", result)
+        self.assertIn("SSOT YAML = the contract/spec", result)
+        self.assertIn("| Component | Status |", result)
+        self.assertNotIn("    # The Pipeline", result)
+
+
+class TestReactLoopPromptOnlyReminder(unittest.TestCase):
+    """Prompt-only reminders should not rewrite saved conversation history."""
+
+    def test_pre_llm_reminder_uses_llm_message_copy(self):
+        import inspect
+        from core import react_loop
+
+        src = inspect.getsource(react_loop.run_react_agent_impl)
+
+        self.assertIn("llm_messages = list(llm_messages)", src)
+        self.assertIn("llm_messages[_ui][\"content\"] = _uc + _pre_llm_reminder", src)
+        self.assertIn("deps.llm_call_fn(llm_messages", src)
+        self.assertIn("deps.orchestrator_inject_fn(llm_messages", src)
+        self.assertIn("_copy_system_prompt_overlay(llm_messages)", src)
+        self.assertNotRegex(src, r"(?m)^\s+messages\[_ui\] = dict\(messages\[_ui\]\)")
+        self.assertNotIn("deps.orchestrator_inject_fn(messages", src)
+
+
+class TestGlmCacheDebugOutput(unittest.TestCase):
+    """GLM debug output should expose real cache-hit signals."""
+
+    def test_llm_client_debug_reports_prompt_reuse_and_cache_hit(self):
+        import inspect
+        from src import llm_client
+
+        src = inspect.getsource(llm_client.chat_completion_stream)
+
+        self.assertIn("Cache blocks:", src)
+        self.assertIn("Prompt reuse:", src)
+        self.assertIn("First diff:", src)
+        self.assertIn("Cache hit:", src)
+        self.assertIn("Effort cfg:", src)
+        self.assertIn("reasoning_effort", src)
+        self.assertIn("global _last_debug_prompt_text, _last_debug_messages", src)
+        self.assertNotIn("Caching:     {has_structured}", src)
+
+
+class TestReasoningEffortRouting(unittest.TestCase):
+    """Reasoning effort aliases should normalize before request construction."""
+
+    def test_reasoning_effort_aliases_normalize(self):
+        from src.llm_client import _normalize_reasoning_effort
+
+        cases = {
+            "l": "low",
+            "low": "low",
+            "m": "medium",
+            "med": "medium",
+            "mid": "medium",
+            "medium": "medium",
+            "h": "high",
+            "hi": "high",
+            "high": "high",
+            "x": "xhigh",
+            "xh": "xhigh",
+            "xhi": "xhigh",
+            "max": "xhigh",
+            "xhigh": "xhigh",
+            "none": "none",
+            "off": "medium",
+            "bogus": "medium",
+        }
+        for raw, expected in cases.items():
+            with self.subTest(raw=raw):
+                self.assertEqual(_normalize_reasoning_effort(raw), expected)
+
+    def test_provider_specific_chat_reasoning_controls(self):
+        from unittest.mock import patch
+        from src.llm_client import _apply_chat_reasoning_controls
+
+        with patch("src.llm_client.config") as mock_config:
+            mock_config.REASONING_MODE = "medium"
+            mock_config.REASONING_EFFORT = "medium"
+            mock_config.GLM_THINKING_TYPE = "enabled"
+            mock_config.GLM_CLEAR_THINKING = False
+            data = {}
+            effort, note = _apply_chat_reasoning_controls(data, "deepseek-v4-pro", "https://api.deepseek.com")
+            self.assertEqual(effort, "medium")
+            self.assertEqual(data["thinking"], {"type": "enabled"})
+            self.assertEqual(data["reasoning_effort"], "high")
+            self.assertIn("medium->high", note)
+
+        with patch("src.llm_client.config") as mock_config:
+            mock_config.REASONING_MODE = "xhigh"
+            mock_config.REASONING_EFFORT = "xhigh"
+            data = {}
+            effort, note = _apply_chat_reasoning_controls(data, "deepseek-v4-pro", "https://api.deepseek.com")
+            self.assertEqual(effort, "xhigh")
+            self.assertEqual(data["reasoning_effort"], "max")
+            self.assertIn("max", note)
+
+        with patch("src.llm_client.config") as mock_config:
+            mock_config.REASONING_MODE = "none"
+            mock_config.REASONING_EFFORT = "none"
+            data = {}
+            effort, note = _apply_chat_reasoning_controls(data, "deepseek-v4-pro", "https://api.deepseek.com")
+            self.assertEqual(effort, "none")
+            self.assertEqual(data["thinking"], {"type": "disabled"})
+            self.assertNotIn("reasoning_effort", data)
+            self.assertIn("disabled", note)
+
+        with patch("src.llm_client.config") as mock_config:
+            mock_config.REASONING_MODE = "high"
+            mock_config.REASONING_EFFORT = "high"
+            mock_config.GLM_THINKING_TYPE = "enabled"
+            mock_config.GLM_CLEAR_THINKING = False
+            data = {}
+            effort, note = _apply_chat_reasoning_controls(data, "glm-5.1", "https://api.z.ai/api/paas/v4/chat/completions")
+            self.assertEqual(effort, "high")
+            self.assertEqual(data["thinking"], {"type": "enabled", "clear_thinking": False})
+            self.assertNotIn("reasoning_effort", data)
+            self.assertIn("no provider effort tier", note)
+
+        with patch("src.llm_client.config") as mock_config:
+            mock_config.REASONING_MODE = "none"
+            mock_config.REASONING_EFFORT = "none"
+            mock_config.GLM_THINKING_TYPE = "enabled"
+            mock_config.GLM_CLEAR_THINKING = False
+            data = {}
+            effort, note = _apply_chat_reasoning_controls(data, "glm-5.1", "https://api.z.ai/api/paas/v4/chat/completions")
+            self.assertEqual(effort, "none")
+            self.assertEqual(data["thinking"], {"type": "disabled", "clear_thinking": False})
+            self.assertIn("disabled", note)
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Fix: Compression accumulation — prior summaries merged, not stacked

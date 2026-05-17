@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "simple_pwm",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 4,
+    "failed": 0,
+    "transactions": 3,
+    "transaction_results": [
+      {
+        "id": "FM1",
+        "name": "pwm_active_high",
+        "kind": "FM1",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM1",
+          "transaction_name": "pwm_active_high",
+          "sample_accepted": 1,
+          "pwm_out_high": 1,
+          "pwm_out": 1,
+          "state_updates": {
+            "counter_next": 1
+          }
+        }
+      },
+      {
+        "id": "FM2",
+        "name": "pwm_active_low",
+        "kind": "FM2",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM2",
+          "transaction_name": "pwm_active_low",
+          "sample_accepted": 1,
+          "pwm_out_low": 0,
+          "pwm_out": 0,
+          "state_updates": {
+            "counter_next": 1
+          }
+        }
+      },
+      {
+        "id": "FM3",
+        "name": "pwm_idle",
+        "kind": "FM3",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM3",
+          "transaction_name": "pwm_idle",
+          "sample_accepted": 1,
+          "pwm_out_off": 0,
+          "pwm_out": 0,
+          "state_updates": {
+            "counter_next": 0
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 4,
+    "coverage_bins": 29,
+    "invariants_total": 3,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "pwm_out is 0 whenever enable is 0",
+        "expr": "pwm_out is 0 whenever enable is 0",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "counter resets to 0 when it reaches peri",
+        "expr": "counter resets to 0 when it reaches period",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "counter is 0 whenever enable is 0",
+        "expr": "counter is 0 whenever enable is 0",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 0,
+    "error_cases_planned": 0
+  },
+  "decomposition_units": 7,
+  "fcov_bins": 29,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "simple_pwm/req/",
+      "simple_pwm/yaml/simple_pwm.ssot.yaml",
+      "simple_pwm/model/functional_model.py",
+      "simple_pwm/cov/fcov_plan.json",
+      "simple_pwm/yaml/simple_pwm.ssot.yaml#io_list",
+      "simple_pwm/yaml/simple_pwm.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "simple_pwm/rtl/",
+      "simple_pwm/tb/",
+      "simple_pwm/sim/",
+      "simple_pwm/vectors/",
+      "simple_pwm/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

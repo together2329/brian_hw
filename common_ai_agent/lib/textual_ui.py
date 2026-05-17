@@ -108,6 +108,180 @@ def _fix_table_block(rows: list) -> list:
     return fixed
 
 
+_BOX_ROW_SPLIT_RE = re.compile(r"(?<=[│|])\s+(?=[│|])")
+_TREE_BRANCH_RE = re.compile(r"[├└]──")
+_STAGE_CELL_RE = re.compile(r"^\d+\.\s+")
+_INDENTED_MARKDOWN_RE = re.compile(r"^(#{1,6}\s|\|.*\|\s*$|[-*+]\s+|\d+\.\s+)")
+_CODELIKE_RE = re.compile(
+    r"^(def |class |if |elif |else:|for |while |try:|except |with |return\b|"
+    r"import |from |module\b|endmodule\b|assign\b|always\b|wire\b|reg\b|"
+    r"logic\b|localparam\b|parameter\b|#include\b|[{};])"
+)
+
+
+def _clean_structured_cell(cell: str) -> str:
+    return re.sub(r"\s+", " ", cell.strip(" \t│|")).strip()
+
+
+def _box_cells(line: str) -> list[str]:
+    normalized = line.replace("|", "│")
+    return [
+        cell
+        for cell in (_clean_structured_cell(part) for part in normalized.strip().strip("│").split("│"))
+        if cell
+    ]
+
+
+def _format_dense_box_summary(line: str) -> list[str] | None:
+    """Turn a one-line, box-drawing stage table into readable Markdown.
+
+    LLMs sometimes emit a full summary table as:
+    ``│ title │ │ Stage │ Result │ │ 1. step │ ✅ result │ ...``.
+    Rich then wraps the very long line and the table becomes unreadable in the
+    Textual panel.  Normalize that shape before tree/code fencing.
+    """
+    stripped = line.strip()
+    if not stripped.startswith(("│", "|")):
+        return None
+
+    cells = _box_cells(stripped)
+    if len(cells) < 4:
+        return None
+
+    joined = " ".join(cells)
+    numbered_count = sum(1 for cell in cells if _STAGE_CELL_RE.match(cell))
+    if "Pipeline Results" not in joined and numbered_count < 2:
+        return None
+
+    title = next((cell for cell in cells if "Pipeline Results" in cell), "")
+    out: list[str] = [f"**{title}**"] if title else []
+
+    i = 0
+    while i < len(cells):
+        cell = cells[i]
+        if cell == title or cell.lower() in {"stage", "result"}:
+            i += 1
+            continue
+        if _STAGE_CELL_RE.match(cell):
+            label = cell
+            i += 1
+            values: list[str] = []
+            while i < len(cells) and not _STAGE_CELL_RE.match(cells[i]):
+                value = cells[i]
+                if value != title and value.lower() not in {"stage", "result"}:
+                    values.append(value)
+                i += 1
+            rendered_value = " ".join(values).strip()
+            if rendered_value:
+                out.append(f"- **{label}:** {rendered_value}")
+            else:
+                out.append(f"- **{label}**")
+            continue
+        i += 1
+
+    return out if len(out) > 1 else None
+
+
+def _split_inline_tree_entries(line: str) -> list[str]:
+    if len(_TREE_BRANCH_RE.findall(line)) < 2:
+        return [line]
+    return [
+        part.rstrip()
+        for part in re.split(r"\s+(?=[│\s]*[├└]──\s+)", line.strip())
+        if part.strip()
+    ]
+
+
+def _expand_inline_structured_output(lines: list[str]) -> list[str]:
+    """Split pasted/collapsed table or tree output into renderable lines."""
+    expanded: list[str] = []
+    in_fence = False
+    for line in lines:
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            expanded.append(line)
+            continue
+        if in_fence:
+            expanded.append(line)
+            continue
+
+        summary = _format_dense_box_summary(line)
+        if summary:
+            expanded.extend(summary)
+            continue
+
+        row_parts = [line]
+        stripped = line.strip()
+        if stripped.startswith(("│", "|")) and _BOX_ROW_SPLIT_RE.search(stripped):
+            row_parts = [part for part in _BOX_ROW_SPLIT_RE.split(stripped) if part.strip()]
+
+        for part in row_parts:
+            summary = _format_dense_box_summary(part)
+            if summary:
+                expanded.extend(summary)
+            else:
+                expanded.extend(_split_inline_tree_entries(part))
+    return expanded
+
+
+def _dedent_accidental_markdown_blocks(lines: list[str]) -> list[str]:
+    """Remove accidental 4-space indentation from prose Markdown blocks.
+
+    LLMs often indent an entire final summary after a sentence ending in ":".
+    Rich then treats headings and tables as an indented code block.  Keep real
+    fenced/code-looking blocks intact, but recover blocks that contain Markdown
+    headings, tables, or lists.
+    """
+    out: list[str] = []
+    in_fence = False
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            out.append(line)
+            i += 1
+            continue
+        if in_fence or not (line.startswith("    ") or line.startswith("\t")):
+            out.append(line)
+            i += 1
+            continue
+
+        block: list[str] = []
+        j = i
+        while j < len(lines):
+            cur = lines[j]
+            if cur.strip().startswith("```"):
+                break
+            if cur.strip() and not (cur.startswith("    ") or cur.startswith("\t")):
+                break
+            block.append(cur)
+            j += 1
+
+        nonblank = [ln for ln in block if ln.strip()]
+        stripped = [ln.lstrip() for ln in nonblank]
+        has_markdown = any(_INDENTED_MARKDOWN_RE.match(ln) for ln in stripped)
+        has_code = any(_CODELIKE_RE.match(ln) for ln in stripped)
+        if has_markdown and not has_code:
+            space_indent = [
+                len(ln) - len(ln.lstrip(" "))
+                for ln in nonblank
+                if ln.startswith(" ")
+            ]
+            remove = min(space_indent) if space_indent else 1
+            for ln in block:
+                if ln.startswith(" " * remove):
+                    out.append(ln[remove:])
+                elif ln.startswith("\t"):
+                    out.append(ln[1:])
+                else:
+                    out.append(ln)
+        else:
+            out.extend(block)
+        i = j
+    return out
+
+
 def _fix_md(text: str) -> str:
     '''Fix common LLM markdown quirks before passing to Rich Markdown renderer.
 
@@ -147,7 +321,8 @@ def _fix_md(text: str) -> str:
         text,
         flags=re.MULTILINE,
     )
-    raw_lines = text.splitlines()
+    raw_lines = _dedent_accidental_markdown_blocks(text.splitlines())
+    raw_lines = _expand_inline_structured_output(raw_lines)
 
     # -- Pass 0: wrap directory-tree blocks in code fences --
     # Box-drawing characters (├ └ │ ─ …) appear in shell `tree` / `find` output.

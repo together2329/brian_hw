@@ -1,0 +1,55 @@
+{
+  "blocked_at_stage": "rtl-gen",
+  "ip": "simple_pwm",
+  "llm": {
+    "by_stage": {
+      "rtl-gen": {
+        "cache_read_tokens": 0,
+        "calls": 4,
+        "cost_usd": 0.0,
+        "input_tokens": 0,
+        "models": [
+          "gpt-5.3-codex"
+        ],
+        "output_tokens": 0,
+        "repair_calls": 0,
+        "repair_rate": 0.0,
+        "total_tokens": 0
+      }
+    },
+    "totals": {
+      "cache_read_tokens": 0,
+      "calls": 4,
+      "cost_usd": 0.0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "repair_calls": 0,
+      "repair_rate": 0.0,
+      "total_tokens": 0
+    }
+  },
+  "llm_log_files": 4,
+  "run_status": "blocked",
+  "stage_engine_order": [
+    {
+      "created_at": "2026-05-16T19:04:07Z",
+      "stage_engine": "ssot-cycle-model",
+      "status": "pass"
+    },
+    {
+      "created_at": "2026-05-16T19:04:07Z",
+      "stage_engine": "ssot-dual-fcov",
+      "status": "pass"
+    },
+    {
+      "created_at": "2026-05-16T19:05:07Z",
+      "stage_engine": "ssot-equiv-goals",
+      "status": "pass"
+    },
+    {
+      "created_at": "2026-05-16T19:03:09Z",
+      "stage_engine": "ssot-fl-model",
+      "status": "pass"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import importlib.util
 import json
 import os
@@ -429,6 +430,71 @@ def _write_fl_output_alias_sample_ssot(root: Path) -> str:
     return ip
 
 
+def _write_fl_derived_signal_ssot(root: Path) -> str:
+    ip = "fl_derived_signal_ip"
+    ip_dir = root / ip
+    (ip_dir / "yaml").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                f"  name: {ip}",
+                "parameters:",
+                "  DATA_WIDTH: 32",
+                "  GPIO_WIDTH: 16",
+                "function_model:",
+                "  state_variables:",
+                "    - name: data_out_reg",
+                "      width: 32",
+                "      reset: 0",
+                "  derived_signals:",
+                "    - name: gpio_mask",
+                "      expr: (1 << GPIO_WIDTH) - 1",
+                "      width: DATA_WIDTH",
+                "    - name: wmask",
+                "      expr: ((0x000000FF if (pstrb & 0x1) != 0 else 0) | (0x0000FF00 if (pstrb & 0x2) != 0 else 0) | (0x00FF0000 if (pstrb & 0x4) != 0 else 0) | (0xFF000000 if (pstrb & 0x8) != 0 else 0))",
+                "      width: DATA_WIDTH",
+                "    - name: addr",
+                "      expr: paddr",
+                "      width: 8",
+                "    - name: read_mux",
+                "      expr: data_out_reg if addr == 4 else 0",
+                "      width: DATA_WIDTH",
+                "  transactions:",
+                "    - id: FM_WRITE",
+                "      name: write_masked_data_out",
+                "      required_fields:",
+                "        - paddr",
+                "        - pwdata",
+                "        - pstrb",
+                "      output_rules:",
+                "        - name: pslverr",
+                "          port: pslverr",
+                "          expr: 0",
+                "          width: 1",
+                "      state_updates:",
+                "        - name: fm_apb_write_data_out",
+                "          expr: ((((data_out_reg & ~wmask) | (pwdata & wmask)) & gpio_mask) if (paddr == 4) else data_out_reg)",
+                "          width: DATA_WIDTH",
+                "    - id: FM_READ",
+                "      name: read_data_out",
+                "      required_fields:",
+                "        - paddr",
+                "      output_rules:",
+                "        - name: prdata",
+                "          port: prdata",
+                "          expr: read_mux",
+                "          width: DATA_WIDTH",
+                "cycle_model:",
+                "  latency: 1",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return ip
+
+
 def _write_structured_rule_req(root: Path, ip: str) -> None:
     req_dir = root / ip / "req"
     req_dir.mkdir(parents=True, exist_ok=True)
@@ -602,9 +668,14 @@ if __name__ == "__main__":
 def _write_goal_audit_complete_fixture(root: Path) -> str:
     ip = _write_fixture(root)
     ip_dir = root / ip
-    for sub in ("req", "rtl", "list", "lint"):
+    for sub in ("doc", "req", "rtl", "list", "lint"):
         (ip_dir / sub).mkdir(parents=True, exist_ok=True)
 
+    source_path = ip_dir / "doc" / f"{ip}_requirement_review.md"
+    source_path.write_text(
+        "# Requirement Review\n\n" + ("reviewed requirement contract\n" * 80),
+        encoding="utf-8",
+    )
     (ip_dir / "req" / "requirements.md").write_text(
         "# Requirements\n\n"
         + (
@@ -613,6 +684,26 @@ def _write_goal_audit_complete_fixture(root: Path) -> str:
             "model is the expected-behavior authority, and the RTL observable named "
             "value must equal the FunctionalModel result for every scoreboard event. "
         ) * 8
+        + "\n",
+        encoding="utf-8",
+    )
+    req_path = ip_dir / "req" / "requirements.md"
+    (ip_dir / "req" / "approval_manifest.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "type": "requirement_approval_manifest",
+                "ip": ip,
+                "approved_by": "test",
+                "approved_at_utc": "2026-05-17T00:00:00Z",
+                "source": f"{ip}/doc/{ip}_requirement_review.md",
+                "source_sha256": hashlib.sha256(source_path.read_bytes()).hexdigest(),
+                "target": f"{ip}/req/requirements.md",
+                "target_sha256": hashlib.sha256(req_path.read_bytes()).hexdigest(),
+            },
+            indent=2,
+            sort_keys=True,
+        )
         + "\n",
         encoding="utf-8",
     )
@@ -827,6 +918,28 @@ def test_scoreboard_runtime_and_comparator_pass(tmp_path: Path):
     assert classify_doc["classifications"] == []
 
 
+def test_comparator_preserves_hash_on_noop_rerun(tmp_path: Path):
+    ip = _write_fixture(tmp_path)
+    comparator_mod = _load_module(
+        COMPARATOR_PATH, f"compare_fl_rtl_results_stable_{time.time_ns()}"
+    )
+
+    comparator_mod.compare(ip, tmp_path)
+    compare_path = tmp_path / ip / "sim" / "fl_rtl_compare.json"
+    classify_path = tmp_path / ip / "sim" / "mismatch_classification.json"
+    compare_before = hashlib.sha256(compare_path.read_bytes()).hexdigest()
+    classify_before = hashlib.sha256(classify_path.read_bytes()).hexdigest()
+    compare_generated_at = json.loads(compare_path.read_text(encoding="utf-8"))["generated_at"]
+    classify_generated_at = json.loads(classify_path.read_text(encoding="utf-8"))["generated_at"]
+
+    comparator_mod.compare(ip, tmp_path)
+
+    assert hashlib.sha256(compare_path.read_bytes()).hexdigest() == compare_before
+    assert hashlib.sha256(classify_path.read_bytes()).hexdigest() == classify_before
+    assert json.loads(compare_path.read_text(encoding="utf-8"))["generated_at"] == compare_generated_at
+    assert json.loads(classify_path.read_text(encoding="utf-8"))["generated_at"] == classify_generated_at
+
+
 def test_scoreboard_treats_highz_as_zero_for_integer_drive_mask(tmp_path: Path):
     ip = _write_fixture(tmp_path)
     scoreboard_mod = _load_module(SCOREBOARD_PATH, f"equivalence_scoreboard_highz_{time.time_ns()}")
@@ -994,6 +1107,175 @@ def test_generated_driver_releases_inout_except_input_capture(monkeypatch):
     assert Dut.gpio_pins.value == 0xA
 
 
+def test_generated_driver_handles_fsm_reset_transitions_without_false_reset(monkeypatch):
+    import types
+
+    class AwaitableTrigger:
+        def __await__(self):
+            if False:
+                yield None
+            return None
+
+    cocotb_mod = types.ModuleType("cocotb")
+    cocotb_mod.test = lambda: (lambda fn: fn)
+    cocotb_mod.start_soon = lambda _awaitable: None
+    binary_mod = types.ModuleType("cocotb.binary")
+    binary_mod.BinaryValue = lambda value: value
+    clock_mod = types.ModuleType("cocotb.clock")
+    clock_mod.Clock = lambda *_args, **_kwargs: types.SimpleNamespace(start=lambda: None)
+    triggers_mod = types.ModuleType("cocotb.triggers")
+    triggers_mod.ClockCycles = lambda *_args, **_kwargs: AwaitableTrigger()
+    triggers_mod.FallingEdge = lambda *_args, **_kwargs: AwaitableTrigger()
+    triggers_mod.ReadOnly = lambda *_args, **_kwargs: AwaitableTrigger()
+    triggers_mod.RisingEdge = lambda *_args, **_kwargs: AwaitableTrigger()
+    monkeypatch.setitem(sys.modules, "cocotb", cocotb_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.binary", binary_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.clock", clock_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.triggers", triggers_mod)
+
+    tb_mod = _load_module(TB_GEN_PATH, f"tb_gen_fsm_reset_{time.time_ns()}")
+    ns: dict[str, object] = {}
+    exec(tb_mod.TEST_PY, ns)
+    manifest = {
+        "clock": "clk",
+        "reset": "rst",
+        "reset_active": "high",
+        "input_ports": ["clk", "rst", "i_hready", "i_hresp", "i_hrdata", "d_hready", "d_hresp", "d_hrdata"],
+        "output_ports": [],
+        "input_map": {
+            "rst": "rst",
+            "i_hready": "i_hready",
+            "i_hresp": "i_hresp",
+            "i_hrdata": "i_hrdata",
+            "d_hready": "d_hready",
+            "d_hresp": "d_hresp",
+            "d_hrdata": "d_hrdata",
+        },
+        "sample_inputs": [],
+        "port_widths": {
+            "clk": 1,
+            "rst": 1,
+            "i_hready": 1,
+            "i_hresp": 1,
+            "i_hrdata": 32,
+            "d_hready": 1,
+            "d_hresp": 1,
+            "d_hrdata": 32,
+        },
+    }
+    reset_to_run = {
+        "goal_id": "EQ_STATE_CORE_RESET_TO_RUN_0",
+        "title": "FSM transition core: RESET -> RUN",
+        "kind": "state",
+        "stimulus_contract": {
+            "transaction_type": "core_RESET_to_RUN_0",
+            "required_fields": ["pre_state", "stimulus"],
+            "constraints": ["rst deasserted"],
+        },
+    }
+    fault_to_reset = {
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "title": "FSM transition core: FAULT_HALT -> RESET",
+        "kind": "state",
+        "stimulus_contract": {
+            "transaction_type": "core_FAULT_HALT_to_RESET_7",
+            "required_fields": ["pre_state", "stimulus"],
+            "constraints": ["rst asserted"],
+        },
+    }
+    run_to_fault = {
+        "goal_id": "EQ_STATE_CORE_RUN_TO_FAULT_HALT_5",
+        "title": "FSM transition core: RUN -> FAULT_HALT",
+        "kind": "state",
+        "stimulus_contract": {
+            "transaction_type": "core_RUN_to_FAULT_HALT_5",
+            "required_fields": ["pre_state", "stimulus"],
+            "constraints": ["i_hresp==ERROR || d_hresp==ERROR"],
+        },
+    }
+    stall_mem_fault = {
+        "goal_id": "EQ_STATE_CORE_STALL_MEM_TO_FAULT_HALT_6",
+        "title": "FSM transition core: STALL_MEM -> FAULT_HALT",
+        "kind": "state",
+        "stimulus_contract": {
+            "transaction_type": "core_STALL_MEM_to_FAULT_HALT_6",
+            "required_fields": ["pre_state", "stimulus"],
+            "constraints": ["d_hresp==ERROR"],
+        },
+    }
+    bus_error = {
+        "goal_id": "EQ_SCENARIO_SC_BUS_ERROR",
+        "title": "Scenario SC_BUS_ERROR: Bus error to fault-halt",
+        "kind": "transaction",
+        "stimulus_contract": {
+            "transaction_type": "SC_BUS_ERROR",
+            "required_fields": ["scenario_id", "kind"],
+            "constraints": ["Core enters FAULT_HALT"],
+        },
+    }
+
+    run_stimulus = ns["_stimulus_for_goal"](reset_to_run, manifest, 0)
+    reset_stimulus = ns["_stimulus_for_goal"](fault_to_reset, manifest, 1)
+    fault_stimulus = ns["_stimulus_for_goal"](run_to_fault, manifest, 2)
+    stall_mem_fault_stimulus = ns["_stimulus_for_goal"](stall_mem_fault, manifest, 3)
+    bus_error_stimulus = ns["_stimulus_for_goal"](bus_error, manifest, 4)
+
+    assert run_stimulus["kind"] == "core_RESET_to_RUN_0"
+    assert run_stimulus["_sample_active"] is True
+    assert run_stimulus["i_hready"] == 1
+    assert ns["_stimulus_value_for_field"](manifest, "i_hready", 3, reset_to_run) == 1
+    assert run_stimulus["i_hresp"] == 0
+    assert run_stimulus["i_hrdata"] == 0
+    assert run_stimulus["rst"] == 0
+    assert reset_stimulus["kind"] == "reset"
+    assert reset_stimulus["_sample_active"] is False
+    assert fault_stimulus["i_hresp"] == 1
+    assert fault_stimulus["d_hresp"] == 1
+    assert stall_mem_fault_stimulus["d_hresp"] == 1
+    assert stall_mem_fault_stimulus["i_hrdata"] == 0x7000
+    assert ns["_goal_wait_cycles"](stall_mem_fault, manifest) == 3
+    assert bus_error_stimulus["i_hresp"] == 1
+    assert bus_error_stimulus["d_hresp"] == 1
+    assert ns["_goal_wait_cycles"](bus_error, manifest) == 3
+
+    class Signal:
+        def __init__(self):
+            self.value = None
+
+    class Dut:
+        clk = Signal()
+        rst = Signal()
+        i_hready = Signal()
+        i_hresp = Signal()
+        i_hrdata = Signal()
+        d_hready = Signal()
+        d_hresp = Signal()
+        d_hrdata = Signal()
+
+    Dut.rst.value = 0
+    ns["_drive_inputs"](Dut, manifest, run_stimulus)
+    assert Dut.rst.value == 0
+    assert Dut.i_hready.value == 1
+    assert Dut.i_hresp.value == 0
+    assert Dut.i_hrdata.value == 0
+
+    asyncio.run(ns["_reset_dut"](Dut, manifest, release=False))
+    assert Dut.rst.value == 1
+    assert Dut.i_hready.value == 1
+    assert Dut.i_hresp.value == 0
+    assert Dut.i_hrdata.value == 0
+
+    asyncio.run(ns["_reset_dut"](Dut, manifest, release=True))
+    assert Dut.rst.value == 0
+    assert Dut.i_hready.value == 1
+
+    Dut.i_hready.value = 0
+    ns["_clear_sample_inputs"](Dut, manifest)
+    assert Dut.i_hready.value == 1
+    assert Dut.i_hresp.value == 0
+    assert Dut.i_hrdata.value == 0
+
+
 def test_generated_apb_goal_stimulus_uses_ssot_register_offsets_without_register_fallback(tmp_path: Path, monkeypatch):
     import types
 
@@ -1131,6 +1413,627 @@ def test_generated_apb_goal_stimulus_uses_ssot_register_offsets_without_register
     assert read_stimulus["pwrite"] == 0
     assert read_stimulus["paddr"] == 4
 
+    contract_only_read_goal = {
+        **goal,
+        "goal_id": "EQ_TRANSACTION_READ_SYNC_INPUT",
+        "title": "Transaction read_synchronized_input matches FunctionalModel",
+        "stimulus_contract": {
+            "transaction_type": "read_synchronized_input",
+            "required_fields": ["kind"],
+            "constraints": ["apb_valid_read == 1", "addr == 0x04"],
+        },
+    }
+    contract_only_read = ns["_stimulus_for_goal"](contract_only_read_goal, manifest, 2)
+    assert contract_only_read["psel"] == 1
+    assert contract_only_read["penable"] == 1
+    assert contract_only_read["pwrite"] == 0
+    assert contract_only_read["paddr"] == 4
+
+    illegal_offset_goal = {
+        **goal,
+        "goal_id": "EQ_TRANSACTION_ILLEGAL_OFFSET",
+        "title": "Transaction illegal_offset_error_response matches FunctionalModel",
+        "stimulus_contract": {
+            "transaction_type": "illegal_offset_error_response",
+            "required_fields": ["kind"],
+            "constraints": ["apb_access == 1", "not ((addr == 0x00) or (addr == 0x04))"],
+        },
+    }
+    illegal_stimulus = ns["_stimulus_for_goal"](illegal_offset_goal, manifest, 3)
+    assert illegal_stimulus["psel"] == 1
+    assert illegal_stimulus["penable"] == 1
+    assert illegal_stimulus["paddr"] == 8
+
+    protocol_goal = {
+        **goal,
+        "goal_id": "EQ_PROTOCOL_STROBE_MASK",
+        "kind": "protocol",
+        "title": "Cycle/handshake rule strobe_mask",
+        "stimulus_contract": {
+            "transaction_type": "strobe_mask",
+            "required_fields": ["cycle", "observed_signals"],
+            "constraints": [
+                "{'id': 'strobe_mask', 'signal': 'pstrb', 'rule': 'only byte lanes with pstrb bit equal to one are updated on writable registers.'}"
+            ],
+        },
+        "expected_contract": {
+            "observables": ["ready/valid/control observables named by SSOT and DUT ports"],
+            "latency": "{'apb_write': {'min_cycles': 1, 'max_cycles': 1}}",
+        },
+        "coverage_refs": ["ccov_apb_zero_wait"],
+    }
+    protocol_stimulus = ns["_stimulus_for_goal"](protocol_goal, manifest, 4)
+    assert protocol_stimulus["psel"] == 1
+    assert protocol_stimulus["penable"] == 1
+    assert protocol_stimulus["pwrite"] == 1
+    assert protocol_stimulus["pstrb"] == 15
+    assert protocol_stimulus["paddr"] == 0
+
+    ready_for_legal_and_illegal_goal = {
+        **protocol_goal,
+        "goal_id": "EQ_PROTOCOL_READY_FOR_ALL_ACCESS",
+        "stimulus_contract": {
+            "transaction_type": "handshake_1",
+            "required_fields": ["cycle", "observed_signals"],
+            "constraints": [
+                "{'signal': 'pready', 'rule': 'Always high during access phase for legal and illegal accesses.'}"
+            ],
+        },
+    }
+    ready_for_legal_and_illegal_stimulus = ns["_stimulus_for_goal"](ready_for_legal_and_illegal_goal, manifest, 5)
+    assert ready_for_legal_and_illegal_stimulus["paddr"] == 0
+
+    error_qualify_goal = {
+        **protocol_goal,
+        "goal_id": "EQ_PROTOCOL_APB_ERROR_QUALIFY",
+        "title": "Cycle/handshake rule apb_error_qualify",
+        "stimulus_contract": {
+            "transaction_type": "apb_error_qualify",
+            "required_fields": ["cycle", "observed_signals"],
+            "constraints": [
+                "{'id': 'apb_error_qualify', 'signal': 'pslverr', 'rule': 'pslverr is high only when accessed offset is illegal.'}"
+            ],
+        },
+    }
+    error_qualify_stimulus = ns["_stimulus_for_goal"](error_qualify_goal, manifest, 5)
+    assert error_qualify_stimulus["psel"] == 1
+    assert error_qualify_stimulus["penable"] == 1
+    assert error_qualify_stimulus["paddr"] == 8
+
+    write_to_ro_goal = {
+        **error_qualify_goal,
+        "goal_id": "EQ_PROTOCOL_WRITE_TO_RO",
+        "stimulus_contract": {
+            "transaction_type": "handshake_2",
+            "required_fields": ["cycle", "observed_signals"],
+            "constraints": ["pslverr is high only for unmapped accesses or write to read-only STATUS."],
+        },
+    }
+    write_to_ro_stimulus = ns["_stimulus_for_goal"](write_to_ro_goal, manifest, 6)
+    assert write_to_ro_stimulus["op"] == "write"
+    assert write_to_ro_stimulus["pwrite"] == 1
+    assert write_to_ro_stimulus["paddr"] == 4
+
+    ro_register_goal = {
+        **goal,
+        "goal_id": "EQ_REGISTER_STATUS",
+        "kind": "register",
+        "title": "Register access STATUS",
+        "stimulus_contract": {
+            "transaction_type": "csr_access",
+            "required_fields": ["op", "addr_or_name"],
+            "constraints": ["STATUS read-only register"],
+        },
+        "expected_contract": {"observables": ["read data", "write response", "side effects"]},
+        "pass_criteria": [
+            "RTL read/write response matches FunctionalModel register behavior",
+            "Read-only/reserved/error policies match SSOT",
+        ],
+    }
+    ro_register_stimulus = ns["_stimulus_for_goal"](ro_register_goal, manifest, 7)
+    assert ro_register_stimulus["op"] == "read"
+    assert ro_register_stimulus["pwrite"] == 0
+    assert ro_register_stimulus["paddr"] == 4
+
+    illegal_timing_goal = {
+        **protocol_goal,
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "kind": "timing",
+        "title": "Ordering rule ordering_1",
+        "stimulus_contract": {
+            "transaction_type": "ordering_1",
+            "required_fields": ["cycle", "transaction_order"],
+            "constraints": ["Illegal accesses complete with error and no architectural state change."],
+        },
+    }
+    illegal_timing_stimulus = ns["_stimulus_for_goal"](illegal_timing_goal, manifest, 8)
+    assert illegal_timing_stimulus["psel"] == 1
+    assert illegal_timing_stimulus["penable"] == 1
+    assert illegal_timing_stimulus["paddr"] == 8
+    assert ns["_sweep_values_for_port"](manifest, "pwdata")[:4] == [0, 0xFFFFFFFF, 1, 0xFFFFFFFE]
+    sweep_vectors = ns["_apb_sweep_vectors"](manifest)
+    assert any(vector["addr"] == 0 and vector["write"] == 0 and vector["pstrb"] == 15 for vector in sweep_vectors)
+    assert any(vector["addr"] == 8 and vector["write"] == 1 for vector in sweep_vectors)
+    assert any(vector["pstrb"] == 0 for vector in sweep_vectors)
+    assert any(vector["pstrb"] == 2 for vector in sweep_vectors)
+
+    class Signal:
+        def __init__(self, value):
+            self.value = value
+
+    class Dut:
+        pslverr = Signal(0)
+        reg_irq_status = Signal(3)
+        reg_irq_status_pclk = Signal(7)
+
+    observed = ns["_observe_outputs"](
+        Dut,
+        {
+            "outputs": [{"name": "pslverr", "port": "pslverr"}],
+            "special_outputs": {},
+            "state_observables": ["reg_irq_status"],
+            "state_observable_aliases": {"reg_irq_status": ["reg_irq_status_pclk"]},
+        },
+        {"kind": "clear_pending_w1c"},
+    )
+    assert observed["reg_irq_status"] == 3
+
+    class AliasOnlyDut:
+        pslverr = Signal(0)
+        reg_irq_status_pclk = Signal(7)
+
+    alias_observed = ns["_observe_outputs"](
+        AliasOnlyDut,
+        {
+            "outputs": [{"name": "pslverr", "port": "pslverr"}],
+            "special_outputs": {},
+            "state_observables": ["reg_irq_status"],
+            "state_observable_aliases": {"reg_irq_status": ["reg_irq_status_pclk"]},
+        },
+        {"kind": "clear_pending_w1c"},
+    )
+    assert alias_observed["reg_irq_status"] == 7
+    assert alias_observed["reg_irq_status_pclk"] == 7
+
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"scoreboard_state_alias_{time.time_ns()}")
+    view = scoreboard_mod._expected_observable_view(
+        {"state_updates": {"reg_irq_status_w1c_next": 7}},
+        {"reg_irq_status": 7},
+        {
+            "goal_id": "EQ_TRANSACTION_FM_W1C_IRQ_STATUS",
+            "state_updates": ["reg_irq_status_w1c_next"],
+        },
+    )
+    assert view["reg_irq_status"] == 7
+
+    ungated_view = scoreboard_mod._expected_observable_view(
+        {"state_updates": {"reg_data_out_next": 0}},
+        {"reg_data_out": 13},
+        {"goal_id": "EQ_PROTOCOL_STROBE_MASK", "state_updates": []},
+    )
+    assert "reg_data_out" not in ungated_view
+
+
+def test_scoreboard_uses_goal_specific_comparison_policy_for_reset_debug_and_cycle_goals():
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"scoreboard_goal_policy_{time.time_ns()}")
+    compare = scoreboard_mod.EquivalenceScoreboard.compare
+
+    reset_expected = {
+        "goal_id": "EQ_SCENARIO_SC01",
+        "goal_kind": "transaction",
+        "title": "Scenario SC01: reset contract",
+        "transaction": {"kind": "reset", "scenario_id": "SC_001"},
+        "model_result": {
+            "kind": "reset",
+            "resp": 0,
+            "state": {"data_out_reg": 0, "dir_reg": 0, "irq_status_reg": 0},
+        },
+        "observables": ["Architectural state, status, outputs, and debug observability match function_model reset outputs."],
+        "ssot_refs": ["test_requirements.scenarios[0]"],
+    }
+    assert compare(None, reset_expected, {"gpio_out": 0, "gpio_oe": 0, "irq_o": 0}) == (True, "")
+    assert compare(None, reset_expected, {"gpio_out": 0, "gpio_oe": 0, "irq_o": 0, "hprot": 3}) == (True, "")
+    reset_bad, reset_mismatch = compare(None, reset_expected, {"gpio_out": 1, "gpio_oe": 0, "irq_o": 0})
+    assert reset_bad is False
+    assert "gpio_out" in reset_mismatch
+
+    debug_expected = {
+        "goal_id": "EQ_DEBUG_OBSERVABILITY",
+        "goal_kind": "coverage",
+        "title": "Required debug/waveform observability exists",
+        "transaction": {"kind": "FM_APB_READ"},
+        "model_result": {"pready": 1, "pslverr": 0},
+        "observables": ["waveform contains required probes"],
+        "ssot_refs": ["debug_observability.waveform_must_probe"],
+    }
+    assert compare(None, debug_expected, {"pready": 0, "pslverr": 0}) == (True, "")
+
+    fsm_expected = {
+        "goal_id": "EQ_STATE_CONTROL_IDLE_TO_IDLE_0",
+        "goal_kind": "state",
+        "title": "FSM transition control: IDLE -> IDLE",
+        "transaction": {"kind": "FM_APB_READ"},
+        "model_result": {"pready": 1, "prdata": 40},
+        "observables": ["next state", "state-dependent outputs"],
+        "ssot_refs": ["fsm.control.transitions[0]"],
+        "stimulus_contract": {"constraints": ["all behavior is handshake/state-update driven each cycle"]},
+    }
+    assert compare(None, fsm_expected, {"pready": 0, "prdata": 0}) == (True, "")
+
+    reset_to_run_expected = {
+        "goal_id": "EQ_STATE_CORE_RESET_TO_RUN_0",
+        "goal_kind": "state",
+        "title": "FSM transition core: RESET -> RUN",
+        "transaction": {"kind": "TX_DECODE_EXEC"},
+        "model_result": {"i_haddr": 2, "resp": 0},
+        "observables": ["next state", "state-dependent outputs"],
+        "stimulus_contract": {
+            "transaction_type": "core_RESET_to_RUN_0",
+            "constraints": ["rst deasserted"],
+        },
+    }
+    assert compare(None, reset_to_run_expected, {"i_haddr": 0, "i_htrans": 2, "fault_halt": 0}) == (True, "")
+    bad_run, bad_run_mismatch = compare(None, reset_to_run_expected, {"i_haddr": 0, "i_htrans": 0, "fault_halt": 0})
+    assert bad_run is False
+    assert "i_htrans" in bad_run_mismatch
+
+    run_to_fault_expected = {
+        "goal_id": "EQ_STATE_CORE_RUN_TO_FAULT_HALT_5",
+        "goal_kind": "state",
+        "title": "FSM transition core: RUN -> FAULT_HALT",
+        "transaction": {"kind": "TX_DECODE_EXEC"},
+        "model_result": {"i_haddr": 2, "resp": 0},
+        "observables": ["next state", "state-dependent outputs"],
+        "stimulus_contract": {
+            "transaction_type": "core_RUN_to_FAULT_HALT_5",
+            "constraints": ["i_hresp==ERROR || d_hresp==ERROR"],
+        },
+    }
+    assert compare(None, run_to_fault_expected, {"fault_halt": 1}) == (True, "")
+    bad_fault, bad_fault_mismatch = compare(None, run_to_fault_expected, {"fault_halt": 0})
+    assert bad_fault is False
+    assert "fault_halt" in bad_fault_mismatch
+
+    if_stall_expected = {
+        "goal_id": "EQ_SCENARIO_SC_IF_STALL",
+        "goal_kind": "transaction",
+        "title": "Scenario SC_IF_STALL: Instruction fetch backpressure",
+        "transaction": {"kind": "TX_DECODE_EXEC", "i_hready": 0},
+        "model_result": {"i_haddr": 2, "resp": 0},
+        "observables": ["IF/PC stall without architectural corruption"],
+        "stimulus_contract": {"transaction_type": "SC_IF_STALL", "constraints": ["Deassert i_hready for bounded bursts during fetch"]},
+    }
+    assert compare(None, if_stall_expected, {"i_haddr": 0, "pc": 0, "i_htrans": 2, "fault_halt": 0}) == (True, "")
+    bad_stall, bad_stall_mismatch = compare(None, if_stall_expected, {"i_haddr": 2, "pc": 0, "i_htrans": 0, "fault_halt": 0})
+    assert bad_stall is False
+    assert "i_htrans" in bad_stall_mismatch or "i_haddr" in bad_stall_mismatch
+
+    bus_error_expected = {
+        "goal_id": "EQ_SCENARIO_SC_BUS_ERROR",
+        "goal_kind": "transaction",
+        "title": "Scenario SC_BUS_ERROR: Bus error to fault-halt",
+        "transaction": {"kind": "TX_DECODE_EXEC", "i_hresp": 1},
+        "model_result": {"i_haddr": 2, "resp": 0},
+        "observables": ["Core enters FAULT_HALT and blocks further retirement until reset"],
+        "stimulus_contract": {"transaction_type": "SC_BUS_ERROR", "constraints": ["Core enters FAULT_HALT"]},
+    }
+    assert compare(None, bus_error_expected, {"fault_halt": 1, "i_haddr": 6}) == (True, "")
+    bad_bus, bad_bus_mismatch = compare(None, bus_error_expected, {"fault_halt": 0, "i_haddr": 6})
+    assert bad_bus is False
+    assert "fault_halt" in bad_bus_mismatch
+
+    ordering_expected = {
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "goal_kind": "timing",
+        "title": "Ordering rule ordering_1",
+        "transaction": {"kind": "TX_DECODE_EXEC"},
+        "model_result": {"i_haddr": 2, "resp": 0},
+        "observables": ["ordered RTL observable sequence"],
+        "stimulus_contract": {"transaction_type": "ordering_1", "constraints": ["ordered bus activity"]},
+    }
+    assert compare(None, ordering_expected, {"i_haddr": 6, "pc": 6, "i_htrans": 2, "fault_halt": 0}) == (True, "")
+    bad_order, bad_order_mismatch = compare(None, ordering_expected, {"i_haddr": 6, "pc": 6, "i_htrans": 0, "fault_halt": 0})
+    assert bad_order is False
+    assert "i_htrans" in bad_order_mismatch
+
+    internal_memory_expected = {
+        "goal_id": "EQ_MEMORY_IF_ID_INSTR",
+        "goal_kind": "memory",
+        "title": "Memory behavior if_id_instr",
+        "transaction": {"kind": "TX_LOAD_STORE"},
+        "model_result": {"d_haddr": 0, "d_hwrite": 0, "resp": 0},
+        "observables": ["read data", "write response", "retention"],
+        "ssot_refs": ["memory.instances[0]"],
+        "pass_criteria": ["RTL memory read/write behavior matches FunctionalModel state"],
+        "stimulus_contract": {
+            "transaction_type": "memory_access",
+            "constraints": [
+                "{'name': 'if_id_instr', 'type': 'register', 'depth': 1, 'width': 32, 'description': 'IF/ID pipeline latch'}"
+            ],
+        },
+    }
+    assert compare(
+        None,
+        internal_memory_expected,
+        {"d_haddr": 0, "d_hwrite": 0, "d_htrans": 0, "i_haddr": 2, "pc": 2, "i_htrans": 2, "fault_halt": 0},
+    ) == (True, "")
+    bad_memory, bad_memory_mismatch = compare(
+        None,
+        internal_memory_expected,
+        {"d_haddr": 0, "d_hwrite": 1, "d_htrans": 0, "i_haddr": 2, "pc": 2, "i_htrans": 2, "fault_halt": 0},
+    )
+    assert bad_memory is False
+    assert "d_hwrite" in bad_memory_mismatch
+
+    cycle_expected = {
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_APB_READ",
+        "goal_kind": "coverage",
+        "title": "Functional coverage bin cycle_latency_apb_read",
+        "transaction": {"kind": "FM_APB_READ", "op": "read"},
+        "model_result": {"pready": 1, "pslverr": 0, "prdata": 40},
+        "observables": ["APB read completes with no error and decoded data"],
+        "ssot_refs": ["cycle_model.latency.apb_read"],
+    }
+    assert compare(None, cycle_expected, {"pready": 1, "pslverr": 0, "prdata": 46}) == (True, "")
+    cycle_bad, cycle_mismatch = compare(None, cycle_expected, {"pready": 1, "pslverr": 1, "prdata": 46})
+    assert cycle_bad is False
+    assert "pslverr" in cycle_mismatch
+
+
+def test_scoreboard_error_scenario_selects_error_transaction(tmp_path: Path):
+    ip = "scoreboard_error_kind_ip"
+    ip_dir = tmp_path / ip
+    for subdir in ("model", "verify"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "model" / "functional_model.py").write_text(
+        """
+RESP_OKAY = 0
+
+class FunctionalModel:
+    def _transactions(self):
+        return [
+            {"id": "FM_APB_WRITE_RW", "name": "write_data_out_dir_irq_en"},
+            {"id": "FM_APB_ILLEGAL_OFFSET", "name": "illegal_offset_error_response"},
+        ]
+
+    def apply(self, txn):
+        if txn.get("kind") == "FM_APB_ILLEGAL_OFFSET":
+            return {"resp": RESP_OKAY, "pready": 1, "pslverr": 1}
+        return {"resp": RESP_OKAY, "pready": 1, "pslverr": 0}
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(
+        json.dumps(
+            {
+                "goals": [
+                    {
+                        "goal_id": "EQ_SCENARIO_SC04",
+                        "kind": "transaction",
+                        "title": "Scenario SC04: error and recovery policy",
+                        "stimulus_contract": {
+                            "transaction_type": "SC04",
+                            "constraints": [
+                                "Inject each declared error_handling.error_sources condition where the interface can represent it."
+                            ],
+                        },
+                        "expected_contract": {"observables": ["pslverr"]},
+                        "ssot_refs": ["test_requirements.scenarios[3]"],
+                    }
+                ]
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"scoreboard_error_kind_{time.time_ns()}")
+    scoreboard = scoreboard_mod.EquivalenceScoreboard(ip, tmp_path, reset_events=True)
+    txn = scoreboard.transaction_for_goal(
+        "EQ_SCENARIO_SC04",
+        {"kind": "SC04", "psel": 1, "penable": 1, "pwrite": 1, "paddr": 20},
+        "SC_004",
+    )
+    assert txn["kind"] == "FM_APB_ILLEGAL_OFFSET"
+    expected = scoreboard.expected_for_goal("EQ_SCENARIO_SC04", txn, "SC_004")
+    assert expected["model_result"]["pslverr"] == 1
+
+    register_goal = {
+        "goal_id": "EQ_REGISTER_DATA_OUT",
+        "kind": "register",
+        "title": "Register access DATA_OUT",
+        "stimulus_contract": {
+            "transaction_type": "csr_access",
+            "required_fields": ["op", "addr_or_name"],
+            "constraints": ["DATA_OUT writable register"],
+        },
+        "expected_contract": {"observables": ["read data", "write response", "side effects"]},
+        "pass_criteria": [
+            "RTL read/write response matches FunctionalModel register behavior",
+            "Read-only/reserved/error policies match SSOT",
+        ],
+        "ssot_refs": ["registers.register_list[0]"],
+    }
+    memory_goal = {
+        "goal_id": "EQ_MEMORY_SCRATCH",
+        "kind": "memory",
+        "title": "Memory behavior scratch",
+        "stimulus_contract": {"transaction_type": "memory_access", "required_fields": ["op", "addr", "data"]},
+        "expected_contract": {"observables": ["retention"]},
+    }
+    scoreboard.goals[register_goal["goal_id"]] = register_goal
+    scoreboard.goals[memory_goal["goal_id"]] = memory_goal
+    assert scoreboard.transaction_for_goal("EQ_REGISTER_DATA_OUT", {"kind": "csr_access"})["kind"] == "FM_APB_WRITE_RW"
+    assert scoreboard.transaction_for_goal("EQ_MEMORY_SCRATCH", {"kind": "memory_access"})["kind"] == "memory_access"
+
+
+def test_scoreboard_routes_register_and_protocol_intent_without_error_false_positive(tmp_path: Path):
+    ip = "scoreboard_apb_route_ip"
+    ip_dir = tmp_path / ip
+    for subdir in ("model", "verify"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "model" / "functional_model.py").write_text(
+        """
+class FunctionalModel:
+    def _transactions(self):
+        return [
+            {"id": "FM_APB_READ", "name": "legal_apb_read"},
+            {"id": "FM_APB_WRITE", "name": "legal_apb_write_with_pstrb"},
+            {"id": "FM_ILLEGAL_ACCESS", "name": "illegal_or_unmapped_access"},
+        ]
+
+    def apply(self, txn):
+        return {"pready": 1, "pslverr": 1 if txn.get("kind") == "FM_ILLEGAL_ACCESS" else 0}
+""".lstrip(),
+        encoding="utf-8",
+    )
+    goals = [
+        {
+            "goal_id": "EQ_REGISTER_DATA_IN",
+            "kind": "register",
+            "title": "Register access DATA_IN",
+            "stimulus_contract": {"transaction_type": "csr_access", "required_fields": ["op", "addr_or_name"]},
+            "expected_contract": {"observables": ["read data", "write response", "side effects"]},
+            "pass_criteria": [
+                "RTL read/write response matches FunctionalModel register behavior",
+                "Read-only/reserved/error policies match SSOT",
+            ],
+        },
+        {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+            "kind": "protocol",
+            "title": "Cycle/handshake rule handshake_1",
+            "stimulus_contract": {
+                "transaction_type": "handshake_1",
+                "required_fields": ["cycle", "observed_signals"],
+                "constraints": [
+                    "{'signal': 'pready', 'rule': 'Always high during access phase for legal and illegal accesses.'}"
+                ],
+            },
+            "expected_contract": {"observables": ["ready/valid/control observables named by SSOT and DUT ports"]},
+        },
+        {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+            "kind": "protocol",
+            "title": "Cycle/handshake rule handshake_2",
+            "stimulus_contract": {
+                "transaction_type": "handshake_2",
+                "required_fields": ["cycle", "observed_signals"],
+                "constraints": [
+                    "{'signal': 'pslverr', 'rule': 'High only for unmapped accesses or write to read-only DATA_IN.'}"
+                ],
+            },
+            "expected_contract": {"observables": ["ready/valid/control observables named by SSOT and DUT ports"]},
+        },
+    ]
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(json.dumps({"goals": goals}, indent=2) + "\n")
+
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"scoreboard_apb_route_{time.time_ns()}")
+    scoreboard = scoreboard_mod.EquivalenceScoreboard(ip, tmp_path, reset_events=True)
+    read_txn = scoreboard.transaction_for_goal("EQ_REGISTER_DATA_IN", {"kind": "csr_access", "op": "read"})
+    legal_protocol_txn = scoreboard.transaction_for_goal(
+        "EQ_PROTOCOL_HANDSHAKE_1",
+        {"kind": "handshake_1", "op": "write", "paddr": 16},
+    )
+    error_protocol_txn = scoreboard.transaction_for_goal(
+        "EQ_PROTOCOL_HANDSHAKE_2",
+        {"kind": "handshake_2", "op": "write", "paddr": 24},
+    )
+
+    assert read_txn["kind"] == "FM_APB_READ"
+    assert legal_protocol_txn["kind"] == "FM_APB_WRITE"
+    assert error_protocol_txn["kind"] == "FM_ILLEGAL_ACCESS"
+
+
+def test_scoreboard_maps_ssot_memory_and_degenerate_fsm_goals_to_model_transactions(tmp_path: Path):
+    ip = "scoreboard_memory_fsm_map_ip"
+    ip_dir = tmp_path / ip
+    (ip_dir / "model").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "verify").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "model" / "functional_model.py").write_text(
+        """
+RESP_OKAY = 0
+RESP_SLVERR = 2
+
+class FunctionalModel:
+    def _transactions(self):
+        return [
+            {
+                "id": "FM_APB_READ",
+                "name": "legal_apb_read",
+                "output_rules": [{"name": "pready", "expr": "1"}],
+                "state_updates": [{"name": "fm_apb_read_hold", "expr": "0"}],
+            },
+            {
+                "id": "FM_SYNC_SAMPLE",
+                "name": "two_stage_input_sampling",
+                "output_rules": [{"name": "fm_sync_data_in_view", "expr": "0"}],
+                "state_updates": [
+                    {"name": "fm_sync_stage1", "expr": "1"},
+                    {"name": "fm_sync_stage2", "expr": "1"},
+                    {"name": "fm_sync_prev", "expr": "1"},
+                ],
+            },
+        ]
+
+    def apply(self, txn):
+        kind = txn.get("kind")
+        if kind == "FM_SYNC_SAMPLE":
+            return {"resp": RESP_OKAY, "state_updates": {"fm_sync_stage1": 1}}
+        if kind == "FM_APB_READ":
+            return {"resp": RESP_OKAY, "pready": 1}
+        return {"resp": RESP_SLVERR, "error": "unsupported_transaction"}
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(
+        json.dumps(
+            {
+                "goals": [
+                    {
+                        "goal_id": "EQ_MEMORY_SYNC_STAGE1_FF",
+                        "kind": "memory",
+                        "title": "Memory behavior sync_stage1_ff",
+                        "stimulus_contract": {
+                            "transaction_type": "memory_access",
+                            "required_fields": ["op", "addr", "data"],
+                            "constraints": ["sync_stage1_ff synchronizer stage 1 storage"],
+                        },
+                        "expected_contract": {"state_updates": ["memory contents"]},
+                        "blocked": False,
+                    },
+                    {
+                        "goal_id": "EQ_STATE_CONTROL_IDLE_TO_IDLE_0",
+                        "kind": "state",
+                        "title": "FSM transition control: IDLE -> IDLE",
+                        "stimulus_contract": {
+                            "transaction_type": "control_IDLE_to_IDLE_0",
+                            "required_fields": ["pre_state", "stimulus"],
+                            "constraints": ["all behavior is handshake/state-update driven each cycle"],
+                        },
+                        "expected_contract": {"state_updates": ["control state"]},
+                        "blocked": False,
+                    },
+                ]
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"scoreboard_memory_fsm_map_{time.time_ns()}")
+    scoreboard = scoreboard_mod.EquivalenceScoreboard(ip, tmp_path, reset_events=True)
+
+    memory_txn = scoreboard.transaction_for_goal("EQ_MEMORY_SYNC_STAGE1_FF", {"kind": "memory_access"})
+    state_txn = scoreboard.transaction_for_goal("EQ_STATE_CONTROL_IDLE_TO_IDLE_0", {"kind": "control_IDLE_to_IDLE_0"})
+    assert memory_txn["kind"] == "FM_SYNC_SAMPLE"
+    assert state_txn["kind"] == "FM_APB_READ"
+    report = scoreboard.self_check()
+    assert report["unsupported_transactions"] == 0
+    assert report["contract_gaps"] == []
+
 
 def test_generated_runner_escalates_soft_scoreboard_mismatches(tmp_path: Path, monkeypatch):
     import types
@@ -1163,6 +2066,30 @@ def test_generated_runner_escalates_soft_scoreboard_mismatches(tmp_path: Path, m
     assert lines[0].startswith("[SIM ESCALATE] scoreboard_failed=1")
     assert "EQ_GPIO" in lines[1]
     assert "irq: expected=1 observed=0" in lines[1]
+
+
+def test_generated_runner_enables_verilator_coverage_by_default(monkeypatch):
+    import types
+
+    cocotb_test_mod = types.ModuleType("cocotb_test")
+    simulator_mod = types.ModuleType("cocotb_test.simulator")
+    simulator_mod.run = lambda **_kwargs: ""
+    monkeypatch.setitem(sys.modules, "cocotb_test", cocotb_test_mod)
+    monkeypatch.setitem(sys.modules, "cocotb_test.simulator", simulator_mod)
+    tb_mod = _load_module(TB_GEN_PATH, f"tb_gen_runner_cov_{time.time_ns()}")
+    ns: dict[str, object] = {}
+    exec(tb_mod.RUNNER_PY, ns)
+
+    monkeypatch.delenv("ATLAS_VERILATOR_COVERAGE", raising=False)
+    args = ns["_verilator_compile_args"]("verilator")
+    assert "--coverage" in args
+    assert "--coverage-line" in args
+    assert "--coverage-expr" in args
+    assert "--coverage-toggle" in args
+    assert ns["_verilator_compile_args"]("icarus") == []
+
+    monkeypatch.setenv("ATLAS_VERILATOR_COVERAGE", "0")
+    assert ns["_verilator_compile_args"]("verilator") == []
 
 
 def test_blocked_goal_creates_human_gate_question(tmp_path: Path):
@@ -1502,6 +2429,86 @@ def test_sim_result_failure_without_scoreboard_mismatch_is_classified(tmp_path: 
     assert infra[0]["owner"] == "tb-gen"
     assert infra[0]["llm_loop_allowed"] is True
     assert "scoreboard goal_id" in infra[0]["repair_prompt"]
+
+
+def test_sim_debug_routes_missing_apb_stimulus_to_tb_gen():
+    comparator_mod = _load_module(COMPARATOR_PATH, "compare_fl_rtl_results_apb_stimulus_under_test")
+
+    goal = {"goal_id": "EQ_TRANSACTION_FM_READ_DATA_IN", "ssot_refs": ["function_model.transactions[1]"]}
+    row = {
+        "goal_id": "EQ_TRANSACTION_FM_READ_DATA_IN",
+        "mismatch": "pready: expected=1 observed=0",
+        "stimulus": {"kind": "read_synchronized_input"},
+        "fl_expected": {
+            "model_result": {
+                "transaction_id": "FM_READ_DATA_IN",
+                "transaction_name": "read_synchronized_input",
+            }
+        },
+        "rtl_observed": {"pready": 0},
+    }
+
+    classification = comparator_mod._classify_failure(goal, [row], row["mismatch"])
+
+    assert classification["classification"] == "tb_bug"
+    assert classification["owner"] == "tb-gen"
+    assert classification["llm_loop_allowed"] is True
+    assert "missing psel=1" in classification["reason"]
+    assert "Repair TB/scoreboard/coverage" in classification["repair_prompt"]
+
+
+def test_sim_debug_routes_bad_illegal_offset_vector_to_tb_gen():
+    comparator_mod = _load_module(COMPARATOR_PATH, "compare_fl_rtl_results_bad_illegal_offset_under_test")
+
+    goal = {"goal_id": "EQ_TRANSACTION_FM_APB_ILLEGAL_OFFSET", "ssot_refs": ["function_model.transactions[4]"]}
+    row = {
+        "goal_id": "EQ_TRANSACTION_FM_APB_ILLEGAL_OFFSET",
+        "mismatch": "pslverr: expected=1 observed=0",
+        "stimulus": {
+            "kind": "illegal_offset_error_response",
+            "psel": 1,
+            "penable": 1,
+            "pwrite": 1,
+            "paddr": 0,
+        },
+        "fl_expected": {
+            "model_result": {
+                "transaction_id": "FM_APB_ILLEGAL_OFFSET",
+                "transaction_name": "illegal_offset_error_response",
+            }
+        },
+        "rtl_observed": {"pslverr": 0},
+    }
+
+    classification = comparator_mod._classify_failure(goal, [row], row["mismatch"])
+
+    assert classification["classification"] == "tb_bug"
+    assert classification["owner"] == "tb-gen"
+    assert "paddr=0x0 is a legal APB offset" in classification["reason"]
+
+
+def test_sim_debug_routes_missing_rtl_observable_to_tb_gen():
+    comparator_mod = _load_module(COMPARATOR_PATH, "compare_fl_rtl_results_missing_observable_under_test")
+
+    goal = {"goal_id": "EQ_TRANSACTION_FM_W1C_IRQ_STATUS", "ssot_refs": ["function_model.transactions[3]"]}
+    row = {
+        "goal_id": "EQ_TRANSACTION_FM_W1C_IRQ_STATUS",
+        "mismatch": "no comparable RTL observable for FunctionalModel result",
+        "stimulus": {"kind": "clear_pending_w1c", "pwdata": 0},
+        "fl_expected": {
+            "model_result": {
+                "transaction_id": "FM_W1C_IRQ_STATUS",
+                "transaction_name": "clear_pending_w1c",
+            }
+        },
+        "rtl_observed": {"pready": 0},
+    }
+
+    classification = comparator_mod._classify_failure(goal, [row], row["mismatch"])
+
+    assert classification["classification"] == "tb_bug"
+    assert classification["owner"] == "tb-gen"
+    assert classification["llm_loop_allowed"] is True
 
 
 def test_goal_audit_passes_complete_equivalence_evidence(tmp_path: Path):
@@ -2111,6 +3118,32 @@ def test_fl_model_resolves_output_rule_alias_before_sample_condition(tmp_path: P
     assert result["busy"] == 1
     assert result["sample_accepted"] == 1
     assert result["state_updates"]["accepted_count"] == 1
+
+
+def test_fl_model_resolves_derived_signals_before_rules(tmp_path: Path):
+    ip = _write_fl_derived_signal_ssot(tmp_path)
+    fl_path = REPO / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py"
+
+    fl_run = subprocess.run(
+        [sys.executable, str(fl_path), ip, "--root", str(tmp_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    assert fl_run.returncode == 0, fl_run.stdout
+
+    model_mod = _load_module(tmp_path / ip / "model" / "functional_model.py", "fl_derived_signal_model")
+    model = model_mod.FunctionalModel()
+    write_result = model.apply({"kind": "FM_WRITE", "paddr": 4, "pwdata": 0xABCD, "pstrb": 0x1})
+    second_write_result = model.apply({"kind": "FM_WRITE", "paddr": 4, "pwdata": 0x1200, "pstrb": 0x2})
+    read_result = model.apply({"kind": "FM_READ", "paddr": 4})
+
+    assert write_result["resp"] == 0
+    assert write_result["state_updates"]["data_out_reg"] == 0xCD
+    assert second_write_result["state_updates"]["data_out_reg"] == 0x12CD
+    assert read_result["prdata"] == 0x12CD
+    assert "fm_apb_write_data_out" not in model.state
 
 
 def test_scoreboard_routes_cmd_ready_scenario_to_primary_not_csr(tmp_path: Path):

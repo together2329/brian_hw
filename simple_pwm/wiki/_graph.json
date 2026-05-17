@@ -1,0 +1,224 @@
+{
+  "schema_version": "ip_wiki_graph.v1",
+  "generated_at": "2026-05-16T19:06:02Z",
+  "root": "simple_pwm/wiki",
+  "node_count": 7,
+  "edge_count": 4,
+  "tags": {
+    "artifact": [
+      "audit",
+      "cl_model",
+      "filelist",
+      "fl_model",
+      "last_run",
+      "ssot",
+      "tb"
+    ],
+    "cl-model-gen": [
+      "cl_model"
+    ],
+    "equiv-goals": [
+      "audit"
+    ],
+    "fl-model-gen": [
+      "fl_model"
+    ],
+    "rtl-gen": [
+      "filelist"
+    ],
+    "run-log": [
+      "last_run"
+    ],
+    "ssot": [
+      "ssot"
+    ],
+    "tb-gen": [
+      "tb"
+    ]
+  },
+  "types": {
+    "log": [
+      "last_run"
+    ],
+    "reference": [
+      "audit",
+      "cl_model",
+      "filelist",
+      "fl_model",
+      "ssot",
+      "tb"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "audit",
+      "title": "simple_pwm Equivalence Goals",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "equiv-goals"
+      ],
+      "related": [
+        "fl_model",
+        "rtl"
+      ],
+      "outgoing": [
+        "fl_model",
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [
+        "rtl"
+      ],
+      "updated": "2026-05-16T19:05:07Z",
+      "summary": "goals=26 blocked=0",
+      "status": "pass",
+      "digest": "goals=26 blocked=0",
+      "path": "simple_pwm/verify/equivalence_goals.json",
+      "size_bytes": 61523
+    },
+    {
+      "id": "cl_model",
+      "title": "simple_pwm CycleModel",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "cl-model-gen"
+      ],
+      "related": [
+        "ssot"
+      ],
+      "outgoing": [
+        "ssot"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-16T19:04:07Z",
+      "summary": "cycle_model.py size=11382B",
+      "status": "present",
+      "digest": "cycle_model.py size=11382B",
+      "path": "simple_pwm/model/cycle_model.py",
+      "size_bytes": 11382
+    },
+    {
+      "id": "filelist",
+      "title": "simple_pwm filelist",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "rtl"
+      ],
+      "outgoing": [
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [
+        "rtl"
+      ],
+      "updated": "2026-05-16T19:06:01Z",
+      "summary": "simple_pwm.f size=18B",
+      "status": "present",
+      "digest": "simple_pwm.f size=18B",
+      "path": "simple_pwm/list/simple_pwm.f",
+      "size_bytes": 18
+    },
+    {
+      "id": "fl_model",
+      "title": "simple_pwm FunctionalModel",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "fl-model-gen"
+      ],
+      "related": [
+        "ssot"
+      ],
+      "outgoing": [
+        "ssot"
+      ],
+      "incoming": [
+        "tb",
+        "audit"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-16T19:05:07Z",
+      "summary": "check=pass",
+      "status": "pass",
+      "digest": "check=pass",
+      "path": "simple_pwm/model/functional_model.py",
+      "size_bytes": 45213
+    },
+    {
+      "id": "last_run",
+      "title": "simple_pwm last run",
+      "type": "log",
+      "tags": [
+        "artifact",
+        "run-log"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-16T19:06:02Z",
+      "summary": "stages=1 last=rtl-gen:blocked",
+      "status": "blocked",
+      "digest": "stages=1 last=rtl-gen:blocked",
+      "path": "simple_pwm/logs/headless_run.json",
+      "size_bytes": 355
+    },
+    {
+      "id": "ssot",
+      "title": "simple_pwm SSOT",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "fl_model",
+        "cl_model"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-16T19:01:55Z",
+      "summary": "sections=36 size=19787B",
+      "status": "present",
+      "digest": "sections=36 size=19787B",
+      "path": "simple_pwm/yaml/simple_pwm.ssot.yaml",
+      "size_bytes": 19787
+    },
+    {
+      "id": "tb",
+      "title": "simple_pwm Testbench",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "tb-gen"
+      ],
+      "related": [
+        "rtl",
+        "fl_model"
+      ],
+      "outgoing": [
+        "rtl",
+        "fl_model"
+      ],
+      "incoming": [],
+      "broken_refs": [
+        "rtl"
+      ],
+      "updated": "2026-05-16T18:51:36Z",
+      "summary": "manifest=missing",
+      "status": "present",
+      "digest": "manifest=missing",
+      "path": "simple_pwm/tb",
+      "size_bytes": 64
+    }
+  ],
+  "ip": "simple_pwm"
+}

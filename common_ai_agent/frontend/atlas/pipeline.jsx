@@ -128,6 +128,30 @@
     const real = new Set(window.PIPELINE_STAGES || []);
     return (stages || []).filter(s => real.has(s));
   };
+  window.pipelinePolicyPayload = function pipelinePolicyPayload() {
+    const normRun = (value) => {
+      const v = String(value || '').trim().toLowerCase().replace(/_/g, '-');
+      if (v === 'eng') return 'engineering';
+      if (v === 'sign-off') return 'signoff';
+      return ['starter', 'engineering', 'signoff'].indexOf(v) >= 0 ? v : 'engineering';
+    };
+    const normExec = (value) => {
+      const v = String(value || '').trim().toLowerCase().replace(/_/g, '-');
+      if (v === 'single' || v === 'worker' || v === 'serial') return 'single-worker';
+      if (v === 'orch' || v === 'multi-worker') return 'orchestrator';
+      return ['single-worker', 'orchestrator'].indexOf(v) >= 0 ? v : 'single-worker';
+    };
+    let savedRun = '';
+    let savedExec = '';
+    try {
+      savedRun = localStorage.getItem('atlasRunMode') || '';
+      savedExec = localStorage.getItem('atlasExecMode') || '';
+    } catch (_) {}
+    return {
+      run_mode: normRun(window.ATLAS_RUN_MODE || savedRun),
+      exec_mode: normExec(window.ATLAS_EXEC_MODE || savedExec),
+    };
+  };
 
   // ── Color / glyph map for state badges ──────────────────────────
   // Backend states from /api/pipeline/state contract (see plan).
@@ -579,6 +603,7 @@ window.StageCard = function StageCard({ stageId, info, ip, onChain }) {
           ip, stages: [stageId], schedule: 'serial',
           model: data.model || '',
           prompt: '',
+          ...window.pipelinePolicyPayload(),
         }),
       });
       const j = await r.json().catch(() => ({}));
@@ -611,6 +636,7 @@ window.StageCard = function StageCard({ stageId, info, ip, onChain }) {
           prompt: data.blame && data.blame.feedback_packet
             ? `Repair feedback packet: ${data.blame.feedback_packet}`
             : '',
+          ...window.pipelinePolicyPayload(),
         }),
       });
       const j = await r.json().catch(() => ({}));
@@ -796,6 +822,7 @@ window.DispatchRail = function DispatchRail({ ip, chain, onClearChain, onRemove 
         body: JSON.stringify({
           ip, stages: chain, schedule,
           prompt: '',
+          ...window.pipelinePolicyPayload(),
         }),
       });
       const j = await r.json().catch(() => ({}));
@@ -874,7 +901,7 @@ window.FlowInspector = function FlowInspector({
       const r = await fetch('/api/pipeline/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip, stages, schedule: 'auto', prompt: '' }),
+        body: JSON.stringify({ ip, stages, schedule: 'auto', prompt: '', ...window.pipelinePolicyPayload() }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
@@ -1047,7 +1074,7 @@ window.PipelineFlowControl = function PipelineFlowControl({
       const r = await fetch('/api/pipeline/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip, stages, schedule: 'auto', prompt: '' }),
+        body: JSON.stringify({ ip, stages, schedule: 'auto', prompt: '', ...window.pipelinePolicyPayload() }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
@@ -1205,7 +1232,7 @@ function RunToGreenCard({ summary, ip, onSelectStage }) {
       const r = await fetch('/api/pipeline/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip, stages, schedule: 'auto', prompt: '' }),
+        body: JSON.stringify({ ip, stages, schedule: 'auto', prompt: '', ...window.pipelinePolicyPayload() }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
@@ -1439,6 +1466,19 @@ window.AtlasPipeline = function AtlasPipeline() {
   const [chain, setChain] = React.useState([]);
   const [selectedFlowId, setSelectedFlowId] = React.useState('full');
   const [selectedStage, setSelectedStage] = React.useState('ssot');
+  const [localPolicy, setLocalPolicy] = React.useState(() => window.pipelinePolicyPayload());
+
+  React.useEffect(() => {
+    const onPolicy = (ev) => {
+      const detail = (ev && ev.detail) || {};
+      setLocalPolicy({
+        run_mode: detail.run_mode || window.pipelinePolicyPayload().run_mode,
+        exec_mode: detail.exec_mode || window.pipelinePolicyPayload().exec_mode,
+      });
+    };
+    window.addEventListener('atlas-run-policy-changed', onPolicy);
+    return () => window.removeEventListener('atlas-run-policy-changed', onPolicy);
+  }, []);
 
   // Poll loop + WS subscription. Re-runs when ip changes.
   React.useEffect(() => {
@@ -1562,6 +1602,35 @@ window.AtlasPipeline = function AtlasPipeline() {
   const stagesState = (pipelineState && pipelineState.stages) || {};
   const runningCount = Object.values(stagesState).filter(v =>
     v && (v.state === 'running' || v.state === 'run')).length;
+  const effectiveRunMode = (pipelineState && (pipelineState.run_mode || pipelineState.policy?.run_mode)) || localPolicy.run_mode || 'engineering';
+  const effectiveExecMode = (pipelineState && (pipelineState.exec_mode || pipelineState.policy?.exec_mode)) || localPolicy.exec_mode || 'single-worker';
+  const provenanceSummary = (pipelineState && (pipelineState.provenance_summary || pipelineState.policy?.provenance_summary)) || {};
+  const defaultsCount = Number(provenanceSummary.generated_defaults || 0);
+  const reviewCount = Number(provenanceSummary.review_needed || 0);
+  const signoffBlocked = !!provenanceSummary.signoff_blocked;
+  const titleCase = (v) => String(v || '').split('-').map(s => s ? s[0].toUpperCase() + s.slice(1) : s).join(' ');
+  const decisionItems = (pipelineState && pipelineState.orchestrator && Array.isArray(pipelineState.orchestrator.decision_items))
+    ? pipelineState.orchestrator.decision_items
+    : [];
+  const decisionReviewCount = pipelineState && pipelineState.orchestrator
+    ? Number(pipelineState.orchestrator.decisions_needed || pipelineState.orchestrator.review_decisions || decisionItems.length || 0)
+    : 0;
+  const firstDecision = decisionItems[0] || null;
+  const firstDecisionEvidence = (firstDecision && firstDecision.evidence) || {};
+  const firstDecisionOpenPath = String(firstDecisionEvidence.human_facing_request || firstDecision.path || '').trim();
+  const firstDecisionReviewAids = Array.isArray(firstDecisionEvidence.review_aids)
+    ? firstDecisionEvidence.review_aids.filter(Boolean).slice(0, 4)
+    : [];
+  const firstDecisionTitle = firstDecision
+    ? [
+        'Review Decision Needed',
+        firstDecision.topic ? `topic: ${firstDecision.topic}` : '',
+        firstDecision.status ? `status: ${firstDecision.status}` : '',
+        firstDecisionOpenPath ? `open: ${firstDecisionOpenPath}` : '',
+        ...firstDecisionReviewAids.map(path => `aid: ${path}`),
+        firstDecision.path ? `record: ${firstDecision.path}` : '',
+      ].filter(Boolean).join('\n')
+    : 'Review Decision Needed records under <ip>/review/';
 
   return (
     <div className="pipe-screen arch-screen">
@@ -1569,6 +1638,32 @@ window.AtlasPipeline = function AtlasPipeline() {
         <div className="grp">
           <span className="rb-btn" title="active IP">ip <b>{ip || '—'}</b></span>
           <span className="rb-btn" title="dispatch mode">● pipeline</span>
+          <span className="rb-btn pipe-run-mode-chip"
+                title="Run Mode controls evidence strictness, not IP size">
+            run <b>{titleCase(effectiveRunMode)}</b>
+          </span>
+          <span className={`rb-btn pipe-exec-mode-chip${effectiveExecMode === 'orchestrator' ? ' pipe-exec-mode-on' : ''}`}
+                title="Exec Mode chooses single-worker execution or orchestrator-managed workers">
+            exec <b>{titleCase(effectiveExecMode)}</b>
+          </span>
+          {defaultsCount > 0 && (
+            <span className="rb-btn pipe-policy-warn"
+                  title="Generated defaults recorded in SSOT provenance sidecar">
+              defaults {defaultsCount}
+            </span>
+          )}
+          {reviewCount > 0 && (
+            <span className="rb-btn pipe-policy-warn"
+                  title="Review-needed fields recorded in SSOT provenance sidecar">
+              review {reviewCount}
+            </span>
+          )}
+          {signoffBlocked && (
+            <span className="rb-btn pipe-policy-blocked"
+                  title="Signoff is blocked by generated_default or review_needed critical fields">
+              signoff blocked
+            </span>
+          )}
           {pipelineState && pipelineState.rtl_version_id && (
             <span className="rb-btn" title="RTL version under test">
               {pipelineState.rtl_version_id}
@@ -1585,11 +1680,20 @@ window.AtlasPipeline = function AtlasPipeline() {
                     onClick={async () => {
                       const target = !pipelineState.orchestrator.enabled;
                       try {
-                        await fetch('/api/pipeline/orchestrator_mode', {
+                        const r = await fetch('/api/pipeline/orchestrator_mode', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ enabled: target }),
                         });
+                        const j = await r.json().catch(() => ({}));
+                        const nextExec = (j && j.enabled) ? 'orchestrator' : 'single-worker';
+                        window.ATLAS_EXEC_MODE = nextExec;
+                        try { localStorage.setItem('atlasExecMode', nextExec); } catch (_) {}
+                        try {
+                          window.dispatchEvent(new CustomEvent('atlas-run-policy-changed', {
+                            detail: { ...window.pipelinePolicyPayload(), exec_mode: nextExec },
+                          }));
+                        } catch (_) {}
                       } catch (e) {
                         console.error('[pipeline] orchestrator toggle failed', e);
                       }
@@ -1611,11 +1715,24 @@ window.AtlasPipeline = function AtlasPipeline() {
                 : ''}
             </span>
           )}
-          {pipelineState && pipelineState.orchestrator && (pipelineState.orchestrator.decisions_needed > 0 || pipelineState.orchestrator.review_decisions > 0) && (
-            <span className="rb-btn pipe-review-chip"
-                  title="Review Decision Needed records under <ip>/review/">
-              △ {pipelineState.orchestrator.decisions_needed || pipelineState.orchestrator.review_decisions} review
-            </span>
+          {pipelineState && pipelineState.orchestrator && decisionReviewCount > 0 && (
+            <button className="rb-btn pipe-review-chip"
+                    disabled={!firstDecisionOpenPath}
+                    title={firstDecisionTitle}
+                    onClick={() => {
+                      if (!firstDecisionOpenPath) return;
+                      try {
+                        window.dispatchEvent(new CustomEvent('atlas:open_evidence', {
+                          detail: {
+                            path: firstDecisionOpenPath,
+                            source: 'pipeline-review',
+                            decision: firstDecision,
+                          },
+                        }));
+                      } catch (_) {}
+                    }}>
+              △ {decisionReviewCount} review
+            </button>
           )}
           {fetchError && !pipelineState && (
             <span className="rb-btn" title={fetchError}>Pipeline state unavailable</span>

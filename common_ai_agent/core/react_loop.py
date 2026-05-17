@@ -63,6 +63,26 @@ def _make_is_dup() -> Tuple[Set[str], Callable[[str], bool]]:
     return seen, is_dup
 
 
+def _copy_message_for_prompt_overlay(message: Dict[str, Any]) -> Dict[str, Any]:
+    """Clone one message before adding prompt-only context."""
+    cloned = dict(message)
+    content = cloned.get("content")
+    if isinstance(content, list):
+        cloned["content"] = [
+            dict(item) if isinstance(item, dict) else item
+            for item in content
+        ]
+    return cloned
+
+
+def _copy_system_prompt_overlay(messages: List[dict]) -> List[dict]:
+    """Clone the message list and system head for LLM-call-only overlays."""
+    copied = list(messages)
+    if copied:
+        copied[0] = _copy_message_for_prompt_overlay(copied[0])
+    return copied
+
+
 # ---------------------------------------------------------------------------
 # Dependency injection dataclass
 # ---------------------------------------------------------------------------
@@ -614,7 +634,10 @@ def run_react_agent_impl(
         if _perf:
             print(f"  {Color.DIM}[PERF] build_prompt: {time.time()-_t:.3f}s{Color.RESET}")
 
-        # Inject accumulated context
+        # Build accumulated context as a prompt-only overlay. Mutating the
+        # persisted system message on every tool loop invalidates provider
+        # prefix caches for the rest of the request.
+        _accumulated_ctx_msg = ""
         if accumulated_context and any(v for v in accumulated_context.values() if v):
             ctx_lines: List[str] = []
             if accumulated_context.get("explored_files"):
@@ -623,26 +646,13 @@ def run_react_agent_impl(
             if accumulated_context.get("planned_steps"):
                 ctx_lines.append(f"Planned steps: {len(accumulated_context['planned_steps'])}")
             if ctx_lines and messages and messages[0].get("role") == "system":
-                ctx_msg = "\n\n[Agent Communication Context]\n" + "\n".join(ctx_lines)
-                content = messages[0].get("content", "")
-                if isinstance(content, str):
-                    messages[0]["content"] = content + ctx_msg
-                elif isinstance(content, list):
-                    messages[0]["content"].append({"type": "text", "text": ctx_msg})
+                _accumulated_ctx_msg = "\n\n[Agent Communication Context]\n" + "\n".join(ctx_lines)
 
         # Orchestrator chat: room context + unread human feedback. The
         # injector pulls live state from AtlasDB (per-IP workflow / todos /
         # gates / recent events) plus any chat_message rows the agent has
-        # not yet recorded chat_consumed for. Mutates messages in place;
-        # never raises into the loop — chat must not break the agent.
-        if deps.orchestrator_inject_fn is not None and messages:
-            try:
-                deps.orchestrator_inject_fn(messages, agent_mode)
-            except Exception:
-                if cfg.DEBUG_MODE:
-                    import traceback as _tb
-                    print(Color.warn("[Inject] orchestrator_inject_fn failed:"))
-                    _tb.print_exc()
+        # not yet recorded chat_consumed for. It mutates its input, so the
+        # actual call is deferred to the LLM prompt copy below.
 
         # Per-turn todo state injection — ephemeral (appended to last user message copy,
         # never saved to history). Only inject when task/status changes to avoid
@@ -716,15 +726,17 @@ def run_react_agent_impl(
                 ))
 
         if _pre_llm_reminder:
-            # Append to the last user message (ephemeral copy — avoids mutating history).
-            # Skip if the reminder text is already present in that message (dedup).
+            # Defer applying the reminder until just before the LLM call. It is
+            # prompt-only context and must not rewrite persisted history; doing
+            # so changes an old user message every task/status transition and
+            # breaks provider prefix caching for the whole tail of the session.
+            # Skip if the reminder text is already present in that message.
             _user_idxs = [i for i, m in enumerate(messages) if m.get("role") == "user"]
             if _user_idxs:
                 _ui = _user_idxs[-1]
                 _uc = messages[_ui].get("content", "")
-                if isinstance(_uc, str) and _pre_llm_reminder.strip() not in _uc:
-                    messages[_ui] = dict(messages[_ui])  # shallow copy
-                    messages[_ui]["content"] = _uc + _pre_llm_reminder
+                if not (isinstance(_uc, str) and _pre_llm_reminder.strip() not in _uc):
+                    _pre_llm_reminder = ""
 
         # Hook: BEFORE_LLM_CALL
         _t = time.time()
@@ -752,6 +764,38 @@ def run_react_agent_impl(
                 traceback.print_exc()
         if _perf:
             print(f"  {Color.DIM}[PERF] before_llm_hook: {time.time()-_t:.3f}s{Color.RESET}")
+
+        # Prompt-only overlays are applied to shallow message-list copies so
+        # the real conversation history remains stable for prompt caching.
+        llm_messages = messages
+        if _accumulated_ctx_msg and llm_messages and llm_messages[0].get("role") == "system":
+            llm_messages = _copy_system_prompt_overlay(llm_messages)
+            content = llm_messages[0].get("content", "")
+            if isinstance(content, str):
+                llm_messages[0]["content"] = content + _accumulated_ctx_msg
+            elif isinstance(content, list):
+                content.append({"type": "text", "text": _accumulated_ctx_msg})
+
+        if deps.orchestrator_inject_fn is not None and llm_messages:
+            try:
+                if llm_messages is messages:
+                    llm_messages = _copy_system_prompt_overlay(llm_messages)
+                deps.orchestrator_inject_fn(llm_messages, agent_mode)
+            except Exception:
+                if cfg.DEBUG_MODE:
+                    import traceback as _tb
+                    print(Color.warn("[Inject] orchestrator_inject_fn failed:"))
+                    _tb.print_exc()
+
+        if _pre_llm_reminder:
+            _user_idxs = [i for i, m in enumerate(messages) if m.get("role") == "user"]
+            if _user_idxs:
+                _ui = _user_idxs[-1]
+                _uc = llm_messages[_ui].get("content", "")
+                if isinstance(_uc, str) and _pre_llm_reminder.strip() not in _uc:
+                    llm_messages = list(llm_messages)
+                    llm_messages[_ui] = _copy_message_for_prompt_overlay(llm_messages[_ui])
+                    llm_messages[_ui]["content"] = _uc + _pre_llm_reminder
 
         # Update terminal title with current non-approved task (always visible above input)
         # Skip in TUI mode — the escape sequence would be captured by TextualCapture and
@@ -888,7 +932,7 @@ def run_react_agent_impl(
 
         _native_calls = []  # populated when ENABLE_NATIVE_TOOL_CALLS=true
         try:
-            for chunk in deps.llm_call_fn(messages, stop=_stop_seqs):
+            for chunk in deps.llm_call_fn(llm_messages, stop=_stop_seqs):
                 if not _thinking_stopped and _thinking_spinner:
                     if hasattr(_thinking_spinner, "stop"):
                         _thinking_spinner.stop()
@@ -1055,7 +1099,7 @@ def run_react_agent_impl(
             if _ctx_emit is not None:
                 from llm_client import estimate_message_tokens as _ctx_est  # type: ignore
                 _ctx_max = getattr(cfg, "MAX_CONTEXT_TOKENS", 0)
-                _ctx_used = sum(_ctx_est(m) for m in messages)
+                _ctx_used = sum(_ctx_est(m) for m in llm_messages)
                 _ctx_emit(_ctx_used, _ctx_max)
         except Exception:
             pass

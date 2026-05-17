@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "dma_real",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 6,
+    "failed": 0,
+    "transactions": 5,
+    "transaction_results": [
+      {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "kind": "FM_DMA_START",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_DMA_START",
+          "transaction_name": "dma_start",
+          "sample_accepted": 1,
+          "ch_busy_next": 0,
+          "ch_busy": 0,
+          "ch_error_flag": 1,
+          "ch_error": 1,
+          "ch_err_code_val": 1,
+          "ch_err_code": 1
+        }
+      },
+      {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step",
+        "kind": "FM_DMA_STEP",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_DMA_STEP",
+          "transaction_name": "dma_step",
+          "sample_accepted": 1,
+          "busy_next": 0,
+          "ch_busy": 0,
+          "done_pulse": 0,
+          "ch_done": 0,
+          "state_updates": {
+            "remaining_next": 0,
+            "src_addr_next": 12,
+            "dst_addr_next": 12
+          }
+        }
+      },
+      {
+        "id": "FM_DMA_COMPLETE",
+        "name": "dma_complete",
+        "kind": "FM_DMA_COMPLETE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_DMA_COMPLETE",
+          "transaction_name": "dma_complete",
+          "sample_accepted": 1,
+          "busy_clear": 0,
+          "ch_busy": 0,
+          "done_assert": 1,
+          "ch_done": 1,
+          "irq_assert": 0,
+          "irq": 0
+        }
+      },
+      {
+        "id": "FM_DMA_ERROR",
+        "name": "dma_error",
+        "kind": "FM_DMA_ERROR",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_DMA_ERROR",
+          "transaction_name": "dma_error",
+          "sample_accepted": 1,
+          "error_assert": 1,
+          "ch_error": 1,
+          "error_code_out": 1,
+          "ch_err_code": 1,
+          "irq_error": 0,
+          "irq": 0
+        }
+      },
+      {
+        "id": "FM_ARB_GRANT",
+        "name": "arb_grant",
+        "kind": "FM_ARB_GRANT",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_ARB_GRANT",
+          "transaction_name": "arb_grant",
+          "sample_accepted": 1,
+          "grant_next": 0,
+          "arb_grant": 0,
+          "state_updates": {
+            "arb_ptr_update": 1
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 6,
+    "coverage_bins": 58,
+    "invariants_total": 5,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "ch_busy and ch_done are not asserted tog",
+        "expr": "ch_busy and ch_done are not asserted together for the same channel.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "ch_error is asserted only for invalid re",
+        "expr": "ch_error is asserted only for invalid requests or bus errors.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "ch_remaining_q never underflows below ze",
+        "expr": "ch_remaining_q never underflows below zero.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "irq[ch] reflects (done_q[ch] OR error_q[",
+        "expr": "irq[ch] reflects (done_q[ch] OR error_q[ch]) AND int_enable_q[ch].",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "irq_combined reflects OR of all per-chan",
+        "expr": "irq_combined reflects OR of all per-channel irq outputs.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 8,
+    "error_cases_planned": 0
+  },
+  "decomposition_units": 11,
+  "fcov_bins": 58,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "dma_real/req/",
+      "dma_real/yaml/dma_real.ssot.yaml",
+      "dma_real/model/functional_model.py",
+      "dma_real/cov/fcov_plan.json",
+      "dma_real/yaml/dma_real.ssot.yaml#io_list",
+      "dma_real/yaml/dma_real.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "dma_real/rtl/",
+      "dma_real/tb/",
+      "dma_real/sim/",
+      "dma_real/vectors/",
+      "dma_real/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

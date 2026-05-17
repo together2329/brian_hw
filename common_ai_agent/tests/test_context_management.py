@@ -126,21 +126,40 @@ class TestSlashCommandSignals:
 
         old_mode = getattr(config, "REASONING_MODE", "medium")
         old_effort = getattr(config, "REASONING_EFFORT", old_mode)
+        old_glm_thinking = getattr(config, "GLM_THINKING_TYPE", "enabled")
         old_env_mode = os.environ.get("REASONING_MODE")
         old_env_effort = os.environ.get("REASONING_EFFORT")
+        old_env_glm_thinking = os.environ.get("GLM_THINKING_TYPE")
         try:
             res = self.registry.execute("/effort xhigh")
             assert "xhigh" in res
             assert config.REASONING_MODE == "xhigh"
             assert config.REASONING_EFFORT == "xhigh"
+            assert config.GLM_THINKING_TYPE == "enabled"
             assert os.environ["REASONING_MODE"] == "xhigh"
+            assert os.environ["GLM_THINKING_TYPE"] == "enabled"
 
             res = self.registry.execute("/effort med")
             assert "medium" in res
             assert config.REASONING_MODE == "medium"
+
+            res = self.registry.execute("/effort l")
+            assert "low" in res
+            assert config.REASONING_MODE == "low"
+
+            res = self.registry.execute("/effort max")
+            assert "xhigh" in res
+            assert config.REASONING_MODE == "xhigh"
+
+            res = self.registry.execute("/effort none")
+            assert "none" in res
+            assert config.REASONING_MODE == "none"
+            assert config.GLM_THINKING_TYPE == "disabled"
+            assert os.environ["GLM_THINKING_TYPE"] == "disabled"
         finally:
             config.REASONING_MODE = old_mode
             config.REASONING_EFFORT = old_effort
+            config.GLM_THINKING_TYPE = old_glm_thinking
             if old_env_mode is None:
                 os.environ.pop("REASONING_MODE", None)
             else:
@@ -149,6 +168,10 @@ class TestSlashCommandSignals:
                 os.environ.pop("REASONING_EFFORT", None)
             else:
                 os.environ["REASONING_EFFORT"] = old_env_effort
+            if old_env_glm_thinking is None:
+                os.environ.pop("GLM_THINKING_TYPE", None)
+            else:
+                os.environ["GLM_THINKING_TYPE"] = old_env_glm_thinking
 
     def test_effort_rejects_unknown_alias(self):
         res = self.registry.execute("/effort fast")

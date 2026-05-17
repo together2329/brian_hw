@@ -1,0 +1,16 @@
+{
+  "ip": "simple_pwm",
+  "root": "/Users/brian/Desktop/Project/brian_hw/brian_hw",
+  "run_log": "simple_pwm/logs/headless_run.json",
+  "stages": [
+    {
+      "artifacts": [],
+      "blocker": "simple_pwm/yaml/simple_pwm.ssot.yaml",
+      "message": "[ssot-fl-model] blocked: SSOT not found at simple_pwm/yaml/simple_pwm.ssot.yaml\nRun /new-ip simple_pwm, approve simple_pwm, and /to-ssot simple_pwm first.",
+      "returncode": 2,
+      "stage": "fl-model-gen",
+      "status": "blocked"
+    }
+  ],
+  "status": "blocked"
+}

@@ -1,0 +1,3257 @@
+{
+  "source": "ssot_coverage_summary",
+  "status": "pass",
+  "ssot": "dma_real/yaml/dma_real.ssot.yaml",
+  "module": "dma_real",
+  "dv_plan": {
+    "scenarios": 9,
+    "scoreboard_checks": [
+      "per-channel busy/done/error output matches FunctionalModel",
+      "per-channel remaining counter matches FL state",
+      "per-channel src/dst address counters match FL state",
+      "arbiter grant matches round-robin policy",
+      "IRQ outputs match mask and status"
+    ],
+    "coverage_goals": {
+      "function": {
+        "target_pct": 100,
+        "model": "function_model",
+        "bins": [
+          {
+            "id": "function_dma_step",
+            "source_ref": "function_model.transactions.FM_DMA_STEP",
+            "class": "transaction",
+            "description": "Valid DMA step with burst transfer"
+          },
+          {
+            "id": "function_dma_error_align",
+            "source_ref": "function_model.transactions.FM_DMA_ERROR",
+            "class": "error",
+            "description": "Alignment error path"
+          },
+          {
+            "id": "function_dma_error_zero_len",
+            "source_ref": "function_model.transactions.FM_DMA_ERROR",
+            "class": "error",
+            "description": "Zero-length error path"
+          },
+          {
+            "id": "function_dma_error_bus",
+            "source_ref": "function_model.transactions.FM_DMA_ERROR",
+            "class": "error",
+            "description": "Bus error during AHB transfer"
+          },
+          {
+            "id": "function_dma_busy_reject",
+            "source_ref": "function_model.transactions.FM_DMA_START",
+            "class": "error_case",
+            "description": "Start while busy rejected"
+          },
+          {
+            "id": "function_dma_multi_ch",
+            "source_ref": "function_model.transactions.FM_ARB_GRANT",
+            "class": "arbitration",
+            "description": "Multiple channels active simultaneously"
+          },
+          {
+            "id": "function_dma_global_enable",
+            "source_ref": "function_model.state_variables.dma_en_q",
+            "class": "control",
+            "description": "Global enable disable with in-progress transfer"
+          },
+          {
+            "id": "function_dma_irq_clear",
+            "source_ref": "function_model.state_variables.int_enable_q",
+            "class": "interrupt",
+            "description": "Interrupt clear via INT_CLEAR register"
+          },
+          {
+            "id": "function_dma_apb_err",
+            "source_ref": "function_model.transactions.FM_DMA_START",
+            "class": "protocol",
+            "description": "APB error on unmapped address access"
+          }
+        ]
+      },
+      "cycle": {
+        "target_pct": 100,
+        "model": "cycle_model",
+        "bins": [
+          {
+            "id": "cycle_pipeline_idle",
+            "source_ref": "cycle_model.pipeline[0]",
+            "class": "state",
+            "description": "Channel FSM IDLE state visited"
+          },
+          {
+            "id": "cycle_pipeline_cfg",
+            "source_ref": "cycle_model.pipeline[1]",
+            "class": "state",
+            "description": "Channel FSM CFG state visited"
+          },
+          {
+            "id": "cycle_pipeline_request",
+            "source_ref": "cycle_model.pipeline[2]",
+            "class": "state",
+            "description": "Channel FSM REQUEST state visited"
+          },
+          {
+            "id": "cycle_pipeline_read",
+            "source_ref": "cycle_model.pipeline[3]",
+            "class": "state",
+            "description": "Channel FSM READ state visited"
+          },
+          {
+            "id": "cycle_pipeline_write",
+            "source_ref": "cycle_model.pipeline[4]",
+            "class": "state",
+            "description": "Channel FSM WRITE state visited"
+          },
+          {
+            "id": "cycle_pipeline_update",
+            "source_ref": "cycle_model.pipeline[5]",
+            "class": "state",
+            "description": "Channel FSM UPDATE state visited"
+          },
+          {
+            "id": "cycle_pipeline_done",
+            "source_ref": "cycle_model.pipeline[6]",
+            "class": "state",
+            "description": "Channel FSM DONE state visited"
+          },
+          {
+            "id": "cycle_pipeline_error",
+            "source_ref": "cycle_model.pipeline[7]",
+            "class": "state",
+            "description": "Channel FSM ERROR state visited"
+          },
+          {
+            "id": "cycle_arb_round_robin",
+            "source_ref": "cycle_model.performance",
+            "class": "arbitration",
+            "description": "Round-robin arbitration switching between channels"
+          },
+          {
+            "id": "cycle_burst_latency",
+            "source_ref": "cycle_model.handshake_rules.ahb_address_phase",
+            "class": "timing",
+            "description": "Burst completion latency measured"
+          }
+        ]
+      }
+    }
+  },
+  "functional": {
+    "hit": 59,
+    "total": 59,
+    "pct": 100.0
+  },
+  "function_coverage": {
+    "hit": 26,
+    "total": 26,
+    "pct": 100.0,
+    "target_pct": 100.0,
+    "meets_target": true,
+    "bins": {
+      "SC_001_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC_001",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_001_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[0]",
+          "scenario": "SC_001",
+          "description": "single_channel_transfer"
+        },
+        "class": "scenario",
+        "description": "single_channel_transfer",
+        "coverage_domain": "function"
+      },
+      "SC_002_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_002_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[1]",
+          "scenario": "SC_002",
+          "description": "alignment_error"
+        },
+        "class": "scenario",
+        "description": "alignment_error",
+        "coverage_domain": "function"
+      },
+      "SC_003_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_003_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[2]",
+          "scenario": "SC_003",
+          "description": "zero_length_error"
+        },
+        "class": "scenario",
+        "description": "zero_length_error",
+        "coverage_domain": "function"
+      },
+      "SC_004_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC_004",
+        "scenario_id": "SC_004",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_004_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[3]",
+          "scenario": "SC_004",
+          "description": "busy_reject"
+        },
+        "class": "scenario",
+        "description": "busy_reject",
+        "coverage_domain": "function"
+      },
+      "SC_005_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC_005",
+        "scenario_id": "SC_005",
+        "rtl_observed_keys": [
+          "arb_grant_ch0",
+          "arb_grant_ch1"
+        ],
+        "raw_hit": false,
+        "plan": {
+          "id": "SC_005_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[4]",
+          "scenario": "SC_005",
+          "description": "multi_channel_round_robin"
+        },
+        "class": "scenario",
+        "description": "multi_channel_round_robin",
+        "coverage_domain": "function"
+      },
+      "SC_006_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": false,
+        "plan": {
+          "id": "SC_006_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[5]",
+          "scenario": "SC_006",
+          "description": "bus_error_during_transfer"
+        },
+        "class": "scenario",
+        "description": "bus_error_during_transfer",
+        "coverage_domain": "function"
+      },
+      "SC_007_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC_007",
+        "scenario_id": "SC_007",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "dma_en"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_007_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[6]",
+          "scenario": "SC_007",
+          "description": "global_enable_disable"
+        },
+        "class": "scenario",
+        "description": "global_enable_disable",
+        "coverage_domain": "function"
+      },
+      "SC_008_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC_008",
+        "scenario_id": "SC_008",
+        "rtl_observed_keys": [
+          "irq_after",
+          "irq_before"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_008_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[7]",
+          "scenario": "SC_008",
+          "description": "interrupt_clear"
+        },
+        "class": "scenario",
+        "description": "interrupt_clear",
+        "coverage_domain": "function"
+      },
+      "SC_009_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC_009",
+        "scenario_id": "SC_009",
+        "rtl_observed_keys": [
+          "apb_access_phase",
+          "paddr_sampled",
+          "pslverr"
+        ],
+        "raw_hit": false,
+        "plan": {
+          "id": "SC_009_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[8]",
+          "scenario": "SC_009",
+          "description": "apb_unmapped_address"
+        },
+        "class": "scenario",
+        "description": "apb_unmapped_address",
+        "coverage_domain": "function"
+      },
+      "function_dma_step": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_DMA_STEP",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_dma_step",
+          "source_ref": "function_model.transactions.FM_DMA_STEP",
+          "class": "transaction",
+          "description": "Valid DMA step with burst transfer",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.FM_DMA_STEP"
+        },
+        "class": "transaction",
+        "coverage_domain": "function",
+        "description": "Valid DMA step with burst transfer",
+        "source_ref": "function_model.transactions.FM_DMA_STEP"
+      },
+      "function_dma_error_align": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_dma_error_align",
+          "source_ref": "function_model.transactions.FM_DMA_ERROR",
+          "class": "error",
+          "description": "Alignment error path",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.FM_DMA_ERROR"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "Alignment error path",
+        "source_ref": "function_model.transactions.FM_DMA_ERROR"
+      },
+      "function_dma_busy_reject": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_dma_busy_reject",
+          "source_ref": "function_model.transactions.FM_DMA_START",
+          "class": "error_case",
+          "description": "Start while busy rejected",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.FM_DMA_START"
+        },
+        "class": "error_case",
+        "coverage_domain": "function",
+        "description": "Start while busy rejected",
+        "source_ref": "function_model.transactions.FM_DMA_START"
+      },
+      "function_dma_multi_ch": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_ARB_GRANT",
+        "scenario_id": "SC_005",
+        "rtl_observed_keys": [
+          "arb_grant_ch0",
+          "arb_grant_ch1"
+        ],
+        "raw_hit": false,
+        "plan": {
+          "id": "function_dma_multi_ch",
+          "source_ref": "function_model.transactions.FM_ARB_GRANT",
+          "class": "arbitration",
+          "description": "Multiple channels active simultaneously",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.FM_ARB_GRANT"
+        },
+        "class": "arbitration",
+        "coverage_domain": "function",
+        "description": "Multiple channels active simultaneously",
+        "source_ref": "function_model.transactions.FM_ARB_GRANT"
+      },
+      "function_dma_global_enable": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_FUNCTION_DMA_GLOBAL_ENABLE",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_dma_global_enable",
+          "source_ref": "function_model.state_variables.dma_en_q",
+          "class": "control",
+          "description": "Global enable disable with in-progress transfer",
+          "coverage_domain": "function",
+          "source": "function_model.state_variables.dma_en_q"
+        },
+        "class": "control",
+        "coverage_domain": "function",
+        "description": "Global enable disable with in-progress transfer",
+        "source_ref": "function_model.state_variables.dma_en_q"
+      },
+      "function_dma_irq_clear": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_CH3_STATUS",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_dma_irq_clear",
+          "source_ref": "function_model.state_variables.int_enable_q",
+          "class": "interrupt",
+          "description": "Interrupt clear via INT_CLEAR register",
+          "coverage_domain": "function",
+          "source": "function_model.state_variables.int_enable_q"
+        },
+        "class": "interrupt",
+        "coverage_domain": "function",
+        "description": "Interrupt clear via INT_CLEAR register",
+        "source_ref": "function_model.state_variables.int_enable_q"
+      },
+      "function_dma_complete": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_DMA_COMPLETE",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_dma_complete",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[2]",
+          "source_ref": "function_model.transactions.fm_dma_complete",
+          "description": "dma_complete"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "dma_complete",
+        "source_ref": "function_model.transactions.fm_dma_complete"
+      },
+      "error_error_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "error_error_0",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[0]",
+          "source_ref": "error_handling.error_sources[0]",
+          "description": "{'id': 'ERR_ALIGN', 'source': 'channel_start', 'condition': 'src_addr[1:0] != 0 or dst_addr[1:0] != 0', 'code': 1, 'description': 'Misaligned source or destination address'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_ALIGN', 'source': 'channel_start', 'condition': 'src_addr[1:0] != 0 or dst_addr[1:0] != 0', 'code': 1, 'description': 'Misaligned source or destination address'}",
+        "source_ref": "error_handling.error_sources[0]"
+      },
+      "error_error_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "error_error_1",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[1]",
+          "source_ref": "error_handling.error_sources[1]",
+          "description": "{'id': 'ERR_ZERO_LEN', 'source': 'channel_start', 'condition': 'CHx_LEN == 0', 'code': 2, 'description': 'Zero-length transfer requested'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_ZERO_LEN', 'source': 'channel_start', 'condition': 'CHx_LEN == 0', 'code': 2, 'description': 'Zero-length transfer requested'}",
+        "source_ref": "error_handling.error_sources[1]"
+      },
+      "error_error_2": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": false,
+        "plan": {
+          "id": "error_error_2",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[2]",
+          "source_ref": "error_handling.error_sources[2]",
+          "description": "{'id': 'ERR_BUS', 'source': 'ahb_transfer', 'condition': 'hresp == ERROR', 'code': 3, 'description': 'AHB bus error during transfer'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_BUS', 'source': 'ahb_transfer', 'condition': 'hresp == ERROR', 'code': 3, 'description': 'AHB bus error during transfer'}",
+        "source_ref": "error_handling.error_sources[2]"
+      },
+      "function_dma_error_zero_len": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      },
+      "function_dma_error_bus": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": false,
+        "coverage_domain": "function"
+      },
+      "function_dma_apb_err": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": false,
+        "coverage_domain": "function"
+      },
+      "function_dma_start": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_DMA_START",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      },
+      "function_dma_error": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      },
+      "function_arb_grant": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_ARB_GRANT",
+        "scenario_id": "SC_005",
+        "rtl_observed_keys": [
+          "arb_grant_ch0",
+          "arb_grant_ch1"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      },
+      "ccov_pipeline_order": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_3",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      }
+    }
+  },
+  "cycle_coverage": {
+    "hit": 33,
+    "total": 33,
+    "pct": 100.0,
+    "target_pct": 100.0,
+    "meets_target": true,
+    "bins": {
+      "cycle_pipeline_idle": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_idle",
+          "source_ref": "cycle_model.pipeline[0]",
+          "class": "state",
+          "description": "Channel FSM IDLE state visited",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[0]"
+        },
+        "class": "state",
+        "coverage_domain": "cycle",
+        "description": "Channel FSM IDLE state visited",
+        "source_ref": "cycle_model.pipeline[0]"
+      },
+      "cycle_pipeline_cfg": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_CFG_TO_REQUEST_2",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_cfg",
+          "source_ref": "cycle_model.pipeline[1]",
+          "class": "state",
+          "description": "Channel FSM CFG state visited",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[1]"
+        },
+        "class": "state",
+        "coverage_domain": "cycle",
+        "description": "Channel FSM CFG state visited",
+        "source_ref": "cycle_model.pipeline[1]"
+      },
+      "cycle_pipeline_request": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_REQUEST_TO_READ_3",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_request",
+          "source_ref": "cycle_model.pipeline[2]",
+          "class": "state",
+          "description": "Channel FSM REQUEST state visited",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[2]"
+        },
+        "class": "state",
+        "coverage_domain": "cycle",
+        "description": "Channel FSM REQUEST state visited",
+        "source_ref": "cycle_model.pipeline[2]"
+      },
+      "cycle_pipeline_read": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_READ_6",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_read",
+          "source_ref": "cycle_model.pipeline[3]",
+          "class": "state",
+          "description": "Channel FSM READ state visited",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[3]"
+        },
+        "class": "state",
+        "coverage_domain": "cycle",
+        "description": "Channel FSM READ state visited",
+        "source_ref": "cycle_model.pipeline[3]"
+      },
+      "cycle_pipeline_write": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_WRITE_TO_UPDATE_5",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_write",
+          "source_ref": "cycle_model.pipeline[4]",
+          "class": "state",
+          "description": "Channel FSM WRITE state visited",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[4]"
+        },
+        "class": "state",
+        "coverage_domain": "cycle",
+        "description": "Channel FSM WRITE state visited",
+        "source_ref": "cycle_model.pipeline[4]"
+      },
+      "cycle_pipeline_update": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_DONE_7",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_update",
+          "source_ref": "cycle_model.pipeline[5]",
+          "class": "state",
+          "description": "Channel FSM UPDATE state visited",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[5]"
+        },
+        "class": "state",
+        "coverage_domain": "cycle",
+        "description": "Channel FSM UPDATE state visited",
+        "source_ref": "cycle_model.pipeline[5]"
+      },
+      "cycle_pipeline_done": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_DONE_TO_IDLE_8",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_done",
+          "source_ref": "cycle_model.pipeline[6]",
+          "class": "state",
+          "description": "Channel FSM DONE state visited",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[6]"
+        },
+        "class": "state",
+        "coverage_domain": "cycle",
+        "description": "Channel FSM DONE state visited",
+        "source_ref": "cycle_model.pipeline[6]"
+      },
+      "cycle_pipeline_error": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_error",
+          "source_ref": "cycle_model.pipeline[7]",
+          "class": "state",
+          "description": "Channel FSM ERROR state visited",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[7]"
+        },
+        "class": "state",
+        "coverage_domain": "cycle",
+        "description": "Channel FSM ERROR state visited",
+        "source_ref": "cycle_model.pipeline[7]"
+      },
+      "cycle_arb_round_robin": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_ARB_ROUND_ROBIN",
+        "scenario_id": "SC_005",
+        "rtl_observed_keys": [
+          "arb_grant_ch0",
+          "arb_grant_ch1"
+        ],
+        "raw_hit": false,
+        "plan": {
+          "id": "cycle_arb_round_robin",
+          "source_ref": "cycle_model.performance",
+          "class": "arbitration",
+          "description": "Round-robin arbitration switching between channels",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance"
+        },
+        "class": "arbitration",
+        "coverage_domain": "cycle",
+        "description": "Round-robin arbitration switching between channels",
+        "source_ref": "cycle_model.performance"
+      },
+      "cycle_burst_latency": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_START_ACCEPT",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_burst_latency",
+          "source_ref": "cycle_model.handshake_rules.ahb_address_phase",
+          "class": "timing",
+          "description": "Burst completion latency measured",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules.ahb_address_phase"
+        },
+        "class": "timing",
+        "coverage_domain": "cycle",
+        "description": "Burst completion latency measured",
+        "source_ref": "cycle_model.handshake_rules.ahb_address_phase"
+      },
+      "cycle_apb_access": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_START_ACCEPT",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_apb_access",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[0]",
+          "source_ref": "cycle_model.handshake_rules[0]",
+          "description": "APB accesses sample on pclk with psel and penable. No wait states."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "APB accesses sample on pclk with psel and penable. No wait states.",
+        "source_ref": "cycle_model.handshake_rules[0]"
+      },
+      "cycle_ahb_address_phase": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_WRITE_TO_UPDATE_5",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ahb_address_phase",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[1]",
+          "source_ref": "cycle_model.handshake_rules[1]",
+          "description": "AHB address phase drives haddr, htrans, hsize, hburst, hwrite for one cycle."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "AHB address phase drives haddr, htrans, hsize, hburst, hwrite for one cycle.",
+        "source_ref": "cycle_model.handshake_rules[1]"
+      },
+      "cycle_ahb_data_phase": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_START_ACCEPT",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ahb_data_phase",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[2]",
+          "source_ref": "cycle_model.handshake_rules[2]",
+          "description": "AHB data phase follows address phase by one cycle with hwdata or hrdata."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "AHB data phase follows address phase by one cycle with hwdata or hrdata.",
+        "source_ref": "cycle_model.handshake_rules[2]"
+      },
+      "cycle_arb_grant_rule": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_REQUEST_TO_READ_3",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_arb_grant_rule",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[3]",
+          "source_ref": "cycle_model.handshake_rules[3]",
+          "description": "Arbiter evaluates requests every cycle and grants to next round-robin contender."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "Arbiter evaluates requests every cycle and grants to next round-robin contender.",
+        "source_ref": "cycle_model.handshake_rules[3]"
+      },
+      "cycle_start_accept": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_START_ACCEPT",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_start_accept",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[4]",
+          "source_ref": "cycle_model.handshake_rules[4]",
+          "description": "ch_start accepted only when ch_busy is low and dma_en is high."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "ch_start accepted only when ch_busy is low and dma_en is high.",
+        "source_ref": "cycle_model.handshake_rules[4]"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_READ_6",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_0",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[0]",
+          "source_ref": "cycle_model.ordering[0]",
+          "description": "Configuration (CFG) precedes transfer execution (READ/WRITE)."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "Configuration (CFG) precedes transfer execution (READ/WRITE).",
+        "source_ref": "cycle_model.ordering[0]"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_READ_6",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_1",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[1]",
+          "source_ref": "cycle_model.ordering[1]",
+          "description": "Read burst completion precedes write burst for same data."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "Read burst completion precedes write burst for same data.",
+        "source_ref": "cycle_model.ordering[1]"
+      },
+      "cycle_ordering_2": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_DONE_7",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_2",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[2]",
+          "source_ref": "cycle_model.ordering[2]",
+          "description": "Address update (UPDATE) precedes next burst request."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "Address update (UPDATE) precedes next burst request.",
+        "source_ref": "cycle_model.ordering[2]"
+      },
+      "cycle_ordering_3": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_DONE_TO_IDLE_8",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_3",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[3]",
+          "source_ref": "cycle_model.ordering[3]",
+          "description": "Transfer completion (DONE) precedes done pulse observation."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "Transfer completion (DONE) precedes done pulse observation.",
+        "source_ref": "cycle_model.ordering[3]"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_backpressure_0",
+          "class": "backpressure",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure[0]",
+          "source_ref": "cycle_model.backpressure[0]",
+          "description": "New starts blocked while channel busy."
+        },
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "description": "New starts blocked while channel busy.",
+        "source_ref": "cycle_model.backpressure[0]"
+      },
+      "cycle_backpressure_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_READ_6",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": false,
+        "plan": {
+          "id": "cycle_backpressure_1",
+          "class": "backpressure",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure[1]",
+          "source_ref": "cycle_model.backpressure[1]",
+          "description": "AHB transfers stall when hready is low."
+        },
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "description": "AHB transfers stall when hready is low.",
+        "source_ref": "cycle_model.backpressure[1]"
+      },
+      "cycle_backpressure_2": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_REQUEST_TO_READ_3",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": false,
+        "plan": {
+          "id": "cycle_backpressure_2",
+          "class": "backpressure",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure[2]",
+          "source_ref": "cycle_model.backpressure[2]",
+          "description": "Arbiter queues requests when bus is occupied."
+        },
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "description": "Arbiter queues requests when bus is occupied.",
+        "source_ref": "cycle_model.backpressure[2]"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": false,
+        "plan": {
+          "id": "cycle_perf_throughput",
+          "class": "throughput",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.throughput",
+          "source_ref": "cycle_model.performance.throughput",
+          "description": "one burst per channel per arbiter round"
+        },
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "description": "one burst per channel per arbiter round",
+        "source_ref": "cycle_model.performance.throughput"
+      },
+      "fsm_per_channel_idle_to_cfg_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_per_channel_idle_to_cfg_0",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.per_channel.transitions[0]",
+          "source_ref": "fsm.per_channel.transitions[0]",
+          "description": "ch_start && ch_en && dma_en && valid_cfg"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "ch_start && ch_en && dma_en && valid_cfg",
+        "source_ref": "fsm.per_channel.transitions[0]"
+      },
+      "fsm_per_channel_idle_to_error_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_per_channel_idle_to_error_1",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.per_channel.transitions[1]",
+          "source_ref": "fsm.per_channel.transitions[1]",
+          "description": "ch_start && ch_en && !valid_cfg"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "ch_start && ch_en && !valid_cfg",
+        "source_ref": "fsm.per_channel.transitions[1]"
+      },
+      "fsm_per_channel_cfg_to_request_2": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_per_channel_cfg_to_request_2",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.per_channel.transitions[2]",
+          "source_ref": "fsm.per_channel.transitions[2]",
+          "description": "next_cycle"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "next_cycle",
+        "source_ref": "fsm.per_channel.transitions[2]"
+      },
+      "fsm_per_channel_request_to_read_3": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_per_channel_request_to_read_3",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.per_channel.transitions[3]",
+          "source_ref": "fsm.per_channel.transitions[3]",
+          "description": "arb_grant"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "arb_grant",
+        "source_ref": "fsm.per_channel.transitions[3]"
+      },
+      "fsm_per_channel_read_to_write_4": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_per_channel_read_to_write_4",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.per_channel.transitions[4]",
+          "source_ref": "fsm.per_channel.transitions[4]",
+          "description": "read_burst_complete"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "read_burst_complete",
+        "source_ref": "fsm.per_channel.transitions[4]"
+      },
+      "fsm_per_channel_write_to_update_5": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_per_channel_write_to_update_5",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.per_channel.transitions[5]",
+          "source_ref": "fsm.per_channel.transitions[5]",
+          "description": "write_burst_complete"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "write_burst_complete",
+        "source_ref": "fsm.per_channel.transitions[5]"
+      },
+      "fsm_per_channel_update_to_read_6": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": false,
+        "plan": {
+          "id": "fsm_per_channel_update_to_read_6",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.per_channel.transitions[6]",
+          "source_ref": "fsm.per_channel.transitions[6]",
+          "description": "remaining_gt_0"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "remaining_gt_0",
+        "source_ref": "fsm.per_channel.transitions[6]"
+      },
+      "fsm_per_channel_update_to_done_7": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_per_channel_update_to_done_7",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.per_channel.transitions[7]",
+          "source_ref": "fsm.per_channel.transitions[7]",
+          "description": "remaining_eq_0"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "remaining_eq_0",
+        "source_ref": "fsm.per_channel.transitions[7]"
+      },
+      "fsm_per_channel_done_to_idle_8": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_per_channel_done_to_idle_8",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.per_channel.transitions[8]",
+          "source_ref": "fsm.per_channel.transitions[8]",
+          "description": "status_sampled"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "status_sampled",
+        "source_ref": "fsm.per_channel.transitions[8]"
+      },
+      "fsm_per_channel_error_to_idle_9": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+        "scenario_id": "SC_001",
+        "rtl_observed_keys": [
+          "ch_busy",
+          "ch_done",
+          "err_code"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_per_channel_error_to_idle_9",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.per_channel.transitions[9]",
+          "source_ref": "fsm.per_channel.transitions[9]",
+          "description": "status_sampled"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "status_sampled",
+        "source_ref": "fsm.per_channel.transitions[9]"
+      }
+    }
+  },
+  "coverage_model": {
+    "function": {
+      "source": "function_model",
+      "target_pct": 100.0,
+      "hit": 26,
+      "total": 26,
+      "pct": 100.0,
+      "meets_target": true
+    },
+    "cycle": {
+      "source": "cycle_model",
+      "target_pct": 100.0,
+      "hit": 33,
+      "total": 33,
+      "pct": 100.0,
+      "meets_target": true
+    }
+  },
+  "planned_bins": [
+    "SC_001_executed",
+    "SC_002_executed",
+    "SC_003_executed",
+    "SC_004_executed",
+    "SC_005_executed",
+    "SC_006_executed",
+    "SC_007_executed",
+    "SC_008_executed",
+    "SC_009_executed",
+    "function_dma_step",
+    "function_dma_error_align",
+    "function_dma_busy_reject",
+    "function_dma_multi_ch",
+    "function_dma_global_enable",
+    "function_dma_irq_clear",
+    "cycle_pipeline_idle",
+    "cycle_pipeline_cfg",
+    "cycle_pipeline_request",
+    "cycle_pipeline_read",
+    "cycle_pipeline_write",
+    "cycle_pipeline_update",
+    "cycle_pipeline_done",
+    "cycle_pipeline_error",
+    "cycle_arb_round_robin",
+    "cycle_burst_latency",
+    "function_dma_complete",
+    "cycle_apb_access",
+    "cycle_ahb_address_phase",
+    "cycle_ahb_data_phase",
+    "cycle_arb_grant_rule",
+    "cycle_start_accept",
+    "cycle_ordering_0",
+    "cycle_ordering_1",
+    "cycle_ordering_2",
+    "cycle_ordering_3",
+    "cycle_backpressure_0",
+    "cycle_backpressure_1",
+    "cycle_backpressure_2",
+    "cycle_perf_throughput",
+    "fsm_per_channel_idle_to_cfg_0",
+    "fsm_per_channel_idle_to_error_1",
+    "fsm_per_channel_cfg_to_request_2",
+    "fsm_per_channel_request_to_read_3",
+    "fsm_per_channel_read_to_write_4",
+    "fsm_per_channel_write_to_update_5",
+    "fsm_per_channel_update_to_read_6",
+    "fsm_per_channel_update_to_done_7",
+    "fsm_per_channel_done_to_idle_8",
+    "fsm_per_channel_error_to_idle_9",
+    "error_error_0",
+    "error_error_1",
+    "error_error_2"
+  ],
+  "functional_bins": {
+    "SC_001_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC_001",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_001_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[0]",
+        "scenario": "SC_001",
+        "description": "single_channel_transfer"
+      },
+      "class": "scenario",
+      "description": "single_channel_transfer",
+      "coverage_domain": "function"
+    },
+    "SC_002_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_002_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[1]",
+        "scenario": "SC_002",
+        "description": "alignment_error"
+      },
+      "class": "scenario",
+      "description": "alignment_error",
+      "coverage_domain": "function"
+    },
+    "SC_003_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_003_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[2]",
+        "scenario": "SC_003",
+        "description": "zero_length_error"
+      },
+      "class": "scenario",
+      "description": "zero_length_error",
+      "coverage_domain": "function"
+    },
+    "SC_004_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC_004",
+      "scenario_id": "SC_004",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_004_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[3]",
+        "scenario": "SC_004",
+        "description": "busy_reject"
+      },
+      "class": "scenario",
+      "description": "busy_reject",
+      "coverage_domain": "function"
+    },
+    "SC_005_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC_005",
+      "scenario_id": "SC_005",
+      "rtl_observed_keys": [
+        "arb_grant_ch0",
+        "arb_grant_ch1"
+      ],
+      "raw_hit": false,
+      "plan": {
+        "id": "SC_005_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[4]",
+        "scenario": "SC_005",
+        "description": "multi_channel_round_robin"
+      },
+      "class": "scenario",
+      "description": "multi_channel_round_robin",
+      "coverage_domain": "function"
+    },
+    "SC_006_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": false,
+      "plan": {
+        "id": "SC_006_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[5]",
+        "scenario": "SC_006",
+        "description": "bus_error_during_transfer"
+      },
+      "class": "scenario",
+      "description": "bus_error_during_transfer",
+      "coverage_domain": "function"
+    },
+    "SC_007_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC_007",
+      "scenario_id": "SC_007",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "dma_en"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_007_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[6]",
+        "scenario": "SC_007",
+        "description": "global_enable_disable"
+      },
+      "class": "scenario",
+      "description": "global_enable_disable",
+      "coverage_domain": "function"
+    },
+    "SC_008_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC_008",
+      "scenario_id": "SC_008",
+      "rtl_observed_keys": [
+        "irq_after",
+        "irq_before"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_008_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[7]",
+        "scenario": "SC_008",
+        "description": "interrupt_clear"
+      },
+      "class": "scenario",
+      "description": "interrupt_clear",
+      "coverage_domain": "function"
+    },
+    "SC_009_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC_009",
+      "scenario_id": "SC_009",
+      "rtl_observed_keys": [
+        "apb_access_phase",
+        "paddr_sampled",
+        "pslverr"
+      ],
+      "raw_hit": false,
+      "plan": {
+        "id": "SC_009_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[8]",
+        "scenario": "SC_009",
+        "description": "apb_unmapped_address"
+      },
+      "class": "scenario",
+      "description": "apb_unmapped_address",
+      "coverage_domain": "function"
+    },
+    "function_dma_step": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_DMA_STEP",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_dma_step",
+        "source_ref": "function_model.transactions.FM_DMA_STEP",
+        "class": "transaction",
+        "description": "Valid DMA step with burst transfer",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.FM_DMA_STEP"
+      },
+      "class": "transaction",
+      "coverage_domain": "function",
+      "description": "Valid DMA step with burst transfer",
+      "source_ref": "function_model.transactions.FM_DMA_STEP"
+    },
+    "function_dma_error_align": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_dma_error_align",
+        "source_ref": "function_model.transactions.FM_DMA_ERROR",
+        "class": "error",
+        "description": "Alignment error path",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.FM_DMA_ERROR"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "Alignment error path",
+      "source_ref": "function_model.transactions.FM_DMA_ERROR"
+    },
+    "function_dma_busy_reject": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_dma_busy_reject",
+        "source_ref": "function_model.transactions.FM_DMA_START",
+        "class": "error_case",
+        "description": "Start while busy rejected",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.FM_DMA_START"
+      },
+      "class": "error_case",
+      "coverage_domain": "function",
+      "description": "Start while busy rejected",
+      "source_ref": "function_model.transactions.FM_DMA_START"
+    },
+    "function_dma_multi_ch": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_ARB_GRANT",
+      "scenario_id": "SC_005",
+      "rtl_observed_keys": [
+        "arb_grant_ch0",
+        "arb_grant_ch1"
+      ],
+      "raw_hit": false,
+      "plan": {
+        "id": "function_dma_multi_ch",
+        "source_ref": "function_model.transactions.FM_ARB_GRANT",
+        "class": "arbitration",
+        "description": "Multiple channels active simultaneously",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.FM_ARB_GRANT"
+      },
+      "class": "arbitration",
+      "coverage_domain": "function",
+      "description": "Multiple channels active simultaneously",
+      "source_ref": "function_model.transactions.FM_ARB_GRANT"
+    },
+    "function_dma_global_enable": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_FUNCTION_DMA_GLOBAL_ENABLE",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_dma_global_enable",
+        "source_ref": "function_model.state_variables.dma_en_q",
+        "class": "control",
+        "description": "Global enable disable with in-progress transfer",
+        "coverage_domain": "function",
+        "source": "function_model.state_variables.dma_en_q"
+      },
+      "class": "control",
+      "coverage_domain": "function",
+      "description": "Global enable disable with in-progress transfer",
+      "source_ref": "function_model.state_variables.dma_en_q"
+    },
+    "function_dma_irq_clear": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_CH3_STATUS",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_dma_irq_clear",
+        "source_ref": "function_model.state_variables.int_enable_q",
+        "class": "interrupt",
+        "description": "Interrupt clear via INT_CLEAR register",
+        "coverage_domain": "function",
+        "source": "function_model.state_variables.int_enable_q"
+      },
+      "class": "interrupt",
+      "coverage_domain": "function",
+      "description": "Interrupt clear via INT_CLEAR register",
+      "source_ref": "function_model.state_variables.int_enable_q"
+    },
+    "cycle_pipeline_idle": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_idle",
+        "source_ref": "cycle_model.pipeline[0]",
+        "class": "state",
+        "description": "Channel FSM IDLE state visited",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[0]"
+      },
+      "class": "state",
+      "coverage_domain": "cycle",
+      "description": "Channel FSM IDLE state visited",
+      "source_ref": "cycle_model.pipeline[0]"
+    },
+    "cycle_pipeline_cfg": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_CFG_TO_REQUEST_2",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_cfg",
+        "source_ref": "cycle_model.pipeline[1]",
+        "class": "state",
+        "description": "Channel FSM CFG state visited",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[1]"
+      },
+      "class": "state",
+      "coverage_domain": "cycle",
+      "description": "Channel FSM CFG state visited",
+      "source_ref": "cycle_model.pipeline[1]"
+    },
+    "cycle_pipeline_request": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_REQUEST_TO_READ_3",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_request",
+        "source_ref": "cycle_model.pipeline[2]",
+        "class": "state",
+        "description": "Channel FSM REQUEST state visited",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[2]"
+      },
+      "class": "state",
+      "coverage_domain": "cycle",
+      "description": "Channel FSM REQUEST state visited",
+      "source_ref": "cycle_model.pipeline[2]"
+    },
+    "cycle_pipeline_read": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_READ_6",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_read",
+        "source_ref": "cycle_model.pipeline[3]",
+        "class": "state",
+        "description": "Channel FSM READ state visited",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[3]"
+      },
+      "class": "state",
+      "coverage_domain": "cycle",
+      "description": "Channel FSM READ state visited",
+      "source_ref": "cycle_model.pipeline[3]"
+    },
+    "cycle_pipeline_write": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_WRITE_TO_UPDATE_5",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_write",
+        "source_ref": "cycle_model.pipeline[4]",
+        "class": "state",
+        "description": "Channel FSM WRITE state visited",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[4]"
+      },
+      "class": "state",
+      "coverage_domain": "cycle",
+      "description": "Channel FSM WRITE state visited",
+      "source_ref": "cycle_model.pipeline[4]"
+    },
+    "cycle_pipeline_update": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_DONE_7",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_update",
+        "source_ref": "cycle_model.pipeline[5]",
+        "class": "state",
+        "description": "Channel FSM UPDATE state visited",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[5]"
+      },
+      "class": "state",
+      "coverage_domain": "cycle",
+      "description": "Channel FSM UPDATE state visited",
+      "source_ref": "cycle_model.pipeline[5]"
+    },
+    "cycle_pipeline_done": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_DONE_TO_IDLE_8",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_done",
+        "source_ref": "cycle_model.pipeline[6]",
+        "class": "state",
+        "description": "Channel FSM DONE state visited",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[6]"
+      },
+      "class": "state",
+      "coverage_domain": "cycle",
+      "description": "Channel FSM DONE state visited",
+      "source_ref": "cycle_model.pipeline[6]"
+    },
+    "cycle_pipeline_error": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_error",
+        "source_ref": "cycle_model.pipeline[7]",
+        "class": "state",
+        "description": "Channel FSM ERROR state visited",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[7]"
+      },
+      "class": "state",
+      "coverage_domain": "cycle",
+      "description": "Channel FSM ERROR state visited",
+      "source_ref": "cycle_model.pipeline[7]"
+    },
+    "cycle_arb_round_robin": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_ARB_ROUND_ROBIN",
+      "scenario_id": "SC_005",
+      "rtl_observed_keys": [
+        "arb_grant_ch0",
+        "arb_grant_ch1"
+      ],
+      "raw_hit": false,
+      "plan": {
+        "id": "cycle_arb_round_robin",
+        "source_ref": "cycle_model.performance",
+        "class": "arbitration",
+        "description": "Round-robin arbitration switching between channels",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance"
+      },
+      "class": "arbitration",
+      "coverage_domain": "cycle",
+      "description": "Round-robin arbitration switching between channels",
+      "source_ref": "cycle_model.performance"
+    },
+    "cycle_burst_latency": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_START_ACCEPT",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_burst_latency",
+        "source_ref": "cycle_model.handshake_rules.ahb_address_phase",
+        "class": "timing",
+        "description": "Burst completion latency measured",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules.ahb_address_phase"
+      },
+      "class": "timing",
+      "coverage_domain": "cycle",
+      "description": "Burst completion latency measured",
+      "source_ref": "cycle_model.handshake_rules.ahb_address_phase"
+    },
+    "function_dma_complete": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_DMA_COMPLETE",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_dma_complete",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[2]",
+        "source_ref": "function_model.transactions.fm_dma_complete",
+        "description": "dma_complete"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "dma_complete",
+      "source_ref": "function_model.transactions.fm_dma_complete"
+    },
+    "cycle_apb_access": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_START_ACCEPT",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_apb_access",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[0]",
+        "source_ref": "cycle_model.handshake_rules[0]",
+        "description": "APB accesses sample on pclk with psel and penable. No wait states."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "APB accesses sample on pclk with psel and penable. No wait states.",
+      "source_ref": "cycle_model.handshake_rules[0]"
+    },
+    "cycle_ahb_address_phase": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_WRITE_TO_UPDATE_5",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ahb_address_phase",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[1]",
+        "source_ref": "cycle_model.handshake_rules[1]",
+        "description": "AHB address phase drives haddr, htrans, hsize, hburst, hwrite for one cycle."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "AHB address phase drives haddr, htrans, hsize, hburst, hwrite for one cycle.",
+      "source_ref": "cycle_model.handshake_rules[1]"
+    },
+    "cycle_ahb_data_phase": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_START_ACCEPT",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ahb_data_phase",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[2]",
+        "source_ref": "cycle_model.handshake_rules[2]",
+        "description": "AHB data phase follows address phase by one cycle with hwdata or hrdata."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "AHB data phase follows address phase by one cycle with hwdata or hrdata.",
+      "source_ref": "cycle_model.handshake_rules[2]"
+    },
+    "cycle_arb_grant_rule": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_REQUEST_TO_READ_3",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_arb_grant_rule",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[3]",
+        "source_ref": "cycle_model.handshake_rules[3]",
+        "description": "Arbiter evaluates requests every cycle and grants to next round-robin contender."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "Arbiter evaluates requests every cycle and grants to next round-robin contender.",
+      "source_ref": "cycle_model.handshake_rules[3]"
+    },
+    "cycle_start_accept": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_START_ACCEPT",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_start_accept",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[4]",
+        "source_ref": "cycle_model.handshake_rules[4]",
+        "description": "ch_start accepted only when ch_busy is low and dma_en is high."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "ch_start accepted only when ch_busy is low and dma_en is high.",
+      "source_ref": "cycle_model.handshake_rules[4]"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_READ_6",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_0",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[0]",
+        "source_ref": "cycle_model.ordering[0]",
+        "description": "Configuration (CFG) precedes transfer execution (READ/WRITE)."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "Configuration (CFG) precedes transfer execution (READ/WRITE).",
+      "source_ref": "cycle_model.ordering[0]"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_READ_6",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_1",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[1]",
+        "source_ref": "cycle_model.ordering[1]",
+        "description": "Read burst completion precedes write burst for same data."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "Read burst completion precedes write burst for same data.",
+      "source_ref": "cycle_model.ordering[1]"
+    },
+    "cycle_ordering_2": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_DONE_7",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_2",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[2]",
+        "source_ref": "cycle_model.ordering[2]",
+        "description": "Address update (UPDATE) precedes next burst request."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "Address update (UPDATE) precedes next burst request.",
+      "source_ref": "cycle_model.ordering[2]"
+    },
+    "cycle_ordering_3": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_DONE_TO_IDLE_8",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_3",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[3]",
+        "source_ref": "cycle_model.ordering[3]",
+        "description": "Transfer completion (DONE) precedes done pulse observation."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "Transfer completion (DONE) precedes done pulse observation.",
+      "source_ref": "cycle_model.ordering[3]"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_backpressure_0",
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure[0]",
+        "source_ref": "cycle_model.backpressure[0]",
+        "description": "New starts blocked while channel busy."
+      },
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "description": "New starts blocked while channel busy.",
+      "source_ref": "cycle_model.backpressure[0]"
+    },
+    "cycle_backpressure_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_READ_6",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": false,
+      "plan": {
+        "id": "cycle_backpressure_1",
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure[1]",
+        "source_ref": "cycle_model.backpressure[1]",
+        "description": "AHB transfers stall when hready is low."
+      },
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "description": "AHB transfers stall when hready is low.",
+      "source_ref": "cycle_model.backpressure[1]"
+    },
+    "cycle_backpressure_2": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_REQUEST_TO_READ_3",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": false,
+      "plan": {
+        "id": "cycle_backpressure_2",
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure[2]",
+        "source_ref": "cycle_model.backpressure[2]",
+        "description": "Arbiter queues requests when bus is occupied."
+      },
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "description": "Arbiter queues requests when bus is occupied.",
+      "source_ref": "cycle_model.backpressure[2]"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": false,
+      "plan": {
+        "id": "cycle_perf_throughput",
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.throughput",
+        "source_ref": "cycle_model.performance.throughput",
+        "description": "one burst per channel per arbiter round"
+      },
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "description": "one burst per channel per arbiter round",
+      "source_ref": "cycle_model.performance.throughput"
+    },
+    "fsm_per_channel_idle_to_cfg_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_per_channel_idle_to_cfg_0",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.per_channel.transitions[0]",
+        "source_ref": "fsm.per_channel.transitions[0]",
+        "description": "ch_start && ch_en && dma_en && valid_cfg"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "ch_start && ch_en && dma_en && valid_cfg",
+      "source_ref": "fsm.per_channel.transitions[0]"
+    },
+    "fsm_per_channel_idle_to_error_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_per_channel_idle_to_error_1",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.per_channel.transitions[1]",
+        "source_ref": "fsm.per_channel.transitions[1]",
+        "description": "ch_start && ch_en && !valid_cfg"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "ch_start && ch_en && !valid_cfg",
+      "source_ref": "fsm.per_channel.transitions[1]"
+    },
+    "fsm_per_channel_cfg_to_request_2": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_per_channel_cfg_to_request_2",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.per_channel.transitions[2]",
+        "source_ref": "fsm.per_channel.transitions[2]",
+        "description": "next_cycle"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "next_cycle",
+      "source_ref": "fsm.per_channel.transitions[2]"
+    },
+    "fsm_per_channel_request_to_read_3": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_per_channel_request_to_read_3",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.per_channel.transitions[3]",
+        "source_ref": "fsm.per_channel.transitions[3]",
+        "description": "arb_grant"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "arb_grant",
+      "source_ref": "fsm.per_channel.transitions[3]"
+    },
+    "fsm_per_channel_read_to_write_4": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_per_channel_read_to_write_4",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.per_channel.transitions[4]",
+        "source_ref": "fsm.per_channel.transitions[4]",
+        "description": "read_burst_complete"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "read_burst_complete",
+      "source_ref": "fsm.per_channel.transitions[4]"
+    },
+    "fsm_per_channel_write_to_update_5": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_per_channel_write_to_update_5",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.per_channel.transitions[5]",
+        "source_ref": "fsm.per_channel.transitions[5]",
+        "description": "write_burst_complete"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "write_burst_complete",
+      "source_ref": "fsm.per_channel.transitions[5]"
+    },
+    "fsm_per_channel_update_to_read_6": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": false,
+      "plan": {
+        "id": "fsm_per_channel_update_to_read_6",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.per_channel.transitions[6]",
+        "source_ref": "fsm.per_channel.transitions[6]",
+        "description": "remaining_gt_0"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "remaining_gt_0",
+      "source_ref": "fsm.per_channel.transitions[6]"
+    },
+    "fsm_per_channel_update_to_done_7": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_per_channel_update_to_done_7",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.per_channel.transitions[7]",
+        "source_ref": "fsm.per_channel.transitions[7]",
+        "description": "remaining_eq_0"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "remaining_eq_0",
+      "source_ref": "fsm.per_channel.transitions[7]"
+    },
+    "fsm_per_channel_done_to_idle_8": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_per_channel_done_to_idle_8",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.per_channel.transitions[8]",
+        "source_ref": "fsm.per_channel.transitions[8]",
+        "description": "status_sampled"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "status_sampled",
+      "source_ref": "fsm.per_channel.transitions[8]"
+    },
+    "fsm_per_channel_error_to_idle_9": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_per_channel_error_to_idle_9",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.per_channel.transitions[9]",
+        "source_ref": "fsm.per_channel.transitions[9]",
+        "description": "status_sampled"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "status_sampled",
+      "source_ref": "fsm.per_channel.transitions[9]"
+    },
+    "error_error_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "error_error_0",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[0]",
+        "source_ref": "error_handling.error_sources[0]",
+        "description": "{'id': 'ERR_ALIGN', 'source': 'channel_start', 'condition': 'src_addr[1:0] != 0 or dst_addr[1:0] != 0', 'code': 1, 'description': 'Misaligned source or destination address'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_ALIGN', 'source': 'channel_start', 'condition': 'src_addr[1:0] != 0 or dst_addr[1:0] != 0', 'code': 1, 'description': 'Misaligned source or destination address'}",
+      "source_ref": "error_handling.error_sources[0]"
+    },
+    "error_error_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "error_error_1",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[1]",
+        "source_ref": "error_handling.error_sources[1]",
+        "description": "{'id': 'ERR_ZERO_LEN', 'source': 'channel_start', 'condition': 'CHx_LEN == 0', 'code': 2, 'description': 'Zero-length transfer requested'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_ZERO_LEN', 'source': 'channel_start', 'condition': 'CHx_LEN == 0', 'code': 2, 'description': 'Zero-length transfer requested'}",
+      "source_ref": "error_handling.error_sources[1]"
+    },
+    "error_error_2": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": false,
+      "plan": {
+        "id": "error_error_2",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[2]",
+        "source_ref": "error_handling.error_sources[2]",
+        "description": "{'id': 'ERR_BUS', 'source': 'ahb_transfer', 'condition': 'hresp == ERROR', 'code': 3, 'description': 'AHB bus error during transfer'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_BUS', 'source': 'ahb_transfer', 'condition': 'hresp == ERROR', 'code': 3, 'description': 'AHB bus error during transfer'}",
+      "source_ref": "error_handling.error_sources[2]"
+    },
+    "function_dma_error_zero_len": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    },
+    "function_dma_error_bus": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": false,
+      "coverage_domain": "function"
+    },
+    "function_dma_apb_err": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": false,
+      "coverage_domain": "function"
+    },
+    "function_dma_start": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_DMA_START",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    },
+    "function_dma_error": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    },
+    "function_arb_grant": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_ARB_GRANT",
+      "scenario_id": "SC_005",
+      "rtl_observed_keys": [
+        "arb_grant_ch0",
+        "arb_grant_ch1"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    },
+    "ccov_pipeline_order": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_3",
+      "scenario_id": "SC_001",
+      "rtl_observed_keys": [
+        "ch_busy",
+        "ch_done",
+        "err_code"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    }
+  },
+  "raw_functional": {
+    "hit": 46,
+    "total": 58,
+    "pct": 79.31
+  },
+  "raw_functional_bins": {
+    "SC_001_executed": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "SC_002_executed": {
+      "hit": true,
+      "scenario_id": "SC_002",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "SC_003_executed": {
+      "hit": true,
+      "scenario_id": "SC_003",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "SC_004_executed": {
+      "hit": true,
+      "scenario_id": "SC_004",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "SC_005_executed": {
+      "hit": false,
+      "source": "test_not_implemented"
+    },
+    "SC_006_executed": {
+      "hit": false,
+      "source": "test_not_implemented"
+    },
+    "SC_007_executed": {
+      "hit": true,
+      "scenario_id": "SC_007",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "SC_008_executed": {
+      "hit": true,
+      "scenario_id": "SC_008",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "SC_009_executed": {
+      "hit": false,
+      "source": "test_not_implemented"
+    },
+    "function_dma_step": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "function_dma_error_align": {
+      "hit": true,
+      "scenario_id": "SC_002",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "function_dma_error_zero_len": {
+      "hit": true,
+      "scenario_id": "SC_003",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "function_dma_error_bus": {
+      "hit": false,
+      "source": "test_not_implemented"
+    },
+    "function_dma_busy_reject": {
+      "hit": true,
+      "scenario_id": "SC_004",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "function_dma_multi_ch": {
+      "hit": false,
+      "source": "test_not_implemented"
+    },
+    "function_dma_global_enable": {
+      "hit": true,
+      "scenario_id": "SC_007",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "function_dma_irq_clear": {
+      "hit": true,
+      "scenario_id": "SC_008",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "function_dma_apb_err": {
+      "hit": false,
+      "source": "test_not_implemented"
+    },
+    "cycle_pipeline_idle": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_pipeline_cfg": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_pipeline_request": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_pipeline_read": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_pipeline_write": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_pipeline_update": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_pipeline_done": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_pipeline_error": {
+      "hit": true,
+      "scenario_id": "SC_002",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_arb_round_robin": {
+      "hit": false,
+      "source": "test_not_implemented"
+    },
+    "cycle_burst_latency": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "function_dma_start": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "function_dma_complete": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "function_dma_error": {
+      "hit": true,
+      "scenario_id": "SC_002",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "function_arb_grant": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_apb_access": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_ahb_address_phase": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_ahb_data_phase": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_arb_grant_rule": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_start_accept": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_ordering_2": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_ordering_3": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "scenario_id": "SC_004",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "cycle_backpressure_1": {
+      "hit": false,
+      "source": "test_not_implemented"
+    },
+    "cycle_backpressure_2": {
+      "hit": false,
+      "source": "test_not_implemented"
+    },
+    "cycle_perf_throughput": {
+      "hit": false,
+      "source": "test_not_implemented"
+    },
+    "fsm_per_channel_idle_to_cfg_0": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "fsm_per_channel_idle_to_error_1": {
+      "hit": true,
+      "scenario_id": "SC_002",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "fsm_per_channel_cfg_to_request_2": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "fsm_per_channel_request_to_read_3": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "fsm_per_channel_read_to_write_4": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "fsm_per_channel_write_to_update_5": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "fsm_per_channel_update_to_read_6": {
+      "hit": false,
+      "source": "test_not_implemented"
+    },
+    "fsm_per_channel_update_to_done_7": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "fsm_per_channel_done_to_idle_8": {
+      "hit": true,
+      "scenario_id": "SC_001",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "fsm_per_channel_error_to_idle_9": {
+      "hit": true,
+      "scenario_id": "SC_002",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "error_error_0": {
+      "hit": true,
+      "scenario_id": "SC_002",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "error_error_1": {
+      "hit": true,
+      "scenario_id": "SC_003",
+      "source": "rtl_observed_cocotb_sim"
+    },
+    "error_error_2": {
+      "hit": false,
+      "source": "test_not_implemented"
+    }
+  },
+  "rtl_observed": {
+    "status": "pass",
+    "scoreboard_events": 67,
+    "scoreboard_passed_events_with_refs": 62,
+    "goal_refs": [
+      "SC_001_executed",
+      "SC_002_executed",
+      "SC_003_executed",
+      "SC_004_executed",
+      "SC_005_executed",
+      "SC_006_executed",
+      "SC_007_executed",
+      "SC_008_executed",
+      "SC_009_executed",
+      "cycle_ahb_address_phase",
+      "cycle_ahb_data_phase",
+      "cycle_apb_access",
+      "cycle_arb_grant_rule",
+      "cycle_arb_round_robin",
+      "cycle_backpressure_0",
+      "cycle_backpressure_1",
+      "cycle_backpressure_2",
+      "cycle_burst_latency",
+      "cycle_ordering_0",
+      "cycle_ordering_1",
+      "cycle_ordering_2",
+      "cycle_ordering_3",
+      "cycle_perf_throughput",
+      "cycle_pipeline_cfg",
+      "cycle_pipeline_done",
+      "cycle_pipeline_error",
+      "cycle_pipeline_idle",
+      "cycle_pipeline_read",
+      "cycle_pipeline_request",
+      "cycle_pipeline_update",
+      "cycle_pipeline_write",
+      "cycle_start_accept",
+      "error_error_0",
+      "error_error_1",
+      "error_error_2",
+      "fsm_per_channel_cfg_to_request_2",
+      "fsm_per_channel_done_to_idle_8",
+      "fsm_per_channel_error_to_idle_9",
+      "fsm_per_channel_idle_to_cfg_0",
+      "fsm_per_channel_idle_to_error_1",
+      "fsm_per_channel_read_to_write_4",
+      "fsm_per_channel_request_to_read_3",
+      "fsm_per_channel_update_to_done_7",
+      "fsm_per_channel_update_to_read_6",
+      "fsm_per_channel_write_to_update_5",
+      "function_arb_grant",
+      "function_dma_apb_err",
+      "function_dma_busy_reject",
+      "function_dma_complete",
+      "function_dma_error",
+      "function_dma_error_align",
+      "function_dma_error_bus",
+      "function_dma_error_zero_len",
+      "function_dma_global_enable",
+      "function_dma_irq_clear",
+      "function_dma_multi_ch",
+      "function_dma_start",
+      "function_dma_step"
+    ],
+    "missing_bins": [],
+    "invalid_rows": []
+  },
+  "lines": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true
+  },
+  "branches": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true
+  },
+  "functions": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "fsm_state": {
+    "target_pct": null,
+    "hit": 10,
+    "total": 10,
+    "pct": 100.0,
+    "meets_target": true,
+    "source": "SSOT functional coverage bins"
+  },
+  "files": {},
+  "limitations": {},
+  "static_universe_not_instrumented": {},
+  "total_checks": 0,
+  "passed": 0,
+  "failed": 0,
+  "escalations": []
+}

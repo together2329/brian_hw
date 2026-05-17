@@ -3,21 +3,114 @@
   "type": "generic_goal_scoreboard_cocotb_manifest",
   "ip": "arm_m0_min",
   "top": "arm_m0_min",
-  "generated_at": "2026-05-15T10:47:03Z",
+  "generated_at": "2026-05-16T23:28:49Z",
   "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
   "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
   "ssot": "arm_m0_min/yaml/arm_m0_min.ssot.yaml",
   "equivalence_goals": "arm_m0_min/verify/equivalence_goals.json",
   "rtl_contract": "arm_m0_min/rtl/rtl_contract.json",
+  "rtl_contract_source": "rtl_contract_json",
   "clock": "clk",
   "reset": "rst",
   "reset_active": "high",
-  "latency_cycles": 2,
+  "latency_cycles": 1,
   "parameters": {
     "XLEN": 32,
     "RESET_PC": 0,
     "ENABLE_FAULT_HALT": 1
   },
+  "registers": {
+    "config": {
+      "register_width": 32,
+      "addr_width": 0,
+      "byte_addressable": false
+    },
+    "register_list": []
+  },
+  "state_observables": [
+    "pc",
+    "gpr",
+    "nzcv",
+    "fault_halt"
+  ],
+  "state_observable_aliases": {
+    "pc": [
+      "hold_pc",
+      "pc_bias",
+      "pc_in",
+      "pc_reg"
+    ],
+    "nzcv": [
+      "nzcv_parity"
+    ]
+  },
+  "rtl_signal_names": [
+    "alu_op",
+    "alu_res",
+    "asr_res_u",
+    "branch_taken",
+    "branch_taken_w",
+    "branch_target",
+    "branch_target_hint",
+    "branch_target_w",
+    "clk",
+    "cmp_eq",
+    "cmp_neg",
+    "d_backpressure_obs",
+    "d_path_obs",
+    "fault_halt",
+    "fsm_state_obs",
+    "hold_pc",
+    "id_valid",
+    "if_instr",
+    "if_valid",
+    "imm_ext",
+    "instr16",
+    "is_b",
+    "is_beq",
+    "is_bne",
+    "is_cmp",
+    "is_ldr",
+    "is_str",
+    "is_undef",
+    "mem_req",
+    "next_state",
+    "nzcv",
+    "nzcv_parity",
+    "pc",
+    "pc_bias",
+    "pc_in",
+    "pc_reg",
+    "rd_addr",
+    "reset_pc_w",
+    "rf0",
+    "rf1",
+    "rf10",
+    "rf11",
+    "rf12",
+    "rf13",
+    "rf14",
+    "rf15",
+    "rf2",
+    "rf3",
+    "rf4",
+    "rf5",
+    "rf6",
+    "rf7",
+    "rf8",
+    "rf9",
+    "rf_waddr",
+    "rf_wdata",
+    "rf_we",
+    "rs1_addr",
+    "rs1_data",
+    "rs2_addr",
+    "rs2_data",
+    "shamt",
+    "sign_fill",
+    "state",
+    "store_data_mux_hit"
+  ],
   "ports": [
     {
       "name": "clk",
@@ -187,6 +280,7 @@
     "i_htrans",
     "i_hwrite"
   ],
+  "inout_ports": [],
   "input_map": {
     "i_hready": "i_hready",
     "i_hrdata": "i_hrdata",
@@ -288,7 +382,7 @@
     "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/rtl/arm_m0_min_rf.sv",
     "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/rtl/arm_m0_min.sv"
   ],
-  "goal_count": 37,
+  "goal_count": 39,
   "module_goal_count": 4,
   "module_goals": [
     {

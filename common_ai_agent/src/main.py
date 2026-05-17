@@ -2799,11 +2799,16 @@ if __name__ == "__main__":
     import argparse as _argparse
 
     _effort_aliases = {
+        'l': 'low',
         'm': 'medium',
         'med': 'medium',
         'mid': 'medium',
         'h': 'high',
+        'hi': 'high',
+        'x': 'xhigh',
         'xh': 'xhigh',
+        'xhi': 'xhigh',
+        'max': 'xhigh',
     }
 
     _parser = _argparse.ArgumentParser(add_help=False)
@@ -2892,9 +2897,11 @@ if __name__ == "__main__":
         if _effort in ('none', 'low', 'medium', 'high', 'xhigh'):
             config.REASONING_MODE = _effort
             config.REASONING_EFFORT = _effort
+            config.GLM_THINKING_TYPE = 'disabled' if _effort == 'none' else 'enabled'
             os.environ['REASONING_MODE'] = _effort
             os.environ['REASONING_EFFORT'] = _effort
-            print(f"[--effort] reasoning effort set to {_effort} (API: reasoning.effort={_effort})")
+            os.environ['GLM_THINKING_TYPE'] = config.GLM_THINKING_TYPE
+            print(f"[--effort] reasoning effort set to {_effort} (provider-specific mapping applies at request time)")
         else:
             print(f"[--effort] unknown effort: {_raw_effort}. Allowed: none, low, medium, high, xhigh")
 
@@ -2950,6 +2957,7 @@ if __name__ == "__main__":
             coordinator=coordinator,
             worker_name=getattr(_args, 'worker_name', ''),
             session_name=_args.session or '',
+            startup_workflow=getattr(_args, 'workspace', '') or '',
         )
         sys.exit(0)
 

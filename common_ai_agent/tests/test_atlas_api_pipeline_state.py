@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -56,6 +57,72 @@ def test_pipeline_state_returns_15_stages(tmp_path: Path, monkeypatch) -> None:
         assert "glyph" in sdata
     # ssot has no deps and no artifacts → idle
     assert data["stages"]["ssot"]["state"] == "idle"
+
+
+def test_pipeline_state_includes_real_worker_and_headless_progress_debug(tmp_path: Path, monkeypatch) -> None:
+    ip = "progress_debug_ip"
+    logs = tmp_path / ip / "logs"
+    logs.mkdir(parents=True)
+    (logs / "heartbeat.json").write_text(
+        json.dumps(
+            {
+                "ts": "1970-01-01T00:00:01Z",
+                "state": "running",
+                "phase": "llm_call",
+                "stage": "ssot-gen",
+                "model": "deepseek",
+                "pid": 123,
+            }
+        ),
+        encoding="utf-8",
+    )
+    with (logs / "run_progress.jsonl").open("w", encoding="utf-8") as f:
+        f.write(json.dumps({"ts": "1970-01-01T00:00:00Z", "event": "stage_start", "stage": "ssot-gen"}) + "\n")
+        f.write(json.dumps({"ts": "1970-01-01T00:00:01Z", "event": "llm_call_start", "stage": "ssot-gen", "model": "deepseek"}) + "\n")
+
+    client = _make_client(tmp_path, monkeypatch)
+
+    import atlas_api_jobs
+
+    jobs, lock = atlas_api_jobs.get_jobs_state()
+    with lock:
+        jobs.clear()
+        jobs["job-progress"] = {
+            "job_id": "job-progress",
+            "run_id": "run-progress",
+            "pipeline_id": "pipe-progress",
+            "pipeline_index": 4,
+            "worker": "http://localhost:9999",
+            "workflow": "rtl-gen",
+            "stage_id": "rtl",
+            "ip": ip,
+            "model": "gpt-5.3-codex",
+            "session": f"{ip}/pipeline/pipe-progress/05-rtl-gen",
+            "scope_path": ip,
+            "started_at": time.time() - 7,
+            "status": "running",
+            "iterations": 2,
+            "result_summary": "authoring RTL packet",
+            "error": "",
+        }
+
+    resp = client.get(f"/api/pipeline/state?ip={ip}")
+    assert resp.status_code == 200, resp.text
+
+    progress_debug = resp.json()["progress_debug"]
+    assert progress_debug["diagnosis"]["state"] == "running_worker_jobs"
+    assert progress_debug["worker"]["active"][0]["workflow"] == "rtl-gen"
+    assert progress_debug["worker"]["active"][0]["worker"] == "http://localhost:9999"
+    assert progress_debug["worker"]["active"][0]["run_id"] == "run-progress"
+    assert progress_debug["headless"]["diagnosis"]["state"] == "stuck_llm_call"
+    assert progress_debug["headless"]["current"]["stage"] == "ssot-gen"
+
+    debug_resp = client.get(f"/api/pipeline/progress-debug?ip={ip}")
+    assert debug_resp.status_code == 200, debug_resp.text
+    direct_debug = debug_resp.json()
+    assert direct_debug["diagnosis"]["state"] == "running_worker_jobs"
+    assert direct_debug["worker"]["active"][0]["job_id"] == "job-progress"
+    assert direct_debug["headless"]["llm"]["active"] is True
 
 
 def test_pipeline_state_passed_when_ssot_present(tmp_path: Path, monkeypatch) -> None:
@@ -276,6 +343,117 @@ def test_pipeline_state_counts_review_decisions_from_disk(
     assert data["orchestrator"]["decisions_needed"] == 1
 
 
+def test_pipeline_state_counts_generic_headless_review_decisions_from_disk(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    ip = "generic_decision_ip"
+    review_dir = tmp_path / ip / "review"
+    review_dir.mkdir(parents=True)
+    (review_dir / "decision_needed_req_requirement_approval.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "type": "review_decision_needed",
+                "status": "review_decision_needed",
+                "ip": ip,
+                "workflow": "req",
+                "topic": "requirement_approval",
+                "severity": "signoff_blocker",
+                "decision_needed": "Approve or reject requirements.",
+                "evidence": {
+                    "human_facing_request": f"{ip}/review/approval_request.md",
+                    "review_packet": f"{ip}/doc/{ip}_requirement_review.md",
+                    "review_aids": [
+                        f"{ip}/review/completion_readiness_checklist.md",
+                        f"{ip}/review/prompt_to_artifact_checklist.json",
+                        f"{ip}/review/prompt_to_artifact_checklist_audit.json",
+                        "doc/wiki/arm-m0-min-current-status.md",
+                        f"{ip}/doc/{ip}_review_index.md",
+                        f"{ip}/doc/{ip}_user_handoff.md",
+                        f"{ip}/doc/{ip}_rtl_inventory.md",
+                        f"{ip}/doc/{ip}_isa_decode_inventory.md",
+                    ],
+                },
+                "recommended_option": "approve_locked_scope",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    client = _make_client(tmp_path, monkeypatch)
+    data = client.get(f"/api/pipeline/state?ip={ip}").json()
+    assert data["orchestrator"]["decisions_needed"] == 1
+    item = data["orchestrator"]["decision_items"][0]
+    assert item["path"] == f"{ip}/review/decision_needed_req_requirement_approval.json"
+    assert item["workflow"] == "req"
+    assert item["topic"] == "requirement_approval"
+    assert item["severity"] == "signoff_blocker"
+    assert item["recommended_option"] == "approve_locked_scope"
+    assert item["evidence"]["human_facing_request"] == f"{ip}/review/approval_request.md"
+    assert item["evidence"]["review_aids"] == [
+        f"{ip}/review/completion_readiness_checklist.md",
+        f"{ip}/review/prompt_to_artifact_checklist.json",
+        f"{ip}/review/prompt_to_artifact_checklist_audit.json",
+        "doc/wiki/arm-m0-min-current-status.md",
+        f"{ip}/doc/{ip}_review_index.md",
+        f"{ip}/doc/{ip}_user_handoff.md",
+        f"{ip}/doc/{ip}_rtl_inventory.md",
+        f"{ip}/doc/{ip}_isa_decode_inventory.md",
+    ]
+
+
+def test_real_arm_m0_min_pipeline_state_is_complete_after_req_approval(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """The generated CPU should stop surfacing the req review decision after
+    approval and show the final goal audit as passed."""
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.chdir(PROJECT_ROOT)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", PROJECT_ROOT)
+
+    client = TestClient(atlas_ui.create_app())
+    reg = client.post("/api/auth/register", json={"username": "audit", "password": "pw"})
+    assert reg.status_code == 200, reg.text
+
+    data = client.get("/api/pipeline/state?ip=arm_m0_min").json()
+    assert data["orchestrator"]["decisions_needed"] == 0
+    assert data["orchestrator"]["decision_items"] == []
+    assert data["stages"]["goal-audit"]["state"] == "passed"
+    assert data["stages"]["goal-audit"]["error_summary"] in (None, "")
+
+
+def test_pipeline_state_marks_goal_audit_failed_when_audit_json_fails(
+    tmp_path: Path, monkeypatch
+) -> None:
+    ip = "goal_audit_fail_ip"
+    sim_dir = tmp_path / ip / "sim"
+    sim_dir.mkdir(parents=True)
+    (sim_dir / "fl_rtl_goal_audit.json").write_text(
+        json.dumps(
+            {
+                "status": "fail",
+                "summary": {
+                    "passed": 15,
+                    "total": 16,
+                    "blockers": ["req"],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    client = _make_client(tmp_path, monkeypatch)
+    data = client.get(f"/api/pipeline/state?ip={ip}").json()
+    goal_audit = data["stages"]["goal-audit"]
+    assert goal_audit["state"] == "failed"
+    assert goal_audit["source"] == "fs"
+    assert goal_audit["error_summary"] == "blockers=req"
+
+
 def test_orchestrator_mode_get_reflects_env(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
     client = _make_client(tmp_path, monkeypatch)
@@ -339,6 +517,114 @@ def test_orchestrator_mode_post_rejects_bad_body(tmp_path: Path, monkeypatch) ->
         headers={"Content-Type": "application/json"},
     )
     assert r.status_code == 400
+
+
+def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypatch) -> None:
+    import os
+
+    monkeypatch.delenv("ATLAS_RUN_MODE", raising=False)
+    monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    ip = "policy_ip"
+    (tmp_path / ip).mkdir()
+    client = _make_client(tmp_path, monkeypatch)
+
+    base = client.get("/api/pipeline/run_policy")
+    assert base.status_code == 200
+    assert base.json()["run_mode"] == "engineering"
+    assert base.json()["exec_mode"] == "single-worker"
+
+    r = client.post("/api/pipeline/run_policy", json={
+        "run_mode": "starter",
+        "exec_mode": "orchestrator",
+    })
+    assert r.status_code == 200, r.text
+    assert r.json()["run_mode"] == "starter"
+    assert r.json()["exec_mode"] == "orchestrator"
+    assert os.environ.get("ATLAS_RUN_MODE") == "starter"
+    assert os.environ.get("ATLAS_ORCHESTRATOR_MODE") == "1"
+
+    state = client.get(f"/api/pipeline/state?ip={ip}").json()
+    assert state["run_mode"] == "starter"
+    assert state["exec_mode"] == "orchestrator"
+    assert state["policy"]["run_mode"] == "starter"
+    assert state["policy"]["exec_mode"] == "orchestrator"
+
+    bad = client.post("/api/pipeline/run_policy", json={"run_mode": "tiny"})
+    assert bad.status_code == 400
+    assert "run_mode" in bad.json()["error"]
+
+
+def test_pipeline_state_summarizes_ssot_provenance_sidecar(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("ATLAS_RUN_MODE", "signoff")
+    ip = "prov_ip"
+    yaml_dir = tmp_path / ip / "yaml"
+    yaml_dir.mkdir(parents=True)
+    (yaml_dir / f"{ip}.ssot.provenance.json").write_text(
+        json.dumps({
+            "/top_module/name": {"authority": "user"},
+            "/clocking/core_clk/frequency_mhz": {
+                "authority": "generated_default",
+                "mode_allowed": ["starter"],
+                "signoff_critical": True,
+                "review": "Confirm target frequency before signoff.",
+            },
+            "/security/assets/0/name": {
+                "authority": "generated_default",
+                "review": "Generated security asset must be confirmed before signoff.",
+            },
+            "/reset/policy": {"authority": "review_needed"},
+        }),
+        encoding="utf-8",
+    )
+    client = _make_client(tmp_path, monkeypatch)
+
+    state = client.get(f"/api/pipeline/state?ip={ip}").json()
+    summary = state["provenance_summary"]
+    assert summary["generated_defaults"] == 2
+    assert summary["review_needed"] == 1
+    assert summary["user"] == 1
+    assert summary["signoff_blocked"] is True
+    assert summary["critical_generated_defaults"] == 2
+    assert summary["source"] == f"yaml/{ip}.ssot.provenance.json"
+
+
+def test_pipeline_dispatch_records_run_and_exec_mode(tmp_path: Path, monkeypatch) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "dispatch_policy_ip"
+    (tmp_path / ip).mkdir()
+    client = _make_client(tmp_path, monkeypatch)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    def fake_dispatch(job):
+        job["run_id"] = "fake-run"
+        job["status"] = "completed"
+        job["finished_at"] = time.time()
+
+    monkeypatch.setattr(jobs, "_dispatch_job_to_worker", fake_dispatch)
+    r = client.post("/api/pipeline/dispatch", json={
+        "ip": ip,
+        "stages": ["ssot", "rtl"],
+        "schedule": "auto",
+        "run_mode": "signoff",
+        "exec_mode": "single-worker",
+    })
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["run_mode"] == "signoff"
+    assert data["exec_mode"] == "single-worker"
+    assert data["schedule"] == "serial"
+    assert [job["run_mode"] for job in data["jobs"]] == ["signoff", "signoff"]
+    assert [job["exec_mode"] for job in data["jobs"]] == ["single-worker", "single-worker"]
+
+    with jobs._jobs_lock:
+        stored = list(jobs._jobs.values())
+    assert all(job["run_mode"] == "signoff" for job in stored)
+    assert all(job["exec_mode"] == "single-worker" for job in stored)
+    assert "[ATLAS RUN POLICY]" in stored[0]["prompt"]
+    assert "- run_mode: signoff" in stored[0]["prompt"]
 
 
 def test_pipeline_state_rejects_oversize_ip(tmp_path: Path, monkeypatch) -> None:

@@ -1,0 +1,1664 @@
+{
+  "authoring_packets": [
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__function_model.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__function_model.md",
+      "packet_id": "module__simple_pwm__function_model"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__cycle_model.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__cycle_model.md",
+      "packet_id": "module__simple_pwm__cycle_model"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__io_list.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__io_list.md",
+      "packet_id": "module__simple_pwm__io_list"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__synthesis.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__synthesis.md",
+      "packet_id": "module__simple_pwm__synthesis"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__fsm.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__fsm.md",
+      "packet_id": "module__simple_pwm__fsm"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__test_requirements.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__test_requirements.md",
+      "packet_id": "module__simple_pwm__test_requirements"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__integration.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__integration.md",
+      "packet_id": "module__simple_pwm__integration"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__features.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__features.md",
+      "packet_id": "module__simple_pwm__features"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__workflow_todo.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__workflow_todo.md",
+      "packet_id": "module__simple_pwm__workflow_todo"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__equivalence.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__equivalence.md",
+      "packet_id": "module__simple_pwm__equivalence"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__error_handling.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__error_handling.md",
+      "packet_id": "module__simple_pwm__error_handling"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__parameters.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__parameters.md",
+      "packet_id": "module__simple_pwm__parameters"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__rtl_flow.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__rtl_flow.md",
+      "packet_id": "module__simple_pwm__rtl_flow"
+    },
+    {
+      "json": "rtl/authoring_packets/module__simple_pwm__security.json",
+      "markdown": "rtl/authoring_packets/module__simple_pwm__security.md",
+      "packet_id": "module__simple_pwm__security"
+    },
+    {
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "packet_id": "rtl_gate_evidence_closure"
+    },
+    {
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "packet_id": "rtl_gate_tool_evidence"
+    },
+    {
+      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
+      "packet_id": "rtl_gate_human_closure"
+    }
+  ],
+  "authoring_plan": "rtl/rtl_authoring_plan.json",
+  "gate": {
+    "all_required_todos_pass": false,
+    "audit_rtl": true,
+    "blocking_questions": 0,
+    "criteria": [
+      "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "Gate: every SSOT-derived RTL behavior has an owner module",
+      "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "Gate: required SSOT behavior has static DUT RTL evidence after audit",
+      "Gate: behavior-owner RTL modules contain real implementation structure",
+      "Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs",
+      "Gate: SSOT top IO contracts match the RTL top module",
+      "Gate: SSOT top outputs are driven by real RTL logic",
+      "Gate: SSOT top inputs are consumed by RTL logic or child inputs",
+      "Gate: manifest-owned RTL modules are integrated into the top hierarchy",
+      "Gate: manifest-owned child instances have machine-checkable port connections",
+      "Gate: manifest child port connections carry live RTL signal flow",
+      "Gate: SSOT connection contracts match RTL child port maps",
+      "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "Gate: DUT-only lint report passes after the final RTL edit",
+      "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
+    ],
+    "open_required_todos": 80,
+    "orphan_tasks": 0,
+    "static_missing": 31,
+    "status": "fail"
+  },
+  "generated_at": "2026-05-16T19:06:14Z",
+  "ip": "simple_pwm",
+  "rows": [
+    {
+      "category": "rtl_flow.seed",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "top_module",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0001"
+    },
+    {
+      "category": "rtl_flow.top",
+      "evidence_terms": [
+        "pwm",
+        "simple",
+        "simple_pwm"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "io_list",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0002"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0003"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0004"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.owner_traceability",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0005"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0006"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0007"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0008"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0009"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0010"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0011"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0012"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0013"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.manifest_port_connection_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0014"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0015"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0016"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.dut_compile",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0017"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.dut_lint",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0018"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0019"
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "evidence_terms": [
+        "001",
+        "RTL_001",
+        "pwm",
+        "simple",
+        "simple_pwm"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "workflow_todos.rtl-gen[0]",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "001",
+          "RTL_001",
+          "pwm",
+          "simple",
+          "simple_pwm"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0020"
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "evidence_terms": [
+        "002",
+        "RTL_002",
+        "pwm",
+        "simple",
+        "simple_pwm"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "002",
+          "RTL_002",
+          "pwm",
+          "simple",
+          "simple_pwm"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0021"
+    },
+    {
+      "category": "parameters.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "parameters.COUNTER_WIDTH",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0022"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "io_list.clock_domains.clk.ports.clk",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0023"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "io_list.resets.rst_n.ports.rst_n",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0024"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "io_list.interfaces.pwm_control.ports.enable",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0025"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "io_list.interfaces.pwm_control.ports.duty_cycle",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0026"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "io_list.interfaces.pwm_control.ports.period",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0027"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "io_list.interfaces.pwm_output.ports.pwm_out",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0028"
+    },
+    {
+      "category": "function_model.state_variable",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.state_variables.counter",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0029"
+    },
+    {
+      "category": "function_model.transaction",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0030"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM1.preconditions.precondition_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0031"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [
+        "duty",
+        "duty_cycle"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM1.preconditions.precondition_1",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "duty",
+          "duty_cycle"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0032"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "counter_next",
+        "duty",
+        "duty_cycle",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM1.inputs.input_0",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "duty",
+          "duty_cycle",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0033"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "period",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM1.inputs.input_1",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "period",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0034"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM1.outputs.pwm_out",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0035"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "high",
+        "out",
+        "pwm",
+        "pwm_out",
+        "pwm_out_high"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM1.output_rules.pwm_out_high",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "high",
+          "out",
+          "pwm",
+          "pwm_out",
+          "pwm_out_high"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0036"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "counter_next",
+        "next"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM1.state_updates.counter_next",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0037"
+    },
+    {
+      "category": "function_model.side_effect",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM1.side_effects.side_effect_0",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0038"
+    },
+    {
+      "category": "function_model.transaction",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM2",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0039"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM2.preconditions.precondition_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0040"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [
+        "duty",
+        "duty_cycle"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM2.preconditions.precondition_1",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "duty",
+          "duty_cycle"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0041"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "counter_next",
+        "duty",
+        "duty_cycle",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM2.inputs.input_0",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "duty",
+          "duty_cycle",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0042"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "period",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM2.inputs.input_1",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "period",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0043"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM2.outputs.pwm_out",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0044"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "low",
+        "out",
+        "pwm",
+        "pwm_out",
+        "pwm_out_low"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM2.output_rules.pwm_out_low",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "low",
+          "out",
+          "pwm",
+          "pwm_out",
+          "pwm_out_low"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0045"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "counter_next",
+        "next"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM2.state_updates.counter_next",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0046"
+    },
+    {
+      "category": "function_model.side_effect",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM2.side_effects.side_effect_0",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0047"
+    },
+    {
+      "category": "function_model.transaction",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM3",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0048"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM3.preconditions.precondition_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0049"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM3.outputs.pwm_out",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0050"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "off",
+        "out",
+        "pwm",
+        "pwm_out",
+        "pwm_out_off"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM3.output_rules.pwm_out_off",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "off",
+          "out",
+          "pwm",
+          "pwm_out",
+          "pwm_out_off"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0051"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "counter_next",
+        "next"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM3.state_updates.counter_next",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0052"
+    },
+    {
+      "category": "function_model.side_effect",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.transactions.FM3.side_effects.side_effect_0",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0053"
+    },
+    {
+      "category": "function_model.invariant",
+      "evidence_terms": [
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.invariants.invariant_0",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0054"
+    },
+    {
+      "category": "function_model.invariant",
+      "evidence_terms": [
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.invariants.invariant_1",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0055"
+    },
+    {
+      "category": "function_model.invariant",
+      "evidence_terms": [
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "function_model.invariants.invariant_2",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0056"
+    },
+    {
+      "category": "cycle_model.clock",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "cycle_model.clock",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0057"
+    },
+    {
+      "category": "cycle_model.reset",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "cycle_model.reset",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0058"
+    },
+    {
+      "category": "cycle_model.latency",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "cycle_model.latency",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0059"
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "evidence_terms": [
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "cycle_model.handshake_rules.pwm_out",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0060"
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "cycle_model.pipeline.S0_COUNTER_UPDATE",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0061"
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "evidence_terms": [
+        "duty",
+        "duty_cycle",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "cycle_model.pipeline.S1_COMPARE_OUTPUT",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "duty",
+          "duty_cycle",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0062"
+    },
+    {
+      "category": "cycle_model.ordering",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0063"
+    },
+    {
+      "category": "cycle_model.observability",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0064"
+    },
+    {
+      "category": "cycle_model.observability",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "cycle_model.observability.observability_signal_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0065"
+    },
+    {
+      "category": "fsm.state",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "fsm.pwm_fsm.states.state_0",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0066"
+    },
+    {
+      "category": "fsm.state",
+      "evidence_terms": [
+        "RUNNING"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "fsm.pwm_fsm.states.state_1",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RUNNING"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0067"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "IDLE",
+        "RUNNING"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "fsm.pwm_fsm.transitions.transition_0",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RUNNING"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0068"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "IDLE",
+        "RUNNING"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "fsm.pwm_fsm.transitions.transition_1",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RUNNING"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0069"
+    },
+    {
+      "category": "features.item",
+      "evidence_terms": [
+        "duty",
+        "duty_cycle",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "features.PWM_generation",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "duty",
+          "duty_cycle",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0070"
+    },
+    {
+      "category": "features.item",
+      "evidence_terms": [
+        "PWM"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "features.Dynamic_reconfiguration",
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "PWM"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "task_id": "RTL-0071"
+    },
+    {
+      "category": "error_handling.recovery",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "error_handling.recovery.recovery_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0072"
+    },
+    {
+      "category": "security.assets",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "security.assets.pwm_out",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0073"
+    },
+    {
+      "category": "integration.dependencies",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "integration.dependencies.external_modules",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0074"
+    },
+    {
+      "category": "integration.dependencies",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "integration.dependencies.external_clocks",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0075"
+    },
+    {
+      "category": "integration.dependencies",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "integration.dependencies.external_resets",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0076"
+    },
+    {
+      "category": "synthesis.constraints",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "synthesis.constraints.constraint_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0077"
+    },
+    {
+      "category": "synthesis.constraints",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "synthesis.constraints.constraint_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0078"
+    },
+    {
+      "category": "synthesis.constraints",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "synthesis.constraints.constraint_2",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0079"
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "synthesis.ppa_targets.area_um2_max",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0080"
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "synthesis.ppa_targets.power_mw_max",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0081"
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "synthesis.ppa_targets.frequency_mhz_min",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0082"
+    },
+    {
+      "category": "equivalence.module",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "sub_modules.simple_pwm.module_equivalence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0083"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "test_requirements.scenarios.SC1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0084"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "test_requirements.scenarios.SC2",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0085"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "test_requirements.scenarios.SC3",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0086"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "source_ref": "test_requirements.scenarios.SC4",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0087"
+    }
+  ],
+  "schema_version": 1,
+  "top": "simple_pwm",
+  "type": "rtl_traceability_matrix"
+}

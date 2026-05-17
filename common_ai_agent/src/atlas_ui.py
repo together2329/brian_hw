@@ -90,8 +90,12 @@ _REASONING_EFFORT_ALIASES = {
     "m": "medium",
     "high": "high",
     "h": "high",
+    "hi": "high",
     "xhigh": "xhigh",
+    "x": "xhigh",
     "xh": "xhigh",
+    "xhi": "xhigh",
+    "max": "xhigh",
 }
 _MODEL_OPTION_KEYS = ("LLM_MODEL_NAME", "LLM_MODEL_NAME_2", "LLM_MODEL_NAME_3")
 _BASE_MODEL_OPTION_KEYS = ("LLM_BASE_NAME", "LLM_BASE_NAME_2", "LLM_BASE_NAME_3")
@@ -275,17 +279,25 @@ def _refresh_config_after_persist() -> None:
 
 
 def _persist_reasoning_effort(effort: str) -> None:
-    _persist_config_values({"REASONING_MODE": effort, "REASONING_EFFORT": effort})
+    glm_thinking = "disabled" if effort == "none" else "enabled"
+    _persist_config_values({
+        "REASONING_MODE": effort,
+        "REASONING_EFFORT": effort,
+        "GLM_THINKING_TYPE": glm_thinking,
+    })
 
 
 def _set_runtime_reasoning_effort(effort: str) -> None:
+    glm_thinking = "disabled" if effort == "none" else "enabled"
     os.environ["REASONING_MODE"] = effort
     os.environ["REASONING_EFFORT"] = effort
+    os.environ["GLM_THINKING_TYPE"] = glm_thinking
     for mod_name in ("src.config", "config"):
         mod = sys.modules.get(mod_name)
         if mod is not None:
             setattr(mod, "REASONING_MODE", effort)
             setattr(mod, "REASONING_EFFORT", effort)
+            setattr(mod, "GLM_THINKING_TYPE", glm_thinking)
 
 
 def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:

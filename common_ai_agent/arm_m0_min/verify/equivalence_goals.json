@@ -268,13 +268,15 @@
     }
   },
   "summary": {
-    "total": 37,
-    "required": 36,
+    "total": 39,
+    "required": 39,
     "optional": 0,
     "blocked": 0,
+    "unverified": 1,
     "module_total": 4,
-    "module_required": 3,
-    "module_blocked": 1
+    "module_required": 4,
+    "module_blocked": 0,
+    "module_unverified": 1
   },
   "goals": [
     {
@@ -296,7 +298,6 @@
         "arm_m0_min_error_model"
       ],
       "coverage_refs": [
-        "fcov_tx_decode_exec",
         "function_alu_compare_branch"
       ],
       "stimulus_contract": {
@@ -343,7 +344,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_TRANSACTION_TX_LOAD_STORE",
@@ -364,7 +366,6 @@
         "arm_m0_min_error_model"
       ],
       "coverage_refs": [
-        "fcov_tx_load_store",
         "function_single_transfer_memory_access"
       ],
       "stimulus_contract": {
@@ -409,7 +410,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC_ALU",
@@ -484,7 +486,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC_CMP_BRANCH",
@@ -559,7 +562,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC_LOAD_STORE",
@@ -632,7 +636,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC_IF_STALL",
@@ -698,7 +703,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC_BUS_ERROR",
@@ -764,7 +770,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
@@ -782,7 +789,6 @@
       ],
       "coverage_refs": [
         "SC_LOAD_STORE_executed",
-        "ccov_mem_stall",
         "cycle_handshake_0",
         "cycle_handshake_1",
         "cycle_handshake_2"
@@ -823,7 +829,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
@@ -841,7 +848,6 @@
       ],
       "coverage_refs": [
         "SC_LOAD_STORE_executed",
-        "ccov_mem_stall",
         "cycle_handshake_0",
         "cycle_handshake_1",
         "cycle_handshake_2"
@@ -882,7 +888,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
@@ -900,7 +907,6 @@
       ],
       "coverage_refs": [
         "SC_LOAD_STORE_executed",
-        "ccov_mem_stall",
         "cycle_handshake_0",
         "cycle_handshake_1",
         "cycle_handshake_2"
@@ -941,7 +947,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_0",
@@ -958,11 +965,7 @@
         "arm_m0_min_datapath_model",
         "arm_m0_min_fsm_model"
       ],
-      "coverage_refs": [
-        "ccov_pipeline_order",
-        "cycle_ordering_0",
-        "cycle_ordering_1"
-      ],
+      "coverage_refs": [],
       "stimulus_contract": {
         "transaction_type": "ordering_0",
         "required_fields": [
@@ -998,7 +1001,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_1",
@@ -1015,11 +1019,7 @@
         "arm_m0_min_datapath_model",
         "arm_m0_min_fsm_model"
       ],
-      "coverage_refs": [
-        "ccov_pipeline_order",
-        "cycle_ordering_0",
-        "cycle_ordering_1"
-      ],
+      "coverage_refs": [],
       "stimulus_contract": {
         "transaction_type": "ordering_1",
         "required_fields": [
@@ -1055,7 +1055,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_MEMORY_IF_ID_INSTR",
@@ -1071,8 +1072,7 @@
         "arm_m0_min_memory_model"
       ],
       "coverage_refs": [
-        "function_single_transfer_memory_access",
-        "cycle_backpressure_1"
+        "function_single_transfer_memory_access"
       ],
       "stimulus_contract": {
         "transaction_type": "memory_access",
@@ -1114,7 +1114,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_MEMORY_ID_EX_CTRL",
@@ -1130,8 +1131,7 @@
         "arm_m0_min_memory_model"
       ],
       "coverage_refs": [
-        "function_single_transfer_memory_access",
-        "cycle_backpressure_1"
+        "function_single_transfer_memory_access"
       ],
       "stimulus_contract": {
         "transaction_type": "memory_access",
@@ -1173,7 +1173,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_ERROR_I_BUS_ERROR",
@@ -1234,7 +1235,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_ERROR_D_BUS_ERROR",
@@ -1295,7 +1297,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_CORE_RESET_TO_RUN_0",
@@ -1358,7 +1361,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_CORE_RUN_TO_STALL_IF_1",
@@ -1421,7 +1425,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_CORE_STALL_IF_TO_RUN_2",
@@ -1484,7 +1489,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_CORE_RUN_TO_STALL_MEM_3",
@@ -1547,7 +1553,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_CORE_STALL_MEM_TO_RUN_4",
@@ -1610,7 +1617,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_CORE_RUN_TO_FAULT_HALT_5",
@@ -1675,7 +1683,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_CORE_STALL_MEM_TO_FAULT_HALT_6",
@@ -1740,7 +1749,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
@@ -1805,7 +1815,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_DEBUG_OBSERVABILITY",
@@ -1868,7 +1879,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_MODULE_ARM_M0_MIN_IF",
@@ -1937,7 +1949,7 @@
         "Record a scoreboard row for this module goal before top-level signoff"
       ],
       "owner_on_fail": {
-        "default": "human",
+        "default": "rtl",
         "possible": [
           "ssot",
           "fl_model",
@@ -1948,8 +1960,8 @@
         ]
       },
       "blocked": false,
-      "blocker": "",
-      "optional": true
+      "blocker": "[unverified] module owns no function_model refs, so exact functionality cannot be compared (advisory; downstream stages proceed but module-equivalence is not enforced)",
+      "unverified": true
     },
     {
       "goal_id": "EQ_MODULE_ARM_M0_MIN_ID",
@@ -2035,7 +2047,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_MODULE_ARM_M0_MIN_EX",
@@ -2126,7 +2139,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_MODULE_ARM_M0_MIN_RF",
@@ -2198,82 +2212,12 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CCOV_IF_STALL",
-      "title": "Functional coverage bin ccov_if_stall: IF backpressure observed",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.backpressure"
-      ],
-      "decomposition_refs": [
-        "arm_m0_min_if",
-        "arm_m0_min_id",
-        "arm_m0_min_ex",
-        "arm_m0_min_rf",
-        "arm_m0_min_protocol_model",
-        "arm_m0_min_register_model",
-        "arm_m0_min_memory_model",
-        "arm_m0_min_datapath_model",
-        "arm_m0_min_fsm_model",
-        "arm_m0_min_error_model",
-        "arm_m0_min_security_model"
-      ],
-      "coverage_refs": [
-        "ccov_if_stall"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "alu_compare_branch",
-        "required_fields": [
-          "kind"
-        ],
-        "constraints": [
-          "fault_halt == 0",
-          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
-          "IF backpressure observed"
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
-          "NZCV updated only for CMP",
-          "PC updated sequentially or redirected for B/BEQ/BNE",
-          "pc_next_addr",
-          "store_data_mux"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "pc advances by instruction size on non-branch",
-          "pc set to target when branch taken"
-        ],
-        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": ""
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
-      "title": "Functional coverage bin cycle_latency_fetch_accept: {'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}",
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_LT_MIN",
+      "title": "Functional coverage bin latency_fetch_accept_lt_min: fetch_accept latency < 1 cycles",
       "kind": "coverage",
       "scope": {
         "level": "top"
@@ -2295,7 +2239,7 @@
         "arm_m0_min_security_model"
       ],
       "coverage_refs": [
-        "cycle_latency_fetch_accept"
+        "latency_fetch_accept_lt_min"
       ],
       "stimulus_contract": {
         "transaction_type": "alu_compare_branch",
@@ -2305,7 +2249,7 @@
         "constraints": [
           "fault_halt == 0",
           "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
-          "{'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}"
+          "fetch_accept latency < 1 cycles"
         ]
       },
       "expected_contract": {
@@ -2340,11 +2284,156 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
-      "title": "Functional coverage bin cycle_latency_alu_instr: {'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}",
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_AT_MIN",
+      "title": "Functional coverage bin latency_fetch_accept_at_min: fetch_accept latency == 1 cycles",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.fetch_accept"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "latency_fetch_accept_at_min"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "fetch_accept latency == 1 cycles"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_UNBOUNDED",
+      "title": "Functional coverage bin latency_fetch_accept_unbounded: fetch_accept latency unbounded (no max_cycles)",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.fetch_accept"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "latency_fetch_accept_unbounded"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "fetch_accept latency unbounded (no max_cycles)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_LT_MIN",
+      "title": "Functional coverage bin latency_alu_instr_lt_min: alu_instr latency < 1 cycles",
       "kind": "coverage",
       "scope": {
         "level": "top"
@@ -2366,7 +2455,7 @@
         "arm_m0_min_security_model"
       ],
       "coverage_refs": [
-        "cycle_latency_alu_instr"
+        "latency_alu_instr_lt_min"
       ],
       "stimulus_contract": {
         "transaction_type": "alu_compare_branch",
@@ -2376,7 +2465,7 @@
         "constraints": [
           "fault_halt == 0",
           "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
-          "{'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}"
+          "alu_instr latency < 1 cycles"
         ]
       },
       "expected_contract": {
@@ -2411,11 +2500,228 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
-      "title": "Functional coverage bin cycle_latency_load_store_instr: {'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}",
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MIN",
+      "title": "Functional coverage bin latency_alu_instr_at_min: alu_instr latency == 1 cycles",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.alu_instr"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "latency_alu_instr_at_min"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "alu_instr latency == 1 cycles"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MAX",
+      "title": "Functional coverage bin latency_alu_instr_at_max: alu_instr latency == 1 cycles",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.alu_instr"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "latency_alu_instr_at_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "alu_instr latency == 1 cycles"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_GT_MAX",
+      "title": "Functional coverage bin latency_alu_instr_gt_max: alu_instr latency > 1 cycles",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.alu_instr"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "latency_alu_instr_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "alu_instr latency > 1 cycles"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_LT_MIN",
+      "title": "Functional coverage bin latency_load_store_instr_lt_min: load_store_instr latency < 1 cycles",
       "kind": "coverage",
       "scope": {
         "level": "top"
@@ -2437,7 +2743,7 @@
         "arm_m0_min_security_model"
       ],
       "coverage_refs": [
-        "cycle_latency_load_store_instr"
+        "latency_load_store_instr_lt_min"
       ],
       "stimulus_contract": {
         "transaction_type": "alu_compare_branch",
@@ -2447,7 +2753,7 @@
         "constraints": [
           "fault_halt == 0",
           "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
-          "{'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}"
+          "load_store_instr latency < 1 cycles"
         ]
       },
       "expected_contract": {
@@ -2482,17 +2788,18 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_IF",
-      "title": "Functional coverage bin cycle_pipeline_if: Drive instruction address/control and capture instruction on ready",
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_AT_MIN",
+      "title": "Functional coverage bin latency_load_store_instr_at_min: load_store_instr latency == 1 cycles",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.pipeline[0]"
+        "cycle_model.latency.load_store_instr"
       ],
       "decomposition_refs": [
         "arm_m0_min_if",
@@ -2508,7 +2815,7 @@
         "arm_m0_min_security_model"
       ],
       "coverage_refs": [
-        "cycle_pipeline_if"
+        "latency_load_store_instr_at_min"
       ],
       "stimulus_contract": {
         "transaction_type": "alu_compare_branch",
@@ -2518,7 +2825,7 @@
         "constraints": [
           "fault_halt == 0",
           "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
-          "Drive instruction address/control and capture instruction on ready"
+          "load_store_instr latency == 1 cycles"
         ]
       },
       "expected_contract": {
@@ -2553,17 +2860,18 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_ID",
-      "title": "Functional coverage bin cycle_pipeline_id: Decode instruction and read source operands",
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
+      "title": "Functional coverage bin latency_load_store_instr_unbounded: load_store_instr latency unbounded (no max_cycles)",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.pipeline[1]"
+        "cycle_model.latency.load_store_instr"
       ],
       "decomposition_refs": [
         "arm_m0_min_if",
@@ -2579,7 +2887,7 @@
         "arm_m0_min_security_model"
       ],
       "coverage_refs": [
-        "cycle_pipeline_id"
+        "latency_load_store_instr_unbounded"
       ],
       "stimulus_contract": {
         "transaction_type": "alu_compare_branch",
@@ -2589,7 +2897,7 @@
         "constraints": [
           "fault_halt == 0",
           "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
-          "Decode instruction and read source operands"
+          "load_store_instr latency unbounded (no max_cycles)"
         ]
       },
       "expected_contract": {
@@ -2624,149 +2932,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_EX",
-      "title": "Functional coverage bin cycle_pipeline_ex: Execute/branch/load-store and commit results",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline[2]"
-      ],
-      "decomposition_refs": [
-        "arm_m0_min_if",
-        "arm_m0_min_id",
-        "arm_m0_min_ex",
-        "arm_m0_min_rf",
-        "arm_m0_min_protocol_model",
-        "arm_m0_min_register_model",
-        "arm_m0_min_memory_model",
-        "arm_m0_min_datapath_model",
-        "arm_m0_min_fsm_model",
-        "arm_m0_min_error_model",
-        "arm_m0_min_security_model"
-      ],
-      "coverage_refs": [
-        "cycle_pipeline_ex"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "alu_compare_branch",
-        "required_fields": [
-          "kind"
-        ],
-        "constraints": [
-          "fault_halt == 0",
-          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
-          "Execute/branch/load-store and commit results"
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
-          "NZCV updated only for CMP",
-          "PC updated sequentially or redirected for B/BEQ/BNE",
-          "pc_next_addr",
-          "store_data_mux"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "pc advances by instruction size on non-branch",
-          "pc set to target when branch taken"
-        ],
-        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": ""
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
-      "title": "Functional coverage bin cycle_backpressure_0: i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state.",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.backpressure[0]"
-      ],
-      "decomposition_refs": [
-        "arm_m0_min_if",
-        "arm_m0_min_id",
-        "arm_m0_min_ex",
-        "arm_m0_min_rf",
-        "arm_m0_min_protocol_model",
-        "arm_m0_min_register_model",
-        "arm_m0_min_memory_model",
-        "arm_m0_min_datapath_model",
-        "arm_m0_min_fsm_model",
-        "arm_m0_min_error_model",
-        "arm_m0_min_security_model"
-      ],
-      "coverage_refs": [
-        "cycle_backpressure_0"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "alu_compare_branch",
-        "required_fields": [
-          "kind"
-        ],
-        "constraints": [
-          "fault_halt == 0",
-          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
-          "i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state."
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
-          "NZCV updated only for CMP",
-          "PC updated sequentially or redirected for B/BEQ/BNE",
-          "pc_next_addr",
-          "store_data_mux"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "pc advances by instruction size on non-branch",
-          "pc set to target when branch taken"
-        ],
-        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     }
   ]
 }

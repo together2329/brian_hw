@@ -1,0 +1,31 @@
+{
+    "ip": "simple_pwm",
+    "stage": "coverage",
+    "status": "pass",
+    "function_coverage": {
+        "bins_total": 3,
+        "bins_hit": 3,
+        "target_pct": 100,
+        "actual_pct": 100,
+        "bins": [
+            {"id": "FCOV_PWM_HIGH", "hit": true, "source_ref": "function_model.transactions.FM1"},
+            {"id": "FCOV_PWM_LOW", "hit": true, "source_ref": "function_model.transactions.FM2"},
+            {"id": "FCOV_PWM_IDLE", "hit": true, "source_ref": "function_model.transactions.FM3"}
+        ]
+    },
+    "cycle_coverage": {
+        "bins_total": 6,
+        "bins_hit": 6,
+        "target_pct": 100,
+        "actual_pct": 100,
+        "bins": [
+            {"id": "CCOV_COUNTER_INCREMENT", "hit": true},
+            {"id": "CCOV_COUNTER_ROLLOVER", "hit": true},
+            {"id": "CCOV_COMPARE_HIGH", "hit": true},
+            {"id": "CCOV_COMPARE_LOW", "hit": true},
+            {"id": "CCOV_FSM_IDLE_TO_RUNNING", "hit": true},
+            {"id": "CCOV_FSM_RUNNING_TO_IDLE", "hit": true}
+        ]
+    },
+    "timestamp": "2026-05-17T04:10:00Z"
+}

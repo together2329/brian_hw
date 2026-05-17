@@ -116,6 +116,41 @@ def _rel(path: Path, root: Path) -> str:
         return str(path)
 
 
+def _strip_volatile_fields(value: Any) -> Any:
+    """Return a JSON-like value with run metadata removed for no-op detection."""
+    if isinstance(value, dict):
+        return {
+            str(key): _strip_volatile_fields(item)
+            for key, item in value.items()
+            if key != "generated_at"
+        }
+    if isinstance(value, list):
+        return [_strip_volatile_fields(item) for item in value]
+    return value
+
+
+def _preserve_generated_at_on_noop(path: Path, doc: dict[str, Any]) -> dict[str, Any]:
+    """Keep output hashes stable when a rerun produces the same evidence.
+
+    Approval decisions may pin raw evidence hashes. A comparator rerun should
+    not invalidate those pins solely because wall-clock metadata changed.
+    """
+    if not path.is_file():
+        return doc
+    try:
+        existing = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return doc
+    if not isinstance(existing, dict):
+        return doc
+    if _strip_volatile_fields(existing) != _strip_volatile_fields(doc):
+        return doc
+    generated_at = existing.get("generated_at")
+    if isinstance(generated_at, str) and generated_at.strip():
+        doc["generated_at"] = generated_at
+    return doc
+
+
 def _stale_evidence(root: Path, sources: list[Path], evidence: list[Path]) -> list[str]:
     existing_sources = [path for path in sources if path.is_file()]
     existing_evidence = [path for path in evidence if path.is_file()]
@@ -245,15 +280,84 @@ def _stimulus_contract_violation(rows: list[dict[str, Any]]) -> str:
     return ""
 
 
+def _apb_stimulus_contract_violation(rows: list[dict[str, Any]]) -> str:
+    legal_offsets = {0x00, 0x04, 0x08, 0x0C, 0x10}
+    legal_write_offsets = {0x00, 0x08, 0x0C}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        stimulus = row.get("stimulus") if isinstance(row.get("stimulus"), dict) else {}
+        fl = row.get("fl_expected") if isinstance(row.get("fl_expected"), dict) else {}
+        fl_txn = fl.get("transaction") if isinstance(fl.get("transaction"), dict) else {}
+        fl_result = fl.get("model_result") if isinstance(fl.get("model_result"), dict) else {}
+        if not stimulus:
+            stimulus = fl_txn
+        kind_text = " ".join(
+            str(item or "").lower()
+            for item in (
+                stimulus.get("kind"),
+                fl_txn.get("kind"),
+                fl_result.get("transaction_id"),
+                fl_result.get("transaction_name"),
+            )
+        )
+        required: dict[str, int] = {}
+        paddr_rule = ""
+        if "fm_read_data_in" in kind_text or "read_synchronized_input" in kind_text:
+            required = {"psel": 1, "penable": 1, "pwrite": 0, "paddr": 0x04}
+        elif "fm_apb_write_rw" in kind_text or "write_data_out_dir_irq_en" in kind_text:
+            required = {"psel": 1, "penable": 1, "pwrite": 1}
+            paddr_rule = "legal_write"
+        elif "fm_w1c_irq_status" in kind_text or "clear_pending_w1c" in kind_text:
+            required = {"psel": 1, "penable": 1, "pwrite": 1, "paddr": 0x10}
+        elif "fm_apb_illegal_offset" in kind_text or "illegal_offset_error_response" in kind_text:
+            required = {"psel": 1, "penable": 1}
+            paddr_rule = "illegal"
+        if not required and not paddr_rule:
+            continue
+        violations: list[str] = []
+        for signal, expected in required.items():
+            if signal not in stimulus:
+                violations.append(f"missing {signal}={expected}")
+                continue
+            actual = stimulus.get(signal)
+            if isinstance(actual, bool):
+                actual = int(actual)
+            if isinstance(actual, (int, float)) and int(actual) != expected:
+                violations.append(f"{signal}={int(actual)} expected {expected}")
+        if paddr_rule and "paddr" not in stimulus and "addr" not in stimulus:
+            violations.append("missing paddr")
+        paddr_value = stimulus.get("paddr", stimulus.get("addr"))
+        if isinstance(paddr_value, bool):
+            paddr_value = int(paddr_value)
+        if isinstance(paddr_value, (int, float)):
+            paddr_int = int(paddr_value)
+            if paddr_rule == "legal_write" and paddr_int not in legal_write_offsets:
+                violations.append(f"paddr=0x{paddr_int:X} is not a legal writable APB offset")
+            elif paddr_rule == "illegal" and paddr_int in legal_offsets:
+                violations.append(f"paddr=0x{paddr_int:X} is a legal APB offset, not an illegal-offset stimulus")
+        if violations:
+            return "APB stimulus does not satisfy transaction precondition: " + "; ".join(violations)
+    return ""
+
+
 def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: str) -> dict[str, Any]:
     text = " ".join(
         [reason]
         + [str(r.get("mismatch") or r.get("error") or r.get("owner_hint") or "") for r in rows if isinstance(r, dict)]
         + [str(goal.get("blocker") or "")]
     ).lower()
+    repair_reason = reason
     stimulus_violation = _stimulus_contract_violation(rows)
     if stimulus_violation:
         text = text + " " + stimulus_violation.lower() + " driver"
+        repair_reason = f"{repair_reason}; {stimulus_violation}" if repair_reason else stimulus_violation
+    apb_stimulus_violation = _apb_stimulus_contract_violation(rows)
+    if apb_stimulus_violation:
+        text = text + " " + apb_stimulus_violation.lower() + " driver"
+        repair_reason = (
+            f"{repair_reason}; {apb_stimulus_violation}" if repair_reason else apb_stimulus_violation
+        )
     locked_change = (
         "change functionalmodel" in text
         or "functionalmodel change" in text
@@ -281,7 +385,12 @@ def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: 
         classification = "locked_artifact_change_requires_human"
         owner = "human"
         loop = False
-    elif "module equivalence row" in text or "scope.level=module" in text or "must record scope" in text:
+    elif (
+        "module equivalence row" in text
+        or "scope.level=module" in text
+        or "must record scope" in text
+        or "no comparable rtl observable" in text
+    ):
         classification = "tb_bug"
         owner = "tb-gen"
         loop = True
@@ -320,7 +429,7 @@ def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: 
         "classification": classification,
         "owner": owner,
         "llm_loop_allowed": loop,
-        "reason": reason,
+        "reason": repair_reason,
         "evidence": {
             "ssot_refs": goal.get("ssot_refs") or [],
             "scoreboard_rows": rows[:8],
@@ -333,8 +442,8 @@ def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: 
             "llm_editable_artifacts": ["rtl", "tb", "test_vector", "scoreboard_implementation", "lint_fix", "report"],
             "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead.",
         },
-        "repair_prompt": _repair_prompt(goal, classification, owner, reason) if loop else "",
-        "human_question": _human_question(goal, reason) if not loop else "",
+        "repair_prompt": _repair_prompt(goal, classification, owner, repair_reason) if loop else "",
+        "human_question": _human_question(goal, repair_reason) if not loop else "",
     }
 
 
@@ -615,8 +724,12 @@ def compare(ip: str, root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
 
     sim_dir = ip_dir / "sim"
     sim_dir.mkdir(parents=True, exist_ok=True)
-    (sim_dir / "fl_rtl_compare.json").write_text(json.dumps(compare_doc, indent=2) + "\n", encoding="utf-8")
-    (sim_dir / "mismatch_classification.json").write_text(json.dumps(classify_doc, indent=2) + "\n", encoding="utf-8")
+    compare_path = sim_dir / "fl_rtl_compare.json"
+    classify_path = sim_dir / "mismatch_classification.json"
+    compare_doc = _preserve_generated_at_on_noop(compare_path, compare_doc)
+    classify_doc = _preserve_generated_at_on_noop(classify_path, classify_doc)
+    compare_path.write_text(json.dumps(compare_doc, indent=2) + "\n", encoding="utf-8")
+    classify_path.write_text(json.dumps(classify_doc, indent=2) + "\n", encoding="utf-8")
     return compare_doc, classify_doc
 
 

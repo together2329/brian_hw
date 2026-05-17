@@ -1,0 +1,17 @@
+SIM REPORT — simple_pwm
+========================
+Date: 2026-05-17
+Tool: iverilog + vvp
+RTL: rtl/simple_pwm.sv
+TB: tb/tb_simple_pwm.sv
+
+RESULTS: PASS=85 FAIL=0 TOTAL=85
+STATUS: ALL TESTS PASSED
+
+FL-vs-RTL Equivalence: 100% (85/85 matches, 0 mismatches)
+
+Scenarios tested:
+  SC1: Basic PWM generation — period=10, duty=3, 30 cycles → PASS
+  SC2: Duty cycle variation — duty=3→7, 20 cycles → PASS
+  SC3: Period rollover — period=5, duty=2, 15 cycles → PASS
+  SC4: Disable behavior — enable→disable→re-enable → PASS

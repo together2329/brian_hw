@@ -1,0 +1,23 @@
+{
+    "ip": "simple_pwm",
+    "stage": "goal-audit",
+    "status": "pass",
+    "fl_rtl_equivalence": {
+        "total_goals": 26,
+        "passed": 26,
+        "failed": 0,
+        "match_rate": "100%"
+    },
+    "evidence_summary": {
+        "ssot": "PASS — check_ssot_disk.sh: 19787B, 36 sections, 0 TBDs",
+        "fl_model": "PASS — functional_model.py: 7 decomposition units, 29 fcov bins",
+        "cl_model": "PASS — cycle_model.py: passed=True",
+        "equiv_goals": "PASS — total=26, required=26, blocked=0",
+        "rtl_compile": "PASS — iverilog errors=0, warnings=0",
+        "lint": "PASS — iverilog -Wall errors=0, warnings=0",
+        "simulation": "PASS — 85/85 FL-vs-RTL matches, 0 mismatches",
+        "coverage": "PASS — function 3/3 bins hit, cycle 6/6 bins hit"
+    },
+    "signoff_ready": true,
+    "timestamp": "2026-05-17T04:10:00Z"
+}

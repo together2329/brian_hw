@@ -1,0 +1,1810 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 5,
+      "key": "function_model",
+      "module_task_count": 70,
+      "rule": "Owner module simple_pwm is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/simple_pwm.sv",
+      "name": "simple_pwm",
+      "refs": [
+        "top_module",
+        "function_model",
+        "cycle_model"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/simple_pwm.sv",
+        "name": "simple_pwm",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "enable",
+          "pwm_control_enable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "enable",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "duty_cycle",
+          "pwm_control_duty_cycle"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "duty_cycle",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "COUNTER_WIDTH"
+      },
+      {
+        "aliases": [
+          "period",
+          "pwm_control_period"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "period",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "COUNTER_WIDTH"
+      },
+      {
+        "aliases": [
+          "pwm_out",
+          "pwm_output_pwm_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pwm_out",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 28,
+    "open_required_count": 28,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "simple_pwm",
+  "kind": "module",
+  "owner_file": "rtl/simple_pwm.sv",
+  "owner_module": "simple_pwm",
+  "packet_id": "module__simple_pwm__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.input": 4,
+      "function_model.invariant": 3,
+      "function_model.output": 3,
+      "function_model.output_rule": 3,
+      "function_model.precondition": 5,
+      "function_model.side_effect": 3,
+      "function_model.state_update": 3,
+      "function_model.state_variable": 1,
+      "function_model.transaction": 3
+    },
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 5,
+      "key": "function_model",
+      "module_task_count": 70,
+      "rule": "Owner module simple_pwm is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 28,
+    "required_count": 28,
+    "source_refs": [
+      "function_model.state_variables.counter",
+      "function_model.transactions.FM1",
+      "function_model.transactions.FM1.preconditions.precondition_0",
+      "function_model.transactions.FM1.preconditions.precondition_1",
+      "function_model.transactions.FM1.inputs.input_0",
+      "function_model.transactions.FM1.inputs.input_1",
+      "function_model.transactions.FM1.outputs.pwm_out",
+      "function_model.transactions.FM1.output_rules.pwm_out_high",
+      "function_model.transactions.FM1.state_updates.counter_next",
+      "function_model.transactions.FM1.side_effects.side_effect_0",
+      "function_model.transactions.FM2",
+      "function_model.transactions.FM2.preconditions.precondition_0",
+      "function_model.transactions.FM2.preconditions.precondition_1",
+      "function_model.transactions.FM2.inputs.input_0",
+      "function_model.transactions.FM2.inputs.input_1",
+      "function_model.transactions.FM2.outputs.pwm_out",
+      "function_model.transactions.FM2.output_rules.pwm_out_low",
+      "function_model.transactions.FM2.state_updates.counter_next",
+      "function_model.transactions.FM2.side_effects.side_effect_0",
+      "function_model.transactions.FM3",
+      "function_model.transactions.FM3.preconditions.precondition_0",
+      "function_model.transactions.FM3.outputs.pwm_out",
+      "function_model.transactions.FM3.output_rules.pwm_out_off",
+      "function_model.transactions.FM3.state_updates.counter_next"
+    ],
+    "status_counts": {
+      "open": 28
+    },
+    "task_count": 28
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state counter",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.counter",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "counter reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.counter.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: name=counter; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0029",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.counter",
+      "ssot_context": {
+        "name": "counter",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.counter"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM1",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM1",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM1.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM1; name=pwm_active_high.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "pwm_active_high"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM1: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.preconditions.precondition_0.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: value=enable == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "enable == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM1: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.preconditions.precondition_1.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: value=counter < duty_cycle.",
+      "evidence_terms": [
+        "duty",
+        "duty_cycle"
+      ],
+      "id": "RTL-0032",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "counter < duty_cycle"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "duty",
+          "duty_cycle"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM1: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.inputs.input_0",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for pwm_active_high"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.inputs.input_0.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM1; name=pwm_active_high; port=[\"pwm_out\"]; signal=[\"duty_cycle\"]; state=[\"counter_next\"].",
+      "evidence_terms": [
+        "counter_next",
+        "duty",
+        "duty_cycle",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0033",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.inputs.input_0",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "pwm_active_high",
+        "port": "[\"pwm_out\"]",
+        "signal": "[\"duty_cycle\"]",
+        "state": "[\"counter_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "duty",
+          "duty_cycle",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM1: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.inputs.input_1",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for pwm_active_high"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.inputs.input_1.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM1; name=pwm_active_high; port=[\"pwm_out\"]; signal=[\"period\"]; state=[\"counter_next\"].",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "period",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0034",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.inputs.input_1",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "pwm_active_high",
+        "port": "[\"pwm_out\"]",
+        "signal": "[\"period\"]",
+        "state": "[\"counter_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.inputs.input_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "period",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM1: pwm_out",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.outputs.pwm_out",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for pwm_active_high"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.pwm_out.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM1; name=pwm_active_high; port=[\"pwm_out\"]; signal=[{\"name\": \"pwm_out\", \"value\": 1}]; state=[\"counter_next\"].",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0035",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.outputs.pwm_out",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "pwm_active_high",
+        "port": "[\"pwm_out\"]",
+        "signal": "[{\"name\": \"pwm_out\", \"value\": 1}]",
+        "state": "[\"counter_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.outputs.pwm_out"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM1: pwm_out_high",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.output_rules.pwm_out_high",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "pwm_out_high width matches SSOT value 1",
+        "pwm_out_high RTL expression implements SSOT expression 1",
+        "DUT port pwm_out is the implementation/observation point for pwm_out_high",
+        "pwm_out_high is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.output_rules.pwm_out_high.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: name=pwm_out_high; port=pwm_out; expr=1; width=1.",
+      "evidence_terms": [
+        "high",
+        "out",
+        "pwm",
+        "pwm_out",
+        "pwm_out_high"
+      ],
+      "id": "RTL-0036",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.output_rules.pwm_out_high",
+      "ssot_context": {
+        "expr": "1",
+        "name": "pwm_out_high",
+        "port": "pwm_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.output_rules.pwm_out_high"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "high",
+          "out",
+          "pwm",
+          "pwm_out",
+          "pwm_out_high"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM1: counter_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.state_updates.counter_next",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "counter_next width matches SSOT value COUNTER_WIDTH",
+        "counter_next RTL expression implements SSOT expression counter + 1 if (counter + 1) < period else 0",
+        "counter_next updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.state_updates.counter_next.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: name=counter_next; expr=counter + 1 if (counter + 1) < period else 0; width=COUNTER_WIDTH.",
+      "evidence_terms": [
+        "counter_next",
+        "next"
+      ],
+      "id": "RTL-0037",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.state_updates.counter_next",
+      "ssot_context": {
+        "expr": "counter + 1 if (counter + 1) < period else 0",
+        "name": "counter_next",
+        "width": "COUNTER_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.state_updates.counter_next"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM1: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for pwm_active_high"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.side_effects.side_effect_0.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM1; name=pwm_active_high; port=[\"pwm_out\"]; signal=[\"counter increments by 1\"]; state=[\"counter_next\"].",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0038",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "pwm_active_high",
+        "port": "[\"pwm_out\"]",
+        "signal": "[\"counter increments by 1\"]",
+        "state": "[\"counter_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM2",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM2",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM2.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM2; name=pwm_active_low.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2",
+      "ssot_context": {
+        "id": "FM2",
+        "name": "pwm_active_low"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM2: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.preconditions.precondition_0.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: value=enable == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "enable == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM2: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.preconditions.precondition_1.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: value=counter >= duty_cycle.",
+      "evidence_terms": [
+        "duty",
+        "duty_cycle"
+      ],
+      "id": "RTL-0041",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "counter >= duty_cycle"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "duty",
+          "duty_cycle"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM2: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.inputs.input_0",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for pwm_active_low"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.inputs.input_0.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM2; name=pwm_active_low; port=[\"pwm_out\"]; signal=[\"duty_cycle\"]; state=[\"counter_next\"].",
+      "evidence_terms": [
+        "counter_next",
+        "duty",
+        "duty_cycle",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0042",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.inputs.input_0",
+      "ssot_context": {
+        "id": "FM2",
+        "name": "pwm_active_low",
+        "port": "[\"pwm_out\"]",
+        "signal": "[\"duty_cycle\"]",
+        "state": "[\"counter_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "duty",
+          "duty_cycle",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM2: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.inputs.input_1",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for pwm_active_low"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.inputs.input_1.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM2; name=pwm_active_low; port=[\"pwm_out\"]; signal=[\"period\"]; state=[\"counter_next\"].",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "period",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0043",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.inputs.input_1",
+      "ssot_context": {
+        "id": "FM2",
+        "name": "pwm_active_low",
+        "port": "[\"pwm_out\"]",
+        "signal": "[\"period\"]",
+        "state": "[\"counter_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.inputs.input_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "period",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM2: pwm_out",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.outputs.pwm_out",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for pwm_active_low"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.outputs.pwm_out.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM2; name=pwm_active_low; port=[\"pwm_out\"]; signal=[{\"name\": \"pwm_out\", \"value\": 0}]; state=[\"counter_next\"].",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0044",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.outputs.pwm_out",
+      "ssot_context": {
+        "id": "FM2",
+        "name": "pwm_active_low",
+        "port": "[\"pwm_out\"]",
+        "signal": "[{\"name\": \"pwm_out\", \"value\": 0}]",
+        "state": "[\"counter_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.outputs.pwm_out"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM2: pwm_out_low",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.output_rules.pwm_out_low",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "pwm_out_low width matches SSOT value 1",
+        "pwm_out_low RTL expression implements SSOT expression 0",
+        "DUT port pwm_out is the implementation/observation point for pwm_out_low",
+        "pwm_out_low is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.output_rules.pwm_out_low.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: name=pwm_out_low; port=pwm_out; expr=0; width=1.",
+      "evidence_terms": [
+        "low",
+        "out",
+        "pwm",
+        "pwm_out",
+        "pwm_out_low"
+      ],
+      "id": "RTL-0045",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.output_rules.pwm_out_low",
+      "ssot_context": {
+        "expr": "0",
+        "name": "pwm_out_low",
+        "port": "pwm_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.output_rules.pwm_out_low"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "low",
+          "out",
+          "pwm",
+          "pwm_out",
+          "pwm_out_low"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM2: counter_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.state_updates.counter_next",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "counter_next width matches SSOT value COUNTER_WIDTH",
+        "counter_next RTL expression implements SSOT expression counter + 1 if (counter + 1) < period else 0",
+        "counter_next updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.state_updates.counter_next.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: name=counter_next; expr=counter + 1 if (counter + 1) < period else 0; width=COUNTER_WIDTH.",
+      "evidence_terms": [
+        "counter_next",
+        "next"
+      ],
+      "id": "RTL-0046",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.state_updates.counter_next",
+      "ssot_context": {
+        "expr": "counter + 1 if (counter + 1) < period else 0",
+        "name": "counter_next",
+        "width": "COUNTER_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.state_updates.counter_next"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM2: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for pwm_active_low"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.side_effects.side_effect_0.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM2; name=pwm_active_low; port=[\"pwm_out\"]; signal=[\"counter increments by 1\"]; state=[\"counter_next\"].",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0047",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM2",
+        "name": "pwm_active_low",
+        "port": "[\"pwm_out\"]",
+        "signal": "[\"counter increments by 1\"]",
+        "state": "[\"counter_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM3",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM3",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM3.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM3; name=pwm_idle.",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3",
+      "ssot_context": {
+        "id": "FM3",
+        "name": "pwm_idle"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM3: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/simple_pwm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.preconditions.precondition_0.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: value=enable == 0.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "enable == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM3: pwm_out",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.outputs.pwm_out",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for pwm_idle"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.outputs.pwm_out.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM3; name=pwm_idle; port=[\"pwm_out\"]; signal=[{\"name\": \"pwm_out\", \"value\": 0}]; state=[\"counter_next\"].",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0050",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.outputs.pwm_out",
+      "ssot_context": {
+        "id": "FM3",
+        "name": "pwm_idle",
+        "port": "[\"pwm_out\"]",
+        "signal": "[{\"name\": \"pwm_out\", \"value\": 0}]",
+        "state": "[\"counter_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.outputs.pwm_out"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM3: pwm_out_off",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.output_rules.pwm_out_off",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "pwm_out_off width matches SSOT value 1",
+        "pwm_out_off RTL expression implements SSOT expression 0",
+        "DUT port pwm_out is the implementation/observation point for pwm_out_off",
+        "pwm_out_off is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.output_rules.pwm_out_off.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: name=pwm_out_off; port=pwm_out; expr=0; width=1.",
+      "evidence_terms": [
+        "off",
+        "out",
+        "pwm",
+        "pwm_out",
+        "pwm_out_off"
+      ],
+      "id": "RTL-0051",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.output_rules.pwm_out_off",
+      "ssot_context": {
+        "expr": "0",
+        "name": "pwm_out_off",
+        "port": "pwm_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.output_rules.pwm_out_off"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "off",
+          "out",
+          "pwm",
+          "pwm_out",
+          "pwm_out_off"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM3: counter_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.state_updates.counter_next",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "counter_next width matches SSOT value COUNTER_WIDTH",
+        "counter_next RTL expression implements SSOT expression 0",
+        "counter_next updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.state_updates.counter_next.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: name=counter_next; expr=0; width=COUNTER_WIDTH.",
+      "evidence_terms": [
+        "counter_next",
+        "next"
+      ],
+      "id": "RTL-0052",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.state_updates.counter_next",
+      "ssot_context": {
+        "expr": "0",
+        "name": "counter_next",
+        "width": "COUNTER_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.state_updates.counter_next"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM3: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for pwm_idle"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.side_effects.side_effect_0.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: id=FM3; name=pwm_idle; port=[\"pwm_out\"]; signal=[\"counter resets to 0\"]; state=[\"counter_next\"].",
+      "evidence_terms": [
+        "counter_next",
+        "next",
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0053",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM3",
+        "name": "pwm_idle",
+        "port": "[\"pwm_out\"]",
+        "signal": "[\"counter resets to 0\"]",
+        "state": "[\"counter_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_next",
+          "next",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\", \"pwm_out\", \"pwm_out\"] is the implementation/observation point for [\"pwm_out\", \"pwm_out\", \"pwm_out\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: port=[\"pwm_out\", \"pwm_out\", \"pwm_out\"]; signal=pwm_out is 0 whenever enable is 0.",
+      "evidence_terms": [
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0054",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "port": "[\"pwm_out\", \"pwm_out\", \"pwm_out\"]",
+        "signal": "pwm_out is 0 whenever enable is 0"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\", \"pwm_out\", \"pwm_out\"] is the implementation/observation point for [\"pwm_out\", \"pwm_out\", \"pwm_out\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: port=[\"pwm_out\", \"pwm_out\", \"pwm_out\"]; signal=counter resets to 0 when it reaches period; state=[\"counter\"].",
+      "evidence_terms": [
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0055",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "port": "[\"pwm_out\", \"pwm_out\", \"pwm_out\"]",
+        "signal": "counter resets to 0 when it reaches period",
+        "state": "[\"counter\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/simple_pwm.sv",
+        "DUT port [\"pwm_out\", \"pwm_out\", \"pwm_out\"] is the implementation/observation point for [\"pwm_out\", \"pwm_out\", \"pwm_out\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: simple_pwm in rtl/simple_pwm.sv via function_model.\nSSOT item context: port=[\"pwm_out\", \"pwm_out\", \"pwm_out\"]; signal=counter is 0 whenever enable is 0.",
+      "evidence_terms": [
+        "out",
+        "pwm",
+        "pwm_out"
+      ],
+      "id": "RTL-0056",
+      "owner_file": "rtl/simple_pwm.sv",
+      "owner_module": "simple_pwm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "port": "[\"pwm_out\", \"pwm_out\", \"pwm_out\"]",
+        "signal": "counter is 0 whenever enable is 0"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "source_scope": "rtl/simple_pwm.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/simple_pwm.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "97147a83467339f3d8bdf10370e6366a4b8a3eeca0cb4ad8bac3bf660a00d118",
+  "top": "simple_pwm",
+  "type": "rtl_authoring_packet"
+}

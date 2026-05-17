@@ -1,0 +1,47 @@
+{
+  "error": "",
+  "finish_reason": "",
+  "finished_at": "2026-05-16T19:07:12Z",
+  "input_hash": "d9db2f7e816c9608e77110a9a05e7e26e48ba915f2f4d72afd1b2b67a2c87028",
+  "model": "gpt-5.3-codex",
+  "output_hash": "a194353ec388db4502606c2d1e0152e73b4eca40780cdd49b2b0784e571a935a",
+  "parsed_artifacts": [
+    {
+      "content": "module simple_pwm #(\n    parameter integer COUNTER_WIDTH = 8\n) (\n    input  logic                     clk,\n    input  logic                     rst_n,\n    input  logic                     enable,\n    input  logic [COUNTER_WIDTH-1:0] duty_cycle,\n    input  logic [COUNTER_WIDTH-1:0] period,\n    output logic                     pwm_out\n);\n\n    // Internal counter state is the primary cycle-model observable state.\n    logic [COUNTER_WIDTH-1:0] counter;\n    logic [COUNTER_WIDTH-1:0] counter_plus_one;\n    logic [COUNTER_WIDTH-1:0] counter_next;\n    logic                     pwm_out_next;\n\n    // Precompute increment outside procedural logic to keep arithmetic explicit.\n    assign counter_plus_one = counter + {{(COUNTER_WIDTH-1){1'b0}}, 1'b1};\n\n    // S0_COUNTER_UPDATE and S1_COMPARE_OUTPUT are implemented in one cycle:\n    // - compute next counter value from current state/inputs\n    // - compute pwm_out from current counter vs duty_cycle\n    // Both are registered on the same clock edge, giving latency=1 from edge to observable output.\n    always @(*) begin\n        counter_next = {COUNTER_WIDTH{1'b0}};\n        pwm_out_next = 1'b0;\n\n        if (enable == 1'b1) begin\n            if ((period != {COUNTER_WIDTH{1'b0}}) && (counter_plus_one < period)) begin\n                counter_next = counter_plus_one;\n            end else begin\n                counter_next = {COUNTER_WIDTH{1'b0}};\n            end\n\n            // Handshake/phase rule: pwm_out directly reflects counter<duty_cycle for this cycle.\n            if (counter < duty_cycle) begin\n                pwm_out_next = 1'b1;\n            end else begin\n                pwm_out_next = 1'b0;\n            end\n        end else begin\n            // FM3 idle behavior and invariant: disable forces counter and pwm_out low.\n            counter_next = {COUNTER_WIDTH{1'b0}};\n            pwm_out_next = 1'b0;\n        end\n    end\n\n    // Async assert, sync deassert reset contract:\n    // rst_n low immediately clears architectural state and output.\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            counter  <= {COUNTER_WIDTH{1'b0}};\n            pwm_out  <= 1'b0;\n        end else begin\n            counter  <= counter_next;\n            pwm_out  <= pwm_out_next;\n        end\n    end\n\nendmodule\n",
+      "kind": "rtl",
+      "path": "simple_pwm/rtl/simple_pwm.sv"
+    },
+    {
+      "content": "{\n  \"packet_id\": \"module__simple_pwm__cycle_model\",\n  \"todo_plan_sha256\": \"97147a83467339f3d8bdf10370e6366a4b8a3eeca0cb4ad8bac3bf660a00d118\",\n  \"owner_module\": \"simple_pwm\",\n  \"owner_file\": \"rtl/simple_pwm.sv\",\n  \"implemented_cycle_model_refs\": [\n    \"cycle_model.clock\",\n    \"cycle_model.reset\",\n    \"cycle_model.latency\",\n    \"cycle_model.handshake_rules.pwm_out\",\n    \"cycle_model.pipeline.S0_COUNTER_UPDATE\",\n    \"cycle_model.pipeline.S1_COMPARE_OUTPUT\",\n    \"cycle_model.ordering.ordering_rule_0\",\n    \"cycle_model.observability.observability_signal_0\",\n    \"cycle_model.observability.observability_signal_1\"\n  ],\n  \"notes\": [\n    \"Latency-1 behavior is implemented by updating counter and pwm_out on the same rising edge.\",\n    \"pwm_out is forced low when enable=0 and during reset.\",\n    \"counter is held/reset to zero when enable=0 and wraps to zero at period boundary.\"\n  ]\n}",
+      "kind": "rtl_contract",
+      "path": "simple_pwm/rtl/rtl_contract.json"
+    },
+    {
+      "content": "rtl/simple_pwm.sv\n",
+      "kind": "filelist",
+      "path": "simple_pwm/list/simple_pwm.f"
+    }
+  ],
+  "prompt_hash": "bffe74c18495eb23ef12c2faed36283e37b3973237be282be502bfc1679e41fe",
+  "raw_response": "{\"files\":[{\"path\":\"simple_pwm/rtl/simple_pwm.sv\",\"kind\":\"rtl\",\"content\":\"module simple_pwm #(\\n    parameter integer COUNTER_WIDTH = 8\\n) (\\n    input  logic                     clk,\\n    input  logic                     rst_n,\\n    input  logic                     enable,\\n    input  logic [COUNTER_WIDTH-1:0] duty_cycle,\\n    input  logic [COUNTER_WIDTH-1:0] period,\\n    output logic                     pwm_out\\n);\\n\\n    // Internal counter state is the primary cycle-model observable state.\\n    logic [COUNTER_WIDTH-1:0] counter;\\n    logic [COUNTER_WIDTH-1:0] counter_plus_one;\\n    logic [COUNTER_WIDTH-1:0] counter_next;\\n    logic                     pwm_out_next;\\n\\n    // Precompute increment outside procedural logic to keep arithmetic explicit.\\n    assign counter_plus_one = counter + {{(COUNTER_WIDTH-1){1'b0}}, 1'b1};\\n\\n    // S0_COUNTER_UPDATE and S1_COMPARE_OUTPUT are implemented in one cycle:\\n    // - compute next counter value from current state/inputs\\n    // - compute pwm_out from current counter vs duty_cycle\\n    // Both are registered on the same clock edge, giving latency=1 from edge to observable output.\\n    always @(*) begin\\n        counter_next = {COUNTER_WIDTH{1'b0}};\\n        pwm_out_next = 1'b0;\\n\\n        if (enable == 1'b1) begin\\n            if ((period != {COUNTER_WIDTH{1'b0}}) && (counter_plus_one < period)) begin\\n                counter_next = counter_plus_one;\\n            end else begin\\n                counter_next = {COUNTER_WIDTH{1'b0}};\\n            end\\n\\n            // Handshake/phase rule: pwm_out directly reflects counter<duty_cycle for this cycle.\\n            if (counter < duty_cycle) begin\\n                pwm_out_next = 1'b1;\\n            end else begin\\n                pwm_out_next = 1'b0;\\n            end\\n        end else begin\\n            // FM3 idle behavior and invariant: disable forces counter and pwm_out low.\\n            counter_next = {COUNTER_WIDTH{1'b0}};\\n            pwm_out_next = 1'b0;\\n        end\\n    end\\n\\n    // Async assert, sync deassert reset contract:\\n    // rst_n low immediately clears architectural state and output.\\n    always @(posedge clk or negedge rst_n) begin\\n        if (!rst_n) begin\\n            counter  <= {COUNTER_WIDTH{1'b0}};\\n            pwm_out  <= 1'b0;\\n        end else begin\\n            counter  <= counter_next;\\n            pwm_out  <= pwm_out_next;\\n        end\\n    end\\n\\nendmodule\\n\"},{\"path\":\"simple_pwm/rtl/rtl_contract.json\",\"kind\":\"rtl_contract\",\"content\":\"{\\n  \\\"packet_id\\\": \\\"module__simple_pwm__cycle_model\\\",\\n  \\\"todo_plan_sha256\\\": \\\"97147a83467339f3d8bdf10370e6366a4b8a3eeca0cb4ad8bac3bf660a00d118\\\",\\n  \\\"owner_module\\\": \\\"simple_pwm\\\",\\n  \\\"owner_file\\\": \\\"rtl/simple_pwm.sv\\\",\\n  \\\"implemented_cycle_model_refs\\\": [\\n    \\\"cycle_model.clock\\\",\\n    \\\"cycle_model.reset\\\",\\n    \\\"cycle_model.latency\\\",\\n    \\\"cycle_model.handshake_rules.pwm_out\\\",\\n    \\\"cycle_model.pipeline.S0_COUNTER_UPDATE\\\",\\n    \\\"cycle_model.pipeline.S1_COMPARE_OUTPUT\\\",\\n    \\\"cycle_model.ordering.ordering_rule_0\\\",\\n    \\\"cycle_model.observability.observability_signal_0\\\",\\n    \\\"cycle_model.observability.observability_signal_1\\\"\\n  ],\\n  \\\"notes\\\": [\\n    \\\"Latency-1 behavior is implemented by updating counter and pwm_out on the same rising edge.\\\",\\n    \\\"pwm_out is forced low when enable=0 and during reset.\\\",\\n    \\\"counter is held/reset to zero when enable=0 and wraps to zero at period boundary.\\\"\\n  ]\\n}\"},{\"path\":\"simple_pwm/list/simple_pwm.f\",\"kind\":\"filelist\",\"content\":\"rtl/simple_pwm.sv\\n\"}]}",
+  "stage": "rtl-gen",
+  "started_at": "2026-05-16T19:06:45Z",
+  "status": "pass",
+  "usage": {
+    "cache_created": 0,
+    "cache_read": 14080,
+    "cost": {
+      "pricing_per_1m": {
+        "cache": 0.26,
+        "input": 1.4,
+        "output": 4.4
+      },
+      "usd": 0.0482574
+    },
+    "input": 41387,
+    "output": 1447,
+    "total": 42834,
+    "total_cache_created": 0,
+    "total_cache_read": 14080
+  }
+}

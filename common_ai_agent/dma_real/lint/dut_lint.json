@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "type": "dut_lint",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "pyslang+verilator",
+  "command": "pyslang rtl/dma_real_top.sv rtl/dma_real_apb_cfg.sv rtl/dma_real_arbiter.sv rtl/dma_real_channel.sv rtl/dma_real_ahb_master.sv rtl/dma_real_irq.sv && verilator --lint-only -Wall -Irtl -f list/dma_real.f --top-module dma_real",
+  "cwd": "dma_real",
+  "top": "dma_real",
+  "filelist": "dma_real/list/dma_real.f",
+  "rtl_files": [
+    "rtl/dma_real_top.sv",
+    "rtl/dma_real_apb_cfg.sv",
+    "rtl/dma_real_arbiter.sv",
+    "rtl/dma_real_channel.sv",
+    "rtl/dma_real_ahb_master.sv",
+    "rtl/dma_real_irq.sv"
+  ],
+  "timestamp": "2026-05-17T01:31:15.009940+00:00",
+  "returncode": 1,
+  "errors": 0,
+  "warnings": 15,
+  "waived_warnings": 0,
+  "tool_results": [
+    {
+      "tool": "pyslang",
+      "available": true,
+      "command": "pyslang rtl/dma_real_top.sv rtl/dma_real_apb_cfg.sv rtl/dma_real_arbiter.sv rtl/dma_real_channel.sv rtl/dma_real_ahb_master.sv rtl/dma_real_irq.sv",
+      "returncode": 0,
+      "errors": 0,
+      "warnings": 7,
+      "diagnostics": [
+        {
+          "severity": "warning",
+          "file": "dma_real/rtl/dma_real_top.sv",
+          "line": 102,
+          "message": "implicit conversion truncates from 20 to 8 bits"
+        },
+        {
+          "severity": "warning",
+          "file": "dma_real/rtl/dma_real_apb_cfg.sv",
+          "line": 197,
+          "message": "implicit conversion expands from 29 to 32 bits"
+        },
+        {
+          "severity": "warning",
+          "file": "dma_real/rtl/dma_real_apb_cfg.sv",
+          "line": 209,
+          "message": "implicit conversion expands from 29 to 32 bits"
+        },
+        {
+          "severity": "warning",
+          "file": "dma_real/rtl/dma_real_apb_cfg.sv",
+          "line": 221,
+          "message": "implicit conversion expands from 29 to 32 bits"
+        },
+        {
+          "severity": "warning",
+          "file": "dma_real/rtl/dma_real_apb_cfg.sv",
+          "line": 233,
+          "message": "implicit conversion expands from 29 to 32 bits"
+        },
+        {
+          "severity": "warning",
+          "file": "dma_real/rtl/dma_real_channel.sv",
+          "line": 126,
+          "message": "arithmetic between operands of different types ('logic[31:0]' and 'logic[15:0]')"
+        },
+        {
+          "severity": "warning",
+          "file": "dma_real/rtl/dma_real_channel.sv",
+          "line": 131,
+          "message": "arithmetic between operands of different types ('logic[31:0]' and 'logic[15:0]')"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "tool": "verilator",
+      "available": true,
+      "command": "verilator --lint-only -Wall -Irtl -f list/dma_real.f --top-module dma_real",
+      "returncode": 1,
+      "errors": 1,
+      "warnings": 8,
+      "diagnostics": [
+        {
+          "severity": "warning",
+          "rule": "PINCONNECTEMPTY",
+          "file": "rtl/dma_real_top.sv",
+          "line": 193,
+          "column": 40,
+          "message": "Instance pin connected by name with empty reference: 'ahb_wdata'",
+          "source": "        .ahb_rdata(ahb_master_rdata), .ahb_wdata(),"
+        },
+        {
+          "severity": "warning",
+          "rule": "PINCONNECTEMPTY",
+          "file": "rtl/dma_real_top.sv",
+          "line": 197,
+          "column": 10,
+          "message": "Instance pin connected by name with empty reference: 'fifo_rdata'",
+          "source": "        .fifo_rdata(), .fifo_ren(fifo_ren_0),"
+        },
+        {
+          "severity": "warning",
+          "rule": "PINCONNECTEMPTY",
+          "file": "rtl/dma_real_top.sv",
+          "line": 238,
+          "column": 40,
+          "message": "Instance pin connected by name with empty reference: 'ahb_wdata'",
+          "source": "        .ahb_rdata(ahb_master_rdata), .ahb_wdata(),"
+        },
+        {
+          "severity": "warning",
+          "rule": "PINCONNECTEMPTY",
+          "file": "rtl/dma_real_top.sv",
+          "line": 242,
+          "column": 10,
+          "message": "Instance pin connected by name with empty reference: 'fifo_rdata'",
+          "source": "        .fifo_rdata(), .fifo_ren(fifo_ren_1),"
+        },
+        {
+          "severity": "warning",
+          "rule": "PINCONNECTEMPTY",
+          "file": "rtl/dma_real_top.sv",
+          "line": 283,
+          "column": 40,
+          "message": "Instance pin connected by name with empty reference: 'ahb_wdata'",
+          "source": "        .ahb_rdata(ahb_master_rdata), .ahb_wdata(),"
+        },
+        {
+          "severity": "warning",
+          "rule": "PINCONNECTEMPTY",
+          "file": "rtl/dma_real_top.sv",
+          "line": 287,
+          "column": 10,
+          "message": "Instance pin connected by name with empty reference: 'fifo_rdata'",
+          "source": "        .fifo_rdata(), .fifo_ren(fifo_ren_2),"
+        },
+        {
+          "severity": "warning",
+          "rule": "PINCONNECTEMPTY",
+          "file": "rtl/dma_real_top.sv",
+          "line": 328,
+          "column": 40,
+          "message": "Instance pin connected by name with empty reference: 'ahb_wdata'",
+          "source": "        .ahb_rdata(ahb_master_rdata), .ahb_wdata(),"
+        },
+        {
+          "severity": "warning",
+          "rule": "PINCONNECTEMPTY",
+          "file": "rtl/dma_real_top.sv",
+          "line": 332,
+          "column": 10,
+          "message": "Instance pin connected by name with empty reference: 'fifo_rdata'",
+          "source": "        .fifo_rdata(), .fifo_ren(fifo_ren_3),"
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "suppression_violation_count": 0,
+  "suppression_violations": [],
+  "style_violation_count": 6,
+  "style_violations": [
+    {
+      "file": "rtl/dma_real_apb_cfg.sv",
+      "line": 75,
+      "rule": "no_for_loop",
+      "message": "Do not use for loops in generated RTL.",
+      "text": "for (ch = 0; ch < N_CHANNELS; ch++) begin : gen_ch_addr"
+    },
+    {
+      "file": "rtl/dma_real_apb_cfg.sv",
+      "line": 90,
+      "rule": "no_for_loop",
+      "message": "Do not use for loops in generated RTL.",
+      "text": "for (ch = 0; ch < N_CHANNELS; ch++) begin : gen_ch_known"
+    },
+    {
+      "file": "rtl/dma_real_apb_cfg.sv",
+      "line": 111,
+      "rule": "no_for_loop",
+      "message": "Do not use for loops in generated RTL.",
+      "text": "for (ch = 0; ch < N_CHANNELS; ch++) begin : gen_ch_start"
+    },
+    {
+      "file": "rtl/dma_real_apb_cfg.sv",
+      "line": 126,
+      "rule": "no_for_loop",
+      "message": "Do not use for loops in generated RTL.",
+      "text": "for (ch = 0; ch < N_CHANNELS; ch++) begin : gen_ch_regs"
+    },
+    {
+      "file": "rtl/dma_real_apb_cfg.sv",
+      "line": 169,
+      "rule": "no_for_loop",
+      "message": "Do not use for loops in generated RTL.",
+      "text": "for (ch = 0; ch < N_CHANNELS; ch++) begin : gen_int_en"
+    },
+    {
+      "file": "rtl/dma_real_irq.sv",
+      "line": 36,
+      "rule": "no_for_loop",
+      "message": "Do not use for loops in generated RTL.",
+      "text": "for (ch = 0; ch < N_CHANNELS; ch++) begin : gen_irq_ch"
+    }
+  ],
+  "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
+  "passed": true,
+  "pyslang_errors": 0,
+  "verilator_errors": 0
+}

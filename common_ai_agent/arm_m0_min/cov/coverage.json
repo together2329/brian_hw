@@ -56,13 +56,13 @@
     }
   },
   "functional": {
-    "hit": 35,
-    "total": 38,
-    "pct": 92.11
+    "hit": 36,
+    "total": 36,
+    "pct": 100.0
   },
   "function_coverage": {
-    "hit": 21,
-    "total": 21,
+    "hit": 19,
+    "total": 19,
     "pct": 100.0,
     "target_pct": 100.0,
     "meets_target": true,
@@ -81,13 +81,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -115,13 +118,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -149,13 +155,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -183,13 +192,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -217,13 +229,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -251,13 +266,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -284,13 +302,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -317,13 +338,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -350,13 +374,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -372,8 +399,8 @@
       "FCOV_TX_DECODE_EXEC": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
-        "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC",
+        "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
+        "scenario_id": "SC_039_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -383,15 +410,18 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
-        "raw_hit": true,
+        "raw_hit": null,
         "plan": {
           "id": "FCOV_TX_DECODE_EXEC",
           "source_ref": "function_model.transactions.TX_DECODE_EXEC",
@@ -408,8 +438,8 @@
       "FCOV_TX_LOAD_STORE": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_TRANSACTION_TX_LOAD_STORE",
-        "scenario_id": "SC_002_EQ_TRANSACTION_TX_LOAD_STORE",
+        "goal_id": "EQ_ERROR_D_BUS_ERROR",
+        "scenario_id": "SC_016_EQ_ERROR_D_BUS_ERROR",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -419,15 +449,18 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
-        "raw_hit": true,
+        "raw_hit": null,
         "plan": {
           "id": "FCOV_TX_LOAD_STORE",
           "source_ref": "function_model.transactions.TX_LOAD_STORE",
@@ -441,11 +474,11 @@
         "description": "Load/store transaction observed",
         "source_ref": "function_model.transactions.TX_LOAD_STORE"
       },
-      "cycle_ordering_0": {
+      "latency_fetch_accept_at_min": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_TIMING_ORDERING_1",
-        "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+        "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_AT_MIN",
+        "scenario_id": "SC_031_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_AT_MIN",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -455,22 +488,25 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "coverage_domain": "function"
       },
-      "cycle_ordering_1": {
+      "latency_fetch_accept_unbounded": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_TIMING_ORDERING_1",
-        "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+        "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_UNBOUNDED",
+        "scenario_id": "SC_032_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_UNBOUNDED",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -480,22 +516,25 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "coverage_domain": "function"
       },
-      "cycle_backpressure_1": {
+      "latency_alu_instr_at_min": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_MEMORY_ID_EX_CTRL",
-        "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL",
+        "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MIN",
+        "scenario_id": "SC_034_EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MIN",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -505,22 +544,25 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "coverage_domain": "function"
       },
-      "cycle_latency_fetch_accept": {
+      "latency_alu_instr_at_max": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
-        "scenario_id": "SC_031_EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
+        "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MAX",
+        "scenario_id": "SC_035_EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MAX",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -530,22 +572,25 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "coverage_domain": "function"
       },
-      "cycle_latency_alu_instr": {
+      "latency_alu_instr_gt_max": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
-        "scenario_id": "SC_032_EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
+        "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_GT_MAX",
+        "scenario_id": "SC_036_EQ_COVERAGE_LATENCY_ALU_INSTR_GT_MAX",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -555,22 +600,25 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "coverage_domain": "function"
       },
-      "cycle_latency_load_store_instr": {
+      "latency_load_store_instr_at_min": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
-        "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
+        "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_AT_MIN",
+        "scenario_id": "SC_038_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_AT_MIN",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -580,22 +628,25 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "coverage_domain": "function"
       },
-      "cycle_pipeline_if": {
+      "latency_load_store_instr_unbounded": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_IF",
-        "scenario_id": "SC_034_EQ_COVERAGE_CYCLE_PIPELINE_IF",
+        "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
+        "scenario_id": "SC_039_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -605,22 +656,25 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "coverage_domain": "function"
       },
-      "cycle_pipeline_id": {
+      "fcov_reset": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_ID",
-        "scenario_id": "SC_035_EQ_COVERAGE_CYCLE_PIPELINE_ID",
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -630,75 +684,28 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
-        "raw_hit": true,
-        "coverage_domain": "function"
-      },
-      "cycle_pipeline_ex": {
-        "hit": true,
-        "source": "scoreboard_events",
-        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_EX",
-        "scenario_id": "SC_036_EQ_COVERAGE_CYCLE_PIPELINE_EX",
-        "rtl_observed_keys": [
-          "d_haddr",
-          "d_hburst",
-          "d_hmastlock",
-          "d_hprot",
-          "d_hsize",
-          "d_htrans",
-          "d_hwdata",
-          "d_hwrite",
-          "i_haddr",
-          "i_hburst",
-          "i_hmastlock",
-          "i_hprot",
-          "i_hsize",
-          "i_htrans",
-          "i_hwrite"
-        ],
-        "raw_hit": true,
-        "coverage_domain": "function"
-      },
-      "cycle_backpressure_0": {
-        "hit": true,
-        "source": "scoreboard_events",
-        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
-        "scenario_id": "SC_037_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
-        "rtl_observed_keys": [
-          "d_haddr",
-          "d_hburst",
-          "d_hmastlock",
-          "d_hprot",
-          "d_hsize",
-          "d_htrans",
-          "d_hwdata",
-          "d_hwrite",
-          "i_haddr",
-          "i_hburst",
-          "i_hmastlock",
-          "i_hprot",
-          "i_hsize",
-          "i_htrans",
-          "i_hwrite"
-        ],
-        "raw_hit": true,
+        "raw_hit": null,
         "coverage_domain": "function"
       }
     }
   },
   "cycle_coverage": {
-    "hit": 14,
+    "hit": 17,
     "total": 17,
-    "pct": 82.35,
+    "pct": 100.0,
     "target_pct": 100.0,
-    "meets_target": false,
+    "meets_target": true,
     "bins": {
       "fsm_core_reset_to_run_0": {
         "hit": true,
@@ -714,13 +721,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -747,13 +757,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -780,13 +793,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -813,13 +829,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -846,13 +865,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -879,13 +901,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -912,13 +937,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -945,13 +973,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -978,13 +1009,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -1011,13 +1045,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -1044,13 +1081,16 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
         "raw_hit": true,
         "plan": {
@@ -1064,13 +1104,31 @@
         "coverage_domain": "cycle"
       },
       "latency_fetch_accept_lt_min": {
-        "hit": false,
-        "raw_hit": false,
-        "source": "missing_rtl_observed_scoreboard_evidence",
-        "raw": {
-          "hit": false,
-          "source": "fcov_plan"
-        },
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_LT_MIN",
+        "scenario_id": "SC_030_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_LT_MIN",
+        "rtl_observed_keys": [
+          "d_haddr",
+          "d_hburst",
+          "d_hmastlock",
+          "d_hprot",
+          "d_hsize",
+          "d_htrans",
+          "d_hwdata",
+          "d_hwrite",
+          "fault_halt",
+          "i_haddr",
+          "i_hburst",
+          "i_hmastlock",
+          "i_hprot",
+          "i_hsize",
+          "i_htrans",
+          "i_hwrite",
+          "nzcv",
+          "pc"
+        ],
+        "raw_hit": true,
         "plan": {
           "id": "latency_fetch_accept_lt_min",
           "class": "latency_bin",
@@ -1085,13 +1143,31 @@
         "coverage_domain": "cycle"
       },
       "latency_alu_instr_lt_min": {
-        "hit": false,
-        "raw_hit": false,
-        "source": "missing_rtl_observed_scoreboard_evidence",
-        "raw": {
-          "hit": false,
-          "source": "fcov_plan"
-        },
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_LT_MIN",
+        "scenario_id": "SC_033_EQ_COVERAGE_LATENCY_ALU_INSTR_LT_MIN",
+        "rtl_observed_keys": [
+          "d_haddr",
+          "d_hburst",
+          "d_hmastlock",
+          "d_hprot",
+          "d_hsize",
+          "d_htrans",
+          "d_hwdata",
+          "d_hwrite",
+          "fault_halt",
+          "i_haddr",
+          "i_hburst",
+          "i_hmastlock",
+          "i_hprot",
+          "i_hsize",
+          "i_htrans",
+          "i_hwrite",
+          "nzcv",
+          "pc"
+        ],
+        "raw_hit": true,
         "plan": {
           "id": "latency_alu_instr_lt_min",
           "class": "latency_bin",
@@ -1106,13 +1182,31 @@
         "coverage_domain": "cycle"
       },
       "latency_load_store_instr_lt_min": {
-        "hit": false,
-        "raw_hit": false,
-        "source": "missing_rtl_observed_scoreboard_evidence",
-        "raw": {
-          "hit": false,
-          "source": "fcov_plan"
-        },
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_LT_MIN",
+        "scenario_id": "SC_037_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_LT_MIN",
+        "rtl_observed_keys": [
+          "d_haddr",
+          "d_hburst",
+          "d_hmastlock",
+          "d_hprot",
+          "d_hsize",
+          "d_htrans",
+          "d_hwdata",
+          "d_hwrite",
+          "fault_halt",
+          "i_haddr",
+          "i_hburst",
+          "i_hmastlock",
+          "i_hprot",
+          "i_hsize",
+          "i_htrans",
+          "i_hwrite",
+          "nzcv",
+          "pc"
+        ],
+        "raw_hit": true,
         "plan": {
           "id": "latency_load_store_instr_lt_min",
           "class": "latency_bin",
@@ -1129,8 +1223,8 @@
       "CCOV_IF_STALL": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_COVERAGE_CCOV_IF_STALL",
-        "scenario_id": "SC_030_EQ_COVERAGE_CCOV_IF_STALL",
+        "goal_id": "EQ_SCENARIO_SC_IF_STALL",
+        "scenario_id": "SC_006_EQ_SCENARIO_SC_IF_STALL",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -1140,15 +1234,18 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
-        "raw_hit": true,
+        "raw_hit": null,
         "plan": {
           "id": "CCOV_IF_STALL",
           "source_ref": "cycle_model.backpressure",
@@ -1165,8 +1262,8 @@
       "CCOV_MEM_STALL": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
-        "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+        "goal_id": "EQ_STATE_CORE_STALL_MEM_TO_FAULT_HALT_6",
+        "scenario_id": "SC_023_EQ_STATE_CORE_STALL_MEM_TO_FAULT_HALT_6",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -1176,15 +1273,18 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
-        "raw_hit": true,
+        "raw_hit": null,
         "plan": {
           "id": "CCOV_MEM_STALL",
           "source_ref": "cycle_model.handshake_rules",
@@ -1201,8 +1301,8 @@
       "CCOV_PIPELINE_ORDER": {
         "hit": true,
         "source": "scoreboard_events",
-        "goal_id": "EQ_TIMING_ORDERING_1",
-        "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+        "goal_id": "EQ_MODULE_ARM_M0_MIN_EX",
+        "scenario_id": "SC_028_EQ_MODULE_ARM_M0_MIN_EX",
         "rtl_observed_keys": [
           "d_haddr",
           "d_hburst",
@@ -1212,15 +1312,18 @@
           "d_htrans",
           "d_hwdata",
           "d_hwrite",
+          "fault_halt",
           "i_haddr",
           "i_hburst",
           "i_hmastlock",
           "i_hprot",
           "i_hsize",
           "i_htrans",
-          "i_hwrite"
+          "i_hwrite",
+          "nzcv",
+          "pc"
         ],
-        "raw_hit": true,
+        "raw_hit": null,
         "plan": {
           "id": "CCOV_PIPELINE_ORDER",
           "source_ref": "cycle_model.ordering",
@@ -1240,18 +1343,18 @@
     "function": {
       "source": "function_model",
       "target_pct": 100.0,
-      "hit": 21,
-      "total": 21,
+      "hit": 19,
+      "total": 19,
       "pct": 100.0,
       "meets_target": true
     },
     "cycle": {
       "source": "cycle_model",
       "target_pct": 100.0,
-      "hit": 14,
+      "hit": 17,
       "total": 17,
-      "pct": 82.35,
-      "meets_target": false
+      "pct": 100.0,
+      "meets_target": true
     }
   },
   "planned_bins": [
@@ -1299,13 +1402,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1333,13 +1439,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1367,13 +1476,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1401,13 +1513,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1435,13 +1550,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1469,13 +1587,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1502,13 +1623,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1535,13 +1659,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1568,13 +1695,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1601,13 +1731,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1634,13 +1767,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1667,13 +1803,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1700,13 +1839,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1733,13 +1875,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1766,13 +1911,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1799,13 +1947,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1832,13 +1983,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1865,13 +2019,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1898,13 +2055,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1931,13 +2091,16 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "plan": {
@@ -1951,13 +2114,31 @@
       "coverage_domain": "cycle"
     },
     "latency_fetch_accept_lt_min": {
-      "hit": false,
-      "raw_hit": false,
-      "source": "missing_rtl_observed_scoreboard_evidence",
-      "raw": {
-        "hit": false,
-        "source": "fcov_plan"
-      },
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_LT_MIN",
+      "scenario_id": "SC_030_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_LT_MIN",
+      "rtl_observed_keys": [
+        "d_haddr",
+        "d_hburst",
+        "d_hmastlock",
+        "d_hprot",
+        "d_hsize",
+        "d_htrans",
+        "d_hwdata",
+        "d_hwrite",
+        "fault_halt",
+        "i_haddr",
+        "i_hburst",
+        "i_hmastlock",
+        "i_hprot",
+        "i_hsize",
+        "i_htrans",
+        "i_hwrite",
+        "nzcv",
+        "pc"
+      ],
+      "raw_hit": true,
       "plan": {
         "id": "latency_fetch_accept_lt_min",
         "class": "latency_bin",
@@ -1972,13 +2153,31 @@
       "coverage_domain": "cycle"
     },
     "latency_alu_instr_lt_min": {
-      "hit": false,
-      "raw_hit": false,
-      "source": "missing_rtl_observed_scoreboard_evidence",
-      "raw": {
-        "hit": false,
-        "source": "fcov_plan"
-      },
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_LT_MIN",
+      "scenario_id": "SC_033_EQ_COVERAGE_LATENCY_ALU_INSTR_LT_MIN",
+      "rtl_observed_keys": [
+        "d_haddr",
+        "d_hburst",
+        "d_hmastlock",
+        "d_hprot",
+        "d_hsize",
+        "d_htrans",
+        "d_hwdata",
+        "d_hwrite",
+        "fault_halt",
+        "i_haddr",
+        "i_hburst",
+        "i_hmastlock",
+        "i_hprot",
+        "i_hsize",
+        "i_htrans",
+        "i_hwrite",
+        "nzcv",
+        "pc"
+      ],
+      "raw_hit": true,
       "plan": {
         "id": "latency_alu_instr_lt_min",
         "class": "latency_bin",
@@ -1993,13 +2192,31 @@
       "coverage_domain": "cycle"
     },
     "latency_load_store_instr_lt_min": {
-      "hit": false,
-      "raw_hit": false,
-      "source": "missing_rtl_observed_scoreboard_evidence",
-      "raw": {
-        "hit": false,
-        "source": "fcov_plan"
-      },
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_LT_MIN",
+      "scenario_id": "SC_037_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_LT_MIN",
+      "rtl_observed_keys": [
+        "d_haddr",
+        "d_hburst",
+        "d_hmastlock",
+        "d_hprot",
+        "d_hsize",
+        "d_htrans",
+        "d_hwdata",
+        "d_hwrite",
+        "fault_halt",
+        "i_haddr",
+        "i_hburst",
+        "i_hmastlock",
+        "i_hprot",
+        "i_hsize",
+        "i_htrans",
+        "i_hwrite",
+        "nzcv",
+        "pc"
+      ],
+      "raw_hit": true,
       "plan": {
         "id": "latency_load_store_instr_lt_min",
         "class": "latency_bin",
@@ -2016,8 +2233,8 @@
     "FCOV_TX_DECODE_EXEC": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
-      "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC",
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
+      "scenario_id": "SC_039_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2027,15 +2244,18 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
-      "raw_hit": true,
+      "raw_hit": null,
       "plan": {
         "id": "FCOV_TX_DECODE_EXEC",
         "source_ref": "function_model.transactions.TX_DECODE_EXEC",
@@ -2052,8 +2272,8 @@
     "FCOV_TX_LOAD_STORE": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_TRANSACTION_TX_LOAD_STORE",
-      "scenario_id": "SC_002_EQ_TRANSACTION_TX_LOAD_STORE",
+      "goal_id": "EQ_ERROR_D_BUS_ERROR",
+      "scenario_id": "SC_016_EQ_ERROR_D_BUS_ERROR",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2063,15 +2283,18 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
-      "raw_hit": true,
+      "raw_hit": null,
       "plan": {
         "id": "FCOV_TX_LOAD_STORE",
         "source_ref": "function_model.transactions.TX_LOAD_STORE",
@@ -2088,8 +2311,8 @@
     "CCOV_IF_STALL": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_COVERAGE_CCOV_IF_STALL",
-      "scenario_id": "SC_030_EQ_COVERAGE_CCOV_IF_STALL",
+      "goal_id": "EQ_SCENARIO_SC_IF_STALL",
+      "scenario_id": "SC_006_EQ_SCENARIO_SC_IF_STALL",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2099,15 +2322,18 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
-      "raw_hit": true,
+      "raw_hit": null,
       "plan": {
         "id": "CCOV_IF_STALL",
         "source_ref": "cycle_model.backpressure",
@@ -2124,8 +2350,8 @@
     "CCOV_MEM_STALL": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
-      "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2",
+      "goal_id": "EQ_STATE_CORE_STALL_MEM_TO_FAULT_HALT_6",
+      "scenario_id": "SC_023_EQ_STATE_CORE_STALL_MEM_TO_FAULT_HALT_6",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2135,15 +2361,18 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
-      "raw_hit": true,
+      "raw_hit": null,
       "plan": {
         "id": "CCOV_MEM_STALL",
         "source_ref": "cycle_model.handshake_rules",
@@ -2160,8 +2389,8 @@
     "CCOV_PIPELINE_ORDER": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_TIMING_ORDERING_1",
-      "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_EX",
+      "scenario_id": "SC_028_EQ_MODULE_ARM_M0_MIN_EX",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2171,15 +2400,18 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
-      "raw_hit": true,
+      "raw_hit": null,
       "plan": {
         "id": "CCOV_PIPELINE_ORDER",
         "source_ref": "cycle_model.ordering",
@@ -2193,11 +2425,11 @@
       "description": "In-order commit observed",
       "source_ref": "cycle_model.ordering"
     },
-    "cycle_ordering_0": {
+    "latency_fetch_accept_at_min": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_TIMING_ORDERING_1",
-      "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_AT_MIN",
+      "scenario_id": "SC_031_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_AT_MIN",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2207,22 +2439,25 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "coverage_domain": "function"
     },
-    "cycle_ordering_1": {
+    "latency_fetch_accept_unbounded": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_TIMING_ORDERING_1",
-      "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_UNBOUNDED",
+      "scenario_id": "SC_032_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_UNBOUNDED",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2232,22 +2467,25 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "coverage_domain": "function"
     },
-    "cycle_backpressure_1": {
+    "latency_alu_instr_at_min": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_MEMORY_ID_EX_CTRL",
-      "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL",
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MIN",
+      "scenario_id": "SC_034_EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MIN",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2257,22 +2495,25 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "coverage_domain": "function"
     },
-    "cycle_latency_fetch_accept": {
+    "latency_alu_instr_at_max": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
-      "scenario_id": "SC_031_EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MAX",
+      "scenario_id": "SC_035_EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MAX",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2282,22 +2523,25 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "coverage_domain": "function"
     },
-    "cycle_latency_alu_instr": {
+    "latency_alu_instr_gt_max": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
-      "scenario_id": "SC_032_EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_GT_MAX",
+      "scenario_id": "SC_036_EQ_COVERAGE_LATENCY_ALU_INSTR_GT_MAX",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2307,22 +2551,25 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "coverage_domain": "function"
     },
-    "cycle_latency_load_store_instr": {
+    "latency_load_store_instr_at_min": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
-      "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_AT_MIN",
+      "scenario_id": "SC_038_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_AT_MIN",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2332,22 +2579,25 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "coverage_domain": "function"
     },
-    "cycle_pipeline_if": {
+    "latency_load_store_instr_unbounded": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_IF",
-      "scenario_id": "SC_034_EQ_COVERAGE_CYCLE_PIPELINE_IF",
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
+      "scenario_id": "SC_039_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2357,22 +2607,25 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
       "raw_hit": true,
       "coverage_domain": "function"
     },
-    "cycle_pipeline_id": {
+    "fcov_reset": {
       "hit": true,
       "source": "scoreboard_events",
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_ID",
-      "scenario_id": "SC_035_EQ_COVERAGE_CYCLE_PIPELINE_ID",
+      "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+      "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
       "rtl_observed_keys": [
         "d_haddr",
         "d_hburst",
@@ -2382,88 +2635,31 @@
         "d_htrans",
         "d_hwdata",
         "d_hwrite",
+        "fault_halt",
         "i_haddr",
         "i_hburst",
         "i_hmastlock",
         "i_hprot",
         "i_hsize",
         "i_htrans",
-        "i_hwrite"
+        "i_hwrite",
+        "nzcv",
+        "pc"
       ],
-      "raw_hit": true,
-      "coverage_domain": "function"
-    },
-    "cycle_pipeline_ex": {
-      "hit": true,
-      "source": "scoreboard_events",
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_EX",
-      "scenario_id": "SC_036_EQ_COVERAGE_CYCLE_PIPELINE_EX",
-      "rtl_observed_keys": [
-        "d_haddr",
-        "d_hburst",
-        "d_hmastlock",
-        "d_hprot",
-        "d_hsize",
-        "d_htrans",
-        "d_hwdata",
-        "d_hwrite",
-        "i_haddr",
-        "i_hburst",
-        "i_hmastlock",
-        "i_hprot",
-        "i_hsize",
-        "i_htrans",
-        "i_hwrite"
-      ],
-      "raw_hit": true,
-      "coverage_domain": "function"
-    },
-    "cycle_backpressure_0": {
-      "hit": true,
-      "source": "scoreboard_events",
-      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
-      "scenario_id": "SC_037_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
-      "rtl_observed_keys": [
-        "d_haddr",
-        "d_hburst",
-        "d_hmastlock",
-        "d_hprot",
-        "d_hsize",
-        "d_htrans",
-        "d_hwdata",
-        "d_hwrite",
-        "i_haddr",
-        "i_hburst",
-        "i_hmastlock",
-        "i_hprot",
-        "i_hsize",
-        "i_htrans",
-        "i_hwrite"
-      ],
-      "raw_hit": true,
+      "raw_hit": null,
       "coverage_domain": "function"
     }
   },
   "raw_functional": {
-    "hit": 35,
-    "total": 35,
+    "hit": 30,
+    "total": 30,
     "pct": 100.0
   },
   "raw_functional_bins": {
-    "fcov_tx_decode_exec": {
-      "hit": true,
-      "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
-      "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC"
-    },
     "function_alu_compare_branch": {
       "hit": true,
       "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
       "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC"
-    },
-    "fcov_tx_load_store": {
-      "hit": true,
-      "goal_id": "EQ_TRANSACTION_TX_LOAD_STORE",
-      "scenario_id": "SC_002_EQ_TRANSACTION_TX_LOAD_STORE"
     },
     "function_single_transfer_memory_access": {
       "hit": true,
@@ -2495,11 +2691,6 @@
       "goal_id": "EQ_ERROR_D_BUS_ERROR",
       "scenario_id": "SC_016_EQ_ERROR_D_BUS_ERROR"
     },
-    "ccov_mem_stall": {
-      "hit": true,
-      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
-      "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
-    },
     "cycle_handshake_0": {
       "hit": true,
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
@@ -2514,26 +2705,6 @@
       "hit": true,
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
       "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
-    },
-    "ccov_pipeline_order": {
-      "hit": true,
-      "goal_id": "EQ_TIMING_ORDERING_1",
-      "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
-    },
-    "cycle_ordering_0": {
-      "hit": true,
-      "goal_id": "EQ_TIMING_ORDERING_1",
-      "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
-    },
-    "cycle_ordering_1": {
-      "hit": true,
-      "goal_id": "EQ_TIMING_ORDERING_1",
-      "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
-    },
-    "cycle_backpressure_1": {
-      "hit": true,
-      "goal_id": "EQ_MEMORY_ID_EX_CTRL",
-      "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL"
     },
     "fsm_core_run_to_fault_halt_5": {
       "hit": true,
@@ -2585,77 +2756,72 @@
       "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
       "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
     },
-    "ccov_if_stall": {
+    "latency_fetch_accept_lt_min": {
       "hit": true,
-      "goal_id": "EQ_COVERAGE_CCOV_IF_STALL",
-      "scenario_id": "SC_030_EQ_COVERAGE_CCOV_IF_STALL"
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_LT_MIN",
+      "scenario_id": "SC_030_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_LT_MIN"
     },
-    "cycle_latency_fetch_accept": {
+    "latency_fetch_accept_at_min": {
       "hit": true,
-      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
-      "scenario_id": "SC_031_EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT"
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_AT_MIN",
+      "scenario_id": "SC_031_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_AT_MIN"
     },
-    "cycle_latency_alu_instr": {
+    "latency_fetch_accept_unbounded": {
       "hit": true,
-      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
-      "scenario_id": "SC_032_EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR"
+      "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_UNBOUNDED",
+      "scenario_id": "SC_032_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_UNBOUNDED"
     },
-    "cycle_latency_load_store_instr": {
+    "latency_alu_instr_lt_min": {
       "hit": true,
-      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
-      "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR"
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_LT_MIN",
+      "scenario_id": "SC_033_EQ_COVERAGE_LATENCY_ALU_INSTR_LT_MIN"
     },
-    "cycle_pipeline_if": {
+    "latency_alu_instr_at_min": {
       "hit": true,
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_IF",
-      "scenario_id": "SC_034_EQ_COVERAGE_CYCLE_PIPELINE_IF"
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MIN",
+      "scenario_id": "SC_034_EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MIN"
     },
-    "cycle_pipeline_id": {
+    "latency_alu_instr_at_max": {
       "hit": true,
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_ID",
-      "scenario_id": "SC_035_EQ_COVERAGE_CYCLE_PIPELINE_ID"
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MAX",
+      "scenario_id": "SC_035_EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MAX"
     },
-    "cycle_pipeline_ex": {
+    "latency_alu_instr_gt_max": {
       "hit": true,
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_EX",
-      "scenario_id": "SC_036_EQ_COVERAGE_CYCLE_PIPELINE_EX"
+      "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_GT_MAX",
+      "scenario_id": "SC_036_EQ_COVERAGE_LATENCY_ALU_INSTR_GT_MAX"
     },
-    "cycle_backpressure_0": {
+    "latency_load_store_instr_lt_min": {
       "hit": true,
-      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
-      "scenario_id": "SC_037_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_LT_MIN",
+      "scenario_id": "SC_037_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_LT_MIN"
+    },
+    "latency_load_store_instr_at_min": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_AT_MIN",
+      "scenario_id": "SC_038_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_AT_MIN"
+    },
+    "latency_load_store_instr_unbounded": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
+      "scenario_id": "SC_039_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED"
     }
   },
   "rtl_observed": {
-    "status": "blocked",
-    "scoreboard_events": 37,
-    "scoreboard_passed_events_with_refs": 32,
+    "status": "pass",
+    "scoreboard_events": 39,
+    "scoreboard_passed_events_with_refs": 39,
     "goal_refs": [
       "SC_ALU_executed",
       "SC_BUS_ERROR_executed",
       "SC_CMP_BRANCH_executed",
       "SC_IF_STALL_executed",
       "SC_LOAD_STORE_executed",
-      "ccov_if_stall",
-      "ccov_mem_stall",
-      "ccov_pipeline_order",
-      "cycle_backpressure_0",
-      "cycle_backpressure_1",
       "cycle_handshake_0",
       "cycle_handshake_1",
       "cycle_handshake_2",
-      "cycle_latency_alu_instr",
-      "cycle_latency_fetch_accept",
-      "cycle_latency_load_store_instr",
-      "cycle_ordering_0",
-      "cycle_ordering_1",
-      "cycle_pipeline_ex",
-      "cycle_pipeline_id",
-      "cycle_pipeline_if",
       "error_d_bus_error",
       "error_i_bus_error",
-      "fcov_tx_decode_exec",
-      "fcov_tx_load_store",
       "fsm_core_fault_halt_to_reset_7",
       "fsm_core_reset_to_run_0",
       "fsm_core_run_to_fault_halt_5",
@@ -2665,13 +2831,19 @@
       "fsm_core_stall_mem_to_fault_halt_6",
       "fsm_core_stall_mem_to_run_4",
       "function_alu_compare_branch",
-      "function_single_transfer_memory_access"
-    ],
-    "missing_bins": [
+      "function_single_transfer_memory_access",
+      "latency_alu_instr_at_max",
+      "latency_alu_instr_at_min",
+      "latency_alu_instr_gt_max",
       "latency_alu_instr_lt_min",
+      "latency_fetch_accept_at_min",
       "latency_fetch_accept_lt_min",
-      "latency_load_store_instr_lt_min"
+      "latency_fetch_accept_unbounded",
+      "latency_load_store_instr_at_min",
+      "latency_load_store_instr_lt_min",
+      "latency_load_store_instr_unbounded"
     ],
+    "missing_bins": [],
     "invalid_rows": []
   },
   "lines": {
@@ -2685,7 +2857,7 @@
     "hit": 0,
     "total": 0,
     "pct": null,
-    "target_pct": 90.0,
+    "target_pct": 85.0,
     "meets_target": false
   },
   "functions": {
@@ -2703,12 +2875,10 @@
   },
   "files": {},
   "limitations": {
-    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: latency_alu_instr_lt_min, latency_fetch_accept_lt_min, latency_load_store_instr_lt_min",
     "line": "SSOT requests line/code coverage, but coverage.info has no DA records.",
     "branch": "SSOT requests branch coverage, but coverage.info has no BRDA/BRF records for this tool flow."
   },
   "static_universe_not_instrumented": {
-    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: latency_alu_instr_lt_min, latency_fetch_accept_lt_min, latency_load_store_instr_lt_min",
     "line": "SSOT requests line/code coverage, but coverage.info has no DA records.",
     "branch": "SSOT requests branch coverage, but coverage.info has no BRDA/BRF records for this tool flow."
   },

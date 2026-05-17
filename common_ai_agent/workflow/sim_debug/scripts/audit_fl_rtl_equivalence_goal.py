@@ -10,6 +10,7 @@ loop with machine-readable evidence.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -41,6 +42,10 @@ def _read_json(path: Path) -> tuple[dict[str, Any], str]:
     if not isinstance(doc, dict):
         return {}, f"{path.name} root must be a JSON object"
     return doc, ""
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _load_yaml(path: Path) -> tuple[dict[str, Any], str]:
@@ -196,6 +201,81 @@ def _report_uses_real_tool(report: dict[str, Any]) -> bool:
     return any(tool in text for tool in REAL_RTL_TOOLS)
 
 
+def _approved_req_status(ip: str, root: Path, ip_dir: Path) -> tuple[bool, list[Path], str]:
+    req_dir = ip_dir / "req"
+    req_paths = sorted(req_dir.glob("*.md")) if req_dir.is_dir() else []
+    manifest_path = req_dir / "approval_manifest.json"
+    req_bytes = sum(path.stat().st_size for path in req_paths if path.is_file())
+    if not req_paths:
+        return False, req_paths, "no requirement markdown under req/"
+    if req_bytes < 1000:
+        return False, req_paths, f"requirement markdown is too small; bytes={req_bytes}"
+    placeholder_paths = [path for path in req_paths if _text_has_placeholder(path)]
+    if placeholder_paths:
+        names = ", ".join(_rel(path, root) for path in placeholder_paths)
+        return False, req_paths, f"requirement markdown contains placeholder markers: {names}"
+
+    manifest, manifest_error = _read_json(manifest_path)
+    if manifest_error:
+        return False, req_paths, f"missing or invalid approval manifest: {manifest_error}"
+    if manifest.get("type") != "requirement_approval_manifest":
+        return False, req_paths, "approval_manifest.json type must be requirement_approval_manifest"
+    if manifest.get("ip") != ip:
+        return False, req_paths, f"approval_manifest.json ip mismatch: {manifest.get('ip')!r}"
+    if not str(manifest.get("approved_by") or "").strip():
+        return False, req_paths, "approval_manifest.json approved_by is required"
+    if not str(manifest.get("approved_at_utc") or "").strip():
+        return False, req_paths, "approval_manifest.json approved_at_utc is required"
+
+    target_rel = str(manifest.get("target") or "").strip()
+    target_sha = str(manifest.get("target_sha256") or "").strip()
+    if not target_rel:
+        return False, req_paths, "approval_manifest.json target is required"
+    target_path = (root / target_rel).resolve()
+    if not target_path.is_file():
+        return False, req_paths, f"approval_manifest.json target is missing: {target_rel}"
+    try:
+        target_path.relative_to(req_dir.resolve())
+    except ValueError:
+        return False, req_paths, "approval_manifest.json target must point inside this IP req/ directory"
+    if target_path.suffix.lower() != ".md":
+        return False, req_paths, "approval_manifest.json target must be a markdown requirement artifact"
+    if not target_sha:
+        return False, req_paths, "approval_manifest.json target_sha256 is required"
+    actual_sha = _sha256(target_path)
+    if actual_sha != target_sha:
+        return False, req_paths, "approval_manifest.json target_sha256 does not match requirement artifact"
+
+    source_rel = str(manifest.get("source") or "").strip()
+    source_sha = str(manifest.get("source_sha256") or "").strip()
+    if not source_rel:
+        return False, req_paths, "approval_manifest.json source is required"
+    source_path = (root / source_rel).resolve()
+    if not source_path.is_file():
+        return False, req_paths, f"approval_manifest.json source is missing: {source_rel}"
+    try:
+        source_path.relative_to(ip_dir.resolve())
+    except ValueError:
+        return False, req_paths, "approval_manifest.json source must point inside this IP directory"
+    if not source_sha:
+        return False, req_paths, "approval_manifest.json source_sha256 is required"
+    if _sha256(source_path) != source_sha:
+        return False, req_paths, "approval_manifest.json source_sha256 does not match review packet"
+
+    review_decision_path = ip_dir / "review" / "decision_needed_req_requirement_approval.json"
+    if review_decision_path.is_file():
+        review_decision, review_error = _read_json(review_decision_path)
+        if review_error:
+            return False, req_paths, f"cannot verify review decision resolution: {review_error}"
+        if review_decision.get("status") != "resolved" or not review_decision.get("resolved_at"):
+            return False, req_paths, "requirement approval review decision remains unresolved"
+    return (
+        True,
+        req_paths,
+        f"approved_by={manifest.get('approved_by')} target={target_rel} source={source_rel}",
+    )
+
+
 def _is_stale(source_paths: list[Path], evidence_paths: list[Path], root: Path) -> list[str]:
     sources = [path for path in source_paths if path.is_file()]
     evidence = [path for path in evidence_paths if path.is_file()]
@@ -231,21 +311,40 @@ def audit(ip: str, root: Path) -> dict[str, Any]:
 
     checks: list[dict[str, Any]] = []
 
-    req_paths = sorted((ip_dir / "req").glob("*.md")) if (ip_dir / "req").is_dir() else []
+    req_ok, req_paths, req_status_detail = _approved_req_status(ip, root, ip_dir)
+    approval_manifest_path = ip_dir / "req" / "approval_manifest.json"
     req_bytes = sum(path.stat().st_size for path in req_paths if path.is_file())
-    req_ok = bool(req_paths) and req_bytes >= 1000 and all(not _text_has_placeholder(path) for path in req_paths)
+    requirement_review_path = ip_dir / "doc" / f"{ip}_requirement_review.md"
+    requirement_decision_path = ip_dir / "review" / "decision_needed_req_requirement_approval.json"
+    req_evidence = [_rel(path, root) for path in req_paths]
+    if approval_manifest_path.is_file():
+        req_evidence.append(_rel(approval_manifest_path, root))
+    if requirement_review_path.is_file():
+        req_evidence.append(_rel(requirement_review_path, root))
+    if requirement_decision_path.is_file():
+        req_evidence.append(_rel(requirement_decision_path, root))
+    if not req_ok and requirement_review_path.is_file():
+        req_next_action = (
+            f"approve or reject {_rel(requirement_review_path, root)}; if approved, run "
+            "workflow/req-gen/scripts/promote_requirement_review.py and rerun this audit"
+        )
+    else:
+        req_next_action = f"capture requirement intent in {ip}/req/*.md before SSOT signoff"
     _check(
         checks,
         "req",
         req_ok,
         label="Human-approved requirement artifact exists",
-        evidence=[_rel(path, root) for path in req_paths],
+        evidence=req_evidence,
         owner="human gate",
         detail=(
-            "requirement markdown must exist under req/, contain at least 1000 bytes "
-            f"of substantive text, and contain no TODO/TBD markers; bytes={req_bytes}"
+            "requirement markdown must exist under req/, contain at least 1000 bytes, "
+            "contain no TODO/TBD markers, and match req/approval_manifest.json; "
+            f"bytes={req_bytes}; approval_manifest={approval_manifest_path.is_file()}; "
+            f"pending_review={requirement_review_path.is_file()}; "
+            f"review_decision={requirement_decision_path.is_file()}; {req_status_detail}"
         ),
-        next_action=f"capture requirement intent in {ip}/req/*.md before SSOT signoff",
+        next_action=req_next_action,
     )
 
     ssot_doc, ssot_error = _load_yaml(ssot_path)

@@ -41,6 +41,10 @@ Everything else stays in code, commit messages, or the LLM call trace.
    pattern, a paper, a vendor pattern adapted into our flow.
 5. **IP-handover context.** Anything a future engineer or future LLM
    session would need to re-read to make decisions about this IP.
+6. **A real-use debugging lesson.** If a bug or confusing status can only be
+   understood by comparing UI/API/worker/headless behavior, update the wiki in
+   the same pass as the code/test change. Do not leave the next session to
+   rediscover which path is product authority.
 
 ## Do NOT write when (noise)
 
@@ -60,6 +64,7 @@ Everything else stays in code, commit messages, or the LLM call trace.
 | A **commit** carries a decision that the diff cannot explain on its own | Add one paragraph next to the relevant page; reference the commit SHA. |
 | An IP reaches **handover or completion** | Finalize `<ip>/wiki/notes.md` with 3–5 bullets a future maintainer must know. |
 | A **new IP starts** and a similar problem looms | Run `wiki_query(topic="...")`; if there is no entry, the current session is the right moment to start one. |
+| A **debugging surface changes** | Update the relevant wiki page, usually [[pipeline-progress-debugging]], in the same branch as the code/test change. |
 
 ## Promotion ladder
 
@@ -119,3 +124,14 @@ needs raw detail. This is the L0/L1/L2 layering documented in
 If a future commit changes this policy, edit this page in the same
 commit and add a `[[log]]` entry. The policy is part of the wiki, so
 it compounds the same way the lessons do.
+
+During active ATLAS pipeline development, wiki maintenance is not a separate
+documentation phase. The implementation loop is:
+
+```text
+change code -> add/adjust tests -> validate in the closest real environment -> update wiki
+```
+
+This is especially important for orchestrator, worker, multi-user, and
+progress-debug features, where the important knowledge is often the difference
+between intended design, shipped UI behavior, and headless reproduction logs.

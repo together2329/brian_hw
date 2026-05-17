@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -68,6 +69,105 @@ EXPRESSION_SCALAR_KEYS = {
     "when",
 }
 
+RUN_MODES = {"starter", "engineering", "signoff"}
+SIGNOFF_CRITICAL_DEFAULT_PATHS = {
+    "cycle_model",
+    "dft",
+    "error_handling",
+    "pnr",
+    "quality_gates",
+    "security",
+    "synthesis",
+    "test_requirements",
+    "timing",
+}
+
+
+def _normalize_run_mode(value: Any) -> str:
+    text = str(value or "").strip().lower().replace("_", "-")
+    if text == "eng":
+        text = "engineering"
+    if text == "sign-off":
+        text = "signoff"
+    return text if text in RUN_MODES else "signoff"
+
+
+def _mode_allowed_for_default(path: str) -> list[str]:
+    top = str(path or "").split(".", 1)[0].split("[", 1)[0]
+    if top in {"pnr", "dft"}:
+        return ["starter", "engineering"]
+    if _is_signoff_critical_path(path):
+        return ["starter"]
+    return ["starter", "engineering"]
+
+
+def _is_signoff_critical_path(path: str) -> bool:
+    field = str(path or "").strip().lstrip("/").replace("/", ".")
+    for prefix in SIGNOFF_CRITICAL_DEFAULT_PATHS:
+        if field == prefix or field.startswith(prefix + ".") or field.startswith(prefix + "["):
+            return True
+    return False
+
+
+def _iter_provenance_paths(value: Any, prefix: str = ""):
+    if prefix:
+        yield prefix
+    if isinstance(value, dict):
+        for key in sorted(value):
+            child = f"{prefix}.{key}" if prefix else str(key)
+            yield from _iter_provenance_paths(value[key], child)
+    elif isinstance(value, list):
+        for idx, item in enumerate(value):
+            child = f"{prefix}[{idx}]" if prefix else f"[{idx}]"
+            yield from _iter_provenance_paths(item, child)
+
+
+def _write_provenance_sidecar(
+    root: Path,
+    ip: str,
+    ssot: Path,
+    before: dict[str, Any],
+    after: dict[str, Any],
+    run_mode: str,
+) -> Path:
+    entries: list[dict[str, Any]] = []
+    before_paths = set(_iter_provenance_paths(before))
+    after_paths = sorted(set(_iter_provenance_paths(after)))
+    for path in after_paths:
+        if path in before_paths:
+            entries.append({
+                "path": path,
+                "authority": "user",
+                "mode_allowed": ["starter", "engineering", "signoff"],
+            })
+        else:
+            critical = _is_signoff_critical_path(path)
+            entries.append({
+                "path": path,
+                "authority": "generated_default",
+                "mode_allowed": _mode_allowed_for_default(path),
+                "review_needed_for": "signoff" if critical else "",
+                "signoff_critical": critical,
+                "source": "repair_ssot_schema",
+            })
+    sidecar = ssot.with_suffix(".provenance.json")
+    sidecar.write_text(
+        json.dumps(
+            {
+                "schema_version": "ssot_provenance.v1",
+                "ip": ip,
+                "run_mode": run_mode,
+                "ssot": str(ssot.relative_to(root)),
+                "fields": entries,
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return sidecar
+
 
 def _split_inline_comment(value: str) -> tuple[str, str]:
     in_single = False
@@ -110,13 +210,36 @@ def _quote_expression_scalars(text: str) -> str:
     pattern = re.compile(
         rf"^(\s*(?:-\s*)?(?:{'|'.join(sorted(EXPRESSION_SCALAR_KEYS))})\s*:\s*)(.+?)\s*$"
     )
+    lines = text.splitlines()
     out: list[str] = []
-    for line in text.splitlines():
+    idx = 0
+    while idx < len(lines):
+        line = lines[idx]
         match = pattern.match(line)
         if not match:
             out.append(line)
+            idx += 1
             continue
         prefix, raw_value = match.groups()
+        base_indent = len(line) - len(line.lstrip(" "))
+        continuation: list[str] = []
+        cursor = idx + 1
+        while cursor < len(lines):
+            next_line = lines[cursor]
+            if not next_line.strip():
+                break
+            next_indent = len(next_line) - len(next_line.lstrip(" "))
+            stripped = next_line.strip()
+            looks_like_next_key = bool(re.match(r"^(?:-\s*)?[A-Za-z_][A-Za-z0-9_-]*\s*:", stripped))
+            if next_indent <= base_indent or looks_like_next_key:
+                break
+            continuation.append(stripped)
+            cursor += 1
+        if continuation and raw_value.strip()[:1] not in {"'", '"', "|", ">"}:
+            raw_value = " ".join([raw_value.strip(), *continuation])
+            idx = cursor
+        else:
+            idx += 1
         value, comment = _split_inline_comment(raw_value)
         if _needs_expression_quote(value):
             quoted = json.dumps(value.strip())
@@ -126,9 +249,65 @@ def _quote_expression_scalars(text: str) -> str:
     return "\n".join(out) + ("\n" if text.endswith("\n") else "")
 
 
+_FLOW_MAPPING_LINE_RE = re.compile(r"^(\s*-\s*)\{\s*(.+?)\s*\}\s*$")
+_FLOW_MAPPING_SPLIT_RE = re.compile(r"\s*,\s*(?=[A-Za-z_][A-Za-z0-9_]*\s*:)")
+_FLOW_MAPPING_BRACKET_RE = re.compile(r"\b[A-Za-z_][A-Za-z0-9_.]*\[[^\]\[]+\]")
+
+
+def _expand_flow_mappings_with_brackets(text: str) -> str:
+    """Rewrite ``- { key: REG[bit], ... }`` lines to block style.
+
+    LLMs sometimes emit flow-style list items whose values contain bracketed
+    register references such as ``IRQ_EN[0]`` or ``STATUS[3:0]``. PyYAML
+    parses the ``[`` as starting a nested flow sequence, so the document
+    fails to load. The semantically equivalent block form parses cleanly:
+
+      - name: ST_BUSY
+        enable_reg: "IRQ_EN[0]"
+        ...
+
+    This runs before YAML parsing as part of the deterministic repair pass.
+    """
+    out: list[str] = []
+    for line in text.splitlines():
+        match = _FLOW_MAPPING_LINE_RE.match(line)
+        if not match or "[" not in line or "]" not in line:
+            out.append(line)
+            continue
+        body = match.group(2)
+        if not _FLOW_MAPPING_BRACKET_RE.search(body):
+            out.append(line)
+            continue
+        prefix = match.group(1)
+        dash_col = prefix.find("-")
+        child_indent = " " * (dash_col + 2) if dash_col >= 0 else " " * len(prefix)
+        first_indent = prefix
+        pairs = _FLOW_MAPPING_SPLIT_RE.split(body)
+        rewritten: list[str] = []
+        bad = False
+        for pidx, part in enumerate(pairs):
+            if ":" not in part:
+                bad = True
+                break
+            key, _, value = part.partition(":")
+            value = value.strip()
+            if value and value[0] not in {'"', "'"}:
+                if _FLOW_MAPPING_BRACKET_RE.search(value):
+                    value = '"' + value.replace('"', r'\"') + '"'
+            indent = first_indent if pidx == 0 else child_indent
+            rewritten.append(f"{indent}{key.strip()}: {value}")
+        if bad or not rewritten:
+            out.append(line)
+        else:
+            out.extend(rewritten)
+    suffix = "\n" if text.endswith("\n") else ""
+    return "\n".join(out) + suffix
+
+
 def _load_yaml(path: Path) -> dict[str, Any]:
     raw = path.read_text(encoding="utf-8")
-    doc = yaml.safe_load(_quote_expression_scalars(raw))
+    normalized = _expand_flow_mappings_with_brackets(_quote_expression_scalars(raw))
+    doc = yaml.safe_load(normalized)
     if not isinstance(doc, dict):
         raise SystemExit(f"[repair_ssot_schema] {path} is not a YAML mapping")
     return doc
@@ -341,10 +520,19 @@ def _should_collapse_to_top_module(doc: dict[str, Any], ip: str) -> bool:
 
 
 def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
+    # Resolve the SSOT-declared top module name and file. When the LLM emits a
+    # top whose name differs from the IP name (e.g. `quad_spi_ctrl_top` for IP
+    # `quad_spi_ctrl`), we must align the auto-generated wrapper sub_module to
+    # the SSOT top so check_ssot_disk's structural invariants do not flag a
+    # name/file collision. Falling back to `ip` preserves legacy IPs where
+    # top_module.name == ip.
+    top_module = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+    top_name = str(top_module.get("name") or "").strip() or ip
+    top_file = str(top_module.get("file") or "").strip() or f"rtl/{ip}.sv"
     if _should_collapse_to_top_module(doc, ip):
         return [{
-            "name": ip,
-            "file": f"rtl/{ip}.sv",
+            "name": top_name,
+            "file": top_file,
             "ownership": "manifest",
             "ssot_gen": True,
             "description": "Top-level leaf implementation module matching SSOT top_module and monolithic decomposition.",
@@ -369,11 +557,35 @@ def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
             if row_name.endswith("_pkg") or row_file.endswith("_pkg.sv"):
                 continue
             if row.get("name") in {f"{ip}_wrapper", "wrapper"}:
-                row["name"] = ip
-                row["file"] = f"rtl/{ip}.sv"
+                row["name"] = top_name
+                row["file"] = top_file
                 row["description"] = "Top-level integration module matching SSOT top_module"
+            # Drop any sub_module whose (name, file) silently duplicates the
+            # top_module declaration. The top is declared by top_module and
+            # appearing again as a sub_module breaks rtl-gen audit and the
+            # check_ssot_disk invariant. Equivalent to the user-facing
+            # invariant that flags `sub_modules[*].name == top_module.name`.
+            row_top_collides = (
+                (row.get("name") and row.get("name") == top_name)
+                or (row.get("file") and row.get("file") == top_file)
+            )
+            if row_top_collides and not row.get("wiring_only"):
+                continue
+            # Drop sub_modules that share the IP name but the SSOT top is named
+            # differently (`<ip>_top` is the new convention). They are leftover
+            # LLM duplicates that conflict with the top declaration.
+            if row.get("name") == ip and top_name != ip:
+                continue
             fixed.append(row)
-        if not any(isinstance(item, dict) and item.get("name") == ip for item in fixed):
+        # Only auto-append a wrapper sub_module entry when the SSOT top name
+        # equals the IP name (legacy convention). When they differ — for
+        # example top_module.name == `<ip>_top` — the top is fully described
+        # by the `top_module:` section and must not also appear as a
+        # sub_module (this would conflict with the check_ssot_disk invariant
+        # that forbids `sub_modules[*].name == top_module.name`).
+        if top_name == ip and not any(
+            isinstance(item, dict) and item.get("name") == ip for item in fixed
+        ):
             fixed.append({
                 "name": ip,
                 "file": f"rtl/{ip}.sv",
@@ -921,7 +1133,7 @@ def _add_or_update_derived_signal(
     *,
     name: str,
     expr: str,
-    width: int,
+    width: Any,
     description: str,
 ) -> None:
     items = _fm_list(fm, "derived_signals")
@@ -939,6 +1151,159 @@ def _add_or_update_derived_signal(
         "description": description,
         "source": "repair_ssot_schema.apb_helper",
     })
+
+
+def _ssot_width(value: Any, default: Any = 1) -> Any:
+    """Return a validator-friendly width without losing parameterized values."""
+
+    if value is None or value == "":
+        return default
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    text = str(value).strip()
+    if not text:
+        return default
+    if re.fullmatch(r"\d+", text):
+        return int(text)
+    return text
+
+
+def _ssot_int(value: Any, default: int | None = None) -> int | None:
+    if value is None or value == "":
+        return default
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    text = str(value).strip().replace("_", "")
+    if not text:
+        return default
+    try:
+        if text.lower().startswith("0x"):
+            return int(text, 16)
+        return int(text, 10)
+    except ValueError:
+        return default
+
+
+def _reg_helper_name(name: Any) -> str:
+    text = re.sub(r"[^A-Za-z0-9_]+", "_", str(name or "").strip()).strip("_").lower()
+    return text or "reg"
+
+
+def _state_expr_for_register(reg_name: str, state_names: set[str]) -> str:
+    base = _reg_helper_name(reg_name)
+    candidates = [
+        base,
+        f"{base}_reg",
+        base.replace("data_in", "gpio_in_sync"),
+        base.replace("irq_raw", "irq_raw_reg"),
+        base.replace("irq_status", "irq_status_reg"),
+        base.replace("irq_en_rise", "irq_en_rise_reg"),
+        base.replace("irq_en_fall", "irq_en_fall_reg"),
+        base.replace("data_out", "data_out_reg"),
+        base.replace("dir", "dir_reg"),
+    ]
+    for cand in candidates:
+        if cand in state_names:
+            return cand
+    return "0"
+
+
+def _nested_if_expr(rows: list[tuple[str, str]], default: str = "0") -> str:
+    expr = default
+    for cond, value in reversed(rows):
+        expr = f"({value} if {cond} else {expr})"
+    return expr
+
+
+def _apb_byte_mask_expr(*, pstrb_width: Any, data_width: Any) -> str:
+    data_width_i = _ssot_int(data_width, 32) or 32
+    strb_width_i = _ssot_int(pstrb_width, None)
+    if strb_width_i is None:
+        strb_width_i = max(1, (data_width_i + 7) // 8)
+    lanes = max(1, min(strb_width_i, max(1, (data_width_i + 7) // 8)))
+    hex_digits = max(2, (data_width_i + 3) // 4)
+    terms = []
+    for lane in range(lanes):
+        mask = 0xFF << (lane * 8)
+        terms.append(f"(0x{mask:0{hex_digits}X} if (pstrb & 0x{1 << lane:X}) != 0 else 0)")
+    return "(" + " | ".join(terms) + ")"
+
+
+def _ensure_apb_register_decode_helpers(doc: dict[str, Any], fm: dict[str, Any]) -> None:
+    regs = doc.get("registers") if isinstance(doc.get("registers"), dict) else {}
+    reg_list = [item for item in regs.get("register_list") or [] if isinstance(item, dict)]
+    inputs = set(_ports_by_direction(doc, "input"))
+    if not reg_list or "paddr" not in inputs:
+        return
+
+    offsets: list[tuple[dict[str, Any], int]] = []
+    for reg in reg_list:
+        offset = _ssot_int(reg.get("offset"), None)
+        if offset is None:
+            continue
+        offsets.append((reg, offset))
+    if not offsets:
+        return
+
+    data_width = _ssot_width(
+        _port_widths(doc).get("prdata"),
+        (regs.get("config") if isinstance(regs.get("config"), dict) else {}).get("register_width", 32),
+    )
+    state_names = {
+        str(item.get("name") or "").strip()
+        for item in fm.get("state_variables") or []
+        if isinstance(item, dict) and str(item.get("name") or "").strip()
+    }
+    addr_name = "addr"
+    legal_terms = [f"({addr_name} == {offset})" for _reg, offset in offsets]
+    _add_or_update_derived_signal(
+        fm,
+        name="legal_addr",
+        expr=" or ".join(legal_terms) if legal_terms else "0",
+        width=1,
+        description="APB legal address decode derived from registers.register_list offsets.",
+    )
+
+    read_rows: list[tuple[str, str]] = []
+    for reg, offset in offsets:
+        helper = _reg_helper_name(reg.get("name"))
+        read_rows.append((f"{addr_name} == {offset}", _state_expr_for_register(helper, state_names)))
+        _add_or_update_derived_signal(
+            fm,
+            name=f"wr_{helper}",
+            expr=f"apb_valid_write and ({addr_name} == {offset})",
+            width=1,
+            description=f"APB write decode helper for register {reg.get('name')}.",
+        )
+        _add_or_update_derived_signal(
+            fm,
+            name=f"rd_{helper}",
+            expr=f"apb_valid_read and ({addr_name} == {offset})",
+            width=1,
+            description=f"APB read decode helper for register {reg.get('name')}.",
+        )
+        access = str(reg.get("access") or "").lower()
+        field_text = json.dumps(reg.get("fields") or [], default=str).lower()
+        if "w1c" in access or "w1c" in field_text or helper.endswith("irq_status"):
+            _add_or_update_derived_signal(
+                fm,
+                name=f"{helper}_w1c",
+                expr=f"((pwdata & gpio_mask) if wr_{helper} else 0)",
+                width=_ssot_width(reg.get("width"), data_width),
+                description=f"W1C write mask helper for register {reg.get('name')}.",
+            )
+
+    _add_or_update_derived_signal(
+        fm,
+        name="read_mux",
+        expr=_nested_if_expr(read_rows, "0"),
+        width=data_width,
+        description="APB read data mux derived from registers.register_list offsets and function_model state variables.",
+    )
 
 
 def _ensure_apb_helper_signals(doc: dict[str, Any], fm: dict[str, Any]) -> None:
@@ -979,9 +1344,83 @@ def _ensure_apb_helper_signals(doc: dict[str, Any], fm: dict[str, Any]) -> None:
             fm,
             name="addr",
             expr="paddr",
-            width=int(_port_widths(doc).get("paddr") or 32),
+            width=_ssot_width(_port_widths(doc).get("paddr"), 32),
             description="Register address helper derived from the APB paddr input.",
         )
+    if "pstrb" in inputs:
+        widths = _port_widths(doc)
+        regs = doc.get("registers") if isinstance(doc.get("registers"), dict) else {}
+        reg_config = regs.get("config") if isinstance(regs.get("config"), dict) else {}
+        data_width = _ssot_width(
+            widths.get("pwdata"),
+            widths.get("prdata", reg_config.get("register_width", 32)),
+        )
+        _add_or_update_derived_signal(
+            fm,
+            name="wmask",
+            expr=_apb_byte_mask_expr(pstrb_width=widths.get("pstrb", 4), data_width=data_width),
+            width=data_width,
+            description="APB byte-lane write mask expanded from pstrb.",
+        )
+    _ensure_apb_register_decode_helpers(doc, fm)
+
+
+def _ensure_transaction_output_summaries(doc: dict[str, Any]) -> None:
+    """Populate required transaction outputs from existing machine rules.
+
+    This is a structural repair only: it mirrors already-authored output_rules
+    and state_updates into the prose/summary `outputs` field required by the
+    canonical SSOT validator. It must not invent new behavior.
+    """
+
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    for tx in fm.get("transactions") or []:
+        if not isinstance(tx, dict):
+            continue
+        outputs = tx.get("outputs") if isinstance(tx.get("outputs"), list) else []
+        seen: set[str] = set()
+        for item in outputs:
+            if isinstance(item, dict):
+                key = str(item.get("port") or item.get("name") or item.get("state") or "").strip()
+            else:
+                key = str(item).strip()
+            if key:
+                seen.add(key)
+        for rule in tx.get("output_rules") or []:
+            if not isinstance(rule, dict):
+                continue
+            name = str(rule.get("name") or rule.get("output") or rule.get("port") or "").strip()
+            port = str(rule.get("port") or rule.get("output_port") or "").strip()
+            expr = rule.get("expr", rule.get("expression", rule.get("value", "")))
+            key = port or name
+            if key and key not in seen:
+                outputs.append(
+                    {
+                        "name": name or port,
+                        "port": port or name,
+                        "expr": _normalize_rule_expr(expr),
+                        "description": rule.get("description")
+                        or "Mirrored from executable output_rules for SSOT validator completeness.",
+                    }
+                )
+                seen.add(key)
+        for update in tx.get("state_updates") or []:
+            if not isinstance(update, dict):
+                continue
+            name = str(update.get("name") or update.get("state") or update.get("target") or "").strip()
+            expr = update.get("expr", update.get("expression", update.get("value", update.get("next_value", ""))))
+            if name and name not in seen:
+                outputs.append(
+                    {
+                        "state": name,
+                        "expr": _normalize_rule_expr(expr),
+                        "description": update.get("description")
+                        or "Mirrored from executable state_updates for SSOT validator completeness.",
+                    }
+                )
+                seen.add(name)
+        if outputs:
+            tx["outputs"] = outputs
 
 
 def _rewrite_self_referential_output_defaults(doc: dict[str, Any]) -> None:
@@ -3086,6 +3525,7 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out["rtl_contract"] = _ensure_rtl_contract(out, ip)
     _ensure_function_model_machine_rules(out)
     _ensure_rule_expr_input_map_completeness(out)
+    _ensure_transaction_output_summaries(out)
     out["timing"] = _ensure_timing(out)
     out["power"] = _ensure_power(out)
     out["security"] = _ensure_security(out)
@@ -3134,12 +3574,22 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     }
     filelist = out.get("filelist") if isinstance(out.get("filelist"), dict) else {}
     rtl_filelist = [item["file"] for item in out["sub_modules"] if isinstance(item, dict) and item.get("file")]
+    # Always include the SSOT-declared top module file. When `top_module.name`
+    # differs from `ip` (e.g. `<ip>_top`), the top is not in `sub_modules`, so
+    # the filelist would otherwise miss the file that declares the top
+    # module. iverilog/verilator need to see this file or elaboration fails
+    # with "Unable to find the root module".
+    top_module = out.get("top_module") if isinstance(out.get("top_module"), dict) else {}
+    top_file = str(top_module.get("file") or "").strip()
+    if top_file and top_file not in rtl_filelist:
+        rtl_filelist.append(top_file)
     existing_rtl = [str(item).strip() for item in filelist.get("rtl") or [] if str(item).strip()] if isinstance(filelist.get("rtl"), list) else []
     missing_manifest = [item for item in rtl_filelist if item not in existing_rtl]
+    legacy_top_missing = top_file == f"rtl/{ip}.sv" and top_file not in existing_rtl
     if (
         not isinstance(filelist.get("rtl"), list)
         or _has_tbd(filelist.get("rtl"))
-        or f"rtl/{ip}.sv" not in existing_rtl
+        or legacy_top_missing
         or missing_manifest
     ):
         filelist["rtl"] = rtl_filelist
@@ -3159,7 +3609,7 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out["workflow_todos"] = _ensure_workflow_todos(out, ip)
     out["generation_flow"] = {
         "steps": [
-            {"name": "validate_ssot", "command": f"bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip}", "description": "Validate production SSOT structure and quality gates"},
+            {"name": "validate_ssot", "command": f"bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip} --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate SSOT structure and quality gates at the selected Run Mode"},
             {"name": "handoff_fl_model", "command": f"/ssot-fl-model {ip}", "description": "Generate FunctionalModel, decomposition, and FCOV plan from SSOT"},
             {"name": "handoff_equivalence_goals", "command": f"/ssot-equiv-goals {ip}", "description": "Derive FL-vs-RTL equivalence goals before TB generation"},
             {"name": "handoff_rtl", "command": f"/ssot-rtl {ip}", "description": "Generate RTL from validated SSOT"},
@@ -3345,22 +3795,31 @@ def main() -> int:
     ap.add_argument("ip")
     ap.add_argument("--root", default=".")
     ap.add_argument(
+        "--mode",
+        default="",
+        help="Run mode: starter, engineering, or signoff. Defaults to ATLAS_RUN_MODE or signoff.",
+    )
+    ap.add_argument(
         "--strict-downstream",
         action="store_true",
         help="Fail with non-zero exit when downstream readiness validators report issues.",
     )
     ns = ap.parse_args()
+    run_mode = _normalize_run_mode(ns.mode or os.environ.get("ATLAS_RUN_MODE") or "signoff")
     root = Path(ns.root).resolve()
     ssot = _find_ssot(root, ns.ip)
     doc = _load_yaml(ssot)
+    before_repair = dict(doc)
     state = _load_state(root, ns.ip)
     repaired = repair(doc, state, ns.ip)
-    ssot.write_text(yaml.safe_dump(repaired, sort_keys=False, width=140, allow_unicode=False), encoding="utf-8")
+    ssot.write_text(yaml.safe_dump(repaired, sort_keys=False, width=4096, allow_unicode=False), encoding="utf-8")
     loaded = yaml.safe_load(ssot.read_text(encoding="utf-8"))
     missing = [key for key in REQUIRED_ORDER if key not in loaded]
     if missing:
         raise SystemExit("[repair_ssot_schema] missing after repair: " + ", ".join(missing))
+    sidecar = _write_provenance_sidecar(root, ns.ip, ssot, before_repair, loaded, run_mode)
     print(f"[repair_ssot_schema] wrote {ssot.relative_to(root)}")
+    print(f"[repair_ssot_schema] provenance: {sidecar.relative_to(root)}")
     print(f"[repair_ssot_schema] sections: {len([k for k in REQUIRED_ORDER if k in loaded])}/{len(REQUIRED_ORDER)}")
     downstream_issues = _validate_downstream_readiness(loaded, ns.ip, root)
     blockers_path = root / ns.ip / "req" / "ssot_downstream_blockers.json"
@@ -3387,7 +3846,7 @@ def main() -> int:
             return 2
     else:
         print("[repair_ssot_schema] downstream_readiness: clean")
-    print("[repair_ssot_schema] next: bash workflow/ssot-gen/scripts/check_ssot_disk.sh " + ns.ip)
+    print(f"[repair_ssot_schema] next: bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ns.ip} --mode {run_mode}")
     return 0
 
 

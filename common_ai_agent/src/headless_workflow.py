@@ -73,6 +73,17 @@ SSOT_REQUIRED_KEYS = [
     "workflow_todos",
     "generation_flow",
 ]
+SSOT_REQUIRED_KEYS_BY_RUN_MODE = {
+    "starter": [
+        "top_module",
+        "io_list",
+        "function_model",
+    ],
+    "engineering": [
+        key for key in SSOT_REQUIRED_KEYS if key not in {"dft", "pnr"}
+    ],
+    "signoff": SSOT_REQUIRED_KEYS,
+}
 DEFAULT_RTL_PACKET_MAX_PER_PASS = 4
 REFERENCE_PROFILE_PROMPT_KEYS = (
     "path",
@@ -112,6 +123,19 @@ HEADLESS_STAGE_ALIASES = {
     "pipelining": "pipeline",
     "repair-pipeline": "pipeline",
 }
+
+
+def _normalize_run_mode(value: Any) -> str:
+    mode = str(value or "").strip().lower().replace("_", "-")
+    if mode == "eng":
+        mode = "engineering"
+    if mode == "sign-off":
+        mode = "signoff"
+    return mode if mode in SSOT_REQUIRED_KEYS_BY_RUN_MODE else "signoff"
+
+
+def _ssot_required_keys_for_mode(run_mode: str) -> list[str]:
+    return list(SSOT_REQUIRED_KEYS_BY_RUN_MODE.get(_normalize_run_mode(run_mode), SSOT_REQUIRED_KEYS))
 
 PIPELINE_DEFAULT_STAGES = [
     "fl-model-gen",
@@ -213,6 +237,255 @@ def _clip(text: str, limit: int = 12000) -> str:
     if len(text) <= limit:
         return text
     return text[:limit] + f"\n... <truncated {len(text) - limit} chars>"
+
+
+_UNUSED_SIGNAL_BITS_RE = re.compile(r"'(?P<signal>[A-Za-z_][A-Za-z0-9_$]*)'\[(?P<bits>[^\]]+)\]")
+_UNUSED_SIGNAL_NAME_RE = re.compile(
+    r"(?:'(?P<quoted>[A-Za-z_][A-Za-z0-9_$]*)'|:\s*(?P<plain>[A-Za-z_][A-Za-z0-9_$]*)|Signal is not used:\s*(?P<bare>[A-Za-z_][A-Za-z0-9_$]*))"
+)
+_WIDTH_PORT_RE = re.compile(
+    r"(?:Input|Output|Inout)?\s*port connection\s+'(?P<port>[A-Za-z_][A-Za-z0-9_$]*)'.*?"
+    r"expects\s+(?P<expected>\d+)\s+bits.*?"
+    r"connection(?:'s)?(?:\s+VARREF\s+'(?P<signal>[A-Za-z_][A-Za-z0-9_$]*)')?.*?"
+    r"generates\s+(?P<actual>\d+)\s+bits",
+    flags=re.I,
+)
+_WIDTH_CONVERSION_RE = re.compile(
+    r"implicit conversion of port connection (?:truncates|expands) from (?P<from>\d+) to (?P<to>\d+) bits",
+    flags=re.I,
+)
+
+
+def _looks_like_static_evidence_marker_signal(signal: str) -> bool:
+    lower = str(signal or "").lower()
+    if not lower:
+        return False
+    if lower.startswith("every_") or (lower.startswith("no_") and lower.endswith("_generated")):
+        return True
+    if "function_model" in lower or "cycle_model" in lower:
+        return True
+    if lower.endswith("_mapping") and any(token in lower for token in ("fm_", "transaction", "stage")):
+        return True
+    return False
+
+
+def _rtl_lint_repair_hints(diagnostics: list[Any]) -> list[dict[str, Any]]:
+    hints: list[dict[str, Any]] = []
+    for diag in diagnostics:
+        if not isinstance(diag, dict):
+            continue
+        rule = str(diag.get("rule") or "").upper()
+        message = str(diag.get("message") or "")
+        source = str(diag.get("source") or "")
+        width_match = _WIDTH_PORT_RE.search(message)
+        conversion_match = _WIDTH_CONVERSION_RE.search(message)
+        if rule in {"WIDTHEXPAND", "WIDTHTRUNC", "WIDTH"} or width_match or conversion_match:
+            port = width_match.group("port") if width_match else ""
+            signal = width_match.group("signal") if width_match else ""
+            expected = width_match.group("expected") if width_match else (conversion_match.group("from") if conversion_match else "")
+            actual = width_match.group("actual") if width_match else (conversion_match.group("to") if conversion_match else "")
+            preferred_fix = (
+                "Repair the connected producer/consumer contract, not the lint policy. The instance "
+                "port width and connected signal width must match after repair. If a GPIO-only value "
+                "is intentionally narrower, update the child module port declaration and every named "
+                "instance connection for that port in the same artifact set. If the child port is a "
+                "full DATA_WIDTH CSR/readback word, keep the connected top signal DATA_WIDTH and consume "
+                "the full word through real readback/checking behavior instead of attaching a narrower copy."
+            )
+            hints.append(
+                {
+                    "rule": rule or "WIDTH",
+                    "file": diag.get("file"),
+                    "line": diag.get("line"),
+                    "signal": signal or port or "<port-connection>",
+                    "port": port,
+                    "expected_bits": expected,
+                    "actual_bits": actual,
+                    "source": source,
+                    "preferred_fix": preferred_fix,
+                    "mechanical_fix": (
+                        "Align both sides of the named port connection in one edit: producer module port "
+                        "declaration, internal assignment width, parent instance signal declaration, and "
+                        "the named .port(signal) connection must agree."
+                    ),
+                    "completion_condition": (
+                        "The same port-width diagnostic must disappear after lint/compile reruns. A repair "
+                        "that only changes the top-side signal width while the child port still expects the "
+                        "old width is incomplete."
+                    ),
+                    "forbidden_fixes": [
+                        "Do not suppress width warnings.",
+                        "Do not leave one side of an instance port at the old width.",
+                        "Do not add casts or padding unless the SSOT requires the wider value and the padded bits are functionally consumed.",
+                    ],
+                }
+            )
+        elif rule == "UNUSEDSIGNAL" and "Bits of signal are not used" in message:
+            bit_match = _UNUSED_SIGNAL_BITS_RE.search(message)
+            signal = bit_match.group("signal") if bit_match else ""
+            bits = bit_match.group("bits") if bit_match else ""
+            source_lower = source.lower()
+            is_public_input = bool(re.search(r"\binput\b", source_lower))
+            mechanical_fix = ""
+            completion_condition = ""
+            if is_public_input:
+                preferred_fix = (
+                    "Do not narrow an externally defined bus port just to satisfy lint. If the "
+                    "unused bits are upper byte lanes of a public bus input, follow the SSOT "
+                    "bus/byte-lane policy embedded in the prompt. Only assert a bus error when "
+                    "that policy explicitly declares an illegal byte-access condition; otherwise "
+                    "consume the upper lanes through explicit legal ignore, byte-strobe masking, "
+                    "reserved-zero readback, or coverage/trace behavior."
+                )
+            elif "byte_mask" in signal or signal.endswith("_32"):
+                preferred_fix = (
+                    "Repair the RTL shape, not the lint policy. Build helper masks at the "
+                    "actual consumed parameter width, or consume the full-width mask through "
+                    "real byte-lane legality/readback behavior. Do not create a 32-bit helper "
+                    "only to slice away unused upper bits."
+                )
+            elif (
+                re.search(r"\blogic\s*\[\s*DATA_WIDTH\s*-\s*1\s*:\s*0\s*\]", source)
+                and re.search(r"^[0-9]+\s*:\s*[0-9]+$", bits)
+            ):
+                preferred_fix = (
+                    "Repair the RTL shape, not the lint policy. This is an internal DATA_WIDTH "
+                    "helper whose upper bits are not consumed. Narrow the helper to the actual "
+                    "consumer width, usually [GPIO_WIDTH-1:0] for GPIO output/enable paths, and "
+                    "only widen at a CSR/readback boundary that consumes every DATA_WIDTH bit. "
+                    "When a full DATA_WIDTH producer feeds a narrower GPIO/output consumer, delete "
+                    "the reported full-width helper and drive the narrower consumer directly from "
+                    "producer[GPIO_WIDTH-1:0] or through a GPIO_WIDTH helper."
+                )
+                mechanical_fix = (
+                    "Change the internal helper declaration from logic [DATA_WIDTH-1:0] to the "
+                    "actual consumed parameter width (for GPIO path helpers, logic [GPIO_WIDTH-1:0]) "
+                    "and update assignments/consumers so no upper slice is left unused. If the helper "
+                    "is driven by a child module output, narrow that child output port and the instance "
+                    "connection in the same artifact set, unless the full DATA_WIDTH value is consumed "
+                    "by real CSR/readback/checking behavior. Do not replace the reported signal with "
+                    "another DATA_WIDTH masked/full helper; that repeats the same lint failure."
+                )
+                completion_condition = (
+                    f"The reported signal {signal} itself must no longer appear in an UNUSED upper-bit "
+                    "diagnostic after lint reruns. Adding a second narrower copy while leaving this "
+                    "DATA_WIDTH signal with unused upper bits is not a valid repair. Introducing a new "
+                    "logic [DATA_WIDTH-1:0] *_masked_full or *_full helper whose upper bits are unused "
+                    "is also not a valid repair."
+                )
+            else:
+                preferred_fix = (
+                    "Repair the RTL shape, not the lint policy. If this is a helper word whose "
+                    "upper bits are outside the IP parameter width, narrow the helper to the "
+                    "actual consumed width and widen only at the CSR/readback boundary. If the "
+                    "full vector is semantically required, drive and consume every bit through "
+                    "real functional logic."
+                )
+            hints.append(
+                {
+                    "rule": rule,
+                    "file": diag.get("file"),
+                    "line": diag.get("line"),
+                    "signal": signal,
+                    "unused_bits": bits,
+                    "source": source,
+                    "preferred_fix": preferred_fix,
+                    "mechanical_fix": mechanical_fix,
+                    "completion_condition": completion_condition,
+                    "forbidden_fixes": [
+                        "Do not add marker-only reduction wires just to consume unused bits.",
+                        "Do not keep the reported DATA_WIDTH diagnostic signal unchanged while adding a narrower copy.",
+                        "Do not replace the reported signal with a differently named DATA_WIDTH masked/full helper.",
+                        "Do not add Verilator lint_off/lint_on or -Wno suppressions.",
+                        "Do not leave evidence-only helper signals that are not used by real behavior.",
+                    ],
+                }
+            )
+        elif rule in {"UNUSEDSIGNAL", "UNUSEDPARAM", "UNUSED"}:
+            name_match = _UNUSED_SIGNAL_NAME_RE.search(message)
+            signal = ""
+            if name_match:
+                signal = name_match.group("quoted") or name_match.group("plain") or name_match.group("bare") or ""
+            if _looks_like_static_evidence_marker_signal(signal):
+                preferred_fix = (
+                    "This looks like a static-evidence marker signal, not required RTL behavior. "
+                    "Do not keep standalone declarations just to spell a TODO/evidence term. "
+                    "Remove the marker and implement the underlying SSOT behavior with real "
+                    "protocol, datapath, state, or control signals that are consumed by outputs, "
+                    "state updates, assertions, or observable trace/coverage."
+                )
+            else:
+                preferred_fix = (
+                    "Remove the unused declaration when it is evidence-only, or connect it into "
+                    "real datapath/control/observable behavior when the SSOT requires it."
+                )
+            hints.append(
+                {
+                    "rule": rule,
+                    "file": diag.get("file"),
+                    "line": diag.get("line"),
+                    "signal": signal,
+                    "source": source,
+                    "preferred_fix": preferred_fix,
+                    "forbidden_fixes": [
+                        "Do not add marker-only consumption logic.",
+                        "Do not declare signals whose only purpose is to match static evidence terms.",
+                        "Do not suppress the warning.",
+                    ],
+                }
+            )
+    return hints
+
+
+def _format_rtl_lint_repair_hints(hints: list[Any]) -> str:
+    if not hints:
+        return "<none>"
+    lines: list[str] = []
+    for hint in hints[:24]:
+        if not isinstance(hint, dict):
+            continue
+        loc = f"{hint.get('file') or '<unknown>'}:{hint.get('line') or '?'}"
+        signal = hint.get("signal") or "<unknown>"
+        unused_bits = hint.get("unused_bits")
+        bit_text = f" unused_bits={unused_bits}" if unused_bits else ""
+        lines.append(f"- {hint.get('rule') or '<rule>'} {loc} signal={signal}{bit_text}")
+        preferred = str(hint.get("preferred_fix") or "").strip()
+        if preferred:
+            lines.append(f"  preferred_fix: {preferred}")
+        mechanical = str(hint.get("mechanical_fix") or "").strip()
+        if mechanical:
+            lines.append(f"  mechanical_fix: {mechanical}")
+        completion = str(hint.get("completion_condition") or "").strip()
+        if completion:
+            lines.append(f"  completion_condition: {completion}")
+        forbidden = hint.get("forbidden_fixes")
+        if isinstance(forbidden, list) and forbidden:
+            lines.append("  forbidden_fixes: " + "; ".join(str(item) for item in forbidden if item))
+    return "\n".join(lines) if lines else "<none>"
+
+
+def _ssot_bus_lane_policy(ssot_doc: dict[str, Any]) -> dict[str, Any]:
+    error_handling = ssot_doc.get("error_handling") if isinstance(ssot_doc.get("error_handling"), dict) else {}
+    error_sources = error_handling.get("error_sources") if isinstance(error_handling.get("error_sources"), list) else []
+    byte_policy: dict[str, Any] = {}
+    for source in error_sources:
+        if isinstance(source, dict) and str(source.get("id") or "") == "illegal_byte_access_pattern":
+            byte_policy = source
+            break
+    condition = str(byte_policy.get("condition") or "").strip().lower()
+    no_illegal_byte_access = condition in {"", "none", "n/a", "na", "false", "0"}
+    return {
+        "illegal_byte_access_pattern_condition": byte_policy.get("condition") if byte_policy else "<not declared>",
+        "upper_byte_lane_error_allowed": not no_illegal_byte_access,
+        "guidance": (
+            "condition=none means upper byte lanes are not an APB error for legal offsets; "
+            "consume otherwise-unused pwdata/pstrb upper bits through explicit legal ignore, "
+            "byte-strobe masking, reserved-zero readback, or coverage/trace behavior while keeping "
+            "pslverr deasserted for legal writes."
+            if no_illegal_byte_access
+            else "Only assert byte-lane pslverr for the declared illegal_byte_access_pattern condition; do not invent stricter bus policy."
+        ),
+    }
 
 
 @dataclass
@@ -601,7 +874,7 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
         },
         "generation_flow": {
             "steps": [
-                {"name": "validate_ssot", "command": f"bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip}", "description": "Validate production SSOT structure."},
+                {"name": "validate_ssot", "command": f"bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip} --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate SSOT structure at the selected Run Mode."},
                 {"name": "handoff_fl_model", "command": f"/ssot-fl-model {ip}", "description": "Generate function model from SSOT."},
                 {"name": "handoff_rtl", "command": f"/ssot-rtl {ip}", "description": "Generate RTL from SSOT."},
                 {"name": "handoff_tb", "command": f"/ssot-tb-cocotb {ip}", "description": "Generate cocotb tests from SSOT."},
@@ -882,7 +1155,7 @@ class RealLLMProvider:
 
     def __init__(self, required_model: str = "", timeout_s: int | None = None) -> None:
         self.required_model = required_model
-        self.timeout_s = int(timeout_s or os.getenv("ATLAS_HEADLESS_LLM_TIMEOUT", "180"))
+        self.timeout_s = int(timeout_s or os.getenv("ATLAS_HEADLESS_LLM_TIMEOUT", "600"))
         self.retry_count = max(0, int(os.getenv("ATLAS_HEADLESS_LLM_RETRIES", "2")))
         self.retry_backoff_s = max(0.0, float(os.getenv("ATLAS_HEADLESS_LLM_RETRY_BACKOFF_S", "2.0")))
 
@@ -1054,7 +1327,11 @@ except BaseException as exc:
         last_error = ""
         last_raw = ""
         last_usage: dict[str, Any] = {}
+        artifact_required = stage in {"ssot-gen", "rtl-gen", "tb-gen"}
+        ip = _safe_name(str(context.get("ip") or "headless_ip"), "headless_ip")
+        retry_messages = list(messages)
         for attempt in range(self.retry_count + 1):
+            request["messages"] = retry_messages
             with tempfile.TemporaryDirectory(prefix="atlas_headless_llm_") as tmp:
                 req_path = Path(tmp) / "request.json"
                 req_path.write_text(json.dumps(request), encoding="utf-8")
@@ -1085,7 +1362,41 @@ except BaseException as exc:
                 raw = str(payload.get("raw") or "")
                 last_raw = raw
                 if proc is not None and proc.returncode == 0 and str(raw or "").strip() and not str(raw).startswith("Error calling LLM:"):
-                    break
+                    data = _json_from_text(str(raw)) or {}
+                    if isinstance(data.get("human_gate"), dict):
+                        return LLMResponse(stage=stage, model=resolved_model or model, raw_response=str(raw), error="model requested human_gate", status="human_gate")
+                    artifacts = parse_llm_artifacts(stage, str(raw), ip=ip)
+                    if artifact_required and not artifacts:
+                        last_error = f"model output did not contain expected JSON object with files[] {stage} artifact"
+                        if attempt < self.retry_count:
+                            retry_messages = messages + [
+                                {
+                                    "role": "user",
+                                    "content": (
+                                        "The previous response was malformed, truncated, or did not contain a complete "
+                                        f"JSON object with files[] artifacts for {stage}. Retry the same task now. "
+                                        "Return exactly one complete JSON object and nothing else. Keep file contents "
+                                        "concise enough to finish the JSON; do not include analysis or markdown."
+                                    ),
+                                }
+                            ]
+                            time.sleep(self.retry_backoff_s * (attempt + 1))
+                            continue
+                        return LLMResponse(
+                            stage=stage,
+                            model=resolved_model or model,
+                            raw_response=str(raw),
+                            usage=combined_usage,
+                            error=last_error,
+                            status="blocked",
+                        )
+                    return LLMResponse(
+                        stage=stage,
+                        model=resolved_model or model,
+                        raw_response=str(raw),
+                        parsed_artifacts=artifacts,
+                        usage=combined_usage,
+                    )
 
                 if proc is None:
                     last_error = last_error or f"real provider timed out after {self.timeout_s}s"
@@ -1114,7 +1425,6 @@ except BaseException as exc:
 
         combined_usage = last_usage
         raw = last_raw
-        ip = _safe_name(str(context.get("ip") or "headless_ip"), "headless_ip")
         artifacts = parse_llm_artifacts(stage, str(raw), ip=ip)
         data = _json_from_text(str(raw)) or {}
         if isinstance(data.get("human_gate"), dict):
@@ -1234,9 +1544,11 @@ class HeadlessWorkflowRunner:
         model: str = "",
         llm_provider: LLMProvider | None = None,
         require_glm51: bool = False,
+        run_mode: str = "",
     ) -> None:
         self.root = Path(root).resolve()
         self.model = model or os.getenv("ATLAS_HEADLESS_LLM_MODEL") or "glm-5.1"
+        self.run_mode = _normalize_run_mode(run_mode or os.getenv("ATLAS_RUN_MODE") or "signoff")
         self.llm_provider = llm_provider or RealLLMProvider(required_model=os.getenv("ATLAS_HEADLESS_REQUIRED_MODEL", ""))
         self.require_glm51 = require_glm51
         self.stage_engine = WorkflowStageEngine(self.root, source_root=SOURCE_ROOT)
@@ -1265,6 +1577,9 @@ class HeadlessWorkflowRunner:
             {
                 "ts": _utc(),
                 "event": event,
+                "pid": os.getpid(),
+                "root": str(self.root),
+                "ip": ip,
                 **fields,
             },
         )
@@ -1274,6 +1589,9 @@ class HeadlessWorkflowRunner:
             self._heartbeat_path(ip),
             {
                 "ts": _utc(),
+                "pid": os.getpid(),
+                "root": str(self.root),
+                "ip": ip,
                 **fields,
             },
         )
@@ -1409,8 +1727,12 @@ class HeadlessWorkflowRunner:
         )
         if workflow_stage == "ssot-gen":
             system = headless_contract + system
+            required_keys = _ssot_required_keys_for_mode(self.run_mode)
             prompt = (
                 f"Generate canonical SSOT YAML for {ip} from {ip}/req/{ip}_requirements.md.\n\n"
+                f"Run Mode: {self.run_mode}. Starter may provide only user-authored intent and allow "
+                "repair_ssot_schema.py to generate boilerplate defaults; Engineering requires downstream "
+                "model/test/quality detail; Signoff requires full EDA/signoff fields.\n\n"
                 "Return exactly one JSON object and nothing else. Do not wrap it in markdown.\n"
                 "Valid success schema:\n"
                 "{\n"
@@ -1424,11 +1746,13 @@ class HeadlessWorkflowRunner:
                 "}\n\n"
                 "The YAML content must be general IP SSOT, not a fixed template workaround. It must derive "
                 "semantics from the requirements and include these top-level sections: "
-                f"{', '.join(SSOT_REQUIRED_KEYS)}. function_model and cycle_model are mandatory and must be "
+                f"{', '.join(required_keys)}. function_model is mandatory; cycle_model is mandatory for "
+                "Engineering/Signoff and may be generated by deterministic repair for Starter. Models must be "
                 "substantive enough for FL-vs-RTL equivalence goals, cocotb/pyuvm scoreboard generation, "
                 "coverage planning, and mismatch ownership.\n\n"
-                "The generated YAML must pass `bash workflow/ssot-gen/scripts/check_ssot_disk.sh "
-                f"{ip}` without repair. Required validator details:\n"
+                "The generated YAML should pass `bash workflow/ssot-gen/scripts/check_ssot_disk.sh "
+                f"{ip} --mode {self.run_mode}` before downstream generation; Starter mode may rely on "
+                "repair_ssot_schema.py to fill generated defaults. Required validator details:\n"
                 "- function_model.state_variables, function_model.transactions, and function_model.invariants "
                 "must be non-empty lists.\n"
                 "- Every function_model.transactions[] item must include id, name, preconditions, outputs, "
@@ -1544,6 +1868,9 @@ class HeadlessWorkflowRunner:
             stage=stage,
             log_stage=(log_stage or stage),
             model=self.model,
+            prompt_chars=len(prompt or ""),
+            system_prompt_chars=len(system_prompt or ""),
+            context_keys=sorted(str(k) for k in context.keys()),
         )
         self._write_heartbeat(
             ip,
@@ -1860,7 +2187,7 @@ class HeadlessWorkflowRunner:
         if not isinstance(doc, dict):
             missing.append("yaml root object")
         else:
-            for key in SSOT_REQUIRED_KEYS:
+            for key in _ssot_required_keys_for_mode(self.run_mode):
                 if key not in doc or doc.get(key) is None or doc.get(key) == "":
                     missing.append(key)
         if missing:
@@ -1876,8 +2203,9 @@ class HeadlessWorkflowRunner:
             return StageResult("ssot-gen", "human_gate", f"SSOT contract incomplete: {', '.join(missing)}", artifacts=[str(path.relative_to(self.root))])
         validator = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
         if validator.is_file():
+            cmd = ["bash", str(validator), ip, "--mode", self.run_mode]
             proc = subprocess.run(
-                ["bash", str(validator), ip],
+                cmd,
                 cwd=str(self.root),
                 text=True,
                 capture_output=True,
@@ -1888,7 +2216,7 @@ class HeadlessWorkflowRunner:
             validator_text = "\n".join(
                 part
                 for part in [
-                    f"cmd: bash {validator} {ip}",
+                    "cmd: " + " ".join(cmd),
                     f"cwd: {self.root}",
                     f"returncode: {proc.returncode}",
                     "stdout:\n" + proc.stdout.strip() if proc.stdout.strip() else "",
@@ -1937,7 +2265,7 @@ class HeadlessWorkflowRunner:
             return False
         log = self._ip_dir(ip) / "logs" / "validators" / "repair_ssot_schema.log"
         log.parent.mkdir(parents=True, exist_ok=True)
-        cmd = [sys.executable, str(repair), ip, "--root", str(self.root)]
+        cmd = [sys.executable, str(repair), ip, "--root", str(self.root), "--mode", self.run_mode]
         self._write_progress(ip, "deterministic_repair_start", stage="ssot-gen", reason=reason)
         try:
             proc = subprocess.run(
@@ -2026,7 +2354,7 @@ class HeadlessWorkflowRunner:
             "- SSOT remains the only source of truth for function_model, cycle_model, decomposition, RTL contract, DV plan, and coverage.\n"
             "- Fix the concrete parse/validator failures below, and also check for sibling contract defects.\n"
             "- The repaired YAML must pass `bash workflow/ssot-gen/scripts/check_ssot_disk.sh "
-            f"{ip}`.\n"
+            f"{ip} --mode {self.run_mode}`.\n"
             "- If a true semantic decision is missing from requirements, return a human_gate object instead of guessing.\n\n"
             f"Failure summary:\n{failure.status}: {failure.message}\n\n"
             f"Blocker artifact:\n{_clip(blocker_text, 6000)}\n\n"
@@ -2228,6 +2556,14 @@ class HeadlessWorkflowRunner:
         if "open_required_count" in summary:
             return int(summary.get("open_required_count") or 0) > 0
         return True
+
+    def _rtl_plan_has_llm_actionable_draft_work(self, ip: str) -> bool:
+        plan = self._rtl_authoring_plan(ip)
+        policy = plan.get("execution_policy") if isinstance(plan.get("execution_policy"), dict) else {}
+        draft_allowed = bool(policy.get("draft_allowed") or policy.get("deferred_human_qa_allowed"))
+        if not draft_allowed:
+            return False
+        return any(self._rtl_packet_needs_llm(packet) for packet in self._rtl_packet_entries(plan))
 
     def _rtl_packet_mode_enabled(self, plan: dict[str, Any]) -> bool:
         mode = os.getenv("ATLAS_HEADLESS_RTL_PACKET_MODE", "auto").strip().lower()
@@ -2556,6 +2892,7 @@ class HeadlessWorkflowRunner:
                 "suppression_violation_count": lint_report.get("suppression_violation_count"),
                 "style_violation_count": lint_report.get("style_violation_count"),
                 "diagnostics": lint_diagnostics[:48],
+                "repair_hints": _rtl_lint_repair_hints(lint_diagnostics)[:48],
             },
         }
 
@@ -2774,6 +3111,10 @@ class HeadlessWorkflowRunner:
         is_gate_packet = packet_kind == "gate" or packet_id.startswith("rtl_gate_")
         rtl_interface_digest = self._rtl_interface_digest(ip)
         rtl_gate_audit_digest = self._rtl_gate_audit_digest(ip)
+        lint_repair_hints = []
+        if isinstance(rtl_gate_audit_digest.get("lint"), dict):
+            lint_repair_hints = rtl_gate_audit_digest["lint"].get("repair_hints") or []
+        lint_repair_directives = _format_rtl_lint_repair_hints(lint_repair_hints)
         rtl_snapshots_text = self._rtl_file_snapshots(ip) if is_gate_packet else "<included only for gate/tool-evidence packets>"
         tool_artifact_sections: list[str] = []
         packet_policy = packet_doc.get("execution_policy") if isinstance(packet_doc.get("execution_policy"), dict) else {}
@@ -2839,6 +3180,7 @@ class HeadlessWorkflowRunner:
             },
         }
         ssot_latency_contract: dict[str, Any] = {}
+        ssot_bus_lane_policy: dict[str, Any] = {}
         ssot_prompt_text = ""
         ssot_path = self._ip_dir(ip) / "yaml" / f"{ip}.ssot.yaml"
         if ssot_path.is_file():
@@ -2847,6 +3189,7 @@ class HeadlessWorkflowRunner:
                 ssot_doc = yaml.safe_load(ssot_prompt_text) or {}
             except Exception:
                 ssot_doc = {}
+            ssot_bus_lane_policy = _ssot_bus_lane_policy(ssot_doc if isinstance(ssot_doc, dict) else {})
             cm = ssot_doc.get("cycle_model") if isinstance(ssot_doc.get("cycle_model"), dict) else {}
             rtl_contract = ssot_doc.get("rtl_contract") if isinstance(ssot_doc.get("rtl_contract"), dict) else {}
             timing = ssot_doc.get("timing") if isinstance(ssot_doc.get("timing"), dict) else {}
@@ -2900,6 +3243,10 @@ class HeadlessWorkflowRunner:
             "- For rtl_gate_tool_evidence, do not fabricate compile/lint/sim/coverage artifacts. If compile/lint evidence already exists and is not clean, repair the owner RTL that caused the diagnostics; the runner will rerun tools afterward.\n"
             "- Gate/tool-evidence packets may edit any declared RTL file implicated by the audit digest, compile diagnostics, lint diagnostics, or static-evidence gaps; current owner_file is the gate coordinator, not an edit restriction.\n"
             "- Keep generated RTL lint-clean: eliminate Verilator warnings, unused evidence-only helper signals, unused parameters, and the no_parameterized_part_select_in_procedural_block style violation by adding real helper wires or real signal consumption.\n"
+            "- Treat lint.repair_hints as mandatory repair guidance. For UNUSED* diagnostics, prefer narrowing/removing helper declarations or real functional connections; do not add marker-only reductions, lint suppressions, or evidence-only consumes.\n"
+            "- If lint.repair_hints names a signal, the emitted RTL must make that exact reported diagnostic disappear; renaming or copying the signal while leaving the same unused upper-bit pattern open is a failed repair.\n"
+            "- For narrower GPIO/output consumers, connect from the full producer slice, such as producer[GPIO_WIDTH-1:0], or use a GPIO_WIDTH helper; do not create another DATA_WIDTH masked/full helper whose upper bits remain unused.\n"
+            "- Static evidence terms are search/audit hints, not required signal names. Do not declare a wire/reg whose only purpose is to spell a TODO term; implement the behavior with real protocol/datapath/control logic and remove marker signals that lint reports unused.\n"
             "- For rtl_gate_contract_blocked, return human_gate only; missing SSOT connection contracts block correct top integration semantics.\n"
             "- For rtl_gate_human_closure, return human_gate only; do not invent or edit human-locked authority.\n"
             "- The headless runner will refresh filelist/provenance from LLM-authored artifacts after each packet.\n\n"
@@ -2911,12 +3258,14 @@ class HeadlessWorkflowRunner:
             f"owner_module: {packet.get('owner_module') or ''}\n"
             f"owner_file: {packet.get('owner_file') or ''}\n\n"
             f"SSOT observable latency contract:\n{_clip(json.dumps(ssot_latency_contract, indent=2, sort_keys=True), 12000)}\n\n"
+            f"SSOT bus/byte-lane policy:\n{_clip(json.dumps(ssot_bus_lane_policy, indent=2, sort_keys=True), 12000)}\n\n"
             f"Locked SSOT YAML excerpt ({ip}/yaml/{ip}.ssot.yaml):\n{_clip(ssot_prompt_text, 40000) if ssot_prompt_text else '<missing>'}\n\n"
             f"Base rtl-gen contract:\n{base_prompt}\n\n"
             f"Authoring plan overview:\n{_clip(json.dumps(plan_overview, indent=2, sort_keys=True), 30000)}\n\n"
             f"Current sim-debug owner repair evidence:\n{_clip(json.dumps(repair_evidence_digest, indent=2, sort_keys=True), 24000)}\n\n"
             f"Current owner RTL file ({owner_file_rel or '<none>'}):\n{_clip(owner_file_text, 30000) if owner_file_text else '<missing or not authored yet>'}\n\n"
             f"Current RTL module interface digest (all manifest RTL files):\n{_clip(rtl_interface_digest, 24000)}\n\n"
+            f"Current mandatory lint repair directives:\n{_clip(lint_repair_directives, 12000)}\n\n"
             f"Current RTL gate audit digest:\n{_clip(json.dumps(rtl_gate_audit_digest, indent=2, sort_keys=True), 26000)}\n\n"
             f"Current RTL file snapshots for gate/tool-evidence repair:\n{_clip(rtl_snapshots_text, 72000)}\n\n"
             f"Current tool evidence artifacts referenced by this packet:\n{tool_artifacts_text}\n\n"
@@ -3046,6 +3395,8 @@ class HeadlessWorkflowRunner:
         draft_compatible_ids = rtl_owned_ids | {"RTL_TARGET_SCALE_POLICY"}
         if question_ids and bool(question_ids & rtl_owned_ids) and question_ids <= draft_compatible_ids:
             return True
+        if question_ids and question_ids <= {"RTL_TARGET_SCALE_POLICY"}:
+            return self._rtl_plan_has_llm_actionable_draft_work(result.ip)
         message = result.message.lower()
         return (
             "llm-authored rtl evidence is missing or stale" in message
@@ -3304,7 +3655,14 @@ class HeadlessWorkflowRunner:
         grouped: dict[str, list[dict[str, Any]]] = {}
         for item in items:
             grouped.setdefault(self._canonical_repair_owner(str(item.get("owner") or "")), []).append(item)
-        owner = next((candidate for candidate in priority if grouped.get(candidate)), sorted(grouped)[0])
+        owner = sorted(
+            grouped,
+            key=lambda candidate: (
+                -len(grouped[candidate]),
+                priority.index(candidate) if candidate in priority else len(priority),
+                candidate,
+            ),
+        )[0]
         owner_items = grouped[owner]
         return {
             "owner": owner,
@@ -3662,6 +4020,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--ip", required=True)
     parser.add_argument("--req", default="")
     parser.add_argument("--model", default=os.getenv("ATLAS_HEADLESS_LLM_MODEL", "glm-5.1"))
+    parser.add_argument("--run-mode", default=os.getenv("ATLAS_RUN_MODE", "signoff"), choices=["starter", "engineering", "signoff"])
     parser.add_argument("--stages", required=True, help="comma-separated stage list (or 'take')")
     parser.add_argument("--provider", choices=["fake", "cached", "real"], default="real")
     parser.add_argument("--fixture", default="")
@@ -3678,6 +4037,7 @@ def main(argv: list[str] | None = None) -> int:
         return HeadlessWorkflowRunner(
             root=args.root,
             model=args.model,
+            run_mode=args.run_mode,
             llm_provider=provider,
             require_glm51=args.provider == "real" and os.getenv("ATLAS_HEADLESS_REQUIRE_GLM51") == "1",
         )

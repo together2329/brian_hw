@@ -4,27 +4,56 @@ This wiki is the cross-linked operating map for common_ai_agent. It is optimized
 for long-context LLMs and agent handoffs: read the linked pages in order, then
 follow the source docs for implementation detail.
 
+## Fast Context
+
+Use this first when a future LLM session needs the current system shape quickly.
+This section is additive; it does not replace the reading order below.
+
+| Need | Read |
+|---|---|
+| Overall source-of-truth map | [[common-ai-agent-map]] |
+| What owns SSOT/RTL/TB/sim/coverage artifacts | [[workflow-ownership-and-boundaries]] |
+| How to run/debug the visible product flow | [[atlas-pipeline-screen]] + [[pipeline-progress-debugging]] |
+| Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |
+| Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
+| Current CPU handoff / approval / README status | [[arm-m0-min-current-status]] |
+| Multi-user or shared-worker collision risk | [[multi-user-worker-isolation]] + [[multi-user-worker-conflicts]] |
+| Orchestrator/worker handoff concept | [[orchestrator-worker-handoff]] + [[orchestrator-worker-handoff-review]] |
+| Evidence approval and TodoTracker behavior | [[golden-todo-evidence]] |
+| When to update wiki during development | [[wiki-curation-policy]] |
+| How agent autonomously implements a new IP end-to-end | [[agent-autonomous-ip-implementation-pattern]] |
+
+Current practical rule: final product-flow claims should be validated through
+the same ATLAS UI/API/worker path users run, not only through headless runs.
+Headless remains useful for reproduction, contract tests, and workflow-script
+regression.
+
 ## LLM Reading Order
 
 1. [[common-ai-agent-map]] — mental model and source-of-truth hierarchy.
 2. [[workflow-ownership-and-boundaries]] — who owns each artifact and what must not be edited directly.
-3. [[ssot-qa-workbench]] — SSOT authoring UX: import, interview, requirement progress, and To SSOT.
+3. [[ssot-qa-workbench]] — SSOT authoring UX: import, interview, requirement progress, and To SSOT. Internal pass mechanism: [[ssot-gen-pass-pipeline]] — LLM → deterministic canonicalize → validator → LLM-repair loop, with the actual progress-log signatures and `ATLAS_HEADLESS_LLM_TIMEOUT` knob.
 4. [[full-flow-pipeline]] — SSOT to signoff stage order and commands.
-5. [[rtl-gen-ssot-contract]] — why rtl-gen must follow SSOT exactly before downstream stages run.
-6. [[workflow-feedback-and-scheduling]] — worker-aware serial/DAG scheduling and workflow repair feedback.
-7. [[orchestrator-worker-handoff]] — orchestrator agent, live worker dispatch, JSON handoff fallback, and `/take` semantics. Spec-vs-shipped gaps tracked in [[orchestrator-worker-handoff-review]]. Concrete shipped realization: [[parallel-todo-sub-agent-workers]] — `parallel_todo_dispatch` fans a TODO batch out to N clean sub-agent workers (auto-picks from claude-cli / cursor-cli / gpt-5.3-codex / glm / deepseek / kimi by available credentials + cheapest cost).
-8. [[rtl-version-run-history]] — SSOT/RTL/TB artifact version anchors for workflow evidence.
-9. [[golden-todo-evidence]] — TodoTracker, evidence approval, and human review states.
-10. [[provider-and-llm-call-accounting]] — provider normalization and how to count one LLM call.
-11. [[human-review-and-escalation]] — when to stop automation and ask for product/spec authority.
-12. [[deterministic-emit-stages]] — why fl-model-gen and cl-model-gen run without an LLM, and what contract that places on the upstream SSOT.
-13. [[karpathy-llm-wiki-pattern]] — reference page for Andrej Karpathy's LLM Wiki concept (3-layer markdown + index + log + schema; no RAG, no vector DB) and how `doc/wiki/` already aligns to it.
-14. [[wiki-curation-policy]] — what to capture, when to capture it, and what to deliberately leave out of the wiki. Lives next to the code so the policy evolves with usage.
+5. [[run-mode-and-provenance-policy]] — why `Starter` / `Engineering` / `Signoff` are work-maturity modes, why `Exec Mode` is separate, and how clean SSOT YAML pairs with resolved SSOT plus sidecar provenance.
+6. [[rtl-gen-ssot-contract]] — why rtl-gen must follow SSOT exactly before downstream stages run.
+7. [[workflow-feedback-and-scheduling]] — worker-aware serial/DAG scheduling and workflow repair feedback.
+8. [[orchestrator-worker-handoff]] — orchestrator agent, live worker dispatch, JSON handoff fallback, and `/take` semantics. Spec-vs-shipped gaps tracked in [[orchestrator-worker-handoff-review]]. Concrete shipped realization: [[parallel-todo-sub-agent-workers]] — `parallel_todo_dispatch` fans a TODO batch out to N clean sub-agent workers (auto-picks from claude-cli / cursor-cli / gpt-5.3-codex / glm / deepseek / kimi by available credentials + cheapest cost).
+9. [[multi-user-worker-isolation]] — current collision risk for live HTTP workers, what is already user-scoped, what is still URL-scoped, and the lease/gateway fix needed for safe multi-user operation. Companion: [[multi-user-worker-conflicts]] — same risk surface with explicit source-line citations (`core/agent_server.py:35,103,117,664,703`) and four named failure modes (F1 wrong-root writes, F2 mixed registry/session state, F3 wrong-workflow acceptance, F4 provider/credential contention).
+10. [[pipeline-progress-debugging]] — how to debug real UI/worker progress versus headless reproduction logs; `/api/pipeline/state.progress_debug`, `/api/pipeline/progress-debug`, and the rule that product claims must use the same UI/API/worker path as users.
+11. [[rtl-version-run-history]] — SSOT/RTL/TB artifact version anchors for workflow evidence.
+12. [[golden-todo-evidence]] — TodoTracker, evidence approval, and human review states.
+13. [[provider-and-llm-call-accounting]] — provider normalization and how to count one LLM call.
+14. [[human-review-and-escalation]] — when to stop automation and ask for product/spec authority.
+15. [[deterministic-emit-stages]] — why fl-model-gen and cl-model-gen run without an LLM, and what contract that places on the upstream SSOT.
+16. [[karpathy-llm-wiki-pattern]] — reference page for Andrej Karpathy's LLM Wiki concept (3-layer markdown + index + log + schema; no RAG, no vector DB) and how `doc/wiki/` already aligns to it.
+17. [[wiki-curation-policy]] — what to capture, when to capture it, and what to deliberately leave out of the wiki. Lives next to the code so the policy evolves with usage.
 
 ## UI
 
 - [[atlas-pipeline-screen]] — `◫ Pipeline` top-level screen: click-to-run stage dispatcher, per-stage scoresheet, owner-aware blame routing.
+- [[run-mode-and-provenance-policy]] — placement and semantics for global `Run Mode` plus `Exec Mode`, and the Pipeline-specific evidence summary.
 - [[atlas-pipeline-db-state]] — how `/api/pipeline/state` derives state (DB-first, FS-fallback for hand-placed evidence) and the migration plan for moving KPI dots fully into the DB.
+- [[pipeline-progress-debugging]] — shared observability contract for worker jobs, headless reproduction logs, stuck LLM calls, and same-environment validation.
 - [[ui-design-references]] — external UI checkouts under `external_refs/` (currently `nexu-io/open-design`) and which patterns inform ATLAS.
 
 ## Reference Runs (working examples on real IPs)
@@ -33,9 +62,27 @@ Reloadable snapshots live in [`ref_ip_flow/`](../../ref_ip_flow/README.md)
 — each run is portable (IP artifacts + ATLAS sessions + seeds) so it can
 be loaded on a different machine and inspected without recreating the DB.
 
-- [[arm-m0-min-pipeline-run]] — minimal ARMv6-M Thumb CPU, full ssot→lint pipeline with green compile/lint/sim/coverage; first CPU-class run on the new DB operating mode (2026-05-15).
+- [[arm-m0-min-pipeline-run]] — minimal ARMv6-M Thumb CPU, full ssot→lint pipeline with green compile/lint/sim/function+cycle coverage; 2026-05-17 refresh shows 39/39 FL-vs-RTL goals pass and only final human-approved `req` signoff remains blocked. See `arm_m0_min/doc/arm_m0_min_completion_audit.md` for the prompt-to-artifact checklist.
+- [[arm-m0-min-current-status]] — current project-level handoff page for the same CPU; points reviewers to `arm_m0_min/README.md`, the user handoff, and the `approve_locked_scope` approval boundary.
+- [[mini-cpu-rerun-20260517]] — existing `NEW_IP_CPU/mini_cpu` rerun from a scratch copy; SSOT is non-canonical, `equiv-goals` blocks, lint fails, and manual SV sim reaches only 2/4 checks passing (2026-05-17).
 - [[gpio-serial-pipeline-run]] — `simple_gpio_lite` serial smoke run; RTL clean, tb-gen blocks on prose-only FunctionalModel `ssot_question` gaps, and ssot-gen now catches the same missing machine-rule transactions before downstream token spend (2026-05-16).
 - [[gpio-orchestrator-multiworker-run]] — `gpio_orch_scratch` Atlas orchestrator plus author/verify worker run; tracks current RTL gate/tool-evidence bugs and UI run-status gaps (2026-05-16).
+- [[quad-spi-orch-run-20260517]] — `quad_spi_ctrl` brand-new orchestrator + multi-worker + multi-sub-agent run on a Quad SPI APB peripheral; reaches `tb-gen` clean, `sim` cocotb PASS with 31 SOFT_EQ_MISMATCH → `sim-debug` owner-routes 28 → `rtl-gen`, 3 → `tb-gen`. Surfaces tb-gen "top defaults to IP name" bug and SSOT redundant-sub-module emission patterns (2026-05-17).
+- [[octa-ddr-spi-orch-run-20260517]] — `octa_ddr_spi_ctrl` from-scratch run on an Octal DDR SPI APB peripheral (lane modes 1/2/4/8 SDR + 8 DDR). Re-runs the QUAD SPI pipeline with the seven workflow fixes applied (600 s LLM timeout, SSOT.top_module.name as single top authority, SSOT structural invariants, /run workflow-binding guard, flow-mapping bracket auto-repair, filelist.rtl includes top file, `_ensure_sub_modules` respects top_module.name). Reaches `sim-debug` with 67/67 goals checked, 43 PASS, 24 mismatches owner-routed (18 rtl-gen, 6 tb-gen). Same Frontier-A/B/C classification surface as quad-spi-orch-run; no manual SSOT edits beyond a single `resolve_rtl_blockers` answer (2026-05-17).
+- [[atcuart100-pipeline-run]] — Andes 16550-class APB UART (8 modules, dual-clock pclk/uclk, FIFO+DMA+modem) full canonical DAG end-to-end; 5-LLM parallel SSOT-gen failed (codex truncate, kimi/deepseek HTTP 400, glm/claude envelope blocked) → Claude direct-authored 70 KB SSOT to unblock; compile clean, sim ran, sim-debug 64/64 owner=rtl-gen, goal-audit 12/16 passed; includes 7 lessons (monolithic-SSOT single-shot limit, validator chain effectiveness, packet-parallel vs multi-provider trade-off, YAML flow-mapping bracket trap, file-lock against runaway helpers, stale headless_run.json + monitor PID-scope) (2026-05-17).
+- [[dma-real-sim-debug-knowhow]] — `dma_real` 4-channel DMA controller (APB slave / AHB-Lite master) sim-debug 완주 노하우: 1-cycle pulse latch 패턴, cocotb+Icarus VVP 캐시 함정, scoreboard contract 통과 요령, coverage 100% 달성 전략, goal-audit 15/16 체크리스트. 최종 성과: Simulation 6/6 PASS, Coverage 58/58 bins, Goal Audit 15/16 (req human gate only) (2026-05-17).
+- [[agent-autonomous-ip-implementation-pattern]] — "Wiki만 보고 DMA 구현 완주한 패턴" 메타 분석: 에이전트가 문서를 선별하고, 합리적 순서를 도출하고, 소유자 규칙을 준수하고, 증거 기반으로 자가 교정하고, 노하우를 기록하는 5가지 자율 실행 능력의 분해. 14태스크 타이임라인, 7개 결정 갈림길, arm-m0-min 비교, 재사용 템플릿 포함 (2026-05-17).
+
+## Debugging And Operations
+
+- [[pipeline-progress-debugging]] — first stop for "is it really running?", "is worker or LLM stuck?", and "where is progress recorded?"
+- [[multi-user-worker-isolation]] — first stop for "could this worker belong to another user/IP/session?"
+- [[provider-and-llm-call-accounting]] — first stop for "how many LLM calls/tokens/cost did this workflow use?"
+- [[rtl-version-run-history]] — first stop for "which SSOT/RTL/TB version did this lint/sim/coverage/syn/sta/pnr run use?"
+
+## Open Improvements
+
+- [[workflow-improvement-candidates]] — parking lot for design candidates not yet decided (reference RTL reuse incl. legacy-extend / style-match / pin-compat cases, sectional SSOT-gen, multi-LLM reviewer pattern, stage repair convergence budget, requirements authoring guide). Captured 2026-05-17 from [[atcuart100-pipeline-run]]. None promoted to code yet; do not treat as normative.
 
 ## Hard Rules
 
@@ -46,7 +93,10 @@ be loaded on a different machine and inspected without recreating the DB.
 - Sim evidence must name SSOT/RTL/TB versions; lint/syn/sta/pnr evidence must name the RTL version it ran against.
 - If evidence fails, classify the owner first, then route the fix to the owner workflow.
 - In worker mode, the orchestrator dispatches owner feedback to live workflow workers; outside worker mode it persists handoff JSON for `/take`.
+- `Run Mode` (`Starter` / `Engineering` / `Signoff`) controls evidence strictness; `Exec Mode` (`Single Worker` / `Orchestrator`) controls execution topology. Do not merge them.
+- Keep user-visible SSOT YAML clean; store resolved defaults and field authority in resolved SSOT plus provenance sidecars.
 - Approval comes from deterministic evidence or human authority, not from LLM prose.
+- When a debugging surface changes, update code, tests, real-use validation notes, and wiki together.
 
 ## Source Docs
 
@@ -62,3 +112,4 @@ be loaded on a different machine and inspected without recreating the DB.
 - Keep wiki pages short and cross-linked.
 - Put implementation details in source docs and scripts; put navigation and authority rules here.
 - When a workflow rule changes, update the source doc first, then update the wiki link map.
+- Run `python3 workflow/wiki/build_graph.py --check` after wiki edits.

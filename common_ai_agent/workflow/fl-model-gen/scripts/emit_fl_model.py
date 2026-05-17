@@ -35,6 +35,12 @@ def _param_map(ssot: dict[str, Any]) -> dict[str, Any]:
         for item in params:
             if isinstance(item, dict) and item.get("name"):
                 out[str(item["name"])] = item.get("default")
+    elif isinstance(params, dict):
+        for name, value in params.items():
+            if isinstance(value, dict):
+                out[str(name)] = value.get("default", value.get("value"))
+            else:
+                out[str(name)] = value
     return out
 
 
@@ -1294,6 +1300,7 @@ class FunctionalModel:
             self.params.update(params)
         self.state_defaults = self._state_defaults()
         self.state = dict(self.state_defaults)
+        self._declared_state_names = set(self.state_defaults)
         self.registers = self._register_defaults()
         self.trace = []
 
@@ -1453,6 +1460,72 @@ class FunctionalModel:
         self.trace.append(entry)
         return result
 
+    def _derived_signal_items(self):
+        fm = SSOT_MODEL.get("function_model") or {{}}
+        return _rule_items(fm.get("derived_signals"))
+
+    def _resolve_derived_signals(self, env):
+        pending = []
+        for idx, item in enumerate(self._derived_signal_items()):
+            name = str(
+                item.get("name")
+                or item.get("signal")
+                or item.get("output")
+                or item.get("port")
+                or f"derived_{{idx}}"
+            )
+            expr = item.get("expr", item.get("expression", item.get("value", "")))
+            if name and expr not in (None, ""):
+                pending.append((name, expr, item.get("width") or item.get("bits")))
+
+        unresolved_errors = {{}}
+        for _pass in range(max(len(pending), 1) + 1):
+            progressed = False
+            next_pending = []
+            for name, expr, width in pending:
+                try:
+                    value = _eval_rule_expr(expr, env)
+                except KeyError as exc:
+                    unresolved_errors[name] = str(exc)
+                    next_pending.append((name, expr, width))
+                    continue
+                if width is not None:
+                    width_i = _parse_int(width, 0)
+                    value &= (1 << max(width_i, 0)) - 1 if width_i > 0 else value
+                env[name] = value
+                unresolved_errors.pop(name, None)
+                progressed = True
+            pending = next_pending
+            if not pending or not progressed:
+                break
+        return unresolved_errors
+
+    @staticmethod
+    def _norm_state_token(value):
+        text = re.sub(r"[^a-z0-9]+", "_", str(value or "").lower()).strip("_")
+        for suffix in ("_reg", "_q", "_r", "_ff"):
+            if text.endswith(suffix):
+                text = text[: -len(suffix)]
+                break
+        return text
+
+    def _state_update_target(self, update_name):
+        name = str(update_name or "").strip()
+        if name in self._declared_state_names:
+            return name
+        norm_name = self._norm_state_token(name)
+        best = ""
+        best_len = 0
+        for state_name in self._declared_state_names:
+            norm_state = self._norm_state_token(state_name)
+            if not norm_state:
+                continue
+            if norm_name == norm_state or norm_name.endswith("_" + norm_state) or f"_{{norm_state}}_" in norm_name:
+                if len(norm_state) > best_len:
+                    best = state_name
+                    best_len = len(norm_state)
+        return best
+
     def _rule_env(self, txn):
         env = {{}}
         env.update(_default_rule_helpers())
@@ -1464,6 +1537,7 @@ class FunctionalModel:
         env["reduction_or"] = lambda value: 1 if _parse_int(value, 0) != 0 else 0
         env.setdefault("true", 1)
         env.setdefault("false", 0)
+        self._resolve_derived_signals(env)
         return env
 
     def _apply_structured_rules(self, tx, txn):
@@ -1573,6 +1647,10 @@ class FunctionalModel:
                     continue
                 updates[name] = value
                 env[name] = value
+                target = self._state_update_target(name)
+                if target and target != name:
+                    updates[target] = value
+                    env[target] = value
                 unresolved_errors.pop(name, None)
                 progressed = True
             pending_updates = next_pending
@@ -1584,7 +1662,14 @@ class FunctionalModel:
             missing = ", ".join(f"{{name}}: {{unresolved_errors.get(name, 'unresolved dependency')}}" for name, _expr in pending_updates)
             raise KeyError(f"unresolved state update dependencies: {{missing}}")
         if updates:
-            self.state.update(updates)
+            commit_updates = {{}}
+            for update_name, value in updates.items():
+                target = self._state_update_target(update_name)
+                if target:
+                    commit_updates[target] = value
+                else:
+                    commit_updates[update_name] = value
+            self.state.update(commit_updates)
             result["state_updates"] = dict(updates)
         return result
 
@@ -1657,9 +1742,12 @@ def run_self_check():
                 txn[name] = field_idx + idx + 1
         output_rules = _rule_items(tx.get("output_rules"))
         state_updates = _rule_items(tx.get("state_updates"))
+        derived_signals = _rule_items((SSOT_MODEL.get("function_model") or {{}}).get("derived_signals"))
         rule_names = set()
         rule_names.update(_expr_names(tx.get("sample_condition", "")))
         for rule in output_rules + state_updates:
+            rule_names.update(_expr_names(rule.get("expr", rule.get("expression", rule.get("value", "")))))
+        for rule in derived_signals:
             rule_names.update(_expr_names(rule.get("expr", rule.get("expression", rule.get("value", "")))))
         output_names = {{
             str(rule.get("name") or rule.get("output") or rule.get("port"))
@@ -1671,7 +1759,13 @@ def run_self_check():
             for rule in state_updates
             if rule.get("name") or rule.get("state")
         }}
+        derived_names = {{
+            str(rule.get("name") or rule.get("signal") or rule.get("output") or rule.get("port"))
+            for rule in derived_signals
+            if rule.get("name") or rule.get("signal") or rule.get("output") or rule.get("port")
+        }}
         known_names = set(model.params) | set(model.state) | set(model.registers) | output_names | update_names
+        known_names.update(derived_names)
         known_names.update({{"true", "false", "True", "False", "and", "or", "not"}})
         known_names.update(_default_rule_helpers().keys())
         known_names.update({{"read_mux", "reduction_or", "range"}})
