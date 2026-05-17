@@ -1,0 +1,15 @@
+{
+  "ip": "uart_lite_real",
+  "stage": "fl-model-gen",
+  "status": "pass",
+  "passed": true,
+  "artifacts": [
+    "model/functional_model.py",
+    "cov/fcov_plan.json"
+  ],
+  "self_check_result": "ALL PASS",
+  "transactions": ["FM_TX_BYTE", "FM_RX_BYTE", "FM_BREAK_SEND", "FM_LOOPBACK"],
+  "coverage_bins": 13,
+  "scenarios": 17,
+  "timestamp": "2026-05-18"
+}

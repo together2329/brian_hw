@@ -1,0 +1,142 @@
+{
+  "contract": {
+    "apb_registers": {},
+    "clock": "pclk",
+    "fsm_states": [],
+    "fsm_transitions": [],
+    "input_map": {
+      "apb_addr": "paddr",
+      "apb_enable": "penable",
+      "apb_select": "psel",
+      "apb_wdata": "pwdata",
+      "apb_write": "pwrite",
+      "external_tick": "extclk",
+      "pause": "wdt_pause"
+    },
+    "outputs": [
+      {
+        "expr": "(((((SR_INTZERO) != 0) & ((CR_INTEN) != 0))) != 0)",
+        "name": "wdt_int_rule",
+        "port": "wdt_int",
+        "source": {
+          "expr": "SR_INTZERO & CR_INTEN",
+          "name": "wdt_int_rule",
+          "port": "wdt_int",
+          "width": 1
+        },
+        "width": 1
+      },
+      {
+        "expr": "(((((SR_RSTZERO) != 0) & ((CR_RSTEN) != 0))) != 0)",
+        "name": "wdt_rst_rule",
+        "port": "wdt_rst",
+        "source": {
+          "expr": "SR_RSTZERO & CR_RSTEN",
+          "name": "wdt_rst_rule",
+          "port": "wdt_rst",
+          "width": 1
+        },
+        "width": 1
+      }
+    ],
+    "pipeline_stages": [
+      "S0_APB_ADDR",
+      "S1_APB_ACCESS",
+      "S2_SYNC",
+      "S3_COUNT",
+      "S4_TIMEOUT_OUTPUT"
+    ],
+    "reset": "presetn",
+    "reset_active": "low",
+    "sample_condition": "((((((psel) != 0) && ((penable) != 0))) != 0) || ((CR_EN) != 0))",
+    "source": "rtl_contract + function_model.output_rules",
+    "special_outputs": {},
+    "state_updates": [
+      {
+        "expr": "COUNTER",
+        "name": "COUNTER",
+        "source": {
+          "expr": "COUNTER",
+          "name": "COUNTER",
+          "reset": 0
+        }
+      },
+      {
+        "expr": "STATE",
+        "name": "STATE",
+        "source": {
+          "expr": "STATE",
+          "name": "STATE",
+          "reset": 0
+        }
+      },
+      {
+        "expr": "CR_FIELDS",
+        "name": "CR_FIELDS",
+        "source": {
+          "expr": "CR_FIELDS",
+          "name": "CR_FIELDS",
+          "reset": 0
+        }
+      }
+    ],
+    "state_vars": {
+      "COUNTER": {
+        "reset": 0,
+        "width": 32
+      },
+      "CR_CLK": {
+        "reset": 0,
+        "width": 1
+      },
+      "CR_EN": {
+        "reset": 0,
+        "width": 1
+      },
+      "CR_FIELDS": {
+        "reset": 0,
+        "width": 32
+      },
+      "CR_INTEN": {
+        "reset": 0,
+        "width": 1
+      },
+      "CR_INTTIME": {
+        "reset": 0,
+        "width": 32
+      },
+      "CR_RSTEN": {
+        "reset": 0,
+        "width": 1
+      },
+      "CR_RSTTIME": {
+        "reset": 0,
+        "width": 3
+      },
+      "REG_WEN": {
+        "reset": 0,
+        "width": 1
+      },
+      "SR_INTZERO": {
+        "reset": 0,
+        "width": 1
+      },
+      "SR_RSTZERO": {
+        "reset": 0,
+        "width": 1
+      },
+      "STATE": {
+        "reset": 0,
+        "width": 1
+      }
+    },
+    "top": "atcwdt200",
+    "transaction": "watchdog_tick"
+  },
+  "generated_at": "2026-05-17T07:17:15Z",
+  "ip": "atcwdt200",
+  "schema_version": 1,
+  "source": "manual_clean_room_rtl_contract_from_approved_ssot",
+  "top": "atcwdt200",
+  "type": "generic_ssot_rule_rtl_contract"
+}

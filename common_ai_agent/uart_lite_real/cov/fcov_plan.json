@@ -1,0 +1,96 @@
+{
+  "ip": "uart_lite_real",
+  "source": "yaml/uart_lite_real.ssot.yaml",
+  "function_coverage": {
+    "target_pct": 100,
+    "model": "function_model",
+    "bins": [
+      {
+        "id": "FCOV_FM_TX_BYTE",
+        "source_ref": "function_model.transactions.FM_TX_BYTE",
+        "class": "transaction",
+        "description": "TX byte transaction observed by scoreboard"
+      },
+      {
+        "id": "FCOV_FM_RX_BYTE",
+        "source_ref": "function_model.transactions.FM_RX_BYTE",
+        "class": "transaction",
+        "description": "RX byte transaction observed by scoreboard"
+      },
+      {
+        "id": "FCOV_FM_BREAK",
+        "source_ref": "function_model.transactions.FM_BREAK_SEND",
+        "class": "transaction",
+        "description": "Break send observed"
+      },
+      {
+        "id": "FCOV_FM_LOOPBACK",
+        "source_ref": "function_model.transactions.FM_LOOPBACK",
+        "class": "transaction",
+        "description": "Loopback mode verified"
+      },
+      {
+        "id": "FCOV_ERR_PARITY",
+        "source_ref": "function_model.transactions.FM_RX_BYTE.error_cases.parity_err",
+        "class": "error_case",
+        "description": "Parity error detected"
+      },
+      {
+        "id": "FCOV_ERR_FRAME",
+        "source_ref": "function_model.transactions.FM_RX_BYTE.error_cases.frame_err",
+        "class": "error_case",
+        "description": "Framing error detected"
+      },
+      {
+        "id": "FCOV_ERR_OVERRUN",
+        "source_ref": "function_model.transactions.FM_RX_BYTE.error_cases.overrun_err",
+        "class": "error_case",
+        "description": "Overrun error detected"
+      }
+    ]
+  },
+  "cycle_coverage": {
+    "target_pct": 100,
+    "model": "cycle_model",
+    "bins": [
+      {
+        "id": "CCOV_TX_IDLE",
+        "source_ref": "cycle_model.pipeline[TX_IDLE]",
+        "class": "pipeline_stage",
+        "description": "TX IDLE stage observed"
+      },
+      {
+        "id": "CCOV_TX_DATA",
+        "source_ref": "cycle_model.pipeline[TX_DATA]",
+        "class": "pipeline_stage",
+        "description": "TX DATA stage observed"
+      },
+      {
+        "id": "CCOV_RX_START_CONFIRM",
+        "source_ref": "cycle_model.pipeline[RX_START_CONFIRM]",
+        "class": "pipeline_stage",
+        "description": "RX start confirm stage observed"
+      },
+      {
+        "id": "CCOV_RX_DATA",
+        "source_ref": "cycle_model.pipeline[RX_DATA]",
+        "class": "pipeline_stage",
+        "description": "RX DATA stage observed"
+      },
+      {
+        "id": "CCOV_BAUD_TICK",
+        "source_ref": "cycle_model.baud_generator",
+        "class": "handshake",
+        "description": "Baud tick observed at correct rate"
+      },
+      {
+        "id": "CCOV_PERF_FIFO_DEPTH",
+        "source_ref": "cycle_model.performance.depth",
+        "class": "depth",
+        "description": "FIFO depth exercised"
+      }
+    ]
+  },
+  "total_bins": 13,
+  "scenarios": 17
+}

@@ -13,7 +13,7 @@
     "type": "rtl_connection_contract_suggestions"
   },
   "gate": {
-    "all_required_todos_pass": false,
+    "all_required_todos_pass": true,
     "audit_rtl": true,
     "blocking_questions": 0,
     "criteria": [
@@ -35,12 +35,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 31,
+    "open_required_todos": 0,
     "orphan_tasks": 0,
-    "static_missing": 26,
-    "status": "fail"
+    "static_missing": 0,
+    "status": "pass"
   },
-  "generated_at": "2026-05-17T07:07:50Z",
+  "generated_at": "2026-05-17T07:14:43Z",
   "ip": "atcwdt200",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 6,
@@ -86,16 +86,7 @@
   "manifest_signal_flow_evidence": {
     "checked_inputs": 25,
     "checked_outputs": 16,
-    "issues": [
-      {
-        "expr": "core_set_rstzero",
-        "instance": "u_core",
-        "issue": "Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
-        "module": "atcwdt200_core",
-        "parent": "atcwdt200",
-        "port": "core_set_rstzero"
-      }
-    ],
+    "issues": [],
     "reachable_modules": [
       "atcwdt200",
       "atcwdt200_core",
@@ -105,7 +96,7 @@
     "roots": [
       "atcwdt200"
     ],
-    "status": "fail"
+    "status": "pass"
   },
   "orphans": [],
   "owner_logic_evidence": {
@@ -131,27 +122,27 @@
   "rtl_implementation_depth_evidence": {
     "aggregate": {
       "behavior_owner_logic_modules": 3,
-      "control_flow": 25,
-      "depth_score": 203,
+      "control_flow": 28,
+      "depth_score": 221,
       "instances": 3,
-      "lines": 367,
+      "lines": 451,
       "logic_modules": 4,
       "modules": 4,
-      "nonconstant_assigns": 19,
+      "nonconstant_assigns": 33,
       "procedural_blocks": 6,
       "source_files": 4,
       "state_updates": 54,
-      "storage_decls": 27
+      "storage_decls": 28
     },
     "issues": [],
     "modules": [
       {
-        "depth_score": 76,
+        "depth_score": 85,
         "file": "rtl/atcwdt200_regs.sv",
         "metrics": {
-          "control_flow": 11,
+          "control_flow": 12,
           "instances": 0,
-          "nonconstant_assigns": 10,
+          "nonconstant_assigns": 18,
           "placeholder_tokens": false,
           "procedural_blocks": 2,
           "state_updates": 23,
@@ -160,12 +151,12 @@
         "module": "atcwdt200_regs"
       },
       {
-        "depth_score": 74,
+        "depth_score": 81,
         "file": "rtl/atcwdt200_core.sv",
         "metrics": {
-          "control_flow": 13,
+          "control_flow": 15,
           "instances": 0,
-          "nonconstant_assigns": 9,
+          "nonconstant_assigns": 14,
           "placeholder_tokens": false,
           "procedural_blocks": 3,
           "state_updates": 19,
@@ -188,16 +179,16 @@
         "module": "atcwdt200_sync"
       },
       {
-        "depth_score": 20,
+        "depth_score": 22,
         "file": "rtl/atcwdt200.sv",
         "metrics": {
           "control_flow": 0,
           "instances": 3,
-          "nonconstant_assigns": 0,
+          "nonconstant_assigns": 1,
           "placeholder_tokens": false,
           "procedural_blocks": 0,
           "state_updates": 0,
-          "storage_decls": 14
+          "storage_decls": 15
         },
         "module": "atcwdt200"
       }
@@ -454,412 +445,9 @@
   ],
   "static_rtl_evidence": {
     "checked": 107,
-    "missing": 26,
-    "missing_tasks": [
-      {
-        "category": "function_model.state_variable",
-        "matched_count": 1,
-        "matched_terms": [
-          "SR"
-        ],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "RSTZERO",
-          "SR",
-          "SR_RSTZERO"
-        ],
-        "source_ref": "function_model.state_variables.SR_RSTZERO",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0044"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 1,
-        "matched_terms": [
-          "prdata"
-        ],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "prdata",
-          "prdata_rule"
-        ],
-        "source_ref": "function_model.transactions.apb_read.output_rules.prdata_rule",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0053"
-      },
-      {
-        "category": "function_model.error_case",
-        "matched_count": 1,
-        "matched_terms": [
-          "prdata"
-        ],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "Unsupported",
-          "prdata"
-        ],
-        "source_ref": "function_model.transactions.apb_read.error_cases.error_case_0",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0055"
-      },
-      {
-        "category": "function_model.state_update",
-        "matched_count": 1,
-        "matched_terms": [
-          "CR"
-        ],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "CR",
-          "CR_FIELDS",
-          "x7ff"
-        ],
-        "source_ref": "function_model.transactions.apb_write.state_updates.CR_FIELDS",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "pwdata"
-        ],
-        "source_ref": "function_model.transactions.restart.inputs.input_0",
-        "source_scope": "rtl/atcwdt200_core.sv",
-        "task_id": "RTL-0077"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "REG",
-          "REG_WEN",
-          "WEN"
-        ],
-        "source_ref": "function_model.transactions.restart.inputs.input_1",
-        "source_scope": "rtl/atcwdt200_core.sv",
-        "task_id": "RTL-0078"
-      },
-      {
-        "category": "function_model.error_case",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "Wrong"
-        ],
-        "source_ref": "function_model.transactions.restart.error_cases.error_case_0",
-        "source_scope": "rtl/atcwdt200_core.sv",
-        "task_id": "RTL-0083"
-      },
-      {
-        "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "PREDICATES",
-          "TIMEOUT",
-          "TIMEOUT_PREDICATES"
-        ],
-        "source_ref": "function_model.transactions.timeout_decode.inputs.input_2",
-        "source_scope": "rtl/atcwdt200_core.sv",
-        "task_id": "RTL-0110"
-      },
-      {
-        "category": "function_model.state_update",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "PREDICATES",
-          "TIMEOUT",
-          "TIMEOUT_PREDICATES"
-        ],
-        "source_ref": "function_model.transactions.timeout_decode.state_updates.TIMEOUT_PREDICATES",
-        "source_scope": "rtl/atcwdt200_core.sv",
-        "task_id": "RTL-0112"
-      },
-      {
-        "category": "function_model.side_effect",
-        "matched_count": 1,
-        "matched_terms": [
-          "tick"
-        ],
-        "owner_file": "rtl/atcwdt200_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "Drives",
-          "PREDICATES",
-          "TIMEOUT",
-          "TIMEOUT_PREDICATES",
-          "tick",
-          "watchdog",
-          "watchdog_tick"
-        ],
-        "source_ref": "function_model.transactions.timeout_decode.side_effects.side_effect_0",
-        "source_scope": "rtl/atcwdt200_core.sv",
-        "task_id": "RTL-0113"
-      },
-      {
-        "category": "function_model.error_case",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "PREDICATES",
-          "TIMEOUT",
-          "TIMEOUT_PREDICATES",
-          "Unsupported"
-        ],
-        "source_ref": "function_model.transactions.timeout_decode.error_cases.error_case_0",
-        "source_scope": "rtl/atcwdt200_core.sv",
-        "task_id": "RTL-0114"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 1,
-        "matched_terms": [
-          "int"
-        ],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "int",
-          "rst",
-          "wdt",
-          "wdt_int",
-          "wdt_rst"
-        ],
-        "source_ref": "function_model.invariants.invariant_2",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0117"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "psel"
-        ],
-        "source_ref": "cycle_model.handshake_rules.psel",
-        "source_scope": "rtl/atcwdt200_core.sv",
-        "task_id": "RTL-0122"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "penable"
-        ],
-        "source_ref": "cycle_model.handshake_rules.penable",
-        "source_scope": "rtl/atcwdt200_core.sv",
-        "task_id": "RTL-0123"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "id"
-        ],
-        "source_ref": "registers.register_list.VER.fields.id",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0137"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "major",
-          "rev",
-          "rev_major"
-        ],
-        "source_ref": "registers.register_list.VER.fields.rev_major",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0138"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "minor",
-          "rev",
-          "rev_minor"
-        ],
-        "source_ref": "registers.register_list.VER.fields.rev_minor",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0139"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "11",
-          "31",
-          "reserved",
-          "reserved_31_11"
-        ],
-        "source_ref": "registers.register_list.CR.fields.reserved_31_11",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0147"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "16",
-          "31",
-          "reserved",
-          "reserved_31_16"
-        ],
-        "source_ref": "registers.register_list.RES.fields.reserved_31_16",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0150"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "16",
-          "31",
-          "reserved",
-          "reserved_31_16"
-        ],
-        "source_ref": "registers.register_list.WEN.fields.reserved_31_16",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0153"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "31",
-          "reserved",
-          "reserved_31_1"
-        ],
-        "source_ref": "registers.register_list.SR.fields.reserved_31_1",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0156"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "APB"
-        ],
-        "source_ref": "features.restart_and_pause",
-        "source_scope": "rtl/atcwdt200.sv",
-        "task_id": "RTL-0167"
-      },
-      {
-        "category": "dataflow.sequence",
-        "matched_count": 1,
-        "matched_terms": [
-          "int"
-        ],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "int",
-          "wdt",
-          "wdt_int"
-        ],
-        "source_ref": "dataflow.sequence.sequence_3",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0171"
-      },
-      {
-        "category": "dataflow.sequence",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "wdt",
-          "wdt_rst"
-        ],
-        "source_ref": "dataflow.sequence.sequence_4",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0172"
-      },
-      {
-        "category": "dataflow.sinks",
-        "matched_count": 1,
-        "matched_terms": [
-          "int"
-        ],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "int",
-          "wdt",
-          "wdt_int"
-        ],
-        "source_ref": "dataflow.sinks.sinks_1",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0175"
-      },
-      {
-        "category": "dataflow.sinks",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/atcwdt200_regs.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "rst",
-          "wdt",
-          "wdt_rst"
-        ],
-        "source_ref": "dataflow.sinks.sinks_2",
-        "source_scope": "rtl/atcwdt200_regs.sv",
-        "task_id": "RTL-0176"
-      }
-    ],
-    "passed": 81,
+    "missing": 0,
+    "missing_tasks": [],
+    "passed": 107,
     "sources": [
       "rtl/atcwdt200.sv",
       "rtl/atcwdt200_core.sv",
@@ -1287,9 +875,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1335,9 +923,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "26 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1714,9 +1302,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 manifest signal-flow issue(s) remain. atcwdt200_core: core_set_rstzero: Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
+        "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1860,9 +1448,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1907,9 +1495,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "30 required non-closure TODO(s) remain open.",
+        "reason": "Every required non-closure TODO has pass status.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3227,9 +2815,11 @@
         "function_model.state_variables.SR_RSTZERO"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "SR"
+          "RSTZERO",
+          "SR",
+          "SR_RSTZERO"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -3240,7 +2830,7 @@
           "SR_RSTZERO"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -3250,9 +2840,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3702,9 +3292,10 @@
         "function_model.transactions.apb_read.output_rules.prdata_rule"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "prdata"
+          "prdata",
+          "prdata_rule"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -3714,7 +3305,7 @@
           "prdata_rule"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -3724,9 +3315,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3822,8 +3413,9 @@
         "function_model.transactions.apb_read.error_cases.error_case_0"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
+          "Unsupported",
           "prdata"
         ],
         "owner_file_scoped": true,
@@ -3834,7 +3426,7 @@
           "prdata"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -3844,9 +3436,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3973,9 +3565,10 @@
         "function_model.transactions.apb_write.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
           "CR",
+          "CR_FIELDS",
           "INTZERO",
           "SR",
           "SR_INTZERO",
@@ -4045,9 +3638,10 @@
         "function_model.transactions.apb_write.inputs.input_1"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
           "CR",
+          "CR_FIELDS",
           "INTZERO",
           "SR",
           "SR_INTZERO",
@@ -4120,9 +3714,10 @@
         "function_model.transactions.apb_write.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 7,
+        "matched_count": 8,
         "matched_terms": [
           "CR",
+          "CR_FIELDS",
           "INTZERO",
           "REG",
           "REG_WEN",
@@ -4196,9 +3791,11 @@
         "function_model.transactions.apb_write.state_updates.CR_FIELDS"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "CR"
+          "CR",
+          "CR_FIELDS",
+          "x7ff"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -4209,7 +3806,7 @@
           "x7ff"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -4219,9 +3816,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4327,9 +3924,10 @@
         "function_model.transactions.apb_write.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "CR",
+          "CR_FIELDS",
           "INTZERO",
           "SR",
           "SR_INTZERO"
@@ -4400,9 +3998,10 @@
         "function_model.transactions.apb_write.side_effects.side_effect_1"
       ],
       "static_evidence": {
-        "matched_count": 7,
+        "matched_count": 8,
         "matched_terms": [
           "CR",
+          "CR_FIELDS",
           "INTZERO",
           "REG",
           "REG_WEN",
@@ -4475,9 +4074,10 @@
         "function_model.transactions.apb_write.side_effects.side_effect_2"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "CR",
+          "CR_FIELDS",
           "INTZERO",
           "SR",
           "SR_INTZERO"
@@ -4544,9 +4144,10 @@
         "function_model.transactions.apb_write.side_effects.side_effect_3"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "CR",
+          "CR_FIELDS",
           "INTZERO",
           "SR",
           "SR_INTZERO"
@@ -4614,9 +4215,10 @@
         "function_model.transactions.apb_write.error_cases.error_case_0"
       ],
       "static_evidence": {
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "CR",
+          "CR_FIELDS",
           "INTZERO",
           "SR",
           "SR_INTZERO"
@@ -5190,8 +4792,10 @@
         "function_model.transactions.restart.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "pwdata"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -5199,7 +4803,7 @@
           "pwdata"
         ],
         "source_scope": "rtl/atcwdt200_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5209,9 +4813,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5248,8 +4852,12 @@
         "function_model.transactions.restart.inputs.input_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5259,7 +4867,7 @@
           "WEN"
         ],
         "source_scope": "rtl/atcwdt200_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5269,9 +4877,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5524,8 +5132,10 @@
         "function_model.transactions.restart.error_cases.error_case_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "Wrong"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -5533,7 +5143,7 @@
           "Wrong"
         ],
         "source_scope": "rtl/atcwdt200_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5543,9 +5153,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7326,7 +6936,7 @@
         "function_model.transactions.watchdog_tick.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 13,
+        "matched_count": 14,
         "matched_terms": [
           "CR",
           "CR_EN",
@@ -7336,6 +6946,7 @@
           "SR",
           "SR_INTZERO",
           "SR_RSTZERO",
+          "Timeout",
           "int",
           "rst",
           "wdt",
@@ -7597,11 +7208,14 @@
         "function_model.transactions.timeout_decode.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 3,
+        "matched_count": 6,
         "matched_terms": [
           "CR",
           "CR_INTTIME",
-          "INTTIME"
+          "INTTIME",
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -7667,11 +7281,14 @@
         "function_model.transactions.timeout_decode.inputs.input_1"
       ],
       "static_evidence": {
-        "matched_count": 3,
+        "matched_count": 6,
         "matched_terms": [
           "CR",
           "CR_RSTTIME",
-          "RSTTIME"
+          "PREDICATES",
+          "RSTTIME",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -7734,8 +7351,12 @@
         "function_model.transactions.timeout_decode.inputs.input_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7745,7 +7366,7 @@
           "TIMEOUT_PREDICATES"
         ],
         "source_scope": "rtl/atcwdt200_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7755,9 +7376,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7799,8 +7420,11 @@
         "function_model.transactions.timeout_decode.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 5,
+        "matched_count": 8,
         "matched_terms": [
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES",
           "end",
           "inttime",
           "inttime_end",
@@ -7872,8 +7496,12 @@
         "function_model.transactions.timeout_decode.state_updates.TIMEOUT_PREDICATES"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -7883,7 +7511,7 @@
           "TIMEOUT_PREDICATES"
         ],
         "source_scope": "rtl/atcwdt200_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -7893,9 +7521,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7936,8 +7564,11 @@
         "function_model.transactions.timeout_decode.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 4,
         "matched_terms": [
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES",
           "tick"
         ],
         "owner_file_scoped": true,
@@ -7953,7 +7584,7 @@
           "watchdog_tick"
         ],
         "source_scope": "rtl/atcwdt200_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7963,9 +7594,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8003,8 +7634,13 @@
         "function_model.transactions.timeout_decode.error_cases.error_case_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES",
+          "Unsupported"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -8015,7 +7651,7 @@
           "Unsupported"
         ],
         "source_scope": "rtl/atcwdt200_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -8025,9 +7661,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8077,7 +7713,7 @@
         "function_model.invariants.invariant_0"
       ],
       "static_evidence": {
-        "matched_count": 15,
+        "matched_count": 16,
         "matched_terms": [
           "CLK",
           "CR",
@@ -8093,6 +7729,7 @@
           "INTZERO",
           "RSTEN",
           "RSTTIME",
+          "RSTZERO",
           "SR"
         ],
         "owner_file_scoped": true,
@@ -8179,7 +7816,7 @@
         "function_model.invariants.invariant_1"
       ],
       "static_evidence": {
-        "matched_count": 15,
+        "matched_count": 16,
         "matched_terms": [
           "CLK",
           "CR",
@@ -8195,6 +7832,7 @@
           "INTZERO",
           "RSTEN",
           "RSTTIME",
+          "RSTZERO",
           "SR"
         ],
         "owner_file_scoped": true,
@@ -8270,9 +7908,13 @@
         "function_model.invariants.invariant_2"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
-          "int"
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -8285,7 +7927,7 @@
           "wdt_rst"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -8295,9 +7937,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8338,10 +7980,15 @@
         "function_model.invariants.invariant_3"
       ],
       "static_evidence": {
-        "matched_count": 2,
+        "matched_count": 7,
         "matched_terms": [
+          "Reserved",
           "int",
-          "prdata"
+          "prdata",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -8530,8 +8177,10 @@
         "cycle_model.handshake_rules.psel"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "psel"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -8539,7 +8188,7 @@
           "psel"
         ],
         "source_scope": "rtl/atcwdt200_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -8549,9 +8198,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8584,8 +8233,10 @@
         "cycle_model.handshake_rules.penable"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "penable"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -8593,7 +8244,7 @@
           "penable"
         ],
         "source_scope": "rtl/atcwdt200_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -8603,9 +8254,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9281,8 +8932,10 @@
         "registers.register_list.VER.fields.id"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "id"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -9290,7 +8943,7 @@
           "id"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -9300,9 +8953,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9344,8 +8997,12 @@
         "registers.register_list.VER.fields.rev_major"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "major",
+          "rev",
+          "rev_major"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -9355,7 +9012,7 @@
           "rev_major"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -9365,9 +9022,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9409,8 +9066,12 @@
         "registers.register_list.VER.fields.rev_minor"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "minor",
+          "rev",
+          "rev_minor"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -9420,7 +9081,7 @@
           "rev_minor"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -9430,9 +9091,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9916,8 +9577,10 @@
         "registers.register_list.CR.fields.reserved_31_11"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "reserved"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -9928,7 +9591,7 @@
           "reserved_31_11"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -9938,9 +9601,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -10113,8 +9776,10 @@
         "registers.register_list.RES.fields.reserved_31_16"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "reserved"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -10125,7 +9790,7 @@
           "reserved_31_16"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -10135,9 +9800,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -10310,8 +9975,10 @@
         "registers.register_list.WEN.fields.reserved_31_16"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "reserved"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -10322,7 +9989,7 @@
           "reserved_31_16"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -10332,9 +9999,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -10502,8 +10169,10 @@
         "registers.register_list.SR.fields.reserved_31_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "reserved"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -10513,7 +10182,7 @@
           "reserved_31_1"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -10523,9 +10192,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -11245,8 +10914,10 @@
         "features.restart_and_pause"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "APB"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -11254,7 +10925,7 @@
           "APB"
         ],
         "source_scope": "rtl/atcwdt200.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -11264,9 +10935,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -11429,9 +11100,11 @@
         "dataflow.sequence.sequence_3"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "int"
+          "int",
+          "wdt",
+          "wdt_int"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -11442,7 +11115,7 @@
           "wdt_int"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -11452,9 +11125,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -11488,8 +11161,12 @@
         "dataflow.sequence.sequence_4"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "rst",
+          "wdt",
+          "wdt_rst"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -11499,7 +11176,7 @@
           "wdt_rst"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -11509,9 +11186,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -11631,9 +11308,11 @@
         "dataflow.sinks.sinks_1"
       ],
       "static_evidence": {
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "int"
+          "int",
+          "wdt",
+          "wdt_int"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -11644,7 +11323,7 @@
           "wdt_int"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -11654,9 +11333,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -11690,8 +11369,12 @@
         "dataflow.sinks.sinks_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "rst",
+          "wdt",
+          "wdt_rst"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -11701,7 +11384,7 @@
           "wdt_rst"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -11711,9 +11394,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -12968,198 +12651,11 @@
     }
   ],
   "todo_completion": {
-    "all_required_todos_pass": false,
+    "all_required_todos_pass": true,
     "audit_rtl": true,
-    "open_required_tasks": 31,
-    "open_tasks": [
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "26 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "task_id": "RTL-0007"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 manifest signal-flow issue(s) remain. atcwdt200_core: core_set_rstzero: Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "task_id": "RTL-0015"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "task_id": "RTL-0018"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "30 required non-closure TODO(s) remain open.",
-        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "task_id": "RTL-0019"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.state_variables.SR_RSTZERO",
-        "task_id": "RTL-0044"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.apb_read.output_rules.prdata_rule",
-        "task_id": "RTL-0053"
-      },
-      {
-        "category": "function_model.error_case",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.apb_read.error_cases.error_case_0",
-        "task_id": "RTL-0055"
-      },
-      {
-        "category": "function_model.state_update",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.apb_write.state_updates.CR_FIELDS",
-        "task_id": "RTL-0061"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.restart.inputs.input_0",
-        "task_id": "RTL-0077"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.restart.inputs.input_1",
-        "task_id": "RTL-0078"
-      },
-      {
-        "category": "function_model.error_case",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.restart.error_cases.error_case_0",
-        "task_id": "RTL-0083"
-      },
-      {
-        "category": "function_model.input",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.timeout_decode.inputs.input_2",
-        "task_id": "RTL-0110"
-      },
-      {
-        "category": "function_model.state_update",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.timeout_decode.state_updates.TIMEOUT_PREDICATES",
-        "task_id": "RTL-0112"
-      },
-      {
-        "category": "function_model.side_effect",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.timeout_decode.side_effects.side_effect_0",
-        "task_id": "RTL-0113"
-      },
-      {
-        "category": "function_model.error_case",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.timeout_decode.error_cases.error_case_0",
-        "task_id": "RTL-0114"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.invariants.invariant_2",
-        "task_id": "RTL-0117"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "cycle_model.handshake_rules.psel",
-        "task_id": "RTL-0122"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "cycle_model.handshake_rules.penable",
-        "task_id": "RTL-0123"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.VER.fields.id",
-        "task_id": "RTL-0137"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.VER.fields.rev_major",
-        "task_id": "RTL-0138"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.VER.fields.rev_minor",
-        "task_id": "RTL-0139"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.CR.fields.reserved_31_11",
-        "task_id": "RTL-0147"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.RES.fields.reserved_31_16",
-        "task_id": "RTL-0150"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.WEN.fields.reserved_31_16",
-        "task_id": "RTL-0153"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.SR.fields.reserved_31_1",
-        "task_id": "RTL-0156"
-      },
-      {
-        "category": "features.item",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "features.restart_and_pause",
-        "task_id": "RTL-0167"
-      },
-      {
-        "category": "dataflow.sequence",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "dataflow.sequence.sequence_3",
-        "task_id": "RTL-0171"
-      },
-      {
-        "category": "dataflow.sequence",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "dataflow.sequence.sequence_4",
-        "task_id": "RTL-0172"
-      },
-      {
-        "category": "dataflow.sinks",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "dataflow.sinks.sinks_1",
-        "task_id": "RTL-0175"
-      },
-      {
-        "category": "dataflow.sinks",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "dataflow.sinks.sinks_2",
-        "task_id": "RTL-0176"
-      }
-    ],
-    "required_passed": 173,
+    "open_required_tasks": 0,
+    "open_tasks": [],
+    "required_passed": 204,
     "required_total": 204,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

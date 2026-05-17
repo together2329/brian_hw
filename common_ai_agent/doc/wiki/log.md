@@ -2,6 +2,13 @@
 
 ## 2026-05-17
 
+- Added `doc/wiki/atcwdt200-pipeline-run-20260517.md` for the Andes watchdog
+  timer flow started from `/Users/brian/Desktop/andes/atcwdt200`. The snapshot
+  records clean SSOT/FL/CL/equiv/RTL/TB/lint evidence, the current sim stop
+  condition (`TESTS=1 PASS=1` plus `[SIM ESCALATE] scoreboard_failed=11`), and
+  recurring lessons around generated `rtl_contract.json`, comment-stripped RTL
+  audit evidence, fixed-version-register FL rules, and internal-state
+  observability before repair.
 - Added `arm_m0_min/review/prompt_to_artifact_checklist.json`, a
   machine-readable map from the original CPU request to concrete SSOT, model,
   RTL, TB, sim, equivalence, coverage, wiki, and approval-gate evidence. The

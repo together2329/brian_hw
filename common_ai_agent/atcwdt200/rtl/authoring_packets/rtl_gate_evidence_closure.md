@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 2
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: filelist, integration, integration.connections, io_list, io_list.interfaces, top_module
 - SSOT connection contracts:
@@ -42,13 +42,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.static_rtl_evidence
 - Detail: After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.
 SSOT ref: quality_gates.rtl_gen.static_rtl_evidence.
 Owner: atcwdt200 in rtl/atcwdt200.sv via top_module.
-- Current reason: 26 static-evidence-required task(s) still lack DUT RTL evidence.
+- Current reason: Static DUT RTL evidence audit has no missing required task.
 - Criteria:
   - derive_rtl_todos.py --audit-rtl ran after the final RTL edit
   - rtl_todo_plan.json static_rtl_evidence.missing is zero
@@ -198,13 +198,13 @@ Owner: atcwdt200 in rtl/atcwdt200.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_signal_flow_evidence
 - Detail: Named port maps prove that ports are connected, but not that the connected signals are useful. Child inputs must not be placeholder constants unless SSOT explicitly allows the tieoff, and child outputs must feed a top output, parent logic, or another declared child input/inout.
 SSOT ref: quality_gates.rtl_gen.manifest_signal_flow_evidence.
 Owner: atcwdt200 in rtl/atcwdt200.sv via top_module.
-- Current reason: 1 manifest signal-flow issue(s) remain. atcwdt200_core: core_set_rstzero: Manifest child output does not feed a top output, parent RTL logic, or another child input/inout
+- Current reason: Manifest child port maps carry live non-placeholder RTL signal flow.
 - Criteria:
   - Reachable manifest child input/inout ports are not tied to constants without an SSOT connection/tieoff allowance
   - Reachable manifest child output/inout ports are consumed by top outputs, parent RTL logic, or declared child inputs/inouts

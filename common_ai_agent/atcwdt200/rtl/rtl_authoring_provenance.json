@@ -1,0 +1,41 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_packets": [
+    "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+    "rtl/authoring_packets/module__atcwdt200_regs__dataflow.json",
+    "rtl/authoring_packets/module__atcwdt200_regs__equivalence.json",
+    "rtl/authoring_packets/module__atcwdt200_regs__error_handling.json",
+    "rtl/authoring_packets/module__atcwdt200_regs__function_model.json",
+    "rtl/authoring_packets/module__atcwdt200_regs__registers.json",
+    "rtl/authoring_packets/module__atcwdt200_core__cycle_model.json",
+    "rtl/authoring_packets/module__atcwdt200_core__equivalence.json",
+    "rtl/authoring_packets/module__atcwdt200_core__fsm.json",
+    "rtl/authoring_packets/module__atcwdt200_core__function_model.json",
+    "rtl/authoring_packets/module__atcwdt200_core__interrupts.json",
+    "rtl/authoring_packets/module__atcwdt200_core__workflow_todo.json",
+    "rtl/authoring_packets/module__atcwdt200_sync.json",
+    "rtl/authoring_packets/module__atcwdt200.json",
+    "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+    "rtl/authoring_packets/rtl_gate_human_closure.json"
+  ],
+  "evidence": [
+    "rtl/rtl_compile.json",
+    "lint/dut_lint.json",
+    "rtl/authoring_packets/rtl_gate_evidence_closure.json"
+  ],
+  "generated_at": "2026-05-17T07:14:29Z",
+  "note": "RTL authored in this Codex session from the approved SSOT-derived rtl_todo_plan.",
+  "rtl_files": [
+    "rtl/atcwdt200_param.vh",
+    "rtl/atcwdt200_regs.sv",
+    "rtl/atcwdt200_core.sv",
+    "rtl/atcwdt200_sync.sv",
+    "rtl/atcwdt200.sv"
+  ],
+  "schema_version": 1,
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": "3348ddb6018966555eeb963ff7b9aa4ed0d14e6293df5093c73330b07393340c",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-17T07:14:37Z",
+  "workflow": "rtl-gen"
+}

@@ -180,6 +180,7 @@
     'goal-audit',
     'lint',
     'mas-gen',
+    'orchestrator',
     'rtl-gen',
     'signoff',
     'sim',

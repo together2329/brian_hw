@@ -608,6 +608,13 @@ function AdminPage() {
   const uniqueOptions = (rows, key) => Array.from(new Set(
     rows.map((row) => String(row[key] || '').trim()).filter(Boolean)
   )).sort((a, b) => a.localeCompare(b));
+  const sessionContextRows = sessions.map((s) => ({
+    username: s.owner_username || s.user_id,
+    ip: s.ip || s.project_id || '',
+    workflow: s.workflow || s.latest_workflow || '',
+    created_at: s.created_at,
+    updated_at: s.updated_at,
+  }));
   const allContextRows = [
     ...costContexts,
     ...dateCosts,
@@ -619,6 +626,7 @@ function AdminPage() {
     ...rtlRunHistory,
     ...artifactVersions,
     ...runArtifactSets,
+    ...sessionContextRows,
   ];
   const filterOptions = {
     ips: uniqueOptions(allContextRows, 'ip'),
@@ -627,7 +635,6 @@ function AdminPage() {
     users: uniqueOptions([
       ...allContextRows,
       ...usage,
-      ...sessions.map((s) => ({ username: s.owner_username || s.user_id })),
       ...feedback,
     ], 'username'),
   };
@@ -647,9 +654,9 @@ function AdminPage() {
   const filteredSessions = sessions.filter((row) => (
     inRange(row)
     && valueMatches(filters.user, row.owner_username || row.user_id)
-    && (!filters.ip || String(row.project_id || row.title || '') === filters.ip)
+    && valueMatches(filters.ip, row.ip || row.project_id || row.title)
     && !filters.workspace
-    && !filters.workflow
+    && valueMatches(filters.workflow, row.workflow || row.latest_workflow)
   ));
   const filteredCostContexts = costContexts.filter(rowMatches);
   const filteredDateCosts = dateCosts.filter(rowMatches);
@@ -1141,10 +1148,12 @@ function AdminPage() {
                   <thead>
                     <tr>
                       <th style={thStyle}>Title</th>
-                      <th style={thStyle}>Project</th>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Workflow</th>
                       <th style={thStyle}>Status</th>
                       <th style={thStyle}>Owner</th>
-                      <th style={thStyle}>Created</th>
+                      <th style={thStyle}>Session</th>
+                      <th style={thStyle}>Latest Run</th>
                       <th style={thStyle}>Updated</th>
                       <th style={thStyle}></th>
                     </tr>
@@ -1152,13 +1161,14 @@ function AdminPage() {
                   <tbody>
                     {filteredSessions.length === 0 ? (
                       <tr>
-                        <td colSpan={7} style={{ ...tdStyle, ...emptyStateStyle }}>No sessions found.</td>
+                        <td colSpan={9} style={{ ...tdStyle, ...emptyStateStyle }}>No sessions found.</td>
                       </tr>
                     ) : (
                       filteredSessions.map((s) => (
                         <tr key={s.id}>
                           <td style={tdStyle}>{s.title || '—'}</td>
-                          <td style={tdStyle}>{s.project_id || '—'}</td>
+                          <td style={tdStyle}>{s.ip || s.project_id || '—'}</td>
+                          <td style={tdStyle}>{s.workflow || s.latest_workflow || '—'}</td>
                           <td style={tdStyle}>
                             <span style={{
                               fontSize: 10,
@@ -1174,7 +1184,15 @@ function AdminPage() {
                             </span>
                           </td>
                           <td style={tdStyle}>{s.owner_username || s.user_id || '—'}</td>
-                          <td style={tdStyle}>{formatDate(s.created_at)}</td>
+                          <td style={{ ...tdStyle, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 11 }}>
+                            {s.id || '—'}
+                          </td>
+                          <td style={tdStyle}>
+                            {s.pipeline_run_id || s.latest_workflow_run_id || '—'}
+                            {s.latest_workflow_status ? (
+                              <div style={{ opacity: 0.65, fontSize: 11 }}>{s.latest_workflow_status}</div>
+                            ) : null}
+                          </td>
                           <td style={tdStyle}>{formatDate(s.updated_at)}</td>
                           <td style={tdStyle}>
                             <button

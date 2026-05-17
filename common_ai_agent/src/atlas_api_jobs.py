@@ -92,6 +92,36 @@ _STAGE_ARTIFACT_TYPES = {
 }
 _RUN_MODES = ("starter", "engineering", "signoff")
 _EXEC_MODES = ("single-worker", "orchestrator")
+_WORKER_MODEL_DEFAULTS = {
+    "orchestrator": "gpt-5.5",
+    "ssot-gen": "deepseek",
+    "fl-model-gen": "gpt-5.5",
+    "rtl-gen": "gpt-5.3-codex",
+    "tb-gen": "kimi",
+    "sim_debug": "glm-5.1",
+    "lint": "pyslang + verilator",
+    "sim": "icarus/verilator",
+    "coverage": "verilator coverage + vcd",
+    "goal-audit": "gpt-5.5",
+    "syn": "yosys",
+    "sta": "opensta",
+    "pnr": "openroad",
+    "sta-post": "opensta",
+}
+
+
+def _workflow_env_suffix(workflow: str) -> str:
+    return str(workflow or "").upper().replace("-", "_")
+
+
+def _worker_model_for(workflow: str) -> str:
+    wf = str(workflow or "").strip()
+    suffix = _workflow_env_suffix(wf)
+    return (
+        os.environ.get(f"ATLAS_WORKER_MODEL_{suffix}", "")
+        or os.environ.get(f"WORKER_MODEL_{suffix}", "")
+        or _WORKER_MODEL_DEFAULTS.get(wf, "")
+    )
 
 
 def _normalize_run_mode(value: Any) -> str:
@@ -367,12 +397,14 @@ def _summarize_worker_progress(ip_jobs: list[dict[str, Any]]) -> dict[str, Any]:
             "job_id": job.get("job_id") or "",
             "run_id": job.get("run_id") or "",
             "pipeline_id": job.get("pipeline_id") or "",
+            "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id") or "",
             "pipeline_index": job.get("pipeline_index"),
             "workflow": job.get("workflow") or "",
             "stage_id": job.get("stage_id") or "",
             "status": job.get("status") or "",
             "worker": job.get("worker") or "",
             "model": job.get("model") or "",
+            "user_id": job.get("user_id") or "",
             "session": job.get("session") or "",
             "scope_path": job.get("scope_path") or "",
             "depends_on": job.get("depends_on") or "",
@@ -831,7 +863,7 @@ def _ensure_stage_artifact_version_for_job(
 def _resolve_worker_url(workflow: str) -> str:
     """Same precedence as core.delegate_runner.HTTPWorkerDelegate."""
     if workflow:
-        key = "WORKER_URL_" + workflow.upper().replace("-", "_")
+        key = "WORKER_URL_" + _workflow_env_suffix(workflow)
         url = os.environ.get(key)
         if url:
             return url
@@ -983,6 +1015,13 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
             "project_root": job.get("project_root", ""),
             "source_root": job.get("source_root", ""),
             "sync":     False,
+            "job_id":    job.get("job_id", ""),
+            "stage_id":  job.get("stage_id", ""),
+            "pipeline_id": job.get("pipeline_id", ""),
+            "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id", ""),
+            "pipeline_index": job.get("pipeline_index", 0),
+            "scope_path": job.get("scope_path", ""),
+            "user_id":   job.get("user_id", ""),
         }
         if job.get("template"):
             body["template"] = job["template"]
@@ -1300,19 +1339,54 @@ def register_jobs_routes(
     rebinds PROJECT_ROOT after this module is imported.
     """
 
+    def _multi_user_enabled() -> bool:
+        raw = os.environ.get("ATLAS_MULTI_USER")
+        if raw is None or not raw.strip():
+            return True
+        return raw.strip().lower() not in ("0", "false", "no", "off")
+
+    def _request_username(request: Request) -> str:
+        user = request.scope.get("user") or {}
+        return normalize_session_name(str(user.get("username") or user.get("id") or ""))
+
+    def _default_job_session_for_owner(owner: str, ip: str, workflow: str) -> str:
+        if _multi_user_enabled() and owner and owner != "local-admin":
+            return f"{owner}/{ip}/{workflow}" if ip else f"{owner}/{workflow}"
+        return f"{ip}/{workflow}" if ip else workflow
+
+    def _default_job_session(request: Request, ip: str, workflow: str) -> str:
+        return _default_job_session_for_owner(_request_username(request), ip, workflow)
+
+    def _pipeline_session_prefix_for_owner(owner: str, ip: str, pipeline_id: str) -> str:
+        ip_name = ip or "soc"
+        if _multi_user_enabled() and owner and owner != "local-admin":
+            return f"{owner}/{ip_name}/pipeline/{pipeline_id}"
+        return f"{ip_name}/pipeline/{pipeline_id}"
+
+    def _pipeline_session_prefix(request: Request, ip: str, pipeline_id: str) -> str:
+        return _pipeline_session_prefix_for_owner(_request_username(request), ip, pipeline_id)
+
+    def _active_tool_owner() -> str:
+        session_name = normalize_session_name(os.environ.get("ATLAS_ACTIVE_SESSION", ""))
+        if session_name and "/" in session_name:
+            return normalize_session_name(session_name.split("/", 1)[0])
+        raw = os.environ.get("ATLAS_ACTIVE_USER") or ""
+        return normalize_session_name(raw)
+
     def _make_job_record(
         *, workflow: str, ip: str, prompt: str, model: str = "",
         session_name: str = "", stage_id: str = "", pipeline_id: str = "",
         pipeline_index: int = 0, depends_on: str | list[str] = "",
         worker_override: str = "", auto_start: bool = True, template: str = "",
         pipeline_schedule: str = "", rtl_version_id: str = "",
-        run_mode: str = "", exec_mode: str = "",
+        run_mode: str = "", exec_mode: str = "", user_id: str = "",
     ) -> dict[str, Any]:
         pr = project_root()
         stage_id    = stage_id or (_PIPELINE_BY_WORKFLOW.get(workflow, {}).get("id") or workflow)
         template    = template or _default_todo_template_for_job(workflow, stage_id, ip)
         run_mode    = _normalize_run_mode(run_mode) or _current_run_mode()
         exec_mode   = _normalize_exec_mode(exec_mode) or _current_exec_mode()
+        model       = str(model or "").strip() or _worker_model_for(workflow)
         session_name = normalize_session_name(session_name or (f"{ip}/{workflow}" if ip else workflow))
         if not session_name:
             raise ValueError("invalid session namespace")
@@ -1333,6 +1407,7 @@ def register_jobs_routes(
             f"- workflow: {workflow}\n"
             f"- stage_id: {stage_id or workflow}\n"
             f"- pipeline_id: {pipeline_id or '(single-job)'}\n"
+            f"- pipeline_run_id: {pipeline_id or '(single-job)'}\n"
             f"- session_namespace: .session/{session_name}\n"
             f"- project_root: {pr}\n"
             f"- source_root: {_SOURCE_ROOT}\n"
@@ -1374,6 +1449,8 @@ def register_jobs_routes(
             "run_mode":        run_mode,
             "exec_mode":       exec_mode,
             "_last_polled":   0.0,
+            "pipeline_run_id": pipeline_id,
+            "user_id":         user_id,
         }
         with _jobs_lock:
             _jobs[job["job_id"]] = job
@@ -1412,7 +1489,7 @@ def register_jobs_routes(
         exec_mode       = _normalize_exec_mode(body.get("exec_mode"))
         stage_raw       = (body.get("stage_id") or body.get("stage") or "").strip()
         session_raw     = (body.get("session")  or "").strip()
-        session_name    = normalize_session_name(session_raw)
+        session_name    = normalize_session_name(session_raw or _default_job_session(request, ip, workflow))
         worker_override = (body.get("worker")   or "").strip()
         if not workflow:
             return JSONResponse({"error": "missing 'workflow'"}, status_code=400)
@@ -1432,7 +1509,7 @@ def register_jobs_routes(
             return JSONResponse({"error": "run_mode must be starter, engineering, or signoff"}, status_code=400)
         if body.get("exec_mode") is not None and not exec_mode:
             return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
-        if session_raw and not session_name:
+        if not session_name:
             return JSONResponse({"error": f"invalid session {session_raw!r}"}, status_code=400)
         if worker_override and not re.match(r"^https?://[A-Za-z0-9_.:\-/]+$", worker_override):
             return JSONResponse({"error": f"invalid worker {worker_override!r}"}, status_code=400)
@@ -1443,6 +1520,7 @@ def register_jobs_routes(
             session_name=session_name, stage_id=stage_id,
             worker_override=worker_override, auto_start=True, template=template,
             rtl_version_id=rtl_version_id, run_mode=run_mode, exec_mode=exec_mode,
+            user_id=_request_username(request),
         )
         if job.get("status") == "error":
             return JSONResponse({"error": job.get("error"), "worker": job.get("worker")}, status_code=502)
@@ -1458,6 +1536,7 @@ def register_jobs_routes(
             "model":          model,
             "run_mode":       job["run_mode"],
             "exec_mode":      job["exec_mode"],
+            "user_id":        job["user_id"],
             "worker_command": job["worker_command"],
             "status":         job["status"],
         })
@@ -1502,7 +1581,7 @@ def register_jobs_routes(
             exec_mode       = _normalize_exec_mode(item.get("exec_mode"))
             stage_raw       = (item.get("stage_id") or item.get("stage") or "").strip()
             session_raw     = (item.get("session")  or "").strip()
-            session_name    = normalize_session_name(session_raw)
+            session_name    = normalize_session_name(session_raw or _default_job_session(request, ip, workflow))
             worker_override = (item.get("worker")   or "").strip()
 
             if not workflow or not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", workflow):
@@ -1542,6 +1621,7 @@ def register_jobs_routes(
                 session_name=session_name, stage_id=stage_id,
                 worker_override=worker_override, auto_start=True, template=template,
                 rtl_version_id=rtl_version_id, run_mode=run_mode, exec_mode=exec_mode,
+                user_id=_request_username(request),
             )
             created.append(_public_job(job))
 
@@ -1977,6 +2057,7 @@ def register_jobs_routes(
         schedule = "serial" if requested_schedule == "auto" and exec_mode == "single-worker" else _resolve_pipeline_schedule(requested_schedule, resolved)
         resolved = _ordered_pipeline_stages(resolved)
         pipeline_id      = uuid.uuid4().hex[:12]
+        owner_user_id    = _request_username(request)
         jobs: list       = []
         stage_job_ids: dict[str, str] = {}
         selected_stage_ids = [stage["id"] for stage in resolved]
@@ -1990,7 +2071,7 @@ def register_jobs_routes(
             )
             if user_prompt:
                 stage_prompt += f"\n\n[User pipeline goal]\n{user_prompt}"
-            session = f"{ip or 'soc'}/pipeline/{pipeline_id}/{idx + 1:02d}-{workflow}"
+            session = f"{_pipeline_session_prefix(request, ip, pipeline_id)}/{idx + 1:02d}-{workflow}"
             dep_stage_ids = _pipeline_stage_dependencies(
                 stage["id"], selected_stage_ids, schedule=schedule,
             )
@@ -2004,12 +2085,15 @@ def register_jobs_routes(
                 auto_start=(not dep_job_ids), pipeline_schedule=schedule,
                 rtl_version_id=rtl_version_id if stage["id"] in _RTL_VERSION_DOWNSTREAM_STAGES else "",
                 run_mode=run_mode, exec_mode=exec_mode,
+                user_id=owner_user_id,
             )
             stage_job_ids[stage["id"]] = job["job_id"]
             jobs.append(_public_job(job))
         return JSONResponse({
             "ok":         True,
             "pipeline_id": pipeline_id,
+            "pipeline_run_id": pipeline_id,
+            "user_id":     owner_user_id,
             "schedule":    schedule,
             "requested_schedule": requested_schedule,
             "run_mode":    run_mode,
@@ -2018,6 +2102,137 @@ def register_jobs_routes(
             "stages":      resolved,
             "jobs":        jobs,
         })
+
+    def _dispatch_workflow_tool_bridge(
+        *,
+        workflow: str = "",
+        scope: str = "",
+        prompt: str = "",
+        ip: str = "",
+        stages: Any = None,
+        payload: Any = None,
+        schedule: str = "auto",
+        model: str = "",
+        run_mode: str = "",
+        exec_mode: str = "",
+        reason: str = "",
+    ) -> dict[str, Any]:
+        """Bridge the orchestrator LLM tool to the pipeline job creator.
+
+        This is the non-HTTP twin of /api/pipeline/dispatch. It runs inside
+        the Atlas UI process, so it can use the live job registry without a
+        browser cookie while still keeping the same session/pipeline identity.
+        """
+        body = payload if isinstance(payload, dict) else {}
+        ip_name = (
+            str(ip or body.get("ip") or "").strip()
+            or os.environ.get("ATLAS_ACTIVE_IP", "").strip()
+        )
+        if not ip_name and scope:
+            ip_name = Path(str(scope).rstrip("/")).name
+        if ip_name and not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip_name):
+            return {"ok": False, "error": f"invalid ip {ip_name!r}"}
+
+        requested: Any = stages or body.get("stages")
+        wf = str(workflow or body.get("workflow") or "").strip()
+        if not requested:
+            if wf.lower() in {"pipeline", "full", "full-ip", "run-to-green", "run_to_green", "all"}:
+                requested = [s["id"] for s in _PIPELINE_STAGES]
+            elif wf:
+                requested = [wf]
+        if isinstance(requested, str):
+            requested = [x.strip() for x in re.split(r"[,\s]+", requested) if x.strip()]
+        if not isinstance(requested, list) or not requested:
+            return {"ok": False, "error": "workflow or stages is required"}
+
+        req_schedule = str(schedule or body.get("schedule") or "auto").strip().lower()
+        if req_schedule not in {"auto", "dag", "serial"}:
+            return {"ok": False, "error": "schedule must be 'auto', 'dag', or 'serial'"}
+        run_mode_resolved = _normalize_run_mode(run_mode or body.get("run_mode")) or _current_run_mode()
+        exec_mode_resolved = _normalize_exec_mode(exec_mode or body.get("exec_mode")) or _current_exec_mode()
+        model_resolved = str(model or body.get("model") or "").strip()
+        reason_text = str(reason or body.get("reason") or "").strip()
+
+        resolved = []
+        for item in requested:
+            key = str(item).strip()
+            stage = _PIPELINE_BY_ID.get(key) or _PIPELINE_BY_WORKFLOW.get(key)
+            if not stage:
+                return {"ok": False, "error": f"unknown pipeline stage {key!r}"}
+            if not any(s["id"] == stage["id"] for s in resolved):
+                resolved.append(stage)
+        resolved = _ordered_pipeline_stages(resolved)
+        dispatch_schedule = (
+            "serial"
+            if req_schedule == "auto" and exec_mode_resolved == "single-worker"
+            else _resolve_pipeline_schedule(req_schedule, resolved)
+        )
+
+        pipeline_id = uuid.uuid4().hex[:12]
+        owner_user_id = _active_tool_owner()
+        jobs: list[dict[str, Any]] = []
+        stage_job_ids: dict[str, str] = {}
+        selected_stage_ids = [stage["id"] for stage in resolved]
+        for idx, stage in enumerate(resolved):
+            stage_workflow = stage["workflow"]
+            stage_prompt = prompt or _default_workflow_prompt(stage_workflow, ip_name, stage["id"])
+            stage_prompt += (
+                "\n\n[ATLAS RUN POLICY]\n"
+                f"- run_mode: {run_mode_resolved}\n"
+                f"- exec_mode: {exec_mode_resolved}\n"
+            )
+            if reason_text:
+                stage_prompt += f"\n\n[Orchestrator dispatch reason]\n{reason_text}"
+            session = (
+                f"{_pipeline_session_prefix_for_owner(owner_user_id, ip_name, pipeline_id)}/"
+                f"{idx + 1:02d}-{stage_workflow}"
+            )
+            dep_stage_ids = _pipeline_stage_dependencies(
+                stage["id"], selected_stage_ids, schedule=dispatch_schedule,
+            )
+            dep_job_ids = [stage_job_ids[dep] for dep in dep_stage_ids if dep in stage_job_ids]
+            depends_on: str | list[str]
+            depends_on = dep_job_ids[0] if dispatch_schedule == "serial" and dep_job_ids else dep_job_ids
+            job = _make_job_record(
+                workflow=stage_workflow,
+                ip=ip_name,
+                prompt=stage_prompt,
+                model=model_resolved,
+                session_name=session,
+                stage_id=stage["id"],
+                pipeline_id=pipeline_id,
+                pipeline_index=idx,
+                depends_on=depends_on,
+                auto_start=(not dep_job_ids),
+                pipeline_schedule=dispatch_schedule,
+                run_mode=run_mode_resolved,
+                exec_mode=exec_mode_resolved,
+                user_id=owner_user_id,
+            )
+            stage_job_ids[stage["id"]] = job["job_id"]
+            jobs.append(_public_job(job))
+
+        return {
+            "ok": True,
+            "source": "dispatch_workflow_tool",
+            "pipeline_id": pipeline_id,
+            "pipeline_run_id": pipeline_id,
+            "user_id": owner_user_id,
+            "ip": ip_name,
+            "schedule": dispatch_schedule,
+            "requested_schedule": req_schedule,
+            "run_mode": run_mode_resolved,
+            "exec_mode": exec_mode_resolved,
+            "stages": resolved,
+            "jobs": jobs,
+        }
+
+    try:
+        from core import tools as _atlas_tools
+    except Exception:
+        _atlas_tools = None
+    if _atlas_tools is not None and hasattr(_atlas_tools, "set_dispatch_workflow_callback"):
+        _atlas_tools.set_dispatch_workflow_callback(_dispatch_workflow_tool_bridge)
 
     # ── /api/pipeline/orchestrator_mode ───────────────────────────
 
@@ -2133,7 +2348,8 @@ def register_jobs_routes(
                     "url": url,
                     "status": health.get("status", "unreachable"),
                     "bound_workflow": health.get("workflow"),
-                    "model": health.get("model"),
+                    "expected_model": _worker_model_for(wf),
+                    "model": health.get("model") or _worker_model_for(wf),
                     "profile": health.get("profile"),
                     "uptime_s": health.get("uptime_s"),
                     "total_runs": health.get("runs"),
@@ -2179,6 +2395,7 @@ def register_jobs_routes(
                 "last_kind": orch_last_kind,
                 "model": os.environ.get("ATLAS_ORCHESTRATOR_MODEL", "")
                          or os.environ.get("LLM_MODEL_NAME", "")
+                         or _worker_model_for("orchestrator")
                          or None,
             },
             "workers": workers,
@@ -2237,13 +2454,43 @@ def register_jobs_routes(
             import handoff_queue as _hq  # type: ignore[no-redef]
         return _hq
 
-    def _request_scope(request: Request) -> dict:
+    def _request_scope(
+        request: Request,
+        *,
+        ip: str = "",
+        workflow: str = "orchestrator",
+        payload: dict | None = None,
+    ) -> dict:
         u = request.scope.get("user") or {}
-        return {
-            "user_id": str(u.get("username") or u.get("id") or ""),
-            "session_id": str(u.get("session_id") or "default"),
-            "pipeline_run_id": str(u.get("pipeline_run_id") or "default"),
+        body = payload or {}
+        owner = normalize_session_name(str(u.get("username") or u.get("id") or ""))
+        session_raw = str(
+            body.get("session_id")
+            or body.get("session")
+            or u.get("session_id")
+            or ""
+        )
+        session_id = normalize_session_name(session_raw)
+        if not session_id:
+            session_id = (
+                _default_job_session(request, ip, workflow or "orchestrator")
+                if ip else (owner or "default")
+            )
+        pipeline_run_id = str(
+            body.get("pipeline_run_id")
+            or body.get("pipeline_id")
+            or u.get("pipeline_run_id")
+            or ""
+        ).strip() or "manual"
+        scope = {
+            "user_id": owner,
+            "session_id": session_id,
+            "pipeline_run_id": pipeline_run_id,
         }
+        for key in ("workspace_id", "lease_id"):
+            if body.get(key) is not None:
+                scope[key] = str(body.get(key) or "")
+        return scope
 
     def _scope_filter_from(scope: dict) -> dict | None:
         uid = scope.get("user_id") or ""
@@ -2255,12 +2502,28 @@ def register_jobs_routes(
         return project_root() / ip
 
     @app.get("/api/handoff/list")
-    async def api_handoff_list(request: Request, ip: str = "", workflow: str = ""):
+    async def api_handoff_list(
+        request: Request,
+        ip: str = "",
+        workflow: str = "",
+        session_id: str = "",
+        pipeline_run_id: str = "",
+        pipeline_id: str = "",
+    ):
         ip_dir = _resolve_ip_dir(ip)
         if ip_dir is None:
             return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
         hq = _handoff_modules()
-        scope = _request_scope(request)
+        scope = _request_scope(
+            request,
+            ip=ip,
+            workflow="orchestrator",
+            payload={
+                "session_id": session_id,
+                "pipeline_run_id": pipeline_run_id,
+                "pipeline_id": pipeline_id,
+            },
+        )
         sf = _scope_filter_from(scope)
 
         def _filter_workflow(rows):
@@ -2308,7 +2571,7 @@ def register_jobs_routes(
             )
         suffix = str(body.get("suffix") or body.get("reason") or "user").strip()
         hq = _handoff_modules()
-        scope = _request_scope(request)
+        scope = _request_scope(request, ip=ip, workflow="orchestrator", payload=body)
         record = {
             "schema": hq.SCHEMA,
             "handoff_id": hq.make_handoff_id(ip, from_workflow, to_workflow, suffix),
@@ -2333,6 +2596,7 @@ def register_jobs_routes(
             "handoff_id": record["handoff_id"],
             "state": "pending",
             "path": str(path.relative_to(project_root())) if path.is_relative_to(project_root()) else str(path),
+            "scope": scope,
         })
 
     @app.post("/api/handoff/take")
@@ -2354,7 +2618,7 @@ def register_jobs_routes(
         if not workflow:
             return JSONResponse({"error": "workflow is required"}, status_code=400)
         hq = _handoff_modules()
-        scope = _request_scope(request)
+        scope = _request_scope(request, ip=ip, workflow="orchestrator", payload=body)
         sf = _scope_filter_from(scope)
         scoped_user = request.scope.get("user") or {}
         claimant = f"ui-{scoped_user.get('username') or 'anon'}"

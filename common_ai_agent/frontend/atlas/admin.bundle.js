@@ -42,8 +42,7 @@ var AtlasAdminDashboard = (() => {
     async function reloadFeedback() {
       try {
         const r = await fetch("/api/admin/feedback");
-        if (!r.ok)
-          return;
+        if (!r.ok) return;
         const d = await r.json();
         setFeedback(d.feedback || []);
       } catch (_) {
@@ -116,8 +115,7 @@ var AtlasAdminDashboard = (() => {
         try {
           setLoading(true);
           const status = await fetchAdminStatus();
-          if (!alive)
-            return;
+          if (!alive) return;
           setAuthStatus(status);
           setAuthChecked(true);
           if (!status.login_required || status.authenticated) {
@@ -127,8 +125,7 @@ var AtlasAdminDashboard = (() => {
             setLoading(false);
           }
         } catch (e) {
-          if (!alive)
-            return;
+          if (!alive) return;
           setAuthChecked(true);
           setError(String(e));
           setLoading(false);
@@ -233,16 +230,14 @@ var AtlasAdminDashboard = (() => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ notes: "" })
         });
-        if (r.ok)
-          await reloadFeedback();
+        if (r.ok) await reloadFeedback();
       } catch (_) {
       } finally {
         setResolving(null);
       }
     };
     const handleDeleteSession = async (sessionId) => {
-      if (!window.confirm("Force-delete this session?"))
-        return;
+      if (!window.confirm("Force-delete this session?")) return;
       setDeleting(sessionId);
       try {
         const resp = await fetch("/api/admin/sessions/" + encodeURIComponent(sessionId), {
@@ -522,8 +517,7 @@ var AtlasAdminDashboard = (() => {
       background: "rgba(224,108,117,0.08)"
     };
     const formatDate = (ts) => {
-      if (!ts)
-        return "\u2014";
+      if (!ts) return "\u2014";
       try {
         return new Date(ts * 1e3).toLocaleString();
       } catch (_) {
@@ -546,8 +540,7 @@ var AtlasAdminDashboard = (() => {
       return item ? item.git_tag || item.sha256_tree || shortId(item.artifact_version_id) : "\u2014";
     };
     const payloadText = (value) => {
-      if (value == null || value === "")
-        return "\u2014";
+      if (value == null || value === "") return "\u2014";
       try {
         const text = typeof value === "string" ? value : JSON.stringify(value);
         return text.length > 180 ? text.slice(0, 177) + "\u2026" : text;
@@ -558,8 +551,7 @@ var AtlasAdminDashboard = (() => {
     const sum = (rows, key) => rows.reduce((acc, row) => acc + Number(row[key] || 0), 0);
     const rowTimestamp = (row) => {
       const direct = row.last_message_at || row.last_event_at || row.last_tool_at || row.last_intervention_at || row.started_at || row.ended_at || row.created_at || row.updated_at || row.first_intervention_at;
-      if (direct)
-        return Number(direct) || 0;
+      if (direct) return Number(direct) || 0;
       if (row.day) {
         const parsed = Date.parse(`${row.day}T23:59:59`);
         return Number.isNaN(parsed) ? 0 : parsed / 1e3;
@@ -567,12 +559,10 @@ var AtlasAdminDashboard = (() => {
       return 0;
     };
     const inRange = (row) => {
-      if (!filters.range || filters.range === "all")
-        return true;
+      if (!filters.range || filters.range === "all") return true;
       const days = { "24h": 1, "7d": 7, "30d": 30 }[filters.range] || 7;
       const ts = rowTimestamp(row);
-      if (!ts)
-        return true;
+      if (!ts) return true;
       return ts >= Date.now() / 1e3 - days * 86400;
     };
     const valueMatches = (selected, value) => !selected || String(value || "") === selected;
@@ -580,6 +570,13 @@ var AtlasAdminDashboard = (() => {
     const uniqueOptions = (rows, key) => Array.from(new Set(
       rows.map((row) => String(row[key] || "").trim()).filter(Boolean)
     )).sort((a, b) => a.localeCompare(b));
+    const sessionContextRows = sessions.map((s) => ({
+      username: s.owner_username || s.user_id,
+      ip: s.ip || s.project_id || "",
+      workflow: s.workflow || s.latest_workflow || "",
+      created_at: s.created_at,
+      updated_at: s.updated_at
+    }));
     const allContextRows = [
       ...costContexts,
       ...dateCosts,
@@ -590,7 +587,8 @@ var AtlasAdminDashboard = (() => {
       ...interventions,
       ...rtlRunHistory,
       ...artifactVersions,
-      ...runArtifactSets
+      ...runArtifactSets,
+      ...sessionContextRows
     ];
     const filterOptions = {
       ips: uniqueOptions(allContextRows, "ip"),
@@ -599,13 +597,12 @@ var AtlasAdminDashboard = (() => {
       users: uniqueOptions([
         ...allContextRows,
         ...usage,
-        ...sessions.map((s) => ({ username: s.owner_username || s.user_id })),
         ...feedback
       ], "username")
     };
     const filteredUsers = users.filter((row) => valueMatches(filters.user, row.username) && !filters.ip && !filters.workspace && !filters.workflow);
     const filteredUsage = usage.filter((row) => inRange(row) && valueMatches(filters.user, row.username) && !filters.ip && !filters.workspace && !filters.workflow);
-    const filteredSessions = sessions.filter((row) => inRange(row) && valueMatches(filters.user, row.owner_username || row.user_id) && (!filters.ip || String(row.project_id || row.title || "") === filters.ip) && !filters.workspace && !filters.workflow);
+    const filteredSessions = sessions.filter((row) => inRange(row) && valueMatches(filters.user, row.owner_username || row.user_id) && valueMatches(filters.ip, row.ip || row.project_id || row.title) && !filters.workspace && valueMatches(filters.workflow, row.workflow || row.latest_workflow));
     const filteredCostContexts = costContexts.filter(rowMatches);
     const filteredDateCosts = dateCosts.filter(rowMatches);
     const filteredTodoUsage = todoUsage.filter(rowMatches);
@@ -742,7 +739,7 @@ var AtlasAdminDashboard = (() => {
       background: u.role === "admin" ? "#2a3a4a" : "#1c252f",
       color: u.role === "admin" ? "#f0c674" : "#a3aebb",
       border: "1px solid #2a3540"
-    } }, u.role)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.session_count ?? 0), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(u.created_at))))))), activeTab === "sessions" && /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Title"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Project"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Status"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Owner"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Created"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Updated"), /* @__PURE__ */ React.createElement("th", { style: thStyle }))), /* @__PURE__ */ React.createElement("tbody", null, filteredSessions.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 7, style: { ...tdStyle, ...emptyStateStyle } }, "No sessions found.")) : filteredSessions.map((s) => /* @__PURE__ */ React.createElement("tr", { key: s.id }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.title || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.project_id || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement("span", { style: {
+    } }, u.role)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.session_count ?? 0), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(u.created_at))))))), activeTab === "sessions" && /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Title"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Status"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Owner"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Session"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Latest Run"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Updated"), /* @__PURE__ */ React.createElement("th", { style: thStyle }))), /* @__PURE__ */ React.createElement("tbody", null, filteredSessions.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 9, style: { ...tdStyle, ...emptyStateStyle } }, "No sessions found.")) : filteredSessions.map((s) => /* @__PURE__ */ React.createElement("tr", { key: s.id }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.title || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.ip || s.project_id || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.workflow || s.latest_workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement("span", { style: {
       fontSize: 10,
       fontWeight: 600,
       textTransform: "uppercase",
@@ -751,7 +748,7 @@ var AtlasAdminDashboard = (() => {
       background: s.status === "active" ? "#1c2f25" : "#1c252f",
       color: s.status === "active" ? "#7dc9a0" : "#a3aebb",
       border: "1px solid #2a3540"
-    } }, s.status)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.owner_username || s.user_id || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(s.created_at)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(s.updated_at)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement(
+    } }, s.status)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.owner_username || s.user_id || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 11 } }, s.id || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.pipeline_run_id || s.latest_workflow_run_id || "\u2014", s.latest_workflow_status ? /* @__PURE__ */ React.createElement("div", { style: { opacity: 0.65, fontSize: 11 } }, s.latest_workflow_status) : null), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(s.updated_at)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement(
       "button",
       {
         style: btnDangerStyle,

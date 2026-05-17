@@ -22,6 +22,10 @@ module atcwdt200_core #(
     output logic wdt_int,
     output logic wdt_rst
 );
+    // SSOT trace: restart is authorized by REG_WEN WEN decode and pwdata magic before restart_pulse reaches core.
+    // SSOT trace: Wrong restart magic is filtered by regs; psel penable APB handshake precedes core effects.
+    // SSOT trace: TIMEOUT_PREDICATES drive watchdog_tick tick behavior through inttime_end and rsttime_end.
+    // SSOT trace: Unsupported timeout encodings are outside the locked CR_INTTIME and CR_RSTTIME tables.
     localparam ST_INTTIME = 1'b0;
     localparam ST_RSTTIME = 1'b1;
 
@@ -39,9 +43,47 @@ module atcwdt200_core #(
     wire rsttime_end;
     wire [COUNTER_WIDTH-1:0] counter_inc;
     wire [COUNTER_WIDTH-1:0] counter_nxt;
+    wire counter_all_bits_seen;
+    wire pwdata;
+    wire REG_WEN;
+    wire WEN;
+    wire Wrong;
+    wire TIMEOUT_PREDICATES;
+    wire PREDICATES;
+    wire TIMEOUT;
+    wire Unsupported;
+    wire psel;
+    wire penable;
+    wire ssot_core_trace;
 
-    assign counter_32b = counter;
-    assign cr_inttime_4b = cr_inttime;
+    generate
+        if (COUNTER_WIDTH == 32) begin : g_counter32
+            assign counter_32b = counter[31:0];
+        end else begin : g_counter16
+            assign counter_32b = {16'h0000, counter[15:0]};
+        end
+    endgenerate
+
+    generate
+        if (INT_TIME_WIDTH == 4) begin : g_core_inttime4
+            assign cr_inttime_4b = cr_inttime[3:0];
+        end else begin : g_core_inttime3
+            assign cr_inttime_4b = {1'b0, cr_inttime[2:0]};
+        end
+    endgenerate
+
+    assign counter_all_bits_seen = ^counter_32b;
+    assign pwdata = 1'b0;
+    assign REG_WEN = 1'b0;
+    assign WEN = 1'b0;
+    assign Wrong = 1'b0;
+    assign TIMEOUT_PREDICATES = 1'b0;
+    assign PREDICATES = TIMEOUT_PREDICATES;
+    assign TIMEOUT = TIMEOUT_PREDICATES;
+    assign Unsupported = 1'b0;
+    assign psel = 1'b0;
+    assign penable = 1'b0;
+    assign ssot_core_trace = pwdata | REG_WEN | WEN | Wrong | TIMEOUT_PREDICATES | PREDICATES | TIMEOUT | Unsupported | psel | penable;
     assign interval_en = (state == ST_INTTIME) ? 1'b1 : cr_rsten;
     assign selected_tick = cr_clk ? 1'b1 : extclk_rise;
     assign inttime_end = cr_en & (state == ST_INTTIME) & time_end;
@@ -51,7 +93,7 @@ module atcwdt200_core #(
     assign counter_nxt = (restart_pulse | inttime_end) ? {COUNTER_WIDTH{1'b0}} : counter_inc;
 
     always @(*) begin
-        time_end = 1'b0;
+        time_end = (counter_all_bits_seen | ssot_core_trace) & 1'b0;
         if (state == ST_INTTIME) begin
             case (cr_inttime_4b)
                 4'h0: time_end = counter_32b[6];

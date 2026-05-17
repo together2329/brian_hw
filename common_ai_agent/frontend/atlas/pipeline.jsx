@@ -1812,13 +1812,29 @@ function PhaseGroup({ phase, stagesState, ip, onChain, defaultCollapsed }) {
 // Graceful empty state: if /api/pipeline/state 404s the right column
 // still mounts ArchitectChat and the center shows "Pipeline state
 // unavailable" rather than blowing up the entire screen.
+function pipelineIpFromActiveNamespace() {
+  const parts = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+  if (parts.length >= 3) return parts[parts.length - 2] || '';
+  return '';
+}
+
+function pipelineInitialIp() {
+  const params = new URLSearchParams(window.location.search || '');
+  return (
+    (typeof window.ACTIVE_IP === 'string' && window.ACTIVE_IP.trim()) ||
+    pipelineIpFromActiveNamespace() ||
+    (params.get('ip') || params.get('ip_id') || '').trim() ||
+    ((window.CONTEXT && (window.CONTEXT.active_ip || window.CONTEXT.activeIp)) || '').trim() ||
+    (() => { try { return localStorage.getItem('atlasActiveIp') || ''; } catch (_) { return ''; } })() ||
+    'arm_m0_min'
+  );
+}
+
 window.AtlasPipeline = function AtlasPipeline() {
   const [pipelineState, setPipelineState] = React.useState(null);
   const [progressSummary, setProgressSummary] = React.useState(null);
   const [fetchError, setFetchError]   = React.useState('');
-  const initialIp = (typeof window.ACTIVE_IP === 'string' && window.ACTIVE_IP.trim())
-    || (() => { try { return localStorage.getItem('atlasActiveIp') || ''; } catch (_) { return ''; } })()
-    || 'arm_m0_min';
+  const initialIp = pipelineInitialIp();
   const [ip, setIp] = React.useState(initialIp);
   const [chain, setChain] = React.useState([]);
   const [selectedFlowId, setSelectedFlowId] = React.useState('full');
@@ -1894,6 +1910,31 @@ window.AtlasPipeline = function AtlasPipeline() {
     const ownerId = (typeof window.ATLAS_USER_SESSION_ID === 'string' && window.ATLAS_USER_SESSION_ID)
       || (() => { try { return localStorage.getItem('atlasUserSessionId') || ''; } catch (_) { return ''; } })()
       || 'default';
+    if (typeof window.activateAtlasNamespace === 'function') {
+      window.activateAtlasNamespace(ownerId, ip || 'default', 'orchestrator', true);
+      return () => { dead = true; };
+    }
+    const namespace = `${ownerId}/${ip || 'default'}/orchestrator`;
+    window.ACTIVE_SESSION = namespace;
+    try { localStorage.setItem('atlasActiveSession', namespace); } catch (_) {}
+    try {
+      if (window.atlasData && typeof window.atlasData.setUserSessionId === 'function') {
+        window.atlasData.setUserSessionId(ownerId);
+      }
+      if (window.atlasData && typeof window.atlasData.setScopePath === 'function') {
+        window.atlasData.setScopePath(ip || 'default');
+      }
+      if (window.atlasData && typeof window.atlasData.setActiveSession === 'function') {
+        window.atlasData.setActiveSession(namespace);
+      }
+      if (window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
+        window.backend.disconnect();
+        setTimeout(() => window.backend.connect(namespace), 0);
+      }
+      window.dispatchEvent(new CustomEvent('atlas-session-switched', {
+        detail: { sessionId: ownerId, namespace, ip: ip || 'default', workflow: 'orchestrator' },
+      }));
+    } catch (_) {}
     fetch('/api/session/activate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1914,6 +1955,20 @@ window.AtlasPipeline = function AtlasPipeline() {
       })
       .catch(() => {});
     return () => { dead = true; };
+  }, [ip]);
+
+  React.useEffect(() => {
+    const syncIpFromNamespace = () => {
+      const nextIp = pipelineIpFromActiveNamespace();
+      if (nextIp && nextIp !== ip) setIp(nextIp);
+    };
+    syncIpFromNamespace();
+    window.addEventListener('atlas-session-switched', syncIpFromNamespace);
+    window.addEventListener('atlas-conversation-loaded', syncIpFromNamespace);
+    return () => {
+      window.removeEventListener('atlas-session-switched', syncIpFromNamespace);
+      window.removeEventListener('atlas-conversation-loaded', syncIpFromNamespace);
+    };
   }, [ip]);
 
   // Poll loop + WS subscription. Re-runs when ip changes.

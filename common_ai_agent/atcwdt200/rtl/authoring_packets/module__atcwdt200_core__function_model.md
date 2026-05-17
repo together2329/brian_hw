@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 7
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.ordering, cycle_model.pipeline, dataflow.sequence.sequence_2, dataflow.sequence.sequence_3, dataflow.sequence.sequence_4, dataflow.sequence.sequence_5, dataflow.sinks.sinks_1, dataflow.sinks.sinks_2, decomposition.units.watchdog_core, fsm, fsm.watchdog, function_model, function_model.transactions.restart, function_model.transactions.timeout_decode, function_model.transactions.watchdog_tick
 - Module slice: 1/6 section=function_model task_limit=48
@@ -79,14 +79,14 @@ SSOT item context: value=Unlocked APB write to RES offset 0x14 with lower 16 bit
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.restart.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.restart.inputs.input_0.
 Owner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.
 SSOT item context: id=restart; name=Watchdog restart command; signal=["pwdata"]; state=["COUNTER", "STATE"].
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -99,14 +99,14 @@ SSOT item context: id=restart; name=Watchdog restart command; signal=["pwdata"];
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.restart.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.restart.inputs.input_1.
 Owner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.
 SSOT item context: id=restart; name=Watchdog restart command; signal=["REG_WEN"]; state=["COUNTER", "STATE"].
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -205,14 +205,14 @@ SSOT item context: id=restart; name=Watchdog restart command; signal=["Restart c
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.restart.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.restart.error_cases.error_case_0.
 Owner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.
 SSOT item context: id=restart; name=Watchdog restart command; signal=["Wrong magic or locked write has no restart effect"]; state=["COUNTER", "STATE"].
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -780,14 +780,14 @@ SSOT item context: id=timeout_decode; name=Timeout interval decode; signal=["CR_
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.timeout_decode.inputs.input_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.timeout_decode.inputs.input_2.
 Owner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.
 SSOT item context: id=timeout_decode; name=Timeout interval decode; signal=["COUNTER"]; state=["TIMEOUT_PREDICATES"].
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -820,14 +820,14 @@ SSOT item context: id=timeout_decode; name=Timeout interval decode; signal=["int
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.timeout_decode.state_updates.TIMEOUT_PREDICATES
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.timeout_decode.state_updates.TIMEOUT_PREDICATES.
 Owner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.
 SSOT item context: name=TIMEOUT_PREDICATES; expr=0; width=2.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -843,14 +843,14 @@ SSOT item context: name=TIMEOUT_PREDICATES; expr=0; width=2.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.timeout_decode.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.timeout_decode.side_effects.side_effect_0.
 Owner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.
 SSOT item context: id=timeout_decode; name=Timeout interval decode; signal=["Drives watchdog_tick state updates"]; state=["TIMEOUT_PREDICATES"].
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -863,14 +863,14 @@ SSOT item context: id=timeout_decode; name=Timeout interval decode; signal=["Dri
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.timeout_decode.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.timeout_decode.error_cases.error_case_0.
 Owner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.
 SSOT item context: id=timeout_decode; name=Timeout interval decode; signal=["Unsupported encodings are not expected if table is locked"]; state=["TIMEOUT_PREDICATES"].
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction

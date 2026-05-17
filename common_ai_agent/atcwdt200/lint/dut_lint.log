@@ -1,43 +1,14 @@
 ===== pyslang =====
 command: pyslang rtl/atcwdt200_param.vh rtl/atcwdt200_regs.sv rtl/atcwdt200_core.sv rtl/atcwdt200_sync.sv rtl/atcwdt200.sv
 returncode: 0
-errors: 0 warnings: 3
+errors: 0 warnings: 0
 pyslang files: 5
-errors=0 warnings=3
-warning: atcwdt200/rtl/atcwdt200_regs.sv:49 implicit conversion expands from 3 to 4 bits
-warning: atcwdt200/rtl/atcwdt200_core.sv:43 implicit conversion expands from 16 to 32 bits
-warning: atcwdt200/rtl/atcwdt200_core.sv:44 implicit conversion expands from 3 to 4 bits
+errors=0 warnings=0
 
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/atcwdt200.f --top-module atcwdt200
-returncode: 1
-errors: 0 warnings: 6
-%Warning-WIDTHEXPAND: rtl/atcwdt200_core.sv:43:24: Operator ASSIGNW expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'counter' generates 16 bits.
-                                                 : ... note: In instance 'atcwdt200.u_core'
-   43 |     assign counter_32b = counter;
-      |                        ^
-                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.046
-                      ... Use "/* verilator lint_off WIDTHEXPAND */" and lint_on around source to disable this message.
-%Warning-WIDTHEXPAND: rtl/atcwdt200_core.sv:44:26: Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's VARREF 'cr_inttime' generates 3 bits.
-                                                 : ... note: In instance 'atcwdt200.u_core'
-   44 |     assign cr_inttime_4b = cr_inttime;
-      |                          ^
-%Warning-WIDTHEXPAND: rtl/atcwdt200_regs.sv:49:26: Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's VARREF 'cr_inttime' generates 3 bits.
-                                                 : ... note: In instance 'atcwdt200.u_regs'
-   49 |     assign cr_inttime_4b = cr_inttime;
-      |                          ^
-%Warning-UNUSEDSIGNAL: rtl/atcwdt200.sv:31:11: Signal is not used: 'core_set_rstzero'
-                                             : ... note: In instance 'atcwdt200'
-   31 |     logic core_set_rstzero;
-      |           ^~~~~~~~~~~~~~~~
-                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
-                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
-%Warning-UNUSEDSIGNAL: rtl/atcwdt200_regs.sv:13:25: Bits of signal are not used: 'pwdata'[31:16]
-                                                  : ... note: In instance 'atcwdt200.u_regs'
-   13 |     input  logic [31:0] pwdata,
-      |                         ^~~~~~
-%Warning-UNUSEDSIGNAL: rtl/atcwdt200_core.sv:33:17: Bits of signal are not used: 'counter_32b'[30,28,26,24,22,20,18,16,5:0]
-                                                  : ... note: In instance 'atcwdt200.u_core'
-   33 |     wire [31:0] counter_32b;
-      |                 ^~~~~~~~~~~
-%Error: Exiting due to 6 warning(s)
+returncode: 0
+errors: 0 warnings: 0
+- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
+- Verilator: Built from 0.135 MB sources in 5 modules, into 0.035 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.049 s (elab=0.008, cvt=0.020, bld=0.000); cpu 0.032 s on 1 threads; allocated 9.953 MB

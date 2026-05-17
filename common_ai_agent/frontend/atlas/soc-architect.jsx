@@ -3480,6 +3480,8 @@ memoryMap:
 // full feed (with collapsible cards, qcards, slash menu, scope etc.)
 // stays on the Workspace screen.
 window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onDiagramPlan }) {
+  const normalizedView = String(view || 'architect').toLowerCase();
+  const isPipelineChat = normalizedView === 'pipeline' || normalizedView === 'orchestrator';
   const [feed, setFeed] = React.useState([]);
   const [streaming, setStreaming] = React.useState(false);
   const [input, setInput] = React.useState('');
@@ -3693,13 +3695,22 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
         text
       );
     }
-    if (window.backend) window.backend.send({ type: 'prompt', text: outbound });
+    if (window.backend) {
+      window.backend.send({
+        type: 'prompt',
+        text: outbound,
+        session: window.ACTIVE_SESSION || '',
+        ui_lang: window.ATLAS_UI_LANG || 'en',
+      });
+    }
   };
   const onKey = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   };
 
-  const scopeLabel = view === 'soc' ? 'soc · architect'
+  const activeSessionIp = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean).slice(-2, -1)[0] || '';
+  const scopeLabel = isPipelineChat ? `${(selModule && selModule.name) || activeSessionIp || 'active IP'} · orchestrator`
+                   : view === 'soc' ? 'soc · architect'
                    : selModule ? `${selModule.name} · module`
                    : selCluster ? `${selCluster.id} · cluster`
                    : view.replace(':', ' · ');
@@ -3707,7 +3718,7 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
   return (
     <div style={{ background: 'var(--panel)', borderLeft: '1px solid var(--line)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <div className="box-h">
-        <b>chat · {String(view || 'architect').toLowerCase()}</b>
+        <b>{isPipelineChat ? 'orchestrator chat' : `chat · ${normalizedView}`}</b>
         <span style={{ flex: 1 }} />
         <span className={`pill ${streaming ? 'run' : 'acc'}`} style={{ fontSize: 9 }}>
           {streaming ? 'react-loop · streaming' : 'react-loop · idle'}
@@ -3717,8 +3728,9 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
       <div ref={feedRef} style={{ flex: 1, overflow: 'auto', padding: 14, fontSize: 12.5 }}>
         {feed.length === 0 && (
           <div style={{ color: 'var(--fg-mute)', fontSize: 11, fontStyle: 'italic', lineHeight: 1.6 }}>
-            architect commands: /move cortexa15_0 left, /connect cortexa15_0/M_ACE cci550/S0_ACE ACE, /add counter, /delete counter, /layout.
-            natural language also maps to the same diagram actions.
+            {isPipelineChat
+              ? 'Orchestrator ready. Ask for status, run to green, retry a stage, or create an IP.'
+              : 'architect commands: /move cortexa15_0 left, /connect cortexa15_0/M_ACE cci550/S0_ACE ACE, /add counter, /delete counter, /layout.'}
           </div>
         )}
         {feed.map((entry, i) => {
@@ -3772,7 +3784,7 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
           <input value={input}
                  onChange={e => setInput(e.target.value)}
                  onKeyDown={onKey}
-                 placeholder="/move · /connect · /add · /delete · /layout" />
+                 placeholder={isPipelineChat ? "Ask orchestrator…" : "/move · /connect · /add · /delete · /layout"} />
           <span className="kbd" onClick={send} style={{ cursor: 'pointer' }}>↵</span>
         </div>
         <div style={{ marginTop: 6, display: 'flex', gap: 6, fontSize: 10, color: 'var(--fg-mute)', alignItems: 'center' }}>

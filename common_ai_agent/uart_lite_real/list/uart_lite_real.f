@@ -1,2 +1,9 @@
-// uart_lite_real.f — filelist
+rtl/uart_lite_real_param.vh
+rtl/uart_lite_real_baud_gen.sv
+rtl/uart_lite_real_tx_fifo.sv
+rtl/uart_lite_real_rx_fifo.sv
+rtl/uart_lite_real_tx.sv
+rtl/uart_lite_real_rx.sv
+rtl/uart_lite_real_regs.sv
+rtl/uart_lite_real_core.sv
 rtl/uart_lite_real.sv

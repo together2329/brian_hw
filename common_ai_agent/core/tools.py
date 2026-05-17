@@ -5153,6 +5153,7 @@ def read_image(path=None, prompt="Describe this image in detail."):
 # and returns the submitted answer as the tool observation.
 _ask_user_callback = None
 _record_ssot_qa_callback = None
+_dispatch_workflow_callback = None
 
 
 def _ask_user_exec_mode() -> str:
@@ -5299,6 +5300,12 @@ def set_record_ssot_qa_callback(cb):
     """Install the GUI bridge for deferred SSOT QA recording."""
     global _record_ssot_qa_callback
     _record_ssot_qa_callback = cb
+
+
+def set_dispatch_workflow_callback(cb):
+    """Install the ATLAS Pipeline bridge for orchestrator worker dispatch."""
+    global _dispatch_workflow_callback
+    _dispatch_workflow_callback = cb
 
 
 def scaffold_ip(name=None, root="."):
@@ -5816,8 +5823,20 @@ def wrapper_gen(top_name=None):
             f"the per-iface ports, then re-run.")
 
 
-def dispatch_workflow(workflow=None, scope=None, prompt=None):
-    """Hand a focused task to a sub-workflow as a sub-agent run.
+def dispatch_workflow(
+    workflow=None,
+    scope=None,
+    prompt=None,
+    ip=None,
+    stages=None,
+    payload=None,
+    schedule="auto",
+    model="",
+    run_mode="",
+    exec_mode="",
+    reason="",
+):
+    """Hand a focused task to an ATLAS pipeline worker workflow.
 
     The Architect supervisor uses this to delegate per-IP work
     (rtl-gen, sim, lint, syn, sta, …) without leaving its own
@@ -5830,15 +5849,33 @@ def dispatch_workflow(workflow=None, scope=None, prompt=None):
         scope:    optional `/scope` path — typically the IP directory.
         prompt:   the user-facing instruction the sub-agent receives.
 
-    For now this returns instructions describing what the supervisor
-    should ask the user to do manually (the full sub-agent
-    infrastructure is wired through delegate_runner — registered as
-    a separate tool when that path is fully integrated). Once the
-    sub-agent dispatch is hooked, this function will return the
-    sub-agent's final assistant message.
+    In the Atlas UI this is bridged to the same job creator used by
+    /api/pipeline/dispatch, so the orchestrator can dispatch workers
+    without asking the user to switch workflows manually.
     """
-    if not workflow:
+    if not workflow and not stages:
         return "[dispatch_workflow: 'workflow' is required]"
+    if _dispatch_workflow_callback is not None:
+        try:
+            result = _dispatch_workflow_callback(
+                workflow=workflow or "",
+                scope=scope or "",
+                prompt=prompt or "",
+                ip=ip or "",
+                stages=stages,
+                payload=payload,
+                schedule=schedule or "auto",
+                model=model or "",
+                run_mode=run_mode or "",
+                exec_mode=exec_mode or "",
+                reason=reason or "",
+            )
+            try:
+                return json.dumps(result, indent=2, sort_keys=True)
+            except Exception:
+                return str(result)
+        except Exception as exc:
+            return f"[dispatch_workflow error: {exc}]"
     parts = [f"⏵ Sub-workflow dispatch requested:",
              f"    workflow: {workflow}",
              f"    scope:    {scope or '(none)'}",

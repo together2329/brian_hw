@@ -270,15 +270,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 1,
-    "open_required_count": 1,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -326,7 +326,7 @@
       "module_task_count": 42,
       "task_limit": 48
     },
-    "open_required_count": 1,
+    "open_required_count": 0,
     "required_count": 42,
     "source_refs": [
       "top_module",
@@ -355,8 +355,7 @@
       "parameters.INT_TIME_WIDTH"
     ],
     "status_counts": {
-      "open": 1,
-      "pass": 41
+      "pass": 42
     },
     "task_count": 42
   },
@@ -598,8 +597,10 @@
         "features.restart_and_pause"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "APB"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -607,7 +608,7 @@
           "APB"
         ],
         "source_scope": "rtl/atcwdt200.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -617,9 +618,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {

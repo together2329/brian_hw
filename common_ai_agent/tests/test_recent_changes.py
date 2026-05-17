@@ -638,10 +638,11 @@ class TestAtlasUiWorkerDispatchTemplateWorkflow(unittest.TestCase):
             resp.__exit__ = MagicMock(return_value=False)
             return resp
 
-        app = atlas_ui.create_app()
-        with patch("urllib.request.urlopen", side_effect=mock_urlopen):
-            client = TestClient(app)
-            response = client.post("/api/job/dispatch", json=body)
+        with patch.dict(os.environ, {"ATLAS_ADMIN_AUTH_MODE": "local"}):
+            app = atlas_ui.create_app()
+            with patch("urllib.request.urlopen", side_effect=mock_urlopen):
+                client = TestClient(app)
+                response = client.post("/api/job/dispatch", json=body)
 
         return response.json(), posted
 
@@ -697,8 +698,9 @@ class TestAtlasUiWorkerDispatchTemplateWorkflow(unittest.TestCase):
         except ImportError as e:
             self.skipTest(f"fastapi/atlas_ui unavailable: {e}")
 
-        client = TestClient(atlas_ui.create_app())
-        response = client.get("/api/session/state", params={"session": r"\SQA/ssot-gen"})
+        with patch.dict(os.environ, {"ATLAS_ADMIN_AUTH_MODE": "local"}):
+            client = TestClient(atlas_ui.create_app())
+            response = client.get("/api/session/state", params={"session": r"\SQA/ssot-gen"})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json().get("session"), "SQA/ssot-gen")
@@ -731,11 +733,12 @@ class TestAtlasUiWorkerDispatchTemplateWorkflow(unittest.TestCase):
             old_root = atlas_ui.PROJECT_ROOT
             atlas_ui.PROJECT_ROOT = root
             try:
-                client = TestClient(atlas_ui.create_app())
-                response = client.get(
-                    "/api/session/history",
-                    params={"session": r"C:\repo\common_ai_agent\.session\dma330\rtl-gen\conversation.json"},
-                )
+                with patch.dict(os.environ, {"ATLAS_ADMIN_AUTH_MODE": "local"}):
+                    client = TestClient(atlas_ui.create_app())
+                    response = client.get(
+                        "/api/session/history",
+                        params={"session": r"C:\repo\common_ai_agent\.session\dma330\rtl-gen\conversation.json"},
+                    )
             finally:
                 atlas_ui.PROJECT_ROOT = old_root
 
@@ -1435,6 +1438,20 @@ class TestReactLoopPromptOnlyReminder(unittest.TestCase):
         self.assertIn("_copy_system_prompt_overlay(llm_messages)", src)
         self.assertNotRegex(src, r"(?m)^\s+messages\[_ui\] = dict\(messages\[_ui\]\)")
         self.assertNotIn("deps.orchestrator_inject_fn(messages", src)
+
+
+class TestAtlasPipelineOrchestratorNamespace(unittest.TestCase):
+    """Pipeline chat should be tracked as the orchestrator workflow."""
+
+    def test_app_treats_orchestrator_as_session_workflow(self):
+        src = (PROJECT_ROOT / "frontend/atlas/app.jsx").read_text(encoding="utf-8")
+        data_src = (PROJECT_ROOT / "frontend/atlas/data.jsx").read_text(encoding="utf-8")
+
+        self.assertIn("'orchestrator'", src)
+        self.assertIn("'orchestrator'", data_src)
+        self.assertIn("savedScreen === 'pipeline'", src)
+        self.assertIn("? 'orchestrator'", src)
+        self.assertIn("activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, targetWorkflow, true)", src)
 
 
 class TestGlmCacheDebugOutput(unittest.TestCase):

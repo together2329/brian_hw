@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 4
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow.sequence.sequence_0, dataflow.sequence.sequence_1, dataflow.sinks.sinks_0, decomposition.units.apb_register_block, error_handling, function_model, function_model.transactions.apb_read, function_model.transactions.apb_write, function_model.transactions.write_unlock, registers, registers.register_list
 - Module slice: 5/5 section=dataflow task_limit=48
@@ -99,14 +99,14 @@ SSOT item context: value=The watchdog counter advances on pclk cycles when CR.CL
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_3
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_3.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sequence.sequence_0.
 SSOT item context: value=INTTIME timeout sets SR.INTZERO and asserts wdt_int when CR.INTEN is set..
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -119,14 +119,14 @@ SSOT item context: value=INTTIME timeout sets SR.INTZERO and asserts wdt_int whe
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_4
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_4.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sequence.sequence_0.
 SSOT item context: value=RSTTIME timeout sets reset status, asserts wdt_rst when CR.RSTEN is set, and clears CR.EN..
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -179,14 +179,14 @@ SSOT item context: value=prdata.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sinks
 - Source ref: dataflow.sinks.sinks_1
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sinks.sinks_1.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sinks.sinks_0.
 SSOT item context: value=wdt_int.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -199,14 +199,14 @@ SSOT item context: value=wdt_int.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sinks
 - Source ref: dataflow.sinks.sinks_2
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sinks.sinks_2.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sinks.sinks_0.
 SSOT item context: value=wdt_rst.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model

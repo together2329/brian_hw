@@ -4,28 +4,14 @@
 
 - Top: atcwdt200
 - Packets: 16
-- LLM-actionable tasks: 28
+- LLM-actionable tasks: 0
 - Human-locked tasks: 0
-- Tool-evidence tasks: 3
-- Deferred human QA allowed: True
-- PASS allowed: False
+- Tool-evidence tasks: 0
+- Deferred human QA allowed: False
+- PASS allowed: True
 - Target scale locked: False
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
-
-## Next LLM Packets
-
-- module__atcwdt200_regs__registers: rtl/authoring_packets/module__atcwdt200_regs__registers.json (llm_open=7, human_locked=0)
-- module__atcwdt200_regs__function_model: rtl/authoring_packets/module__atcwdt200_regs__function_model.json (llm_open=5, human_locked=0)
-- module__atcwdt200_regs__dataflow: rtl/authoring_packets/module__atcwdt200_regs__dataflow.json (llm_open=4, human_locked=0)
-- module__atcwdt200_core__function_model: rtl/authoring_packets/module__atcwdt200_core__function_model.json (llm_open=7, human_locked=0)
-- module__atcwdt200_core__cycle_model: rtl/authoring_packets/module__atcwdt200_core__cycle_model.json (llm_open=2, human_locked=0)
-- module__atcwdt200: rtl/authoring_packets/module__atcwdt200.json (llm_open=1, human_locked=0)
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
-
-## Tool Evidence Queue
-
-- rtl_gate_tool_evidence: tool_evidence=3, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Rules
 

@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-17T05:06:56Z",
+  "generated_at": "2026-05-17T07:23:49Z",
   "root": "doc/wiki",
-  "node_count": 38,
-  "edge_count": 231,
+  "node_count": 40,
+  "edge_count": 251,
   "tags": {},
   "types": {
     "reference": [
@@ -11,6 +11,7 @@
       "arm-m0-min-current-status",
       "arm-m0-min-pipeline-run",
       "atcuart100-pipeline-run",
+      "atcwdt200-pipeline-run-20260517",
       "atlas-pipeline-db-state",
       "atlas-pipeline-screen",
       "common-ai-agent-map",
@@ -30,6 +31,7 @@
       "octa-ddr-spi-orch-run-20260517",
       "orchestrator-worker-handoff",
       "orchestrator-worker-handoff-review",
+      "orchestrator-workflow-bring-up-20260517",
       "parallel-todo-sub-agent-workers",
       "pipeline-progress-debugging",
       "provider-and-llm-call-accounting",
@@ -149,7 +151,9 @@
         "multi-user-worker-conflicts"
       ],
       "incoming": [
+        "atcwdt200-pipeline-run-20260517",
         "index",
+        "orchestrator-workflow-bring-up-20260517",
         "workflow-improvement-candidates"
       ],
       "broken_refs": [],
@@ -157,6 +161,30 @@
       "summary": "End-to-end run of common_ai_agent on the Andes ATCUART100 peripheral (8 SystemVerilog modules, dual-clock APB UART with FIFO/DMA/modem control), driven directly from this Claude session after the multi-LLM SSOT-gen attempt failed across 5 providers.",
       "path": "doc/wiki/atcuart100-pipeline-run.md",
       "size_bytes": 13171
+    },
+    {
+      "id": "atcwdt200-pipeline-run-20260517",
+      "title": "atcwdt200 - Andes Watchdog Timer Pipeline Run (2026-05-17)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "full-flow-pipeline",
+        "workflow-ownership-and-boundaries",
+        "rtl-gen-ssot-contract",
+        "deterministic-emit-stages",
+        "gpio-serial-pipeline-run",
+        "atcuart100-pipeline-run",
+        "wiki-curation-policy"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Run snapshot for building an `atcwdt200` watchdog-timer IP from the legacy Andes reference at `/Users/brian/Desktop/andes/atcwdt200/` through the common_ai_agent flow: requirements import, SSOT, FL/CL, RTL, TB, sim, and lint.",
+      "path": "doc/wiki/atcwdt200-pipeline-run-20260517.md",
+      "size_bytes": 6493
     },
     {
       "id": "atlas-pipeline-db-state",
@@ -200,6 +228,7 @@
         "atlas-pipeline-db-state",
         "index",
         "log",
+        "orchestrator-workflow-bring-up-20260517",
         "pipeline-progress-debugging",
         "run-mode-and-provenance-policy",
         "ui-design-references"
@@ -253,6 +282,7 @@
       "incoming": [
         "agent-autonomous-ip-implementation-pattern",
         "atcuart100-pipeline-run",
+        "atcwdt200-pipeline-run-20260517",
         "atlas-pipeline-screen",
         "gpio-serial-pipeline-run",
         "index",
@@ -302,6 +332,7 @@
         "agent-autonomous-ip-implementation-pattern",
         "arm-m0-min-pipeline-run",
         "atcuart100-pipeline-run",
+        "atcwdt200-pipeline-run-20260517",
         "atlas-pipeline-db-state",
         "atlas-pipeline-screen",
         "common-ai-agent-map",
@@ -313,6 +344,7 @@
         "index",
         "octa-ddr-spi-orch-run-20260517",
         "orchestrator-worker-handoff",
+        "orchestrator-workflow-bring-up-20260517",
         "parallel-todo-sub-agent-workers",
         "provider-and-llm-call-accounting",
         "quad-spi-orch-run-20260517",
@@ -410,6 +442,7 @@
         "human-review-and-escalation"
       ],
       "incoming": [
+        "atcwdt200-pipeline-run-20260517",
         "gpio-orchestrator-multiworker-run",
         "index",
         "log"
@@ -439,6 +472,7 @@
         "index",
         "octa-ddr-spi-orch-run-20260517",
         "orchestrator-worker-handoff",
+        "orchestrator-workflow-bring-up-20260517",
         "quad-spi-orch-run-20260517",
         "ssot-gen-pass-pipeline",
         "ssot-qa-workbench",
@@ -470,6 +504,8 @@
         "golden-todo-evidence",
         "wiki-curation-policy",
         "agent-autonomous-ip-implementation-pattern",
+        "orchestrator-workflow-bring-up-20260517",
+        "triple-llm-rv32i-experiment",
         "ssot-qa-workbench",
         "ssot-gen-pass-pipeline",
         "full-flow-pipeline",
@@ -490,6 +526,7 @@
         "quad-spi-orch-run-20260517",
         "octa-ddr-spi-orch-run-20260517",
         "atcuart100-pipeline-run",
+        "atcwdt200-pipeline-run-20260517",
         "dma-real-sim-debug-knowhow",
         "workflow-improvement-candidates"
       ],
@@ -503,7 +540,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 12548
+      "size_bytes": 14388
     },
     {
       "id": "karpathy-llm-wiki-pattern",
@@ -563,9 +600,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added `arm_m0_min/review/prompt_to_artifact_checklist.json`, a machine-readable map from the original CPU request to concrete SSOT, model, RTL, TB, sim, equivalence, coverage, wiki, and approval-gate evidence. The open req review decision now exposes this JSON as a `review_aids[]` entry so UI/orchestrator/future agents can distinguish machine-green…",
+      "summary": "- Added `doc/wiki/atcwdt200-pipeline-run-20260517.md` for the Andes watchdog timer flow started from `/Users/brian/Desktop/andes/atcwdt200`. The snapshot records clean SSOT/FL/CL/equiv/RTL/TB/lint evidence, the current sim stop condition (`TESTS=1 PASS=1` plus `[SIM ESCALATE] scoreboard_failed=11`), and recurring lessons around generated…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 49381
+      "size_bytes": 49872
     },
     {
       "id": "mini-cpu-rerun-20260517",
@@ -603,6 +640,7 @@
         "atcuart100-pipeline-run",
         "index",
         "octa-ddr-spi-orch-run-20260517",
+        "orchestrator-workflow-bring-up-20260517",
         "quad-spi-orch-run-20260517",
         "ssot-gen-pass-pipeline"
       ],
@@ -648,7 +686,8 @@
         "human-review-and-escalation"
       ],
       "incoming": [
-        "index"
+        "index",
+        "orchestrator-workflow-bring-up-20260517"
       ],
       "broken_refs": [],
       "updated": "",
@@ -678,6 +717,7 @@
         "multi-user-worker-conflicts",
         "octa-ddr-spi-orch-run-20260517",
         "orchestrator-worker-handoff-review",
+        "orchestrator-workflow-bring-up-20260517",
         "parallel-todo-sub-agent-workers",
         "pipeline-progress-debugging",
         "quad-spi-orch-run-20260517",
@@ -715,6 +755,33 @@
       "size_bytes": 18860
     },
     {
+      "id": "orchestrator-workflow-bring-up-20260517",
+      "title": "Orchestrator Workflow Bring-Up (2026-05-17)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "orchestrator-worker-handoff",
+        "parallel-todo-sub-agent-workers",
+        "atlas-pipeline-screen",
+        "multi-user-worker-conflicts",
+        "run-mode-and-provenance-policy",
+        "full-flow-pipeline",
+        "human-review-and-escalation",
+        "quad-spi-orch-run-20260517",
+        "octa-ddr-spi-orch-run-20260517",
+        "atcuart100-pipeline-run"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "The day `workflow/orchestrator/` went from a missing folder to a real workflow with five differently-modelled workers, an LLM-driven dispatch test against a scratch IP, an append-only trace log, a Pipeline UI debug strip, and a clear list of architectural mismatches the bring-up surfaced.",
+      "path": "doc/wiki/orchestrator-workflow-bring-up-20260517.md",
+      "size_bytes": 14090
+    },
+    {
       "id": "parallel-todo-sub-agent-workers",
       "title": "Parallel TODO Sub-Agent Workers",
       "type": "reference",
@@ -733,6 +800,7 @@
         "log",
         "multi-user-worker-conflicts",
         "octa-ddr-spi-orch-run-20260517",
+        "orchestrator-workflow-bring-up-20260517",
         "quad-spi-orch-run-20260517",
         "workflow-improvement-candidates"
       ],
@@ -809,7 +877,8 @@
       ],
       "incoming": [
         "index",
-        "octa-ddr-spi-orch-run-20260517"
+        "octa-ddr-spi-orch-run-20260517",
+        "orchestrator-workflow-bring-up-20260517"
       ],
       "broken_refs": [],
       "updated": "",
@@ -832,6 +901,7 @@
         "agent-autonomous-ip-implementation-pattern",
         "arm-m0-min-pipeline-run",
         "atcuart100-pipeline-run",
+        "atcwdt200-pipeline-run-20260517",
         "deterministic-emit-stages",
         "gpio-orchestrator-multiworker-run",
         "gpio-serial-pipeline-run",
@@ -883,7 +953,8 @@
       ],
       "incoming": [
         "index",
-        "log"
+        "log",
+        "orchestrator-workflow-bring-up-20260517"
       ],
       "broken_refs": [],
       "updated": "",
@@ -958,6 +1029,7 @@
         "karpathy-llm-wiki-pattern"
       ],
       "incoming": [
+        "index",
         "workflow-improvement-candidates"
       ],
       "broken_refs": [],
@@ -1006,6 +1078,7 @@
         "pipeline-progress-debugging"
       ],
       "incoming": [
+        "atcwdt200-pipeline-run-20260517",
         "index",
         "log",
         "parallel-todo-sub-agent-workers",
@@ -1091,6 +1164,7 @@
         "agent-autonomous-ip-implementation-pattern",
         "arm-m0-min-pipeline-run",
         "atcuart100-pipeline-run",
+        "atcwdt200-pipeline-run-20260517",
         "atlas-pipeline-screen",
         "common-ai-agent-map",
         "deterministic-emit-stages",

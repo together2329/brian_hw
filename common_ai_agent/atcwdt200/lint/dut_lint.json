@@ -15,10 +15,10 @@
     "rtl/atcwdt200_sync.sv",
     "rtl/atcwdt200.sv"
   ],
-  "timestamp": "2026-05-17T07:07:51.375743+00:00",
-  "returncode": 1,
+  "timestamp": "2026-05-17T07:12:57.717919+00:00",
+  "returncode": 0,
   "errors": 0,
-  "warnings": 9,
+  "warnings": 0,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -27,93 +27,19 @@
       "command": "pyslang rtl/atcwdt200_param.vh rtl/atcwdt200_regs.sv rtl/atcwdt200_core.sv rtl/atcwdt200_sync.sv rtl/atcwdt200.sv",
       "returncode": 0,
       "errors": 0,
-      "warnings": 3,
-      "diagnostics": [
-        {
-          "severity": "warning",
-          "file": "atcwdt200/rtl/atcwdt200_regs.sv",
-          "line": 49,
-          "message": "implicit conversion expands from 3 to 4 bits"
-        },
-        {
-          "severity": "warning",
-          "file": "atcwdt200/rtl/atcwdt200_core.sv",
-          "line": 43,
-          "message": "implicit conversion expands from 16 to 32 bits"
-        },
-        {
-          "severity": "warning",
-          "file": "atcwdt200/rtl/atcwdt200_core.sv",
-          "line": 44,
-          "message": "implicit conversion expands from 3 to 4 bits"
-        }
-      ],
-      "passed": false
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
     },
     {
       "tool": "verilator",
       "available": true,
       "command": "verilator --lint-only -Wall -Irtl -f list/atcwdt200.f --top-module atcwdt200",
-      "returncode": 1,
+      "returncode": 0,
       "errors": 0,
-      "warnings": 6,
-      "diagnostics": [
-        {
-          "severity": "warning",
-          "rule": "WIDTHEXPAND",
-          "file": "rtl/atcwdt200_core.sv",
-          "line": 43,
-          "column": 24,
-          "message": "Operator ASSIGNW expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'counter' generates 16 bits.",
-          "source": "    assign counter_32b = counter;"
-        },
-        {
-          "severity": "warning",
-          "rule": "WIDTHEXPAND",
-          "file": "rtl/atcwdt200_core.sv",
-          "line": 44,
-          "column": 26,
-          "message": "Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's VARREF 'cr_inttime' generates 3 bits.",
-          "source": "    assign cr_inttime_4b = cr_inttime;"
-        },
-        {
-          "severity": "warning",
-          "rule": "WIDTHEXPAND",
-          "file": "rtl/atcwdt200_regs.sv",
-          "line": 49,
-          "column": 26,
-          "message": "Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's VARREF 'cr_inttime' generates 3 bits.",
-          "source": "    assign cr_inttime_4b = cr_inttime;"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/atcwdt200.sv",
-          "line": 31,
-          "column": 11,
-          "message": "Signal is not used: 'core_set_rstzero'",
-          "source": "    logic core_set_rstzero;"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/atcwdt200_regs.sv",
-          "line": 13,
-          "column": 25,
-          "message": "Bits of signal are not used: 'pwdata'[31:16]",
-          "source": "    input  logic [31:0] pwdata,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/atcwdt200_core.sv",
-          "line": 33,
-          "column": 17,
-          "message": "Bits of signal are not used: 'counter_32b'[30,28,26,24,22,20,18,16,5:0]",
-          "source": "    wire [31:0] counter_32b;"
-        }
-      ],
-      "passed": false
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
     }
   ],
   "suppression_violation_count": 0,
@@ -121,5 +47,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": false
+  "passed": true
 }

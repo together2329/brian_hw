@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 5
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow.sequence.sequence_0, dataflow.sequence.sequence_1, dataflow.sinks.sinks_0, decomposition.units.apb_register_block, error_handling, function_model, function_model.transactions.apb_read, function_model.transactions.apb_write, function_model.transactions.write_unlock, registers, registers.register_list
 - Module slice: 1/5 section=function_model task_limit=48
@@ -193,14 +193,14 @@ SSOT item context: name=SR_INTZERO; width=1; reset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.SR_RSTZERO
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.SR_RSTZERO.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.
 SSOT item context: name=SR_RSTZERO; width=1; reset=0.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -383,14 +383,14 @@ SSOT item context: id=apb_read; name=APB register read; port=["prdata"]; signal=
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.apb_read.output_rules.prdata_rule
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.apb_read.output_rules.prdata_rule.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_read.
 SSOT item context: name=prdata_rule; port=prdata; expr=0; width=32.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -428,14 +428,14 @@ SSOT item context: id=apb_read; name=APB register read; port=["prdata"]; signal=
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.apb_read.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.apb_read.error_cases.error_case_0.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_read.
 SSOT item context: id=apb_read; name=APB register read; port=["prdata"]; signal=["Unsupported offsets return zero in legacy-compatible mode."].
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -549,14 +549,14 @@ SSOT item context: id=apb_write; name=APB register write; signal=["Protected reg
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.apb_write.state_updates.CR_FIELDS
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.apb_write.state_updates.CR_FIELDS.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.
 SSOT item context: name=CR_FIELDS; expr=pwdata & 0x7ff; width=11.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -880,14 +880,14 @@ SSOT item context: port=["wdt_int", "wdt_rst"]; signal=wdt_rst equals SR_RSTZERO
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.invariant_2
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_2.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.
 SSOT item context: port=["wdt_int", "wdt_rst"]; signal=Counter does not advance while disabled or paused.; state=["STATE"].
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner

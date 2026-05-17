@@ -188,7 +188,7 @@ const App = () => {
   }, []);
   const TOP_WORKFLOWS = React.useMemo(() => new Set([
     'architect', 'coverage', 'fl-model-gen', 'goal-audit', 'lint',
-    'mas-gen', 'pnr', 'rtl-gen', 'signoff', 'sim', 'sim_debug',
+    'mas-gen', 'orchestrator', 'pnr', 'rtl-gen', 'signoff', 'sim', 'sim_debug',
     'ssot-gen', 'sta', 'sta-post', 'syn', 'tb-gen',
   ]), []);
   const WORKFLOW_DEFAULT = 'default';
@@ -375,7 +375,14 @@ const App = () => {
             const requestedIp = normalizeSession(url.searchParams.get('ip') || url.searchParams.get('ip_id') || '');
             const requestedWf = normalizeSession(url.searchParams.get('workflow') || url.searchParams.get('wf') || '');
             const nextIp = requestedIp || WORKFLOW_DEFAULT;
-            const nextWf = requestedWf || WORKFLOW_DEFAULT;
+            const savedScreen = (() => {
+              try { return localStorage.getItem('atlasScreen') || ''; }
+              catch (_) { return ''; }
+            })();
+            const screenWf = savedScreen === 'pipeline'
+              ? 'orchestrator'
+              : savedScreen === 'architect' ? 'architect' : '';
+            const nextWf = requestedWf || screenWf || WORKFLOW_DEFAULT;
             const nextNs = `${username}/${nextIp}/${nextWf}`;
             window.ACTIVE_SESSION = nextNs;
             localStorage.setItem('atlasActiveSession', nextNs);
@@ -679,6 +686,15 @@ const App = () => {
     return namespace;
   }, [activateBackendWorkflow, namespaceFor, normalizeSession, setAgentRunningState, splitSessionNamespace, syncNamespaceUrl]);
 
+  React.useEffect(() => {
+    window.activateAtlasNamespace = activateNamespace;
+    return () => {
+      if (window.activateAtlasNamespace === activateNamespace) {
+        delete window.activateAtlasNamespace;
+      }
+    };
+  }, [activateNamespace]);
+
   // Synthetic / reserved namespace segments that should never show
   // up in the ip_id dropdown. 'soc' is the SoC architect placeholder,
   // 'user' is the legacy ip-less sentinel (still in the wild on disk
@@ -784,8 +800,24 @@ const App = () => {
       const isHealthTick = ev && ev.type === 'atlas-data-changed' && ev.detail === 'CONTEXT';
       let namespace;
       if (isHealthTick && ctxSession && ctxSession !== 'default/default/default') {
-        namespace = ctxSession;
-        if (namespace !== window.ACTIVE_SESSION) {
+        const ctxOwner = (ctxSession.split('/').filter(Boolean)[0] || '');
+        const authOwner = normalizeSession(
+          (window.ATLAS_USER && window.ATLAS_USER.username) ||
+          window.ATLAS_USER_SESSION_ID ||
+          activeSessionId ||
+          ''
+        );
+        // During login and fast screen changes, /healthz can briefly report
+        // the process bootstrap namespace (often default/<ip>/<wf>). In
+        // DB-backed multi-user mode the authenticated user owns the browser
+        // namespace, so do not let that stale backend context rewrite the UI
+        // back to default and poison the websocket session.
+        if (authOwner && ctxOwner && ctxOwner !== authOwner && ctxOwner !== 'local-admin') {
+          namespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
+        } else {
+          namespace = ctxSession;
+        }
+        if (namespace && namespace !== window.ACTIVE_SESSION) {
           window.ACTIVE_SESSION = namespace;
           try { localStorage.setItem('atlasActiveSession', namespace); } catch (_) {}
         }
@@ -846,10 +878,17 @@ const App = () => {
     // gate will rewrite localStorage and we'll re-fire then.
     const owner = parsed.sessionId || '';
     if (owner && owner !== (window.ATLAS_USER.username || '')) return;
+    const savedScreen = (() => {
+      try { return localStorage.getItem('atlasScreen') || ''; }
+      catch (_) { return ''; }
+    })();
+    const screenWf = savedScreen === 'pipeline'
+      ? 'orchestrator'
+      : savedScreen === 'architect' ? 'architect' : '';
     activateNamespace(
       parsed.sessionId || activeSessionId || 'default',
       parsed.ipId || WORKFLOW_DEFAULT,
-      parsed.workflow || WORKFLOW_DEFAULT,
+      screenWf || parsed.workflow || WORKFLOW_DEFAULT,
       true
     );
     // Run once on mount AFTER auth: this is the URL/localStorage → backend handshake.
@@ -1073,16 +1112,20 @@ const App = () => {
       // which worker to dispatch). Architect screen still gets the
       // architect agent for SoC-level design conversations.
       const targetWorkflow = screen === 'pipeline' ? 'orchestrator' : 'architect';
-      if (!optOut) window.backend.send({ type: 'prompt', text: `/workflow ${targetWorkflow}`, ui_lang: window.ATLAS_UI_LANG || uiLang });
+      if (!optOut) {
+        activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, targetWorkflow, true);
+      }
     } else if (prev === 'architect' || prev === 'pipeline') {
       // Leaving pipeline/architect → fall back to default (could be
       // smarter and restore the prior workflow, but default keeps
       // things simple).
       const optOut = (() => { try { return localStorage.getItem('atlasArchAutoSwitch') === 'off'; }
                               catch (_) { return false; } })();
-      if (!optOut) window.backend.send({ type: 'prompt', text: '/workflow default', ui_lang: window.ATLAS_UI_LANG || uiLang });
+      if (!optOut) {
+        activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, WORKFLOW_DEFAULT, true);
+      }
     }
-  }, [screen, uiLang]);
+  }, [activateNamespace, activeIp, activeSessionId, screen, uiLang]);
 
   React.useEffect(() => {
     document.documentElement.setAttribute('data-dir', dir);

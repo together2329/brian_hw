@@ -1,0 +1,24 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1779005019" />
+    <testcase name="test_01_tx_single_byte" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="201" time="0.05842709541320801" sim_time_ns="14400.001" ratio_time="246461.01090872884" />
+    <testcase name="test_02_loopback" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="223" time="0.12632083892822266" sim_time_ns="32700.001" ratio_time="258864.6598411258">
+      <failure message="Test failed with RANDOM_SEED=1779005019" />
+    </testcase>
+    <testcase name="test_03_rx_single_byte" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="255" time="0.09425473213195801" sim_time_ns="32480.000999999997" ratio_time="344598.09354216314" />
+    <testcase name="test_04_tx_parity" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="272" time="0.06023216247558594" sim_time_ns="15700.001000000004" ratio_time="260658.0995056209" />
+    <testcase name="test_05_rx_parity_error" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="288" time="0.0950620174407959" sim_time_ns="33760.001000000004" ratio_time="355136.59302492236">
+      <failure message="Test failed with RANDOM_SEED=1779005019" />
+    </testcase>
+    <testcase name="test_06_rx_frame_error" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="311" time="0.0914449691772461" sim_time_ns="32480.00099999999" ratio_time="355186.30813953915" />
+    <testcase name="test_07_rx_overrun" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="329" time="1.6537599563598633" sim_time_ns="544480.0009999999" ratio_time="329237.6253918192" />
+    <testcase name="test_08_fifo_flags" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="353" time="0.00890493392944336" sim_time_ns="1500.0010000000475" ratio_time="168446.05607240158" />
+    <testcase name="test_09_interrupts" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="377" time="0.06035304069519043" sim_time_ns="15020.000999999931" ratio_time="248869.0019092424" />
+    <testcase name="test_10_clr_stat" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="412" time="0.12505602836608887" sim_time_ns="32700.001000000047" ratio_time="261482.80436568882" />
+    <testcase name="test_11_apb_error_response" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="437" time="0.0017840862274169922" sim_time_ns="340.0010000000475" ratio_time="190574.3090076439" />
+    <testcase name="test_12_register_rw" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="462" time="0.004386186599731445" sim_time_ns="660.0009999999311" ratio_time="150472.62240059307" />
+    <testcase name="test_13_loopback_multi_byte" classname="test_uart_lite_real" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite_real/tb/test_uart_lite_real.py" lineno="487" time="0.9048182964324951" sim_time_ns="230780.00100000005" ratio_time="255056.73560085622">
+      <failure message="Test failed with RANDOM_SEED=1779005019" />
+    </testcase>
+  </testsuite>
+</testsuites>

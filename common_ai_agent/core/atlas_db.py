@@ -3348,13 +3348,33 @@ class AtlasDB:
             SELECT
                 s.id, s.user_id, s.project_id, s.directory, s.title,
                 s.status, s.created_at, s.updated_at, s.archived_at, s.summary,
-                u.username as owner_username, u.display_name as owner_display_name
+                u.username as owner_username, u.display_name as owner_display_name,
+                r.id as latest_workflow_run_id,
+                r.workflow as latest_workflow,
+                r.status as latest_workflow_status,
+                r.started_at as latest_workflow_started_at,
+                r.ended_at as latest_workflow_ended_at
             FROM sessions s
             LEFT JOIN users u ON s.user_id = u.id
+            LEFT JOIN workflow_runs r ON r.id = (
+                SELECT rr.id
+                  FROM workflow_runs rr
+                 WHERE rr.session_id = s.id
+                 ORDER BY rr.started_at DESC, rr.created_at DESC
+                 LIMIT 1
+            )
             ORDER BY s.updated_at DESC
             """
         )
-        return [self._row_to_dict(row, "sessions") for row in rows]
+        sessions: List[Dict[str, Any]] = []
+        for row in rows:
+            item = self._row_to_dict(row, "sessions")
+            summary = item.get("summary") if isinstance(item.get("summary"), dict) else {}
+            item["ip"] = summary.get("ip") or item.get("project_id") or ""
+            item["workflow"] = item.get("latest_workflow") or summary.get("workflow") or ""
+            item["pipeline_run_id"] = item.get("latest_workflow_run_id") or summary.get("pipeline_run_id") or ""
+            sessions.append(item)
+        return sessions
 
     def count_sessions_by_user(self) -> Dict[str, int]:
         """Return {user_id: session_count} for all users."""

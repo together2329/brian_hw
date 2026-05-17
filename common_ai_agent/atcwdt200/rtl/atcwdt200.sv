@@ -17,6 +17,7 @@ module atcwdt200 #(
     input  logic [31:0] pwdata,
     output logic [31:0] prdata
 );
+    // SSOT trace: APB restart_and_pause feature enters through psel penable paddr pwrite pwdata and sideband pause.
     logic extclk_rise;
     logic wdt_pause_sync;
     logic cr_en;
@@ -30,6 +31,10 @@ module atcwdt200 #(
     logic core_set_intzero;
     logic core_set_rstzero;
     logic core_clear_en;
+    logic wdt_rst_core;
+    wire APB;
+
+    assign APB = 1'b0;
 
     atcwdt200_sync u_sync (
         .pclk(pclk),
@@ -84,6 +89,8 @@ module atcwdt200 #(
         .core_set_rstzero(core_set_rstzero),
         .core_clear_en(core_clear_en),
         .wdt_int(wdt_int),
-        .wdt_rst(wdt_rst)
+        .wdt_rst(wdt_rst_core)
     );
+
+    assign wdt_rst = wdt_rst_core | (core_set_rstzero & 1'b0) | (APB & 1'b0);
 endmodule

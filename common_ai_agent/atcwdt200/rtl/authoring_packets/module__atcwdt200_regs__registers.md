@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 7
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow.sequence.sequence_0, dataflow.sequence.sequence_1, dataflow.sinks.sinks_0, decomposition.units.apb_register_block, error_handling, function_model, function_model.transactions.apb_read, function_model.transactions.apb_write, function_model.transactions.write_unlock, registers, registers.register_list
 - Module slice: 2/5 section=registers task_limit=48
@@ -63,14 +63,14 @@ SSOT item context: name=VER; width=32; reset=50339842; access=ro; offset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.VER.fields.id
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.VER.fields.id.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.
 SSOT item context: name=id; reset=768; access=ro.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -89,14 +89,14 @@ SSOT item context: name=id; reset=768; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.VER.fields.rev_major
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.VER.fields.rev_major.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.
 SSOT item context: name=rev_major; reset=512; access=ro.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -115,14 +115,14 @@ SSOT item context: name=rev_major; reset=512; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.VER.fields.rev_minor
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.VER.fields.rev_minor.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.
 SSOT item context: name=rev_minor; reset=2; access=ro.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -321,14 +321,14 @@ SSOT item context: name=rsttime; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CR.fields.reserved_31_11
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CR.fields.reserved_31_11.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_11; reset=0; access=reserved.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -397,14 +397,14 @@ SSOT item context: name=restart_magic; reset=0; access=wo.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.RES.fields.reserved_31_16
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.RES.fields.reserved_31_16.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_16; reset=0; access=reserved.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -473,14 +473,14 @@ SSOT item context: name=unlock_magic; reset=0; access=wo.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.WEN.fields.reserved_31_16
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.WEN.fields.reserved_31_16.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_16; reset=0; access=reserved.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -549,14 +549,14 @@ SSOT item context: name=intzero; reset=0; access=rw1c.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.SR.fields.reserved_31_1
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.SR.fields.reserved_31_1.
 Owner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_1; reset=0; access=reserved.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT

@@ -1,0 +1,403 @@
+{
+  "ip": "uart_lite_real",
+  "source": "yaml/uart_lite_real.ssot.yaml",
+  "generated_by": "equiv-goals deterministic emit",
+  "blocked": 0,
+  "total_goals": 46,
+  "goals": [
+    {
+      "id": "EQ_TX_BYTE_BASIC",
+      "transaction": "FM_TX_BYTE",
+      "description": "TX single byte: start bit (0), DATA_WIDTH data bits LSB-first, 1 stop bit (1)",
+      "fl_expected": {"tx_bits": [0, "data_lsb_first", 1], "tx_active_transition": "true->false"},
+      "rtl_check": "Sample tx output pin over baud tick periods; verify bit pattern matches expected frame",
+      "scenarios": ["SC1"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_RX_BYTE_BASIC",
+      "transaction": "FM_RX_BYTE",
+      "description": "RX single byte: start detect, data bits LSB-first, stop bit verification, byte in RXDATA",
+      "fl_expected": {"rx_data": "driven_byte", "rx_fifo_count": "+1"},
+      "rtl_check": "Drive rx pin with valid UART frame; read RXDATA; verify data matches",
+      "scenarios": ["SC2"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_TX_EVEN_PARITY",
+      "transaction": "FM_TX_BYTE",
+      "description": "TX byte with even parity: parity bit correctly computed",
+      "fl_expected": {"parity_bit": "computed_even_parity", "frame": "start+data+parity+stop"},
+      "rtl_check": "Sample tx output; verify parity bit matches XOR of data bits",
+      "scenarios": ["SC3"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_RX_ODD_PARITY_MATCH",
+      "transaction": "FM_RX_BYTE",
+      "description": "RX byte with odd parity: correct parity accepted without error",
+      "fl_expected": {"parity_err": false, "rx_data": "correct"},
+      "rtl_check": "Drive rx with correct odd parity; verify STAT.parity_err=0",
+      "scenarios": ["SC4"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_RX_PARITY_ERROR",
+      "transaction": "FM_RX_BYTE",
+      "description": "RX parity error: wrong parity detected and flagged",
+      "fl_expected": {"parity_err": true, "byte_still_pushed": true, "parities_errored": "+1"},
+      "rtl_check": "Drive rx with wrong parity; verify STAT.parity_err=1, RXDATA still valid",
+      "scenarios": ["SC5"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_RX_FRAMING_ERROR",
+      "transaction": "FM_RX_BYTE",
+      "description": "RX framing error: stop bit low detected and flagged",
+      "fl_expected": {"frame_err": true, "byte_still_pushed": true, "frames_errored": "+1"},
+      "rtl_check": "Drive rx with stop=0; verify STAT.frame_err=1",
+      "scenarios": ["SC6"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_RX_OVERRUN",
+      "transaction": "FM_RX_BYTE",
+      "description": "RX overrun: 17th byte discarded when FIFO full",
+      "fl_expected": {"overrun_err": true, "rx_fifo_count": "unchanged_at_FIFO_DEPTH"},
+      "rtl_check": "Fill RX FIFO to capacity; drive one more byte; verify overrun_err=1",
+      "scenarios": ["SC7"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_TX_NO_UNDERRUN",
+      "transaction": "FM_TX_BYTE",
+      "description": "TX no underrun during normal back-to-back frames",
+      "fl_expected": {"underrun_err": false},
+      "rtl_check": "Send multiple bytes back-to-back; verify STAT.underrun_err=0",
+      "scenarios": ["SC8"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_LOOPBACK",
+      "transaction": "FM_LOOPBACK",
+      "description": "Loopback: TX bytes appear in RX FIFO",
+      "fl_expected": {"rx_data": "tx_data", "external_rx_ignored": true},
+      "rtl_check": "Enable loopback; write TXDATA; read RXDATA; verify match",
+      "scenarios": ["SC9"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_BREAK_SEND",
+      "transaction": "FM_BREAK_SEND",
+      "description": "Break send: tx held low for one frame duration then self-clears",
+      "fl_expected": {"tx_low_duration": "frame_period", "break_send_self_clear": true},
+      "rtl_check": "Set break_send=1; measure tx low time; verify CTRL.break_send returns to 0",
+      "scenarios": ["SC10"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_TWO_STOP_BITS",
+      "transaction": "FM_TX_BYTE",
+      "description": "TX/RX with 2 stop bits configured",
+      "fl_expected": {"tx_stop_bits": 2, "rx_accepts": true},
+      "rtl_check": "Configure stop_bits=1; verify TX sends 2 stop bits; RX accepts 2 stop bits",
+      "scenarios": ["SC11"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_IRQ_TX_EMPTY",
+      "transaction": "FM_TX_BYTE",
+      "description": "Interrupt on TX FIFO empty: INTPEND asserts, uart_irq asserts, W1C clears",
+      "fl_expected": {"tx_empty_pend": true, "uart_irq": true, "w1c_clears_pend": true},
+      "rtl_check": "Enable tx_empty interrupt; let TX FIFO drain; check INTPEND and uart_irq; W1C",
+      "scenarios": ["SC12"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_IRQ_RX_NOT_EMPTY",
+      "transaction": "FM_RX_BYTE",
+      "description": "Interrupt on RX not empty: INTPEND asserts, W1C clears",
+      "fl_expected": {"rx_not_empty_pend": true, "uart_irq": true},
+      "rtl_check": "Enable rx_not_empty interrupt; drive byte; check INTPEND; W1C",
+      "scenarios": ["SC13"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_DATA_WIDTH_5",
+      "transaction": "FM_TX_BYTE",
+      "description": "DATA_WIDTH=5: correct serialization of 5-bit frames",
+      "fl_expected": {"tx_5_data_bits": true, "rx_5_data_bits": true},
+      "rtl_check": "Set DATA_WIDTH=5; verify TX sends 5 data bits; RX receives 5 data bits",
+      "scenarios": ["SC14"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_FIFO_FLAGS",
+      "transaction": "FM_TX_BYTE",
+      "description": "FIFO full/empty flags track correctly",
+      "fl_expected": {"tx_full": "when_count_eq_FIFO_DEPTH", "tx_empty": "when_count_eq_0"},
+      "rtl_check": "Fill/drain FIFOs; verify STAT flags match expected levels",
+      "scenarios": ["SC15"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_SPURIOUS_START",
+      "transaction": "FM_RX_BYTE",
+      "description": "Spurious start bit rejected: no byte captured, no error",
+      "fl_expected": {"no_rx_data": true, "no_error": true},
+      "rtl_check": "Drive rx low then high before mid-bit; verify RX FSM returns to IDLE",
+      "scenarios": ["SC16"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_BAUD_CHANGE",
+      "transaction": "FM_TX_BYTE",
+      "description": "Baud rate change mid-operation: current frame at old rate, next at new",
+      "fl_expected": {"frame_n_rate": "old_baud", "frame_n1_rate": "new_baud"},
+      "rtl_check": "Start TX frame; change BAUD during frame; measure bit periods",
+      "scenarios": ["SC17"],
+      "status": "open"
+    },
+    {
+      "id": "EQ_APB_CTRL_RW",
+      "transaction": "register_access",
+      "description": "CTRL register read/write at offset 0x00",
+      "fl_expected": {"read_value": "written_value", "fields": "tx_enable,rx_enable,loopback,break_send,parity_en,parity_odd,stop_bits"},
+      "rtl_check": "Write pattern to CTRL; read back; verify all fields",
+      "status": "open"
+    },
+    {
+      "id": "EQ_APB_STAT_RO",
+      "transaction": "register_access",
+      "description": "STAT register read-only at offset 0x04",
+      "fl_expected": {"read_value": "aggregated_status", "write_ignored": true},
+      "rtl_check": "Read STAT; verify live flags; attempt write; verify no change",
+      "status": "open"
+    },
+    {
+      "id": "EQ_APB_BAUD_RW",
+      "transaction": "register_access",
+      "description": "BAUD register read/write at offset 0x08, reset=324",
+      "fl_expected": {"reset_value": 324, "write_readback": "matching"},
+      "rtl_check": "Reset; read BAUD=324; write new value; read back",
+      "status": "open"
+    },
+    {
+      "id": "EQ_APB_TXDATA_WO",
+      "transaction": "register_access",
+      "description": "TXDATA write-only at offset 0x0C pushes to TX FIFO",
+      "fl_expected": {"write_pushes_fifo": true, "read_returns_0": true},
+      "rtl_check": "Write TXDATA; verify TX FIFO level increases; read returns 0",
+      "status": "open"
+    },
+    {
+      "id": "EQ_APB_RXDATA_RO",
+      "transaction": "register_access",
+      "description": "RXDATA read-only at offset 0x10 pops from RX FIFO",
+      "fl_expected": {"read_pops_fifo": true, "empty_read_returns_0": true},
+      "rtl_check": "Push byte to RX FIFO; read RXDATA; verify correct byte and FIFO level decrease",
+      "status": "open"
+    },
+    {
+      "id": "EQ_APB_INTEN_RW",
+      "transaction": "register_access",
+      "description": "INTEN register read/write at offset 0x14",
+      "fl_expected": {"write_readback": "matching", "fields": "5 enable bits"},
+      "rtl_check": "Write INTEN pattern; read back; verify all 5 enable bits",
+      "status": "open"
+    },
+    {
+      "id": "EQ_APB_INTPEND_W1C",
+      "transaction": "register_access",
+      "description": "INTPEND W1C at offset 0x18: write-1-to-clear pending bits",
+      "fl_expected": {"hw_sets_pending": true, "w1c_clears": true, "w0_no_effect": true},
+      "rtl_check": "Trigger interrupt; verify INTPEND set; write 1; verify cleared; write 0; verify no effect",
+      "status": "open"
+    },
+    {
+      "id": "EQ_APB_CLR_STAT_W1C",
+      "transaction": "register_access",
+      "description": "CLR_STAT W1C at offset 0x1C: clears sticky error flags",
+      "fl_expected": {"w1c_clears_errors": true},
+      "rtl_check": "Trigger frame_err; verify STAT.frame_err=1; write CLR_STAT bit 0; verify cleared",
+      "status": "open"
+    },
+    {
+      "id": "EQ_APB_DBG_COUNTERS",
+      "transaction": "register_access",
+      "description": "Debug counters at offsets 0x20-0x2C: read-only, free-running, wrapping",
+      "fl_expected": {"bytes_tx_increments": true, "bytes_rx_increments": true, "wraps_at_0xFFFFFFFF": true},
+      "rtl_check": "Transmit/receive bytes; read DBG_BYTES_TX/RX; verify increment",
+      "status": "open"
+    },
+    {
+      "id": "EQ_APB_PSLVERR",
+      "transaction": "register_access",
+      "description": "PSLVERR asserted for addresses >= 0x30 with PREADY=1",
+      "fl_expected": {"pslverr": true, "pready": true},
+      "rtl_check": "Access offset 0x30, 0x34, 0xFF; verify PSLVERR=1 and PREADY=1",
+      "status": "open"
+    },
+    {
+      "id": "EQ_APB_PREADY_TIMING",
+      "transaction": "register_access",
+      "description": "PREADY asserted in access phase for valid addresses",
+      "fl_expected": {"pready_in_access_phase": true, "max_1_cycle": true},
+      "rtl_check": "Perform APB read/write; verify PREADY timing",
+      "status": "open"
+    },
+    {
+      "id": "EQ_RESERVED_FIELDS",
+      "transaction": "register_access",
+      "description": "Reserved fields read as 0 and ignore writes",
+      "fl_expected": {"reserved_read_zero": true, "reserved_write_ignore": true},
+      "rtl_check": "Write all-ones to CTRL; read back; verify bits 31:7 are 0",
+      "status": "open"
+    },
+    {
+      "id": "EQ_TX_IDLE_MARK",
+      "transaction": "FM_TX_BYTE",
+      "description": "TX line is high (mark) when idle",
+      "fl_expected": {"tx_idle_value": 1},
+      "rtl_check": "After reset, verify tx=1; after TX frame complete, verify tx=1",
+      "status": "open"
+    },
+    {
+      "id": "EQ_TX_LSB_FIRST",
+      "transaction": "FM_TX_BYTE",
+      "description": "TX data bits are sent LSB-first",
+      "fl_expected": {"bit_order": "lsb_first"},
+      "rtl_check": "Write 0x01 to TXDATA; verify tx bit sequence: start,1,0,0,0,0,0,0,0,stop",
+      "status": "open"
+    },
+    {
+      "id": "EQ_RX_2FF_SYNC",
+      "transaction": "FM_RX_BYTE",
+      "description": "RX input passes through 2-FF synchronizer before sampling",
+      "fl_expected": {"sync_stages": 2},
+      "rtl_check": "Verify rx_sync_1 and rx_sync_2 flop chain in RTL",
+      "status": "open"
+    },
+    {
+      "id": "EQ_RX_OVERSAMPLE_MIDBIT",
+      "transaction": "FM_RX_BYTE",
+      "description": "RX samples at oversample count 7 for mid-bit detection",
+      "fl_expected": {"sample_point": 7, "oversample_factor": 16},
+      "rtl_check": "Drive rx; verify oversample counter; check sample timing",
+      "status": "open"
+    },
+    {
+      "id": "EQ_BAUD_TICK_PERIOD",
+      "transaction": "cycle_model",
+      "description": "Baud tick period = (baud_div + 1) * OVERSAMPLE PCLK cycles",
+      "fl_expected": {"tick_period": "(baud_div+1)*OVERSAMPLE"},
+      "rtl_check": "Set baud_div=324; measure baud tick period in PCLK cycles",
+      "status": "open"
+    },
+    {
+      "id": "EQ_BAUD_CHANGE_NEXT_FRAME",
+      "transaction": "FM_TX_BYTE",
+      "description": "BAUD register change takes effect at next frame boundary",
+      "fl_expected": {"current_frame_old_rate": true, "next_frame_new_rate": true},
+      "rtl_check": "Change BAUD during active TX frame; verify current frame unchanged",
+      "status": "open"
+    },
+    {
+      "id": "EQ_BREAK_FRAME_DURATION",
+      "transaction": "FM_BREAK_SEND",
+      "description": "Break duration = full frame (start+data+parity+stop bits)",
+      "fl_expected": {"break_duration_bits": "frame_length"},
+      "rtl_check": "Set break_send; count PCLK cycles of tx=0; verify = frame_length * baud_period",
+      "status": "open"
+    },
+    {
+      "id": "EQ_LOOPBACK_AFTER_SYNC",
+      "transaction": "FM_LOOPBACK",
+      "description": "Loopback connects tx to rx synchronizer after 2-FF stage",
+      "fl_expected": {"loopback_path": "tx->sync->rx_fsm"},
+      "rtl_check": "Enable loopback; verify internal mux routes tx to rx_sync input",
+      "status": "open"
+    },
+    {
+      "id": "EQ_IRQ_OR_GATE",
+      "transaction": "interrupt",
+      "description": "uart_irq = OR of all enabled pending interrupt sources",
+      "fl_expected": {"uart_irq": "pend[0]&en[0] | pend[1]&en[1] | ..."},
+      "rtl_check": "Enable one interrupt source; trigger; verify uart_irq=1; disable; verify uart_irq=0",
+      "status": "open"
+    },
+    {
+      "id": "EQ_IRQ_LEVEL_ACTIVE_HIGH",
+      "transaction": "interrupt",
+      "description": "uart_irq is active-high level, deasserts when all sources cleared",
+      "fl_expected": {"active_high": true, "level_sensitive": true},
+      "rtl_check": "Trigger multiple interrupts; clear all; verify uart_irq=0",
+      "status": "open"
+    },
+    {
+      "id": "EQ_ERR_BYTE_PUSHED_ON_FRAME_ERR",
+      "transaction": "FM_RX_BYTE",
+      "description": "Byte pushed to RX FIFO even on frame error (if space available)",
+      "fl_expected": {"byte_pushed": true, "frame_err": true},
+      "rtl_check": "Drive rx with bad stop bit; read RXDATA; verify byte present and frame_err=1",
+      "status": "open"
+    },
+    {
+      "id": "EQ_ERR_BYTE_PUSHED_ON_PARITY_ERR",
+      "transaction": "FM_RX_BYTE",
+      "description": "Byte pushed to RX FIFO even on parity error (if space available)",
+      "fl_expected": {"byte_pushed": true, "parity_err": true},
+      "rtl_check": "Drive rx with wrong parity; read RXDATA; verify byte present and parity_err=1",
+      "status": "open"
+    },
+    {
+      "id": "EQ_ERR_OVERRUN_DISCARD",
+      "transaction": "FM_RX_BYTE",
+      "description": "Overrun: received byte discarded when RX FIFO full",
+      "fl_expected": {"byte_discarded": true, "fifo_count_unchanged": true},
+      "rtl_check": "Fill RX FIFO; drive byte; verify FIFO count unchanged; verify overrun_err=1",
+      "status": "open"
+    },
+    {
+      "id": "EQ_ERR_UNDERRUN_ABORT",
+      "transaction": "FM_TX_BYTE",
+      "description": "Underrun: TX frame aborted, tx returns to idle (mark)",
+      "fl_expected": {"tx_returns_mark": true, "underrun_err": true},
+      "rtl_check": "Force TX FIFO empty during frame; verify underrun_err=1 and tx=1",
+      "status": "open"
+    },
+    {
+      "id": "EQ_STICKY_UNTIL_W1C",
+      "transaction": "error_handling",
+      "description": "Sticky error flags remain set until CLR_STAT W1C",
+      "fl_expected": {"sticky": true, "w1c_clears": true, "no_auto_clear": true},
+      "rtl_check": "Trigger frame_err; verify persists; trigger again; verify still set; CLR_STAT; verify cleared",
+      "status": "open"
+    },
+    {
+      "id": "EQ_DBG_COUNTERS_WRAP",
+      "transaction": "register_access",
+      "description": "Debug counters wrap at 0xFFFFFFFF",
+      "fl_expected": {"wrap_behavior": "0xFFFFFFFF -> 0x00000000"},
+      "rtl_check": "Set counter near max; trigger event; verify wrap",
+      "status": "open"
+    },
+    {
+      "id": "EQ_RESET_CLEAR_ALL",
+      "transaction": "reset",
+      "description": "Async reset clears all architectural state",
+      "fl_expected": {"fifos_empty": true, "regs_default": true, "errors_clear": true, "irq_deassert": true},
+      "rtl_check": "Configure and activate UART; assert reset; verify all state cleared",
+      "status": "open"
+    }
+  ],
+  "coverage_bins_mapped": {
+    "FCOV_FM_TX_BYTE": ["EQ_TX_BYTE_BASIC", "EQ_TX_LSB_FIRST", "EQ_TX_IDLE_MARK"],
+    "FCOV_FM_RX_BYTE": ["EQ_RX_BYTE_BASIC", "EQ_RX_2FF_SYNC", "EQ_RX_OVERSAMPLE_MIDBIT"],
+    "FCOV_FM_BREAK": ["EQ_BREAK_SEND", "EQ_BREAK_FRAME_DURATION"],
+    "FCOV_FM_LOOPBACK": ["EQ_LOOPBACK", "EQ_LOOPBACK_AFTER_SYNC"],
+    "FCOV_ERR_PARITY": ["EQ_RX_PARITY_ERROR", "EQ_ERR_BYTE_PUSHED_ON_PARITY_ERR"],
+    "FCOV_ERR_FRAME": ["EQ_RX_FRAMING_ERROR", "EQ_ERR_BYTE_PUSHED_ON_FRAME_ERR"],
+    "FCOV_ERR_OVERRUN": ["EQ_RX_OVERRUN", "EQ_ERR_OVERRUN_DISCARD"]
+  }
+}

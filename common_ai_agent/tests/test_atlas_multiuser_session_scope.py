@@ -74,6 +74,38 @@ def test_multiuser_session_ip_workflow_dirs_and_ip_visibility(tmp_path, monkeypa
     assert not (tmp_path / ".session" / "bob" / "ip_stolen").exists()
 
 
+def test_session_activate_records_db_control_plane_namespace(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    response = _activate(client, "alice", "spi_core", "orchestrator")
+
+    assert response.status_code == 200, response.text
+    assert response.json()["active_session"] == "alice/spi_core/orchestrator"
+    user_id = client.get("/api/users/me").json()["user"]["id"]
+    with AtlasDB() as db:
+        session = db.get_session("alice/spi_core/orchestrator")
+        assert session is not None
+        assert session["user_id"] == user_id
+        assert session["project_id"] == "spi_core"
+        assert session["summary"]["kind"] == "atlas_control_plane"
+        assert session["summary"]["ip"] == "spi_core"
+        assert session["summary"]["workflow"] == "orchestrator"
+        listed = {row["id"]: row for row in db.list_all_sessions()}
+        assert listed["alice/spi_core/orchestrator"]["ip"] == "spi_core"
+        assert listed["alice/spi_core/orchestrator"]["workflow"] == "orchestrator"
+
+
 def test_ip_create_endpoint_does_not_pre_scaffold_ip_root(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 

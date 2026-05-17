@@ -88,6 +88,18 @@ def register_sessions_routes(
             return JSONResponse({"error": "session owner mismatch"}, status_code=403)
         sid = _session_owner_with_model(sid)
         canonical = f"{sid}/{ip}/{wf}"
+        user_id = _request_user_id(req)
+        try:
+            with _atlas_db() as db:
+                existing_session = db.get_session(canonical)
+                if (
+                    existing_session is not None
+                    and existing_session.get("user_id") != user_id
+                    and multi_user_on
+                ):
+                    return JSONResponse({"error": "session owner mismatch"}, status_code=403)
+        except Exception:
+            pass
         def _emit_to_canonical(msg_type: str, **payload: Any) -> None:
             bridge.emit(msg_type, session_id=canonical, **payload)
 
@@ -215,6 +227,36 @@ def register_sessions_routes(
                 _conv.write_text("[]", encoding="utf-8")
         except Exception:
             pass
+        try:
+            summary = {
+                "kind": "atlas_control_plane",
+                "namespace": canonical,
+                "owner": sid,
+                "ip": ip,
+                "workflow": wf,
+            }
+            with _atlas_db() as db:
+                db.import_session(
+                    canonical,
+                    user_id,
+                    project_id=ip,
+                    directory=str(_session_dir),
+                    title=f"{ip} / {wf}",
+                    status="active",
+                    summary=summary,
+                )
+                db.update_session(
+                    canonical,
+                    user_id=user_id,
+                    project_id=ip,
+                    directory=str(_session_dir),
+                    title=f"{ip} / {wf}",
+                    status="active",
+                    summary=summary,
+                )
+        except Exception as exc:
+            print(f"[Session] activate→db session upsert({canonical!r}) failed: {exc}",
+                  flush=True)
         return JSONResponse({
             "ok": True,
             "active_session": canonical,

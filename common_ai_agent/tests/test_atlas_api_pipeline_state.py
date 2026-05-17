@@ -769,6 +769,41 @@ def test_handoff_save_writes_pending_and_busts_cache(tmp_path: Path, monkeypatch
     assert after["orchestrator"]["pending_handoffs"] == 1
 
 
+def test_handoff_save_preserves_session_and_pipeline_scope(tmp_path: Path, monkeypatch) -> None:
+    ip = "scoped_save_ip"
+    (tmp_path / ip).mkdir()
+    client = _make_client(tmp_path, monkeypatch)
+    session_id = f"u/{ip}/orchestrator"
+    pipeline_run_id = "pipe-scope-123"
+
+    r = client.post("/api/handoff/save", json={
+        "ip": ip,
+        "from_workflow": "sim-debug",
+        "to_workflow": "rtl-gen",
+        "reason": "needs RTL repair",
+        "suffix": "SCOPED",
+        "session_id": session_id,
+        "pipeline_run_id": pipeline_run_id,
+        "user_id": "spoofed-user",
+    })
+    assert r.status_code == 200, r.text
+    scope = r.json()["scope"]
+    assert scope == {
+        "user_id": "u",
+        "session_id": session_id,
+        "pipeline_run_id": pipeline_run_id,
+    }
+
+    listed = client.get(
+        f"/api/handoff/list?ip={ip}&workflow=rtl-gen&"
+        f"session_id={session_id}&pipeline_run_id={pipeline_run_id}"
+    )
+    assert listed.status_code == 200, listed.text
+    pending = listed.json()["pending"]
+    assert len(pending) == 1
+    assert pending[0]["scope"] == scope
+
+
 def test_handoff_save_rejects_missing_fields(tmp_path: Path, monkeypatch) -> None:
     ip = "save_bad_ip"
     (tmp_path / ip).mkdir()

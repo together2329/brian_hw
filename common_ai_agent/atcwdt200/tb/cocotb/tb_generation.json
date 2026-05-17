@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "atcwdt200",
+  "generated_at": "2026-05-17T07:17:21Z",
+  "manifest": "atcwdt200/tb/cocotb/tb_manifest.json",
+  "test": "atcwdt200/tb/cocotb/test_atcwdt200.py",
+  "runner": "atcwdt200/tb/cocotb/test_runner.py",
+  "goals": 41,
+  "rtl_sources": 4
+}

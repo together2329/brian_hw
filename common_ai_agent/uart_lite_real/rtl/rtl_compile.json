@@ -1,0 +1,13 @@
+{
+  "ip": "uart_lite_real",
+  "stage": "rtl-gen",
+  "status": "pass",
+  "passed": true,
+  "compiler": "iverilog -g2012",
+  "errors": 0,
+  "warnings": 0,
+  "source_files": 9,
+  "top_module": "uart_lite_real",
+  "filelist": "list/uart_lite_real.f",
+  "timestamp": "2026-05-18"
+}

@@ -429,6 +429,37 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         },
         required=["worker", "task"],
     ),
+    "dispatch_workflow": _fn(
+        "dispatch_workflow",
+        (
+            "ATLAS orchestrator tool: dispatch one or more pipeline stages to their bound workers.\n"
+            "Runs through the Atlas Pipeline job tracker and returns pipeline_id, job ids, sessions, and status.\n"
+            "Use workflow='pipeline' for the full run-to-green DAG, or workflow='rtl-gen' / stages=['rtl'] "
+            "for a specific worker."
+        ),
+        {
+            "workflow": {
+                "type": "string",
+                "description": "Workflow or alias: ssot-gen, rtl-gen, tb-gen, sim_debug, coverage, pipeline, run-to-green",
+                "default": "",
+            },
+            "ip": {"type": "string", "description": "Target IP id, e.g. spi_core", "default": ""},
+            "stages": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Optional explicit stage ids/workflows to dispatch, e.g. ['ssot','rtl','lint']",
+                "default": [],
+            },
+            "prompt": {"type": "string", "description": "Optional worker task override", "default": ""},
+            "reason": {"type": "string", "description": "Why the orchestrator is dispatching this work", "default": ""},
+            "schedule": {"type": "string", "enum": ["auto", "dag", "serial"], "default": "auto"},
+            "model": {"type": "string", "description": "Optional model override", "default": ""},
+            "run_mode": {"type": "string", "description": "starter, engineering, or signoff", "default": ""},
+            "exec_mode": {"type": "string", "description": "single-worker or orchestrator", "default": ""},
+            "payload": {"type": "object", "description": "Optional structured dispatch context", "default": {}},
+        },
+        required=[],
+    ),
     "worker_status": _fn(
         "worker_status",
         "Get current status of a Worker run. Returns dict with run_id, status, log_entries, elapsed_s.",

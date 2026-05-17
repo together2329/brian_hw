@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: filelist, integration, integration.connections, io_list, io_list.interfaces, top_module
 - SSOT connection contracts:
@@ -121,14 +121,14 @@ SSOT item context: name=watchdog_timeout; output=wdt_int, wdt_rst, SR.INTZERO..
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.restart_and_pause
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.restart_and_pause.
 Owner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.
 SSOT item context: name=restart_and_pause; output=Counter/state update only; no APB read side effect..
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT

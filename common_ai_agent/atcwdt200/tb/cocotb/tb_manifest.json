@@ -1,0 +1,339 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "atcwdt200",
+  "top": "atcwdt200",
+  "generated_at": "2026-05-17T07:17:21Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "atcwdt200/yaml/atcwdt200.ssot.yaml",
+  "equivalence_goals": "atcwdt200/verify/equivalence_goals.json",
+  "rtl_contract": "atcwdt200/rtl/rtl_contract.json",
+  "rtl_contract_source": "rtl_contract_json",
+  "clock": "pclk",
+  "reset": "presetn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "COUNTER_WIDTH": 16,
+    "INT_TIME_WIDTH": 3,
+    "APB_ADDR_WIDTH": 5,
+    "DATA_WIDTH": 32
+  },
+  "registers": {
+    "config": {
+      "register_width": 32,
+      "addr_width": 5,
+      "byte_addressable": true
+    },
+    "register_list": [
+      {
+        "name": "VER",
+        "offset": 0,
+        "access": "ro",
+        "index": 0
+      },
+      {
+        "name": "CR",
+        "offset": 16,
+        "access": "rw",
+        "index": 1
+      },
+      {
+        "name": "RES",
+        "offset": 20,
+        "access": "wo",
+        "index": 2
+      },
+      {
+        "name": "WEN",
+        "offset": 24,
+        "access": "wo",
+        "index": 3
+      },
+      {
+        "name": "SR",
+        "offset": 28,
+        "access": "rw1c",
+        "index": 4
+      }
+    ]
+  },
+  "state_observables": [
+    "CR_EN",
+    "CR_CLK",
+    "CR_INTEN",
+    "CR_RSTEN",
+    "CR_INTTIME",
+    "CR_RSTTIME",
+    "SR_INTZERO",
+    "SR_RSTZERO",
+    "REG_WEN",
+    "COUNTER",
+    "STATE"
+  ],
+  "state_observable_aliases": {
+    "CR_EN": [
+      "cr_en"
+    ],
+    "CR_CLK": [
+      "cr_clk"
+    ],
+    "CR_INTEN": [
+      "cr_inten"
+    ],
+    "CR_RSTEN": [
+      "cr_rsten"
+    ],
+    "CR_INTTIME": [
+      "cr_inttime",
+      "cr_inttime_4b"
+    ],
+    "CR_RSTTIME": [
+      "cr_rsttime"
+    ],
+    "SR_INTZERO": [
+      "sr_intzero"
+    ],
+    "SR_RSTZERO": [
+      "sr_rstzero"
+    ],
+    "REG_WEN": [
+      "reg_wen"
+    ],
+    "COUNTER": [
+      "counter",
+      "counter_32b",
+      "counter_all_bits_seen",
+      "counter_en",
+      "counter_inc",
+      "counter_nxt"
+    ],
+    "STATE": [
+      "state"
+    ]
+  },
+  "rtl_signal_names": [
+    "APB",
+    "CR_FIELDS_x7ff",
+    "PREDICATES",
+    "REG_WEN",
+    "SR_RSTZERO",
+    "TIMEOUT",
+    "TIMEOUT_PREDICATES",
+    "Unsupported",
+    "Unsupported_prdata",
+    "WEN",
+    "Wrong",
+    "core_clear_en",
+    "core_set_intzero",
+    "core_set_rstzero",
+    "counter",
+    "counter_32b",
+    "counter_all_bits_seen",
+    "counter_en",
+    "counter_inc",
+    "counter_nxt",
+    "cr_clk",
+    "cr_en",
+    "cr_inten",
+    "cr_inttime",
+    "cr_inttime_4b",
+    "cr_rsten",
+    "cr_rsttime",
+    "cr_sel",
+    "extclk",
+    "extclk_meta",
+    "extclk_rise",
+    "extclk_sync",
+    "extclk_sync_dly",
+    "id",
+    "interval_en",
+    "inttime_end",
+    "inttime_wdata",
+    "paddr_q",
+    "pause_meta",
+    "pclk",
+    "penable",
+    "prdata_rule",
+    "psel",
+    "pwdata",
+    "reg_wen",
+    "res_sel",
+    "reserved_write_ignored",
+    "restart_match",
+    "restart_pulse",
+    "rev_major",
+    "rev_minor",
+    "rsttime_end",
+    "selected_tick",
+    "sr_intzero",
+    "sr_rstzero",
+    "sr_sel",
+    "ssot_core_trace",
+    "state",
+    "time_end",
+    "unlock_match",
+    "unsupported_prdata",
+    "ver_sel",
+    "wdt_int",
+    "wdt_pause_sync",
+    "wdt_rst",
+    "wdt_rst_core",
+    "wen_sel",
+    "write_valid"
+  ],
+  "ports": [
+    {
+      "name": "pclk",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "presetn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "psel",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "penable",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "paddr",
+      "direction": "input",
+      "width": 3
+    },
+    {
+      "name": "pwrite",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "pwdata",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "prdata",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "extclk",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "wdt_pause",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "wdt_int",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "wdt_rst",
+      "direction": "output",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "pclk": 1,
+    "presetn": 1,
+    "psel": 1,
+    "penable": 1,
+    "paddr": 3,
+    "pwrite": 1,
+    "pwdata": 32,
+    "prdata": 32,
+    "extclk": 1,
+    "wdt_pause": 1,
+    "wdt_int": 1,
+    "wdt_rst": 1
+  },
+  "input_ports": [
+    "extclk",
+    "paddr",
+    "pclk",
+    "penable",
+    "presetn",
+    "psel",
+    "pwdata",
+    "pwrite",
+    "wdt_pause"
+  ],
+  "output_ports": [
+    "prdata",
+    "wdt_int",
+    "wdt_rst"
+  ],
+  "inout_ports": [],
+  "input_map": {
+    "apb_addr": "paddr",
+    "apb_enable": "penable",
+    "apb_select": "psel",
+    "apb_wdata": "pwdata",
+    "apb_write": "pwrite",
+    "external_tick": "extclk",
+    "pause": "wdt_pause"
+  },
+  "sample_condition": "((((((psel) != 0) && ((penable) != 0))) != 0) || ((CR_EN) != 0))",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "wdt_int_rule",
+      "port": "wdt_int",
+      "width": 1
+    },
+    {
+      "name": "wdt_rst_rule",
+      "port": "wdt_rst",
+      "width": 1
+    },
+    {
+      "name": "prdata",
+      "port": "prdata",
+      "width": 32
+    },
+    {
+      "name": "wdt_int",
+      "port": "wdt_int",
+      "width": 1
+    },
+    {
+      "name": "wdt_rst",
+      "port": "wdt_rst",
+      "width": 1
+    }
+  ],
+  "special_outputs": {},
+  "transaction_kind": "watchdog_tick",
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcwdt200/rtl/atcwdt200_regs.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcwdt200/rtl/atcwdt200_core.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcwdt200/rtl/atcwdt200_sync.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcwdt200/rtl/atcwdt200.sv"
+  ],
+  "goal_count": 41,
+  "module_goal_count": 2,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_ATCWDT200_REGS",
+      "rtl_module": "atcwdt200_regs",
+      "rtl_file": "rtl/atcwdt200_regs.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_ATCWDT200_CORE",
+      "rtl_module": "atcwdt200_core",
+      "rtl_file": "rtl/atcwdt200_core.sv"
+    }
+  ]
+}

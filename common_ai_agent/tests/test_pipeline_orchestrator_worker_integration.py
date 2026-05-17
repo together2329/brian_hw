@@ -180,8 +180,13 @@ def _make_client(tmp_path: Path, monkeypatch) -> TestClient:
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ADMIN_AUTH_MODE", "db")
+    monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "1")
     monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.delenv("ATLAS_LOCAL_ADMIN", raising=False)
+    monkeypatch.delenv("ATLAS_ADMIN_BYPASS", raising=False)
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
@@ -266,7 +271,7 @@ def test_pipeline_dispatch_fans_out_to_other_worker_and_surfaces_handoff_state(
             assert payload["project_root"] == str(tmp_path)
             assert payload["source_root"].endswith("common_ai_agent")
             assert payload["ip"] == ip
-            assert payload["session"].startswith(f"{ip}/pipeline/{dispatch_body['pipeline_id']}/")
+            assert payload["session"].startswith(f"u/{ip}/pipeline/{dispatch_body['pipeline_id']}/")
             assert "rtl_version_id" in payload, payload
             assert "rtl_version_id:" in payload["context"]
             assert "write_boundary: only modify files under" in payload["task"]
@@ -326,11 +331,117 @@ def test_pipeline_dispatch_can_drive_real_agent_server_worker_endpoints(
         assert lint_call["rtl_version_id"]
         assert lint_call["ip"] == ip
         assert lint_call["project_root"] == str(tmp_path)
-        assert lint_call["session"].startswith(f"{ip}/pipeline/{dispatch.json()['pipeline_id']}/")
+        assert lint_call["session"].startswith(f"u/{ip}/pipeline/{dispatch.json()['pipeline_id']}/")
         assert "rtl_version_id:" in lint_call["context"]
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
+
+
+def test_multiuser_pipeline_dispatch_scopes_worker_sessions_by_owner(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "shared_pipe_ip"
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("rtl") as (rtl_url, rtl_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("WORKER_URL_RTL_GEN", rtl_url)
+
+        client = _make_client(tmp_path, monkeypatch)
+        dispatch = client.post("/api/pipeline/dispatch", json={
+            "ip": ip,
+            "schedule": "auto",
+            "stages": ["rtl"],
+        })
+
+        assert dispatch.status_code == 200, dispatch.text
+        dispatch_body = dispatch.json()
+        pipeline_id = dispatch_body["pipeline_id"]
+        assert dispatch_body["pipeline_run_id"] == pipeline_id
+        assert dispatch_body["user_id"] == "u"
+        assert dispatch_body["jobs"][0]["pipeline_run_id"] == pipeline_id
+        assert dispatch_body["jobs"][0]["user_id"] == "u"
+        assert len(rtl_worker.runs_for_workflow("rtl-gen")) == 1
+        payload = rtl_worker.requests[0]["payload"]
+        assert payload["session"].startswith(f"u/{ip}/pipeline/{pipeline_id}/")
+        assert payload["pipeline_id"] == pipeline_id
+        assert payload["pipeline_run_id"] == pipeline_id
+        assert payload["user_id"] == "u"
+        assert payload["stage_id"] == "rtl"
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_orchestrator_dispatch_workflow_tool_creates_pipeline_job(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core import tools
+
+    ip = "tool_dispatch_ip"
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("rtl") as (rtl_url, rtl_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_ACTIVE_SESSION", f"u/{ip}/orchestrator")
+        monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+        monkeypatch.setenv("WORKER_URL_RTL_GEN", rtl_url)
+
+        _make_client(tmp_path, monkeypatch)
+        raw = tools.dispatch_workflow(
+            workflow="rtl-gen",
+            ip=ip,
+            reason="owner=rtl_bug from sim_debug",
+        )
+        result = json.loads(raw)
+
+        assert result["ok"] is True
+        assert result["source"] == "dispatch_workflow_tool"
+        assert result["ip"] == ip
+        assert result["user_id"] == "u"
+        assert result["pipeline_run_id"] == result["pipeline_id"]
+        assert result["jobs"][0]["workflow"] == "rtl-gen"
+        assert result["jobs"][0]["pipeline_run_id"] == result["pipeline_id"]
+        assert len(rtl_worker.runs_for_workflow("rtl-gen")) == 1
+        payload = rtl_worker.requests[0]["payload"]
+        assert payload["session"].startswith(f"u/{ip}/pipeline/{result['pipeline_id']}/")
+        assert payload["pipeline_run_id"] == result["pipeline_id"]
+        assert payload["user_id"] == "u"
+        assert payload["model"] == "gpt-5.3-codex"
+        assert "owner=rtl_bug" in payload["task"]
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_orchestrator_worker_status_exposes_default_model_bindings(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    client = _make_client(tmp_path, monkeypatch)
+
+    resp = client.get("/api/orchestrator/workers?ip=model_bind_ip")
+
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["orchestrator"]["model"] == "gpt-5.5"
+    models = {item["workflow"]: item["model"] for item in body["workers"]}
+    assert models["ssot-gen"] == "deepseek"
+    assert models["rtl-gen"] == "gpt-5.3-codex"
+    assert models["tb-gen"] == "kimi"
+    assert models["sim_debug"] == "glm-5.1"
 
 
 def test_full_ip_pipeline_can_complete_all_stages_across_two_workers(

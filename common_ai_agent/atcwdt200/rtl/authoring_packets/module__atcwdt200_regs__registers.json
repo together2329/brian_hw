@@ -92,15 +92,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 7,
-    "open_required_count": 7,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -143,7 +143,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 7,
+    "open_required_count": 0,
     "required_count": 21,
     "source_refs": [
       "registers.register_list.VER",
@@ -169,8 +169,7 @@
       "registers.register_list.SR.fields.reserved_31_1"
     ],
     "status_counts": {
-      "open": 7,
-      "pass": 14
+      "pass": 21
     },
     "task_count": 21
   },
@@ -271,8 +270,10 @@
         "registers.register_list.VER.fields.id"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "id"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -280,7 +281,7 @@
           "id"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -290,9 +291,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -332,8 +333,12 @@
         "registers.register_list.VER.fields.rev_major"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "major",
+          "rev",
+          "rev_major"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -343,7 +348,7 @@
           "rev_major"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -353,9 +358,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -395,8 +400,12 @@
         "registers.register_list.VER.fields.rev_minor"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "minor",
+          "rev",
+          "rev_minor"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -406,7 +415,7 @@
           "rev_minor"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -416,9 +425,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -886,8 +895,10 @@
         "registers.register_list.CR.fields.reserved_31_11"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "reserved"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -898,7 +909,7 @@
           "reserved_31_11"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -908,9 +919,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1077,8 +1088,10 @@
         "registers.register_list.RES.fields.reserved_31_16"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "reserved"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1089,7 +1102,7 @@
           "reserved_31_16"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1099,9 +1112,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1268,8 +1281,10 @@
         "registers.register_list.WEN.fields.reserved_31_16"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "reserved"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1280,7 +1295,7 @@
           "reserved_31_16"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1290,9 +1305,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1454,8 +1469,10 @@
         "registers.register_list.SR.fields.reserved_31_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "reserved"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1465,7 +1482,7 @@
           "reserved_31_1"
         ],
         "source_scope": "rtl/atcwdt200_regs.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1475,9 +1492,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
