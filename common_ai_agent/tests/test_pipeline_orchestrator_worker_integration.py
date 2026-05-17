@@ -932,6 +932,85 @@ def test_orchestrator_chat_run_to_green_dispatches_workers_and_records_chat(
         jobs._jobs.clear()
 
 
+def test_orchestrator_chat_korean_spi_create_prompt_runs_full_pipeline(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core.atlas_db import AtlasDB
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("spi-create") as (worker_url, worker):
+        monkeypatch.setenv("WORKER_URL_DEFAULT", worker_url)
+        client = _make_client(tmp_path, monkeypatch)
+
+        resp = client.post("/api/pipeline/orchestrator/chat", json={
+            "message": "SPI IP 하나 만들어줘",
+            "exec_mode": "orchestrator",
+        })
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        assert body["ok"] is True
+        assert body["action"] == "dispatch"
+        assert body["ip"] == "SPI"
+        assert body["pipeline_run_id"] == body["pipeline_id"]
+        assert [job["stage_id"] for job in body["jobs"]] == [stage["id"] for stage in jobs._PIPELINE_STAGES]
+
+        state_data = {}
+        for _ in range(60):
+            state_resp = client.get("/api/pipeline/state?ip=SPI")
+            assert state_resp.status_code == 200, state_resp.text
+            state_data = state_resp.json()
+            stage_states = [
+                state_data["stages"][stage["id"]]["state"]
+                for stage in jobs._PIPELINE_STAGES
+            ]
+            if all(state == "passed" for state in stage_states):
+                break
+            time.sleep(0.1)
+
+        assert all(
+            state_data["stages"][stage["id"]]["state"] == "passed"
+            for stage in jobs._PIPELINE_STAGES
+        ), state_data
+        assert (tmp_path / "SPI" / "yaml" / "SPI.ssot.yaml").exists()
+        assert (tmp_path / "SPI" / "rtl" / "SPI.sv").exists()
+        assert (tmp_path / "SPI" / "sim" / "results.xml").exists()
+        assert len(worker.requests) == len(jobs._PIPELINE_STAGES)
+        assert all(req["payload"]["ip"] == "SPI" for req in worker.requests)
+        assert all("SPI IP 하나 만들어줘" in req["payload"]["task"] for req in worker.requests)
+        assert all(req["payload"]["pipeline_run_id"] == body["pipeline_id"] for req in worker.requests)
+
+        status = client.post("/api/pipeline/orchestrator/chat", json={
+            "message": "SPI IP 상태?",
+        })
+        assert status.status_code == 200, status.text
+        assert status.json()["action"] == "status"
+        assert "completed" in status.json()["reply"]
+
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            ip_rows = db._fetchall("SELECT id FROM ip_blocks WHERE ip_name = ?", ("SPI",))
+            assert ip_rows
+            events = [
+                db._row_to_dict(row, "trace_events")
+                for row in db._fetchall(
+                    "SELECT * FROM trace_events WHERE ip_id = ? ORDER BY created_at ASC",
+                    (ip_rows[0]["id"],),
+                )
+            ]
+            assert any(
+                event["event_type"] == "chat_message"
+                and event["payload"].get("content") == "SPI IP 하나 만들어줘"
+                for event in events
+            )
+            assert sum(1 for event in events if event["event_type"] == "workflow_dispatch") == len(jobs._PIPELINE_STAGES)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
 def test_pipeline_state_poll_advances_run_to_green_without_jobs_endpoint(
     tmp_path: Path,
     monkeypatch,

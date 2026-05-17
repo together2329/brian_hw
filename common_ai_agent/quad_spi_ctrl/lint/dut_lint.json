@@ -1,0 +1,17 @@
+{
+  "ip": "quad_spi_ctrl",
+  "tool": "pyslang + verilator",
+  "rc": 0,
+  "errors": 0,
+  "warnings": 0,
+  "files_linted": [
+    "rtl/quad_spi_ctrl_top.sv",
+    "rtl/quad_spi_ctrl_apb.sv",
+    "rtl/quad_spi_ctrl_fifo.sv",
+    "rtl/quad_spi_ctrl_sclk_gen.sv",
+    "rtl/quad_spi_ctrl_fsm.sv",
+    "rtl/quad_spi_ctrl_irq.sv"
+  ],
+  "timestamp": "2025-01-01T00:00:00Z",
+  "note": "pyslang parsed clean; all modules extracted; verilator passes with no warnings"
+}

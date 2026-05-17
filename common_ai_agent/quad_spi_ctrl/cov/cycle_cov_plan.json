@@ -1,0 +1,20 @@
+[
+  {"id":"CCOV_PIPE_S0_IDLE","class":"pipeline_stage","coverage_domain":"cycle","source_ref":"cycle_model.pipeline.S0_IDLE","description":"Wait for START with tx_fifo non-empty"},
+  {"id":"CCOV_PIPE_S1_CMD","class":"pipeline_stage","coverage_domain":"cycle","source_ref":"cycle_model.pipeline.S1_CMD","description":"Shift out CMD byte from TX FIFO via IO lanes"},
+  {"id":"CCOV_PIPE_S2_ADDR","class":"pipeline_stage","coverage_domain":"cycle","source_ref":"cycle_model.pipeline.S2_ADDR","description":"Shift out ADDR_LEN address bytes"},
+  {"id":"CCOV_PIPE_S3_DATA","class":"pipeline_stage","coverage_domain":"cycle","source_ref":"cycle_model.pipeline.S3_DATA","description":"Shift out DATA_LEN data bytes / receive data"},
+  {"id":"CCOV_PIPE_S4_WAIT_CS","class":"pipeline_stage","coverage_domain":"cycle","source_ref":"cycle_model.pipeline.S4_WAIT_CS","description":"Hold CS_N idle for CS_IDLE.HOLD half-cycles"},
+  {"id":"CCOV_PIPE_S5_DONE","class":"pipeline_stage","coverage_domain":"cycle","source_ref":"cycle_model.pipeline.S5_DONE","description":"Set STATUS.DONE, update FIFOs, deassert busy"},
+  {"id":"CCOV_HS_APB","class":"handshake","coverage_domain":"cycle","source_ref":"cycle_model.handshake_rules.apb","description":"APB PSEL/PENABLE/PREADY handshake timing"},
+  {"id":"CCOV_HS_START","class":"handshake","coverage_domain":"cycle","source_ref":"cycle_model.handshake_rules.ctrl_start","description":"CTRL.START pulse auto-clear"},
+  {"id":"CCOV_HS_LAUNCH","class":"handshake","coverage_domain":"cycle","source_ref":"cycle_model.handshake_rules.launch_gate","description":"FSM leaves IDLE when START and not busy and tx_fifo_not_empty"},
+  {"id":"CCOV_HS_SCLK","class":"handshake","coverage_domain":"cycle","source_ref":"cycle_model.handshake_rules.sclk_o","description":"SCLK half-period = PRESCALE+1 PCLK cycles"},
+  {"id":"CCOV_HS_SAMPLE_EDGE","class":"handshake","coverage_domain":"cycle","source_ref":"cycle_model.handshake_rules.sample_edge","description":"CPHA selects first sample edge"},
+  {"id":"CCOV_LAT_APB_RD","class":"latency","coverage_domain":"cycle","source_ref":"cycle_model.latency.apb_read","description":"APB read latency 0-1 cycles"},
+  {"id":"CCOV_LAT_APB_WR","class":"latency","coverage_domain":"cycle","source_ref":"cycle_model.latency.apb_write","description":"APB write latency 0-1 cycles"},
+  {"id":"CCOV_LAT_SCLK","class":"latency","coverage_domain":"cycle","source_ref":"cycle_model.latency.sclk_half_period","description":"SCLK half-period = PRESCALE.DIV+1 PCLK cycles"},
+  {"id":"CCOV_ORDERING_CMD_FIRST","class":"ordering","coverage_domain":"cycle","source_ref":"cycle_model.ordering","description":"CMD byte shifts before ADDR bytes"},
+  {"id":"CCOV_ORDERING_ADDR_BEFORE_DATA","class":"ordering","coverage_domain":"cycle","source_ref":"cycle_model.ordering","description":"ADDR bytes shift before DATA bytes"},
+  {"id":"CCOV_BACKPRESSURE_TX","class":"backpressure","coverage_domain":"cycle","source_ref":"cycle_model.backpressure","description":"TX writes dropped when tx_fifo full"},
+  {"id":"CCOV_BACKPRESSURE_RX","class":"backpressure","coverage_domain":"cycle","source_ref":"cycle_model.backpressure","description":"RX byte dropped when rx_fifo full at frame completion"}
+]

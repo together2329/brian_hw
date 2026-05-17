@@ -16,6 +16,7 @@ def test_coverage_report_api_exposes_verilator_pyslang_vcd_and_fl_cl(tmp_path, m
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
