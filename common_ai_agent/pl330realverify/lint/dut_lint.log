@@ -1,3 +1,14 @@
+===== pyslang =====
+command: pyslang rtl/pl330realverify_regs.sv rtl/pl330realverify_channel_fsm.sv rtl/pl330realverify_axi_rd.sv rtl/pl330realverify_axi_wr.sv rtl/pl330realverify_datapath.sv rtl/pl330realverify_event_irq.sv rtl/pl330realverify.sv
+returncode: 0
+errors: 0 warnings: 0
+pyslang files: 7
+errors=0 warnings=0
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/pl330realverify.f --top-module pl330realverify
+returncode: 0
+errors: 0 warnings: 0
 - V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
 - Verilator: Built from 0.278 MB sources in 8 modules, into 0.081 MB in 3 C++ files needing 0.000 MB
-- Verilator: Walltime 0.050 s (elab=0.011, cvt=0.020, bld=0.000); cpu 0.030 s on 1 threads; allocated 11.141 MB
+- Verilator: Walltime 0.062 s (elab=0.017, cvt=0.023, bld=0.000); cpu 0.034 s on 1 threads; allocated 11.422 MB
