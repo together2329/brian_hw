@@ -88,10 +88,15 @@ def register_git_routes(
             return error
         rc, branch, _ = await _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
         branch = branch.strip() if rc == 0 else ""
+        rc, head, _ = await _git("rev-parse", "--short", "HEAD", cwd=cwd)
+        head = head.strip() if rc == 0 else ""
+        rc, head_full, _ = await _git("rev-parse", "HEAD", cwd=cwd)
+        head_full = head_full.strip() if rc == 0 else ""
         rc, out, err = await _git("status", "--porcelain=v1", "--branch", cwd=cwd)
         if rc != 0:
             return JSONResponse({"error": err.strip() or "git status failed",
-                                 "branch": branch, "files": []}, status_code=200)
+                                 "branch": branch, "head": head,
+                                 "head_full": head_full, "files": []}, status_code=200)
         files = []
         ahead = behind = 0
         for line in out.splitlines():
@@ -126,8 +131,9 @@ def register_git_routes(
         for f in files:
             ns = numstat.get(f["path"])
             if ns: f.update(ns)
-        return JSONResponse({"branch": branch, "ahead": ahead,
-                              "behind": behind, "files": files,
+        return JSONResponse({"branch": branch, "head": head,
+                              "head_full": head_full, "ahead": ahead,
+                              "behind": behind, "dirty": bool(files), "files": files,
                               "ip": resolved_ip, "cwd": cwd})
 
     @app.get("/api/git/log")

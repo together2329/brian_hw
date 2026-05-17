@@ -63,9 +63,19 @@ def test_git_api_targets_explicit_ip_repo(tmp_path: Path, monkeypatch):
 
     status = client.get("/api/git/status?ip=alpha").json()
     assert status["ip"] == "alpha"
+    assert status["branch"] == "ipbranch"
+    assert status["head"]
+    assert status["head_full"]
+    assert status["dirty"] is True
+    assert status["cwd"] == str(ip_repo)
     assert status["files"] == [
         {"path": "foo.txt", "status": " M", "staged": False, "unstaged": True, "added": 1, "removed": 1}
     ]
+
+    show = client.get(f"/api/git/show?ip=alpha&sha={status['head_full']}").json()
+    assert show["ip"] == "alpha"
+    assert "ip initial" in show["diff"]
+    assert "root initial" not in show["diff"]
 
     diff = client.get("/api/git/diff?ip=alpha&path=foo.txt").json()
     assert diff["ip"] == "alpha"

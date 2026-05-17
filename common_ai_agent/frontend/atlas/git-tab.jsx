@@ -1,5 +1,5 @@
 // ATLAS Git tab — per-IP commit history (graph + structured list +
-// revert). Registers window.GitTab consumed by workspace.jsx when
+// diff + explicit revert). Registers window.GitTab consumed by workspace.jsx when
 // mainTab === 'git'.
 
 (function () {
@@ -21,18 +21,33 @@
     const [ip, setIp] = useState(initialIp || '');
     const [graph, setGraph] = useState('');
     const [commits, setCommits] = useState([]);
+    const [gitStatus, setGitStatus] = useState(null);
+    const [selectedCommit, setSelectedCommit] = useState(null);
+    const [diffBody, setDiffBody] = useState('');
+    const [diffBusy, setDiffBusy] = useState(false);
+    const [diffErr, setDiffErr] = useState('');
     const [busy, setBusy] = useState(false);
     const [err, setErr] = useState(null);
     const [revertTarget, setRevertTarget] = useState(null);
     const [revertBusy, setRevertBusy] = useState(false);
     const mountedRef = useRef(true);
+    const diffReqRef = useRef(0);
     useEffect(() => () => { mountedRef.current = false; }, []);
+
+    const clearSelection = useCallback(() => {
+      diffReqRef.current += 1;
+      setSelectedCommit(null);
+      setDiffBody('');
+      setDiffErr('');
+      setDiffBusy(false);
+      setRevertTarget(null);
+    }, []);
 
     useEffect(() => {
       const next = initialIp || '';
       setIp(prev => prev === next ? prev : next);
-      setRevertTarget(null);
-    }, [initialIp]);
+      clearSelection();
+    }, [initialIp, clearSelection]);
 
     // Pull the IP roster from /api/ip/list (session-scoped in multi-user mode).
     useEffect(() => {
@@ -62,19 +77,54 @@
     const refresh = useCallback(() => {
       if (!ip) return;
       setBusy(true); setErr(null);
-      fetch(`/api/ip/${encodeURIComponent(ip)}/git/graph?limit=120`,
-            { cache: 'no-store' })
+      const graphUrl = `/api/ip/${encodeURIComponent(ip)}/git/graph?limit=120`;
+      const statusUrl = `/api/git/status?ip=${encodeURIComponent(ip)}`;
+      const graphReq = fetch(graphUrl, { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : r.json().then(j => Promise.reject(j.error || r.status)));
+      const statusReq = fetch(statusUrl, { cache: 'no-store' })
         .then(r => r.ok ? r.json() : r.json().then(j => Promise.reject(j.error || r.status)))
-        .then(d => {
+        .catch(e => ({ error: String(e) }));
+      Promise.all([graphReq, statusReq])
+        .then(([d, status]) => {
           if (!mountedRef.current) return;
+          const nextCommits = Array.isArray(d.commits) ? d.commits : [];
           setGraph(d.graph || '');
-          setCommits(Array.isArray(d.commits) ? d.commits : []);
+          setCommits(nextCommits);
+          setGitStatus(status && !status.error ? status : null);
+          if (status && status.error) setErr(status.error);
+          setSelectedCommit(prev => {
+            if (!prev) return prev;
+            return nextCommits.some(c => c.hash === prev.hash) ? prev : null;
+          });
         })
         .catch(e => mountedRef.current && setErr(String(e)))
         .finally(() => mountedRef.current && setBusy(false));
     }, [ip]);
 
     useEffect(() => { refresh(); }, [refresh]);
+
+    const loadCommitDiff = useCallback((commit) => {
+      if (!commit || !commit.hash || !ip) return;
+      const reqId = ++diffReqRef.current;
+      setSelectedCommit(commit);
+      setDiffBody('');
+      setDiffErr('');
+      setDiffBusy(true);
+      fetch(`/api/git/show?sha=${encodeURIComponent(commit.hash)}&ip=${encodeURIComponent(ip)}`,
+            { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : r.json().then(j => Promise.reject(j.error || r.status)))
+        .then(d => {
+          if (!mountedRef.current || diffReqRef.current !== reqId) return;
+          if (d && d.error) setDiffErr(d.error);
+          setDiffBody(String(d && d.diff || ''));
+        })
+        .catch(e => {
+          if (mountedRef.current && diffReqRef.current === reqId) setDiffErr(String(e));
+        })
+        .finally(() => {
+          if (mountedRef.current && diffReqRef.current === reqId) setDiffBusy(false);
+        });
+    }, [ip]);
 
     const confirmRevert = useCallback(() => {
       if (!revertTarget || !ip) return;
@@ -88,7 +138,10 @@
         .then(d => {
           setRevertBusy(false);
           setRevertTarget(null);
-          if (d && d.ok) refresh();
+          if (d && d.ok) {
+            clearSelection();
+            refresh();
+          }
           else setErr(d && (d.error || d.stderr) || 'revert failed');
         })
         .catch(e => { setRevertBusy(false); setErr(String(e)); });

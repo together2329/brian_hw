@@ -74,3 +74,6 @@
 {"ts": "2026-05-17T10:34:20.270Z", "step": 7, "lens": "interaction", "actor": "tb-gen-worker", "kind": "http_accepted", "corr": "corr_c133e317", "peer": "orchestrator", "status": 200, "run_id": "run_8278a7e7"}
 {"ts": "2026-05-17T10:42:14.309Z", "step": 8, "lens": "result", "actor": "tb-gen-worker", "kind": "run_completed", "corr": "corr_ce04de3a", "run_id": "run_b1fbc9e0", "status": "completed"}
 {"ts": "2026-05-17T10:43:22.184Z", "step": 9, "lens": "result", "actor": "tb-gen-worker", "kind": "run_completed", "corr": "corr_c133e317", "run_id": "run_8278a7e7", "status": "completed"}
+{"ts": "2026-05-17T10:54:18.661Z", "step": 10, "lens": "interaction", "actor": "ssot-gen-worker", "kind": "http_recv", "corr": "corr_6df1f827", "peer": "orchestrator", "task_preview": "Stage 1 ssot-gen for IP simple_uart_tx.\n\nworkflow: ssot-gen\nip: simple_uart_tx\np", "sync": false, "has_todos": false}
+{"ts": "2026-05-17T10:54:18.667Z", "step": 11, "lens": "interaction", "actor": "ssot-gen-worker", "kind": "http_accepted", "corr": "corr_6df1f827", "peer": "orchestrator", "status": 200, "run_id": "run_3e82ce13"}
+{"ts": "2026-05-17T10:55:42.990Z", "step": 12, "lens": "result", "actor": "ssot-gen-worker", "kind": "run_completed", "corr": "corr_6df1f827", "run_id": "run_3e82ce13", "status": "completed"}
