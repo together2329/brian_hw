@@ -1,7 +1,13 @@
+# Makefile for quad_spi_ctrl cocotb simulation
 export PATH := /Users/brian/Library/Python/3.9/bin:$(PATH)
 
-# Makefile for quad_spi_ctrl cocotb simulation
-# TOPLEVEL_LANG = verilog
+# Work around broken cocotb-config shebang
+COCOTB_MAKEFILES_DIR = /Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/share/makefiles
+export COCOTB_MAKEFILES_DIR
+
+# Force PYTHON_BIN to the Python that has cocotb
+PYTHON_BIN = /Library/Developer/CommandLineTools/usr/bin/python3
+
 TOPLEVEL = quad_spi_ctrl_top
 
 VERILOG_SOURCES = $(PWD)/../rtl/quad_spi_ctrl_top.sv \
@@ -17,5 +23,4 @@ MODULE = cocotb.test_quad_spi_ctrl
 
 export PYTHONPATH := $(PWD):$(PYTHONPATH)
 
-CUSTOM_SIM_MAKEFILE = /Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/share/makefiles/Makefile.sim
-include $(CUSTOM_SIM_MAKEFILE)
+include $(COCOTB_MAKEFILES_DIR)/Makefile.sim
