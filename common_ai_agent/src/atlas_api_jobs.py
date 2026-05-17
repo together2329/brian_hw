@@ -1545,8 +1545,6 @@ def _job_artifact_recovery(
             "model/cycle_model.py",
             "model/cl_model_check.json",
             "cov/cl_fcov_plan.json",
-            "cov/fl_fcov_plan.json",
-            "cov/fcov_plan.json",
         )
     if stage == "equivalence":
         return _any_file("verify/equivalence_goals.json")
