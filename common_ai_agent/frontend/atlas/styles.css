@@ -3248,6 +3248,14 @@ body[data-resize-cursor="col"] {
 .pipe-orchestra-worker-model {
   font-size: 10px;
   color: var(--fg-mute);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pipe-orchestra-worker-effort {
+  font-size: 9px;
+  color: #f2b632;
+  text-transform: uppercase;
 }
 .pipe-orchestra-worker-toolchain {
   font-size: 9px;

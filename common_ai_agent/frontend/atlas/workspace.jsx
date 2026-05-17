@@ -3717,7 +3717,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             <span
               className="tab-chip"
               onClick={() => setMainTab('git')}
-              title="Git: per-IP commit history graph + revert"
+              title="Git: per-IP status, commit history graph, diff + explicit revert"
               style={{
                 cursor: 'pointer',
                 padding: '2px 8px', borderRadius: 2, marginLeft: 4,

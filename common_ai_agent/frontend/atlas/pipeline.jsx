@@ -475,7 +475,12 @@ function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
                 <span className="pipe-orchestra-worker-name">{w.workflow}</span>
                 {sel && <span className="pipe-orchestra-worker-sel">TO</span>}
               </span>
-              <span className="pipe-orchestra-worker-model">{w.model || w.profile || '?'}</span>
+              <span className="pipe-orchestra-worker-model">
+                {w.model || w.profile || '?'}
+                {w.reasoning_effort && (
+                  <span className="pipe-orchestra-worker-effort">{w.reasoning_effort}</span>
+                )}
+              </span>
               {w.toolchain && (
                 <span className="pipe-orchestra-worker-toolchain">{w.toolchain}</span>
               )}

@@ -1128,23 +1128,55 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                     final_output = content[-2000:]  # Last 2k chars
                 break
 
+        # Silent-fail detection: producing workflows that emit 0 file writes
+        # are almost always misclassified as "completed" — surface them as errors.
+        _PRODUCING_WORKFLOWS = {
+            "ssot-gen", "rtl-gen", "tb-gen", "fl-gen", "cl-gen",
+            "sim", "sim_debug", "lint", "cov",
+        }
+        terminal_status = "completed"
+        silent_fail_reason = ""
+        wf_norm = (workflow or _SERVER_WORKFLOW or "").strip()
+        had_writes = len(files_modified) > 0
+        is_producing = wf_norm in _PRODUCING_WORKFLOWS
+        if is_producing and not had_writes:
+            if tracker.current == 0:
+                terminal_status = "error"
+                silent_fail_reason = (
+                    f"silent-fail: workflow={wf_norm} produced 0 tool calls "
+                    f"and 0 file writes"
+                )
+            elif tracker.current >= 3:
+                terminal_status = "error"
+                silent_fail_reason = (
+                    f"silent-fail: workflow={wf_norm} ran {tracker.current} "
+                    f"tool calls but wrote 0 files"
+                )
+
         # Build result
         entry.result = {
             "run_id": entry.run_id,
-            "status": "completed",
+            "status": terminal_status,
             "result": final_output[:10000],
             "files_modified": list(set(files_modified)),
             "files_examined": list(set(files_examined)),
             "iterations": tracker.current,
             "todos_summary": _build_todos_summary(todos or [], entry),
         }
-        entry.status = "completed"
+        if silent_fail_reason:
+            entry.result["silent_fail_reason"] = silent_fail_reason
+            entry.error = silent_fail_reason
+        entry.status = terminal_status
         entry.finished_at = time.time()
         _on_status_change()
         elapsed = round(entry.finished_at - entry.started_at, 2)
-        entry.add_log("done",
-                      f"Completed in {elapsed}s, {tracker.current} iterations, "
-                      f"{len(files_modified)} files modified.")
+        done_msg = (
+            f"Completed in {elapsed}s, {tracker.current} iterations, "
+            f"{len(files_modified)} files modified."
+        )
+        if silent_fail_reason:
+            done_msg += f" [{silent_fail_reason}]"
+        entry.add_log("done", done_msg)
 
         # Persist conversation history for next run / crash recovery
         _save_history(updated_messages, silent=False)

@@ -108,6 +108,9 @@ _WORKER_MODEL_DEFAULTS = {
     "pnr": "gpt-5.3-codex",
     "sta-post": "gpt-5.3-codex",
 }
+_WORKER_REASONING_EFFORT_DEFAULTS = {
+    "orchestrator": "high",
+}
 _WORKFLOW_TOOLCHAIN_DEFAULTS = {
     "lint": "pyslang + verilator",
     "sim": "icarus/verilator",
@@ -131,6 +134,17 @@ def _worker_model_for(workflow: str) -> str:
         os.environ.get(f"ATLAS_WORKER_MODEL_{suffix}", "")
         or os.environ.get(f"WORKER_MODEL_{suffix}", "")
         or _WORKER_MODEL_DEFAULTS.get(wf, "")
+    )
+
+
+def _worker_reasoning_effort_for(workflow: str) -> str:
+    wf = str(workflow or "").strip()
+    suffix = _workflow_env_suffix(wf)
+    return (
+        os.environ.get(f"ATLAS_WORKER_REASONING_EFFORT_{suffix}", "")
+        or os.environ.get(f"ATLAS_WORKER_REASONING_{suffix}", "")
+        or os.environ.get(f"WORKER_REASONING_EFFORT_{suffix}", "")
+        or _WORKER_REASONING_EFFORT_DEFAULTS.get(wf, "")
     )
 
 
@@ -1124,6 +1138,7 @@ def _worker_launch_command(
     session_name: str,
     project_root: Path,
     model: str = "",
+    reasoning_effort: str = "",
 ) -> str:
     """Return the operator command that starts a worker on the same artifact root.
 
@@ -1136,6 +1151,7 @@ def _worker_launch_command(
     port = worker_url.rsplit(":", 1)[-1].split("/", 1)[0]
     py_path = str(_SOURCE_ROOT / "src" / "main.py")
     model_arg = f" --model {shlex.quote(model)}" if model else ""
+    effort_arg = f" --effort {shlex.quote(reasoning_effort)}" if reasoning_effort else ""
     return (
         f"cd {shlex.quote(str(project_root))} && "
         f"ATLAS_PROJECT_ROOT={shlex.quote(str(project_root))} "
@@ -1143,7 +1159,7 @@ def _worker_launch_command(
         f"python3 {shlex.quote(py_path)} --serve --port {shlex.quote(port)} "
         f"--workflow {shlex.quote(workflow)} "
         f"--worker-name {shlex.quote(workflow)} --session {shlex.quote(session_name)}"
-        f"{model_arg}"
+        f"{model_arg}{effort_arg}"
     )
 
 
@@ -1257,6 +1273,7 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
             "workflow": job["workflow"],
             "session":  job.get("session", ""),
             "model":    job.get("model", ""),
+            "reasoning_effort": job.get("reasoning_effort", ""),
             "toolchain": job.get("toolchain", ""),
             "run_mode": job.get("run_mode", ""),
             "exec_mode": job.get("exec_mode", ""),
@@ -1786,6 +1803,7 @@ def register_jobs_routes(
         run_mode    = _normalize_run_mode(run_mode) or _current_run_mode()
         exec_mode   = _normalize_exec_mode(exec_mode) or _current_exec_mode()
         model       = str(model or "").strip() or _worker_model_for(workflow)
+        reasoning_effort = _worker_reasoning_effort_for(workflow)
         toolchain   = _workflow_toolchain_for(workflow)
         session_name = normalize_session_name(session_name or (f"{ip}/{workflow}" if ip else workflow))
         if not session_name:
@@ -1813,6 +1831,8 @@ def register_jobs_routes(
             f"- source_root: {_SOURCE_ROOT}\n"
             f"- run_mode: {run_mode}\n"
             f"- exec_mode: {exec_mode}\n"
+            f"- model: {model or '(default)'}\n"
+            f"- reasoning_effort: {reasoning_effort or '(default)'}\n"
             f"- scope_path: {rel_scope}\n"
             f"- write_boundary: only modify files under {rel_scope}/, "
             f"except workflow-owned status/session files under .session/{session_name}/. "
@@ -1828,13 +1848,14 @@ def register_jobs_routes(
             "template":       template,
             "ip":             ip,
             "model":          model,
+            "reasoning_effort": reasoning_effort,
             "toolchain":      toolchain,
             "session":        session_name,
             "session_dir":    session_dir.relative_to(pr).as_posix(),
             "scope_path":     rel_scope,
             "project_root":    str(pr),
             "source_root":     str(_SOURCE_ROOT),
-            "worker_command": _worker_launch_command(worker_url, workflow, session_name, pr, model),
+            "worker_command": _worker_launch_command(worker_url, workflow, session_name, pr, model, reasoning_effort),
             "prompt":         boundary + (prompt or _default_workflow_prompt(workflow, ip, stage_id)),
             "started_at":     time.time() if auto_start else 0.0,
             "status":         "pending" if auto_start else "queued",
@@ -1940,6 +1961,7 @@ def register_jobs_routes(
             "scope_path":     job["scope_path"],
             "stage_id":       job["stage_id"],
             "model":          job["model"],
+            "reasoning_effort": job.get("reasoning_effort", ""),
             "toolchain":      job.get("toolchain", ""),
             "run_mode":       job["run_mode"],
             "exec_mode":      job["exec_mode"],
@@ -3085,7 +3107,9 @@ def register_jobs_routes(
                     "status": health.get("status", "unreachable"),
                     "bound_workflow": health.get("workflow"),
                     "expected_model": _worker_model_for(wf),
+                    "expected_reasoning_effort": _worker_reasoning_effort_for(wf),
                     "model": health.get("model") or _worker_model_for(wf),
+                    "reasoning_effort": health.get("reasoning_effort") or _worker_reasoning_effort_for(wf),
                     "toolchain": _workflow_toolchain_for(wf),
                     "profile": health.get("profile"),
                     "uptime_s": health.get("uptime_s"),
@@ -3133,6 +3157,9 @@ def register_jobs_routes(
                 "model": os.environ.get("ATLAS_ORCHESTRATOR_MODEL", "")
                          or _worker_model_for("orchestrator")
                          or None,
+                "reasoning_effort": os.environ.get("ATLAS_ORCHESTRATOR_REASONING_EFFORT", "")
+                                    or _worker_reasoning_effort_for("orchestrator")
+                                    or None,
             },
             "workers": workers,
             "count": len(workers),
