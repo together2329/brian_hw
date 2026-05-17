@@ -1246,8 +1246,10 @@ def _default_todo_template_for_job(workflow: str, stage_id: str, ip: str) -> str
         return "atlas-pipeline-ssot"
     if workflow == "ssot-gen":
         return "new-ip"
-    if stage_id in {"fl-model", "cl-model"}:
+    if stage_id == "fl-model":
         return "ssot-fl-model"
+    if stage_id == "cl-model":
+        return ""
     if stage_id == "equivalence":
         return "ssot-equiv-goals"
     if workflow == "rtl-gen" or stage_id == "rtl":
