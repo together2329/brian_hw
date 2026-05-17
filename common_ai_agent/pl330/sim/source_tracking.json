@@ -1,0 +1,10 @@
+{
+  "rtl": [
+    "rtl/pl330.sv"
+  ],
+  "tb": [
+    "tb/tb_pl330.sv"
+  ],
+  "top": "pl330",
+  "vcd": "sim/pl330.vcd"
+}

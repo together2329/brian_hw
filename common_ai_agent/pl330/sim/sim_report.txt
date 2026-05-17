@@ -1,0 +1,3 @@
+VCD info: dumpfile sim/pl330.vcd opened for output.
+PL330_ATLAS_SIM_PASS copied 4 words and raised irq
+tb/tb_pl330.sv:116: $finish called at 315000 (1ps)

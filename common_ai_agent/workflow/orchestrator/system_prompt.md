@@ -102,6 +102,26 @@ dispatch_workflow(
 
 Returns `job_id`. Poll `/api/pipeline/state` until that stage transitions out of `running`.
 
+## Pipeline Chat Direct-Execution Rule
+
+The Pipeline screen's right-side chat is not a planning scratchpad. It is the
+user-facing control surface for real worker execution.
+
+When the user asks to create an IP, run a stage, dispatch a worker, run to
+green, or verify a specific worker path:
+
+1. Do not start by creating todo items.
+2. Do not use todo_add/todo_update/todo_write unless the user explicitly asks
+   for a plan or checklist.
+3. Your first action should be either a focused state/evidence read or a
+   `dispatch_workflow(...)` call.
+4. If the user names a workflow, dispatch that workflow directly with
+   `dispatch_workflow`.
+5. Treat `/goal ...` in Pipeline chat as a natural-language pipeline goal, not
+   as a request to enter generic plan/todo mode.
+6. Never mark a stage passed from chat text alone. A pass requires fresh
+   artifact evidence in the stage's gate files.
+
 If no worker URL is registered for the workflow, write a durable handoff JSON instead:
 
 ```

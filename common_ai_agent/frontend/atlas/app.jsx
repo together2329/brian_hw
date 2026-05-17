@@ -228,6 +228,27 @@ const App = () => {
     return { sessionId: parts[0] || 'default', ipId: '', workflow: '' };
   }, [TOP_WORKFLOWS, isWorkflowSegment, normalizeSession]);
 
+  const initialUrlNamespaceRef = React.useRef((() => {
+    try {
+      const url = new URL(window.location.href);
+      const rawSession = normalizeSession(url.searchParams.get('session') || '');
+      const parsed = splitSessionNamespace(rawSession);
+      const owner = normalizeSession(
+        parsed.sessionId || url.searchParams.get('session_id') || window.ATLAS_USER_SESSION_ID || ''
+      ) || 'default';
+      const ip = normalizeSession(
+        parsed.ipId || url.searchParams.get('ip') || url.searchParams.get('ip_id') || ''
+      );
+      const wf = normalizeSession(
+        parsed.workflow || url.searchParams.get('workflow') || url.searchParams.get('wf') || ''
+      );
+      if (!rawSession && !ip && !wf) return '';
+      return `${owner}/${ip || WORKFLOW_DEFAULT}/${wf || WORKFLOW_DEFAULT}`;
+    } catch (_) {
+      return '';
+    }
+  })());
+
   const initialSplit = splitSessionNamespace(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
   const [activeSessionId, setActiveSessionId] = React.useState(
     normalizeSession(window.ATLAS_USER_SESSION_ID || initialSplit.sessionId) || 'default'
@@ -367,14 +388,20 @@ const App = () => {
         window.ATLAS_USER_SESSION_ID = user.username;
         try {
           const username = normalizeSession(user.username) || user.username;
+          const url = new URL(window.location.href);
+          const urlSession = normalizeSession(url.searchParams.get('session') || '');
+          const urlParts = splitSessionNamespace(urlSession);
+          const requestedIp = normalizeSession(
+            urlParts.ipId || url.searchParams.get('ip') || url.searchParams.get('ip_id') || ''
+          );
+          const requestedWf = normalizeSession(
+            urlParts.workflow || url.searchParams.get('workflow') || url.searchParams.get('wf') || ''
+          );
+          const hasUrlContext = !!(urlSession || requestedIp || requestedWf);
           const currentNs = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
           const currentOwner = (currentNs.split('/').filter(Boolean)[0] || '');
           localStorage.setItem('atlasUserSessionId', username);
-          if (!currentNs || currentNs === 'default' || (currentOwner && currentOwner !== username)) {
-            const url = new URL(window.location.href);
-            const requestedIp = normalizeSession(url.searchParams.get('ip') || url.searchParams.get('ip_id') || '');
-            const requestedWf = normalizeSession(url.searchParams.get('workflow') || url.searchParams.get('wf') || '');
-            const nextIp = requestedIp || WORKFLOW_DEFAULT;
+          if (hasUrlContext || !currentNs || currentNs === 'default' || (currentOwner && currentOwner !== username)) {
             const savedScreen = (() => {
               try { return localStorage.getItem('atlasScreen') || ''; }
               catch (_) { return ''; }
@@ -382,6 +409,8 @@ const App = () => {
             const screenWf = savedScreen === 'pipeline'
               ? 'orchestrator'
               : savedScreen === 'architect' ? 'architect' : '';
+            const currentParts = splitSessionNamespace(currentNs);
+            const nextIp = requestedIp || currentParts.ipId || WORKFLOW_DEFAULT;
             const nextWf = requestedWf || screenWf || WORKFLOW_DEFAULT;
             const nextNs = `${username}/${nextIp}/${nextWf}`;
             window.ACTIVE_SESSION = nextNs;
@@ -807,12 +836,24 @@ const App = () => {
           activeSessionId ||
           ''
         );
+        const initialUrlNamespace = normalizeSession(initialUrlNamespaceRef.current || '');
+        const currentNamespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
+        const parsedUrl = splitSessionNamespace(initialUrlNamespace);
+        const parsedCtx = splitSessionNamespace(ctxSession);
+        const urlStillOwnsBoot = !!(
+          initialUrlNamespace &&
+          ctxSession !== initialUrlNamespace &&
+          (currentNamespace === initialUrlNamespace || activeNamespace === initialUrlNamespace) &&
+          (!parsedUrl.sessionId || !parsedCtx.sessionId || parsedUrl.sessionId === parsedCtx.sessionId)
+        );
         // During login and fast screen changes, /healthz can briefly report
         // the process bootstrap namespace (often default/<ip>/<wf>). In
         // DB-backed multi-user mode the authenticated user owns the browser
         // namespace, so do not let that stale backend context rewrite the UI
         // back to default and poison the websocket session.
-        if (authOwner && ctxOwner && ctxOwner !== authOwner && ctxOwner !== 'local-admin') {
+        if (urlStillOwnsBoot) {
+          namespace = initialUrlNamespace;
+        } else if (authOwner && ctxOwner && ctxOwner !== authOwner && ctxOwner !== 'local-admin') {
           namespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
         } else {
           namespace = ctxSession;
@@ -836,6 +877,9 @@ const App = () => {
       if (canonicalNamespace && canonicalNamespace !== window.ACTIVE_SESSION) {
         window.ACTIVE_SESSION = canonicalNamespace;
         try { localStorage.setItem('atlasActiveSession', canonicalNamespace); } catch (_) {}
+      }
+      if (initialUrlNamespaceRef.current && canonicalNamespace === normalizeSession(initialUrlNamespaceRef.current)) {
+        initialUrlNamespaceRef.current = '';
       }
       setActiveNamespace(canonicalNamespace);
       setActiveSessionId(owner);

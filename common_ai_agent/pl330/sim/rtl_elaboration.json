@@ -1,0 +1,7 @@
+{
+  "instances": [
+    "dut"
+  ],
+  "source": "rtl/pl330.sv",
+  "top": "pl330"
+}

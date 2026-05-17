@@ -1,0 +1,8 @@
+{
+  "signals": [
+    "dut.busy",
+    "dut.done",
+    "dut.irq"
+  ],
+  "status": "pass"
+}

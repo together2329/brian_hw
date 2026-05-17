@@ -1,0 +1,5 @@
+{
+  "dut": "pl330",
+  "status": "generated",
+  "top": "tb_pl330"
+}

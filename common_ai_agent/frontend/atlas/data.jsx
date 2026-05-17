@@ -108,7 +108,31 @@
     window.SCOPE_PATH = '';
   }
   try {
-    window.ACTIVE_SESSION = normalizeSessionName(localStorage.getItem('atlasActiveSession')) || 'default';
+    const params = new URLSearchParams(window.location.search || '');
+    const urlSession = normalizeSessionName(params.get('session') || '');
+    const urlParts = urlSession.split('/').filter(Boolean);
+    const urlOwner = normalizeSessionName(
+      (urlParts.length >= 3 ? urlParts[0] : '') || params.get('session_id') || ''
+    );
+    const urlIp = normalizeSessionName(
+      (urlParts.length >= 3 ? urlParts[urlParts.length - 2] : '') ||
+      params.get('ip') ||
+      params.get('ip_id') ||
+      ''
+    );
+    const urlWorkflow = normalizeSessionName(
+      (urlParts.length >= 3 ? urlParts[urlParts.length - 1] : '') ||
+      params.get('workflow') ||
+      params.get('wf') ||
+      ''
+    );
+    const urlNamespace = urlSession || (
+      (urlIp || urlWorkflow)
+        ? `${urlOwner || 'default'}/${urlIp || 'default'}/${urlWorkflow || 'default'}`
+        : ''
+    );
+    window.ACTIVE_SESSION = urlNamespace || normalizeSessionName(localStorage.getItem('atlasActiveSession')) || 'default';
+    if (urlNamespace) localStorage.setItem('atlasActiveSession', urlNamespace);
   } catch (_) {
     window.ACTIVE_SESSION = 'default';
   }

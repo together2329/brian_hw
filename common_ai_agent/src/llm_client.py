@@ -668,6 +668,9 @@ def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
     # Some coding endpoints (notably Z.AI GLM / Kimi coding) are more stable
     # with short-lived connections for large generation payloads.
     force_close = os.getenv("LLM_FORCE_CONNECTION_CLOSE", "0") == "1"
+    if not force_close and os.getenv("LLM_FORCE_CONNECTION_CLOSE_FOR_CODEX", "1") == "1":
+        if "chatgpt.com" in host_l:
+            force_close = True
     if not force_close and os.getenv("LLM_FORCE_CONNECTION_CLOSE_FOR_ZAI_KIMI", "1") == "1":
         if ("api.z.ai" in host_l) or ("api.kimi.com" in host_l):
             force_close = True

@@ -271,6 +271,11 @@ def _refresh_config_after_persist() -> None:
     """Refresh config mtime cache so the next /healthz does not undo runtime settings."""
     for mod_name in ("src.config", "config"):
         mod = sys.modules.get(mod_name)
+        if mod is None:
+            try:
+                mod = __import__(mod_name, fromlist=["*"])
+            except Exception:
+                mod = None
         if mod is not None:
             try:
                 mod.reload_env()
@@ -292,8 +297,26 @@ def _set_runtime_reasoning_effort(effort: str) -> None:
     os.environ["REASONING_MODE"] = effort
     os.environ["REASONING_EFFORT"] = effort
     os.environ["GLM_THINKING_TYPE"] = glm_thinking
+    config_modules = []
+    seen_module_ids = set()
     for mod_name in ("src.config", "config"):
         mod = sys.modules.get(mod_name)
+        if mod is not None and id(mod) not in seen_module_ids:
+            config_modules.append(mod)
+            seen_module_ids.add(id(mod))
+    if not config_modules:
+        try:
+            mod = __import__("src.config", fromlist=["*"])
+            config_modules.append(mod)
+            sys.modules.setdefault("config", mod)
+        except Exception:
+            try:
+                mod = __import__("config", fromlist=["*"])
+                config_modules.append(mod)
+                sys.modules.setdefault("src.config", mod)
+            except Exception:
+                pass
+    for mod in config_modules:
         if mod is not None:
             setattr(mod, "REASONING_MODE", effort)
             setattr(mod, "REASONING_EFFORT", effort)
@@ -341,28 +364,64 @@ def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
 
 
 def _set_runtime_model(model: str, selected_key: str = "") -> None:
-    activated_cli = False
+    activated_runtime = False
     os.environ["LLM_RUNTIME_MODEL_OVERRIDE"] = "1"
-    os.environ["LLM_MODEL_NAME"] = model
-    os.environ["MODEL_NAME"] = model
     os.environ["LLM_ACTIVE_MODEL_NAME"] = model
     os.environ["LLM_ACTIVE_BASE_NAME"] = model
     os.environ["LLM_ACTIVE_BASE_MODEL"] = model
     if selected_key:
         os.environ["LLM_SELECTED_MODEL_KEY"] = _canonical_model_option_key(selected_key)
+    config_modules = []
+    seen_module_ids = set()
     for mod_name in ("src.config", "config"):
         mod = sys.modules.get(mod_name)
-        if mod is not None:
+        if mod is not None and id(mod) not in seen_module_ids:
+            config_modules.append(mod)
+            seen_module_ids.add(id(mod))
+    if not config_modules:
+        try:
+            mod = __import__("src.config", fromlist=["*"])
+            config_modules.append(mod)
+            sys.modules.setdefault("config", mod)
+        except Exception:
             try:
-                if callable(getattr(mod, "activate_cli_backend", None)) and mod.activate_cli_backend(model):
-                    activated_cli = True
-                    continue
-                if callable(getattr(mod, "deactivate_cli_backends", None)):
-                    mod.deactivate_cli_backends()
+                mod = __import__("config", fromlist=["*"])
+                config_modules.append(mod)
+                sys.modules.setdefault("src.config", mod)
             except Exception:
                 pass
+    for mod in config_modules:
+        if mod is None:
+            continue
+        applied = False
+        try:
+            if callable(getattr(mod, "set_active_profile", None)) and mod.set_active_profile(model):
+                applied = True
+            elif callable(getattr(mod, "_profile_name_for_model", None)):
+                profile_name = mod._profile_name_for_model(model)
+                if profile_name and callable(getattr(mod, "set_active_profile", None)):
+                    applied = bool(mod.set_active_profile(profile_name))
+            if not applied and callable(getattr(mod, "activate_cli_backend", None)) and mod.activate_cli_backend(model):
+                applied = True
+            if (
+                not applied
+                and callable(getattr(mod, "is_opencode_model", None))
+                and mod.is_opencode_model(model)
+                and callable(getattr(mod, "activate_opencode_oauth", None))
+            ):
+                applied = bool(mod.activate_opencode_oauth(model.split("/", 1)[-1]))
+            if not applied and callable(getattr(mod, "deactivate_cli_backends", None)):
+                mod.deactivate_cli_backends()
+        except Exception:
+            pass
+        if applied:
+            activated_runtime = True
+            active_model = str(getattr(mod, "MODEL_NAME", "") or model)
+            os.environ["LLM_MODEL_NAME"] = active_model
+            os.environ["MODEL_NAME"] = active_model
+        else:
             setattr(mod, "MODEL_NAME", model)
-    if activated_cli:
+    if not activated_runtime:
         os.environ["LLM_MODEL_NAME"] = model
         os.environ["MODEL_NAME"] = model
 
@@ -13234,6 +13293,12 @@ def main() -> None:
                     help="ip segment (default: 'default')")
     ap.add_argument("-w", "--workflow", dest="workflow", default="default",
                     help="workflow segment (default: 'default')")
+    ap.add_argument("--model", default="",
+                    help="Runtime model/profile for the Atlas orchestrator "
+                         "(e.g. gpt-5.5, deepseek, glm).")
+    ap.add_argument("--effort", default="",
+                    help="Runtime reasoning effort for the Atlas orchestrator "
+                         "(none, low, medium, high, xhigh).")
     args = ap.parse_args()
     # Re-anchor PROJECT_ROOT before any request handler runs. Module-level
     # PROJECT_ROOT was computed from the import-time cwd; chdir + rebind
@@ -13252,6 +13317,23 @@ def main() -> None:
     _sync_env_to_context()
     os.environ.setdefault("ATLAS_DEFAULT_SESSION_ID", args.session_id)
     os.environ.setdefault("ATLAS_DEFAULT_WORKFLOW", args.workflow)
+    orchestrator_model = (
+        (args.model or "").strip()
+        or os.environ.get("ATLAS_ORCHESTRATOR_MODEL", "").strip()
+        or os.environ.get("ATLAS_MODEL", "").strip()
+    )
+    if orchestrator_model:
+        _set_runtime_model(orchestrator_model)
+    orchestrator_effort = (
+        (args.effort or "").strip()
+        or os.environ.get("ATLAS_ORCHESTRATOR_REASONING_EFFORT", "").strip()
+        or os.environ.get("ATLAS_REASONING_EFFORT", "").strip()
+    )
+    if orchestrator_effort:
+        try:
+            _set_runtime_reasoning_effort(_normalize_reasoning_effort(orchestrator_effort))
+        except ValueError:
+            print(f"[atlas_ui] ignoring unknown reasoning effort: {orchestrator_effort}", file=sys.stderr)
     run_atlas_ui(port=args.port, host=args.host)
 
 

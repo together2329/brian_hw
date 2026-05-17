@@ -132,6 +132,7 @@ def _worker_model_for(workflow: str) -> str:
     suffix = _workflow_env_suffix(wf)
     return (
         os.environ.get(f"ATLAS_WORKER_MODEL_{suffix}", "")
+        or os.environ.get(f"ATLAS_{suffix}_MODEL", "")
         or os.environ.get(f"WORKER_MODEL_{suffix}", "")
         or _WORKER_MODEL_DEFAULTS.get(wf, "")
     )
@@ -143,6 +144,8 @@ def _worker_reasoning_effort_for(workflow: str) -> str:
     return (
         os.environ.get(f"ATLAS_WORKER_REASONING_EFFORT_{suffix}", "")
         or os.environ.get(f"ATLAS_WORKER_REASONING_{suffix}", "")
+        or os.environ.get(f"ATLAS_{suffix}_REASONING_EFFORT", "")
+        or os.environ.get(f"ATLAS_{suffix}_EFFORT", "")
         or os.environ.get(f"WORKER_REASONING_EFFORT_{suffix}", "")
         or _WORKER_REASONING_EFFORT_DEFAULTS.get(wf, "")
     )
@@ -1125,10 +1128,15 @@ def _ensure_stage_artifact_version_for_job(
 def _resolve_worker_url(workflow: str) -> str:
     """Same precedence as core.delegate_runner.HTTPWorkerDelegate."""
     if workflow:
-        key = "WORKER_URL_" + _workflow_env_suffix(workflow)
-        url = os.environ.get(key)
-        if url:
-            return url
+        suffix = _workflow_env_suffix(workflow)
+        for key in (
+            f"ATLAS_WORKER_URL_{suffix}",
+            f"ATLAS_{suffix}_WORKER_URL",
+            f"WORKER_URL_{suffix}",
+        ):
+            url = os.environ.get(key)
+            if url:
+                return url
     return os.environ.get("WORKER_URL_DEFAULT", "http://localhost:8001")
 
 
@@ -1165,6 +1173,21 @@ def _worker_launch_command(
 
 def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
     stage_prompt_for = {
+        "ssot": (
+            "[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]\n"
+            f"create or refresh {ip}/yaml/{ip}.ssot.yaml as the canonical SSOT for IP `{ip}`. "
+            "Use the orchestrator chat goal as the source requirement. This is an ATLAS pipeline "
+            "worker run, not an exploratory interview: do not read, grep, or list repository files "
+            "before writing the SSOT unless the write path is impossible. If no architect handoff "
+            "or imported requirement exists yet, bootstrap a complete engineering draft from the "
+            "visible goal instead of searching indefinitely. The first successful content-changing "
+            f"tool call should write {ip}/yaml/{ip}.ssot.yaml with concrete draft sections, including "
+            "machine-readable function_model output_rules/state_updates and sub_modules ownership refs. "
+            f"Then run python3 workflow/ssot-gen/scripts/repair_ssot_schema.py {ip} --mode engineering "
+            f"and bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip} --mode engineering. "
+            "Finish with an [SSOT HANDOFF] summarizing assumptions, remaining TBDs, validation evidence, "
+            "and downstream RTL/TB obligations."
+        ),
         "fl-model": (
             f"run /ssot-fl-model {ip}; generate the SSOT-derived FunctionalModel, "
             "decomposition manifest, FL self-check, and function coverage plan"
@@ -1219,6 +1242,10 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
 def _default_todo_template_for_job(workflow: str, stage_id: str, ip: str) -> str:
     if not ip:
         return ""
+    if stage_id == "ssot":
+        return "atlas-pipeline-ssot"
+    if workflow == "ssot-gen":
+        return "new-ip"
     if stage_id in {"fl-model", "cl-model"}:
         return "ssot-fl-model"
     if stage_id == "equivalence":
@@ -3101,15 +3128,19 @@ def register_jobs_routes(
                 health = await t
                 running = health.get("running") if isinstance(health, dict) else []
                 running_list = running if isinstance(running, list) else []
+                expected_model = _worker_model_for(wf)
+                expected_effort = _worker_reasoning_effort_for(wf)
                 out.append({
                     "workflow": wf,
                     "url": url,
                     "status": health.get("status", "unreachable"),
                     "bound_workflow": health.get("workflow"),
-                    "expected_model": _worker_model_for(wf),
-                    "expected_reasoning_effort": _worker_reasoning_effort_for(wf),
-                    "model": health.get("model") or _worker_model_for(wf),
-                    "reasoning_effort": health.get("reasoning_effort") or _worker_reasoning_effort_for(wf),
+                    "expected_model": expected_model,
+                    "expected_reasoning_effort": expected_effort,
+                    "model": expected_model or health.get("model"),
+                    "reasoning_effort": expected_effort,
+                    "worker_health_model": health.get("model"),
+                    "worker_health_reasoning_effort": health.get("reasoning_effort"),
                     "toolchain": _workflow_toolchain_for(wf),
                     "profile": health.get("profile"),
                     "uptime_s": health.get("uptime_s"),

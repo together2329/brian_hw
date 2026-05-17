@@ -1,0 +1,3 @@
+{"ts": "2026-05-17T11:55:25.625Z", "step": 1, "lens": "interaction", "actor": "ssot-gen-worker", "kind": "http_recv", "corr": "corr_d2993015", "peer": "orchestrator", "requested_workflow": "ssot-gen", "task_preview": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: pl330real\n- workflow: ssot-gen\n- stage_", "sync": false, "has_todos": false}
+{"ts": "2026-05-17T11:55:25.632Z", "step": 2, "lens": "interaction", "actor": "ssot-gen-worker", "kind": "http_accepted", "corr": "corr_d2993015", "peer": "orchestrator", "status": 200, "run_id": "run_4ccadedd"}
+{"ts": "2026-05-17T12:00:40.976Z", "step": 3, "lens": "result", "actor": "ssot-gen-worker", "kind": "run_completed", "corr": "corr_d2993015", "run_id": "run_4ccadedd", "status": "error"}

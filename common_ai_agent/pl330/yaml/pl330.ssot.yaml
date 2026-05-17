@@ -1,0 +1,49 @@
+{
+  "acceptance": [
+    "verilator lint has zero errors",
+    "Icarus simulation copies four words",
+    "VCD exists for waveform/source tracking"
+  ],
+  "ip": "pl330",
+  "registers": [
+    {
+      "addr": "0x00",
+      "name": "SRC_ADDR"
+    },
+    {
+      "addr": "0x04",
+      "name": "DST_ADDR"
+    },
+    {
+      "addr": "0x08",
+      "name": "LEN"
+    },
+    {
+      "addr": "0x0c",
+      "bits": {
+        "0": "start",
+        "1": "irq_enable"
+      },
+      "name": "CTRL"
+    },
+    {
+      "addr": "0x10",
+      "bits": {
+        "0": "busy",
+        "1": "done"
+      },
+      "name": "STATUS"
+    },
+    {
+      "addr": "0x14",
+      "bits": {
+        "0": "irq/clear_done"
+      },
+      "name": "INT_STATUS"
+    }
+  ],
+  "scope": "ATLAS subset: APB-style control, memory copy, done/irq status, debug memory tap",
+  "source_reference": "ARM PrimeCell DMA Controller PL330 behavior family; no proprietary RTL imported",
+  "title": "ARM PL330-style DMA controller clean-room subset",
+  "top_module": "pl330"
+}

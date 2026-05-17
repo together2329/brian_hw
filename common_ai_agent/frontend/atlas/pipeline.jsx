@@ -1927,10 +1927,13 @@ function pipelineIpFromActiveNamespace() {
 
 function pipelineInitialIp() {
   const params = new URLSearchParams(window.location.search || '');
+  const urlSessionParts = String(params.get('session') || '').split('/').filter(Boolean);
+  const urlSessionIp = urlSessionParts.length >= 3 ? (urlSessionParts[urlSessionParts.length - 2] || '') : '';
   return (
-    (typeof window.ACTIVE_IP === 'string' && window.ACTIVE_IP.trim()) ||
-    pipelineIpFromActiveNamespace() ||
     (params.get('ip') || params.get('ip_id') || '').trim() ||
+    urlSessionIp.trim() ||
+    pipelineIpFromActiveNamespace() ||
+    (typeof window.ACTIVE_IP === 'string' && window.ACTIVE_IP.trim()) ||
     ((window.CONTEXT && (window.CONTEXT.active_ip || window.CONTEXT.activeIp)) || '').trim() ||
     (() => { try { return localStorage.getItem('atlasActiveIp') || ''; } catch (_) { return ''; } })() ||
     'arm_m0_min'

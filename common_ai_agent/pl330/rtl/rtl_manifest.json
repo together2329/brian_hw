@@ -1,0 +1,7 @@
+{
+  "files": [
+    "rtl/pl330.sv"
+  ],
+  "status": "generated",
+  "top": "pl330"
+}

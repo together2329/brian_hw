@@ -1,0 +1,11 @@
+{
+  "errors": 0,
+  "model": "deepseek",
+  "reasoning_effort": "",
+  "status": "pass",
+  "tools": [
+    "pyslang",
+    "verilator"
+  ],
+  "warnings": 0
+}

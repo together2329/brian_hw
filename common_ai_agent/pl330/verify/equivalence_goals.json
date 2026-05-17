@@ -1,0 +1,7 @@
+{
+  "goals": [
+    "copy_result",
+    "latency_bound"
+  ],
+  "status": "pass"
+}

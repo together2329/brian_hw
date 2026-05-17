@@ -509,7 +509,8 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                     todos: Optional[List[Any]] = None, context: str = "",
                     workflow: str = "", session_name: str = "",
                     ip: str = "", rtl_version_id: str = "",
-                    project_root: str = "", artifact_versions: Any = None) -> None:
+                    project_root: str = "", artifact_versions: Any = None,
+                    reasoning_effort: str = "") -> None:
     """
     Execute a full ReAct loop using run_react_agent_impl from core/react_loop.py.
 
@@ -539,6 +540,26 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             import core.compressor as _comp
 
             ws = load_workspace(workflow, project_root=Path(_project_root))
+            if (
+                workflow == "ssot-gen"
+                and "[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]" in task
+            ):
+                compact_prompt = (
+                    Path(_project_root)
+                    / "workflow"
+                    / "ssot-gen"
+                    / "system_prompt_pipeline.md"
+                )
+                if compact_prompt.exists():
+                    ws.system_prompt_text = compact_prompt.read_text(encoding="utf-8").strip()
+                    ws.system_prompt_mode = "replace"
+                    ws.force_skills = []
+                    ws.disable_skills = []
+                    entry.add_log(
+                        "system",
+                        "ATLAS compact SSOT pipeline prompt active",
+                        role="system",
+                    )
 
             # ── 1. Hook messages ──
             _b._WORKSPACE_HOOK_MESSAGES = {"_workspace_dir": str(ws.workspace_dir)}
@@ -692,6 +713,27 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
 
         # ── Model override ──
         effective_model = model or config.MODEL_NAME
+        effective_effort = str(reasoning_effort or "").strip().lower()
+        effort_aliases = {
+            "l": "low",
+            "m": "medium",
+            "med": "medium",
+            "mid": "medium",
+            "h": "high",
+            "hi": "high",
+            "x": "xhigh",
+            "xh": "xhigh",
+            "xhi": "xhigh",
+            "max": "xhigh",
+        }
+        effective_effort = effort_aliases.get(effective_effort, effective_effort)
+        if effective_effort not in {"", "none", "low", "medium", "high", "xhigh"}:
+            entry.add_log(
+                "system",
+                f"WARNING: ignoring unsupported reasoning_effort={reasoning_effort!r}",
+                role="system",
+            )
+            effective_effort = ""
 
         # ── Per-run session override ──
         # Server startup still initializes a default worker session, but ATLAS
@@ -776,6 +818,12 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             "MODEL_NAME": effective_model,
             "LLM_MODEL_NAME": effective_model,
         }
+        if effective_effort:
+            run_overrides.update({
+                "REASONING_MODE": effective_effort,
+                "REASONING_EFFORT": effective_effort,
+                "GLM_THINKING_TYPE": "disabled" if effective_effort == "none" else "enabled",
+            })
         run_overrides.update(session_overrides)
         run_cfg = _RunCfg(_snapshot_config_module(), run_overrides)
 
@@ -844,7 +892,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
 
         # ── LLM call wrapper (inject model override) ──
         def _llm_call_fn(messages, stop=None, **kwargs):
-            """Streaming LLM call with model override.
+            """Streaming LLM call with model/profile override.
 
             Yields ('reasoning', text) tuples and content strings.
             Forwards suppress_spinner, caller_tag, etc. to chat_completion_stream.
@@ -853,11 +901,32 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                 call_kwargs = dict(kwargs)
                 if native_tools:
                     call_kwargs["tools"] = native_tools
-                for chunk in chat_completion_stream(
-                    messages, stop=stop, model=effective_model,
-                    caller_tag="worker", **call_kwargs,
-                ):
-                    yield chunk
+                runtime_extra: Dict[str, Any] = {}
+                if effective_effort:
+                    runtime_extra.update({
+                        "REASONING_MODE": effective_effort,
+                        "REASONING_EFFORT": effective_effort,
+                        "GLM_THINKING_TYPE": "disabled" if effective_effort == "none" else "enabled",
+                    })
+                # The orchestrator sends model identifiers such as "deepseek",
+                # "kimi", and "gpt-5.3-codex".  Those are runtime profiles or
+                # OAuth-backed model names, not necessarily valid model IDs for
+                # the worker process' current provider.  Apply the same
+                # thread-local runtime switch used by in-process subagents so
+                # BASE_URL/API_KEY/MODEL_NAME move together per request.
+                with config.scoped_model_runtime(effective_model):
+                    with config.scoped_runtime_extra(runtime_extra):
+                        active_model = getattr(config, "MODEL_NAME", effective_model)
+                        entry.add_log(
+                            "system",
+                            f"LLM runtime active: model={active_model}"
+                            + (f" effort={effective_effort}" if effective_effort else ""),
+                            role="system",
+                        )
+                        for chunk in chat_completion_stream(
+                            messages, stop=stop, caller_tag="worker", **call_kwargs,
+                        ):
+                            yield chunk
             except Exception as e:
                 entry.add_log("error", f"LLM call failed: {e}")
                 raise
@@ -1253,6 +1322,7 @@ def create_app():
         class RunRequest(BaseModel):
             task: str
             model: str = ""
+            reasoning_effort: str = ""
             todos: Optional[List[Any]] = None
             template: str = ""    # todo template name — loaded from workflow or CWD
             workflow: str = ""    # workflow name (e.g. "rtl-gen") — activates workspace
@@ -1480,6 +1550,7 @@ def create_app():
         """
         task = str(request.get("task", ""))
         model = str(request.get("model", ""))
+        reasoning_effort = str(request.get("reasoning_effort", "")).strip()
         todos = request.get("todos")
         template = str(request.get("template", ""))
         workflow = str(request.get("workflow", ""))
@@ -1557,6 +1628,7 @@ def create_app():
             _run_react_task(
                 entry, task, model, todos, context, workflow, session_name,
                 template_ip, rtl_version_id, project_root, artifact_versions,
+                reasoning_effort,
             )
             return entry.result
         acquired = _concurrency_semaphore.acquire(blocking=False)
@@ -1571,6 +1643,7 @@ def create_app():
                 _run_react_task(
                     entry, task, model, todos, context, workflow, session_name,
                     template_ip, rtl_version_id, project_root, artifact_versions,
+                    reasoning_effort,
                 )
                 try:
                     from core.orchestrator_trace import record_trace

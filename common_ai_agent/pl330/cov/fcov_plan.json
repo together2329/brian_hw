@@ -1,0 +1,6 @@
+{
+  "bins": [
+    "copy_4_words",
+    "irq_done"
+  ]
+}

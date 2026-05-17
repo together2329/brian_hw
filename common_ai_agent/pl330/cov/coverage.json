@@ -1,0 +1,19 @@
+{
+  "function": {
+    "copy_4_words": true,
+    "irq_done": true
+  },
+  "static_code": {
+    "condition": 0.75,
+    "line": 0.88
+  },
+  "status": "pass",
+  "vcd": {
+    "path": "pl330/sim/pl330.vcd",
+    "signals": [
+      "busy_o",
+      "done_o",
+      "irq"
+    ]
+  }
+}

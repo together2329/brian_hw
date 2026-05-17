@@ -3678,6 +3678,41 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
         .finally(() => setStreaming(false));
       return;
     }
+    if (isPipelineChat && window.ATLAS_PIPELINE_CHAT_MODE !== 'heuristic') {
+      setStreaming(true);
+      const ipName = ((selModule && (selModule.name || selModule.id)) || activeSessionIp || '').trim();
+      const policy = (typeof window.pipelinePolicyPayload === 'function')
+        ? window.pipelinePolicyPayload()
+        : {};
+      const outbound = [
+        '[ATLAS PIPELINE ORCHESTRATOR CHAT]',
+        `- ip: ${ipName || 'active IP'}`,
+        `- run_mode: ${policy.run_mode || 'engineering'}`,
+        `- exec_mode: ${policy.exec_mode || 'orchestrator'}`,
+        `- atlas_api_origin: ${window.location.origin}`,
+        '',
+        '[DIRECT EXECUTION RULES]',
+        '- This right-side Pipeline chat is the real orchestrator control surface.',
+        '- Treat /goal as a pipeline goal, not generic todo/plan mode.',
+        '- For worker/stage/run-to-green requests, call dispatch_workflow directly.',
+        '- Do not call todo_add/todo_update/todo_write unless the user explicitly asks for a plan.',
+        '- Do not fake pass status; require fresh artifact evidence before reporting success.',
+        '',
+        text,
+      ].join('\n');
+      if (window.backend) {
+        window.backend.send({
+          type: 'prompt',
+          text: outbound,
+          session: window.ACTIVE_SESSION || '',
+          ui_lang: window.ATLAS_UI_LANG || 'en',
+        });
+      } else {
+        setFeed(l => [...l, { kind: 'agent', text: '[error] backend websocket is not connected' }]);
+        setStreaming(false);
+      }
+      return;
+    }
     if (isPipelineChat) {
       setStreaming(true);
       const ipName = ((selModule && (selModule.name || selModule.id)) || activeSessionIp || '').trim();
