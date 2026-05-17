@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html data-theme="dark" data-screen-label="Pipeline Image">
+<head>
+<meta charset="utf-8" />
+<title>ATLAS · Pipeline</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0b0c10;
+    --bg-2:      #111218;
+    --bg-3:      #171922;
+    --fg:        #e6edf3;
+    --fg-mute:   #737e94;
+    --fg-dim:    #4b5468;
+    --line:      rgba(255,255,255,0.08);
+    --line-2:    rgba(255,255,255,0.14);
+    --ok:        #76c893;
+    --err:       #e85d5d;
+    --warn:      #f2b632;
+    --cyan:      #5fc8eb;
+    --accent:    #f2b632;
+    --mag:       #c78ee5;
+    --mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Consolas, Menlo, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); min-height: 100vh; }
+
+  .pipe-shell {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 28px 80px;
+  }
+
+  /* Title bar */
+  .titlebar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 0 18px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 22px;
+  }
+  .tb-brand {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+  }
+  .tb-sep { color: var(--fg-dim); }
+  .tb-crumb { font-family: var(--mono); font-size: 12px; color: var(--fg-mute); }
+  .tb-crumb b { color: var(--fg); font-weight: 600; }
+  .tb-spacer { flex: 1; }
+  .tb-meta {
+    display: flex; gap: 14px;
+    font-family: var(--mono); font-size: 11px; color: var(--fg-mute);
+    flex-wrap: wrap;
+  }
+  .tb-meta b { color: var(--fg); font-weight: 600; }
+
+  /* Map */
+  .pipe-flow-map {
+    background: #0b0c10;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 18px 14px;
+  }
+  .pipe-flow-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .pipe-flow-title {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--fg);
+  }
+  .pipe-flow-sub {
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-mute);
+    line-height: 1.4;
+    max-width: 720px;
+  }
+  .pipe-flow-legend {
+    display: flex; gap: 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--fg-mute);
+  }
+  .pipe-flow-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .pipe-flow-legend i {
+    display: inline-block;
+    width: 11px; height: 8px;
+    border-radius: 2px;
+  }
+  .leg-active { background: var(--accent); }
+  .leg-running { background: var(--cyan); }
+  .leg-muted { border: 1px solid var(--line-2); }
+
+  /* Phase strip */
+  .pipe-flow-phases {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    margin: 10px 0 8px;
+    font-family: var(--mono);
+  }
+  .pipe-flow-phase {
+    flex: 1 1 0;
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: rgba(255,255,255,0.012);
+  }
+  .pipe-flow-phase-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(115,126,148,0.18);
+    color: var(--fg-mute);
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .pipe-flow-phase-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .pipe-flow-phase-name { color: var(--fg); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+  .pipe-flow-phase-meta { color: var(--fg-mute); font-size: 9.5px; white-space: nowrap; }
+  .pipe-flow-phase-arrow { color: var(--fg-dim); font-size: 14px; }
+
+  .phase-passed { border-color: rgba(118,200,147,0.45); background: rgba(118,200,147,0.06); }
+  .phase-passed .pipe-flow-phase-num { background: var(--ok); color: #0b0c10; }
+  .phase-running { border-color: rgba(95,200,235,0.55); background: rgba(95,200,235,0.07); box-shadow: 0 0 0 1px rgba(95,200,235,0.18) inset; }
+  .phase-running .pipe-flow-phase-num { background: var(--cyan); color: #0b0c10; animation: pulse 1.4s ease-in-out infinite; }
+  .phase-blocked .pipe-flow-phase-num { background: rgba(242,182,50,0.35); color: #0b0c10; }
+  .phase-blocked { border-color: rgba(242,182,50,0.3); background: rgba(242,182,50,0.04); }
+
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(95,200,235,0.55); }
+    50%     { box-shadow: 0 0 0 6px rgba(95,200,235,0.00); }
+  }
+
+  /* Next-hint */
+  .pipe-flow-next-hint {
+    display: flex; align-items: center; gap: 8px;
+    margin: 6px 0 10px;
+    padding: 7px 12px;
+    border: 1px solid rgba(95,200,235,0.35);
+    border-radius: 6px;
+    background: rgba(95,200,235,0.06);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--fg);
+  }
+  .pipe-flow-next-icon {
+    width: 16px; height: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--cyan);
+    color: #0b0c10;
+    font-size: 9px; font-weight: 800;
+  }
+  .pipe-flow-next-hint b { color: var(--cyan); font-weight: 700; }
+  .pipe-flow-next-hint .mute { color: var(--fg-mute); }
+
+  /* Orch strip */
+  .pipe-flow-orch-strip {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border: 1px solid rgba(242,182,50,0.35);
+    border-radius: 6px;
+    background: rgba(242,182,50,0.04);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg);
+  }
+  .pipe-flow-orch-label { text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+  .pipe-flow-orch-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(242,182,50,0.18); }
+  .pipe-flow-orch-state { font-weight: 700; color: var(--accent); }
+  .pipe-flow-orch-sep { color: var(--fg-dim); }
+  .pipe-flow-orch-strip b { color: var(--fg); font-weight: 700; }
+  .pipe-flow-orch-hint { margin-left: auto; font-style: italic; opacity: 0.7; color: var(--fg-mute); }
+
+  /* ── Worker Orchestra Bar (between orch strip and canvas) ─── */
+  .worker-bar {
+    margin-bottom: 10px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(242,182,50,0.04), transparent 40%),
+      var(--bg-2);
+  }
+  .worker-bar-head {
+    display: flex; align-items: baseline; gap: 14px;
+    margin-bottom: 10px;
+    font-family: var(--mono);
+  }
+  .worker-bar-title {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.12em;
+    color: var(--fg);
+  }
+  .worker-bar-sub {
+    font-size: 10.5px; color: var(--fg-mute);
+  }
+  .worker-bar-sub b { color: var(--cyan); font-weight: 700; }
+  .worker-bar-legend {
+    margin-left: auto;
+    display: flex; gap: 14px;
+    font-size: 10px; color: var(--fg-mute);
+    font-family: var(--mono);
+  }
+  .worker-bar-legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .worker-bar-legend i {
+    font-style: normal; font-weight: 800;
+    width: 14px; text-align: center;
+  }
+  .worker-bar-legend .leg-disp { color: var(--cyan); }
+  .worker-bar-legend .leg-ret  { color: var(--ok); }
+  .worker-bar-legend .leg-idle { color: var(--fg-mute); }
+  .worker-bar-legend .leg-down { color: var(--err); }
+
+  .worker-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  .worker-card {
+    position: relative;
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 10px 10px 9px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: rgba(255,255,255,0.018);
+    font-family: var(--mono);
+    cursor: pointer;
+    transition: border-color .14s, background .14s, transform .12s;
+  }
+  .worker-card:hover { transform: translateY(-1px); border-color: var(--line-2); }
+
+  .worker-card-arrow {
+    align-self: center;
+    width: 26px; height: 22px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 4px;
+    font-size: 14px; font-weight: 800;
+    background: rgba(115,126,148,0.12);
+    color: var(--fg-mute);
+    margin-bottom: 2px;
+  }
+  .worker-card[data-flow="dispatch"] {
+    border-color: rgba(95,200,235,0.5);
+    background: rgba(95,200,235,0.06);
+    box-shadow: 0 0 0 1px rgba(95,200,235,0.18) inset;
+  }
+  .worker-card[data-flow="dispatch"] .worker-card-arrow {
+    background: var(--cyan); color: #0b0c10;
+    animation: arrow-pulse 1.6s ease-in-out infinite;
+  }
+  .worker-card[data-flow="return"] {
+    border-color: rgba(118,200,147,0.45);
+    background: rgba(118,200,147,0.05);
+  }
+  .worker-card[data-flow="return"] .worker-card-arrow {
+    background: var(--ok); color: #0b0c10;
+  }
+  .worker-card[data-flow="down"] {
+    border-color: rgba(232,93,93,0.4);
+    background: rgba(232,93,93,0.04);
+    opacity: 0.7;
+  }
+  .worker-card[data-flow="down"] .worker-card-arrow {
+    color: var(--err);
+  }
+  .worker-card[data-selected="yes"] {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent) inset;
+  }
+
+  @keyframes arrow-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(95,200,235,0.7); }
+    50%     { box-shadow: 0 0 0 6px rgba(95,200,235,0.0); }
+  }
+
+  .worker-card-name {
+    font-size: 12px; font-weight: 700; color: var(--fg);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .worker-card-name .to-badge {
+    font-size: 8.5px; font-weight: 800;
+    padding: 1px 5px; border-radius: 8px;
+    background: var(--accent); color: #0b0c10;
+    letter-spacing: 0.08em;
+  }
+  .worker-card-state {
+    font-size: 9.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--fg-mute);
+  }
+  .worker-card[data-flow="dispatch"] .worker-card-state { color: var(--cyan); }
+  .worker-card[data-flow="return"]   .worker-card-state { color: var(--ok); }
+  .worker-card[data-flow="down"]     .worker-card-state { color: var(--err); }
+
+  .worker-card-model { font-size: 10px; color: var(--fg-mute); }
+  .worker-card-trace { font-size: 9.5px; color: var(--fg-dim); margin-top: 2px; font-style: italic; }
+  .worker-card[data-flow="dispatch"] .worker-card-trace { color: var(--cyan); font-style: normal; }
+  .worker-card[data-flow="return"]   .worker-card-trace { color: var(--ok); font-style: normal; }
+
+  /* SVG canvas */
+  .pipe-flow-canvas {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(95,200,235,0.04), transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(242,182,50,0.04), transparent 50%),
+      #0d0e14;
+  }
+  .pipe-flow-svg { display: block; width: 100%; height: auto; }
+
+  /* Lane */
+  .pipe-flow-lane rect { fill: rgba(255,255,255,0.018); stroke: rgba(255,255,255,0.06); }
+  .pipe-flow-lane-title-text { font-family: var(--mono); font-size: 12.5px; font-weight: 700; letter-spacing: 0.04em; fill: rgba(220,226,238,0.55); }
+  .pipe-flow-lane-num { fill: var(--accent); font-weight: 800; }
+  .pipe-flow-lane-hint { fill: rgba(190,196,211,0.36); font-family: var(--mono); font-size: 10px; font-style: italic; }
+
+  /* Edges */
+  .edge-muted { fill: none; stroke: rgba(115,126,148,0.22); stroke-width: 1.15; }
+  .edge-active {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.92;
+  }
+  .arrow-muted { fill: rgba(115,126,148,0.34); }
+  .arrow-active { fill: var(--accent); }
+  .arrow-dispatch { fill: var(--cyan); }
+  .arrow-return  { fill: var(--ok); }
+
+  /* Orchestrator hub */
+  .orch-hub rect {
+    fill: rgba(242,182,50,0.08);
+    stroke: var(--accent);
+    stroke-width: 1.5;
+    filter: drop-shadow(0 0 8px rgba(242,182,50,0.25));
+  }
+  .orch-hub .orch-title {
+    fill: var(--accent);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+  .orch-hub .orch-meta {
+    fill: var(--fg-mute);
+    font-family: var(--mono);
+    font-size: 10.5px;
+  }
+  .orch-hub .orch-meta b { fill: var(--fg); font-weight: 700; }
+  .orch-hub .orch-dot {
+    fill: var(--accent);
+    filter: drop-shadow(0 0 4px rgba(242,182,50,0.8));
+  }
+
+  /* Dispatch / return arrows */
+  .edge-dispatch {
+    fill: none;
+    stroke: var(--cyan);
+    stroke-width: 1.6;
+    stroke-dasharray: 5 3;
+    opacity: 0.85;
+  }
+  .edge-return {
+    fill: none;
+    stroke: var(--ok);
+    stroke-width: 1.6;
+    stroke-dasharray: 4 4;
+    opacity: 0.7;
+  }
+  .edge-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .edge-label.dispatch { fill: var(--cyan); }
+  .edge-label.return   { fill: var(--ok); }
+  .edge-label-bg {
+    fill: #0d0e14;
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+
+  .edge-dispatch.active {
+    stroke: var(--accent);
+    /* match the inactive lane's dash + width exactly so the only
+       difference is color — keeps the bus visually consistent */
+  }
+
+  /* Animated packet on dispatch line */
+  .packet-dispatch { fill: var(--cyan); filter: drop-shadow(0 0 4px rgba(95,200,235,0.85)); }
+  .packet-return   { fill: var(--ok);   filter: drop-shadow(0 0 4px rgba(118,200,147,0.85)); }
+
+  .step-dot { fill: var(--accent); stroke: #0b0c10; stroke-width: 3; }
+  .step-num { fill: #111218; font-family: var(--mono); font-size: 11px; font-weight: 800; text-anchor: middle; }
+
+  /* Nodes */
+  .node rect { fill: rgba(23,25,34,0.96); stroke: rgba(105,114,138,0.28); stroke-width: 1; }
+  .node.context { opacity: 0.36; }
+  .node.in-flow { opacity: 1; }
+  .node.in-flow rect { stroke: rgba(220,226,238,0.32); }
+  .node[data-state="passed"] rect { stroke: rgba(118,200,147,0.55); }
+  .node[data-state="running"] rect { stroke: var(--cyan); stroke-width: 1.8; filter: drop-shadow(0 0 6px rgba(95,200,235,0.45)); }
+  .node[data-state="failed"] rect { stroke: rgba(232,93,93,0.55); }
+  .node[data-state="locked"] rect { stroke: rgba(115,126,148,0.4); stroke-dasharray: 3 3; }
+  .node[data-state="ready"] rect { stroke: rgba(242,182,50,0.5); }
+  .node.next rect { stroke: var(--cyan); stroke-width: 1.8; }
+
+  .node-title { fill: var(--fg); font-family: var(--mono); font-size: 12px; font-weight: 700; }
+  .node-sub { fill: var(--fg-mute); font-family: var(--mono); font-size: 9.5px; }
+
+  /* Inline pill */
+  .pill rect { fill: rgba(255,255,255,0.06); stroke: rgba(255,255,255,0.12); }
+  .pill text { fill: rgba(220,226,238,0.85); font-family: var(--mono); font-size: 8.5px; font-weight: 700; letter-spacing: 0.04em; }
+  .pill-dot { fill: rgba(180,190,210,0.7); }
+  .pill[data-state="running"] rect { fill: rgba(95,200,235,0.18); stroke: rgba(95,200,235,0.55); }
+  .pill[data-state="running"] .pill-dot { fill: var(--cyan); }
+  .pill[data-state="passed"] rect  { fill: rgba(118,200,147,0.18); stroke: rgba(118,200,147,0.55); }
+  .pill[data-state="passed"] .pill-dot { fill: var(--ok); }
+  .pill[data-state="failed"] rect  { fill: rgba(232,93,93,0.18); stroke: rgba(232,93,93,0.55); }
+  .pill[data-state="failed"] .pill-dot { fill: var(--err); }
+  .pill[data-state="locked"] rect, .pill[data-state="blocked"] rect, .pill[data-state="ready"] rect {
+    fill: rgba(242,182,50,0.14); stroke: rgba(242,182,50,0.5);
+  }
+  .pill[data-state="locked"] .pill-dot, .pill[data-state="blocked"] .pill-dot, .pill[data-state="ready"] .pill-dot {
+    fill: var(--accent);
+  }
+
+  /* Start/Next badges */
+  .start-badge rect { fill: var(--cyan); stroke: rgba(95,200,235,0.7); stroke-width: 1.5; filter: drop-shadow(0 0 6px rgba(95,200,235,0.55)); }
+  .start-badge text { fill: #0b0c10; font-family: var(--mono); font-size: 9px; font-weight: 800; letter-spacing: 0.08em; }
+
+  .next-badge rect { fill: rgba(95,200,235,0.18); stroke: rgba(95,200,235,0.6); stroke-width: 1; }
+  .next-badge text { fill: var(--cyan); font-family: var(--mono); font-size: 8.5px; font-weight: 800; letter-spacing: 0.08em; }
+
+  /* Running token (animated along path) */
+  .running-token { fill: var(--cyan); filter: drop-shadow(0 0 4px rgba(95,200,235,0.85)); }
+
+  /* Flow tabs (above map) */
+  .pipe-flow-tabs {
+    display: flex; gap: 6px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .pipe-flow-tab {
+    font-family: var(--mono); font-size: 11px;
+    padding: 6px 11px;
+    border: 1px solid var(--line-2);
+    border-radius: 14px;
+    color: var(--fg-mute);
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+  }
+  .pipe-flow-tab b { color: var(--accent); font-weight: 800; }
+  .pipe-flow-tab.sel {
+    color: var(--fg);
+    border-color: var(--accent);
+    background: rgba(242,182,50,0.1);
+  }
+
+  /* Footer cards */
+  .pipe-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .pipe-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: var(--mono);
+  }
+  .pipe-card[data-state="running"] { border-color: rgba(95,200,235,0.45); }
+  .pipe-card[data-state="passed"]  { border-color: rgba(118,200,147,0.35); }
+  .pipe-card-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .pipe-card-glyph { font-size: 14px; }
+  .pipe-card-label { font-size: 12px; font-weight: 700; color: var(--fg); flex: 1; }
+  .pipe-card-state {
+    font-size: 9px; letter-spacing: 0.08em; font-weight: 700; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 10px;
+  }
+  .pipe-card-state[data-s="passed"] { background: rgba(118,200,147,0.18); color: var(--ok); }
+  .pipe-card-state[data-s="running"] { background: rgba(95,200,235,0.18); color: var(--cyan); }
+  .pipe-card-state[data-s="locked"]  { background: rgba(115,126,148,0.18); color: var(--fg-mute); }
+  .pipe-card-dots { display: flex; gap: 5px; margin-bottom: 8px; }
+  .pipe-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: rgba(115,126,148,0.4);
+  }
+  .pipe-dot[data-kpi="pass"] { background: var(--ok); }
+  .pipe-dot[data-kpi="warn"] { background: var(--accent); }
+  .pipe-dot[data-kpi="fail"] { background: var(--err); }
+  .pipe-card-top { font-size: 10.5px; color: var(--fg-mute); margin-bottom: 4px; }
+  .pipe-card-sec { font-size: 10px; color: var(--fg-dim); margin-bottom: 8px; }
+  .pipe-card-tail {
+    font-size: 10px; color: var(--cyan);
+    background: rgba(95,200,235,0.06);
+    padding: 4px 7px; border-radius: 4px;
+    border-left: 2px solid var(--cyan);
+    margin-bottom: 10px;
+    font-family: var(--mono);
+  }
+  .pipe-card-actions { display: flex; gap: 6px; }
+  .pipe-btn {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+    padding: 5px 10px; border-radius: 4px;
+    border: 1px solid var(--accent);
+    background: rgba(242,182,50,0.1);
+    color: var(--accent);
+    cursor: pointer;
+  }
+  .pipe-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .pipe-btn.ghost { border-color: var(--line-2); background: transparent; color: var(--fg-mute); }
+
+  /* Progress bar inside running card */
+  .pipe-progress {
+    height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .pipe-progress-fill {
+    height: 100%; width: 62%;
+    background: linear-gradient(90deg, var(--cyan), #b4eaff);
+    animation: prog 2.4s ease-in-out infinite;
+  }
+  @keyframes prog {
+    0%   { transform: translateX(-12%); }
+    100% { transform: translateX(2%); }
+  }
+</style>
+</head>
+<body>
+<div class="pipe-shell">
+
+  <!-- ── Title bar ───────────────────────────────────────────── -->
+  <div class="titlebar">
+    <span class="tb-brand">ATLAS</span>
+    <span class="tb-sep">/</span>
+    <span class="tb-crumb">session <b>brian</b> · ip <b>axi_dma</b> · wf <b>rtl-gen</b></span>
+    <span class="tb-spacer"></span>
+    <div class="tb-meta">
+      <span>model <b>gpt-5-codex</b></span>
+      <span>iter <b>14/200</b></span>
+      <span>ctx <b>42k/200k</b></span>
+      <span style="color: var(--cyan);">● live</span>
+    </div>
+  </div>
+
+  <!-- ── Flow tabs ───────────────────────────────────────────── -->
+  <div class="pipe-flow-tabs">
+    <button class="pipe-flow-tab sel"><b>1.</b>&nbsp;Full IP pipeline</button>
+    <button class="pipe-flow-tab"><b>2.</b>&nbsp;RTL repair loop</button>
+    <button class="pipe-flow-tab"><b>3.</b>&nbsp;TB / sim loop</button>
+    <button class="pipe-flow-tab"><b>4.</b>&nbsp;Coverage closure</button>
+    <button class="pipe-flow-tab"><b>5.</b>&nbsp;PPA signoff</button>
+    <button class="pipe-flow-tab"><b>6.</b>&nbsp;JSON handoff / take</button>
+  </div>
+
+  <!-- ── Map ─────────────────────────────────────────────────── -->
+  <div class="pipe-flow-map">
+    <div class="pipe-flow-head">
+      <div>
+        <div class="pipe-flow-title">ATLAS IP Flow Map</div>
+        <div class="pipe-flow-sub">
+          Select a flow above. The bright amber route is what the orchestrator will run, repair, or hand off.
+        </div>
+      </div>
+      <div class="pipe-flow-legend">
+        <span><i class="leg-active"></i> selected route</span>
+        <span><i class="leg-running"></i> running</span>
+        <span><i class="leg-muted"></i> context</span>
+      </div>
+    </div>
+
+    <!-- Phase strip — labels match the 6 columns in the SVG below 1:1
+         so the user can trace progress straight down. -->
+    <div class="pipe-flow-phases" role="navigation">
+      <div class="pipe-flow-phase phase-passed">
+        <span class="pipe-flow-phase-num">1</span>
+        <span class="pipe-flow-phase-body">
+          <span class="pipe-flow-phase-name">SSOT</span>
+          <span class="pipe-flow-phase-meta">1/1 done</span>
+        </span>
+      </div>
+      <span class="pipe-flow-phase-arrow">›</span>
+      <div class="pipe-flow-phase phase-passed">
+        <span class="pipe-flow-phase-num">2</span>
+        <span class="pipe-flow-phase-body">
+          <span class="pipe-flow-phase-name">MODELS</span>
+          <span class="pipe-flow-phase-meta">3/3 done</span>
+        </span>
+      </div>
+      <span class="pipe-flow-phase-arrow">›</span>
+      <div class="pipe-flow-phase phase-running">
+        <span class="pipe-flow-phase-num">3</span>
+        <span class="pipe-flow-phase-body">
+          <span class="pipe-flow-phase-name">RTL</span>
+          <span class="pipe-flow-phase-meta">▶ 1 running · 0/1 done</span>
+        </span>
+      </div>
+      <span class="pipe-flow-phase-arrow">›</span>
+      <div class="pipe-flow-phase phase-blocked">
+        <span class="pipe-flow-phase-num">4</span>
+        <span class="pipe-flow-phase-body">
+          <span class="pipe-flow-phase-name">BRANCH</span>
+          <span class="pipe-flow-phase-meta">0/3 done</span>
+        </span>
+      </div>
+      <span class="pipe-flow-phase-arrow">›</span>
+      <div class="pipe-flow-phase">
+        <span class="pipe-flow-phase-num">5</span>
+        <span class="pipe-flow-phase-body">
+          <span class="pipe-flow-phase-name">VERIFY · EDA</span>
+          <span class="pipe-flow-phase-meta">0/4 done</span>
+        </span>
+      </div>
+      <span class="pipe-flow-phase-arrow">›</span>
+      <div class="pipe-flow-phase">
+        <span class="pipe-flow-phase-num">6</span>
+        <span class="pipe-flow-phase-body">
+          <span class="pipe-flow-phase-name">SIGNOFF</span>
+          <span class="pipe-flow-phase-meta">0/3 done</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Next-hint -->
+    <div class="pipe-flow-next-hint">
+      <span class="pipe-flow-next-icon">▶</span>
+      <span>Next suggested step: <b>rtl-gen</b><span class="mute"> — currently running. Watch the live tail or open evidence when it passes.</span></span>
+    </div>
+
+    <!-- Orch strip -->
+    <div class="pipe-flow-orch-strip">
+      <span class="pipe-flow-orch-label">Orchestrator</span>
+      <span class="pipe-flow-orch-dot"></span>
+      <span class="pipe-flow-orch-state">ON</span>
+      <span class="pipe-flow-orch-sep">·</span>
+      <span>Pending handoffs: <b>0</b></span>
+      <span class="pipe-flow-orch-sep">·</span>
+      <span>Worker: <b>rtl-worker</b></span>
+      <span class="pipe-flow-orch-hint">system status · not stages</span>
+    </div>
+
+
+
+    <!-- ── SVG canvas ─────────────────────────────────────── -->
+    <div class="pipe-flow-canvas">
+      <svg class="pipe-flow-svg" viewBox="0 0 1240 540" role="img" aria-label="ATLAS pipeline flow graph">
+        <defs>
+          <marker id="arrow-muted" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" class="arrow-muted" />
+          </marker>
+          <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" class="arrow-active" />
+          </marker>
+          <marker id="arrow-active-start" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" class="arrow-active" />
+          </marker>
+          <marker id="arrow-dispatch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" class="arrow-dispatch" />
+          </marker>
+          <marker id="arrow-dispatch-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f2b632" />
+          </marker>
+          <marker id="arrow-dispatch-start" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 z" class="arrow-dispatch" />
+          </marker>
+          <marker id="arrow-return" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" class="arrow-return" />
+          </marker>
+        </defs>
+
+        <!-- ── Orchestrator bus bar (full width) ───────────────
+             Replaces the single rtl-only dispatch with a control bus
+             that interacts with EVERY lane (column 1-6) via bidirectional
+             arrows. The bar acts as the conductor; each lane has its own
+             short vertical arrow showing dispatch ↓ and return ↑ are
+             both possible. The bar segment immediately above the
+             currently-running lane (rtl-gen, col 3) is highlighted with
+             the active-amber color and an animated packet.
+        -->
+        <g class="orch-hub">
+          <rect x="30" y="4" width="1180" height="42" rx="10" />
+          <circle cx="55" cy="25" r="5" class="orch-dot"/>
+          <text x="75" y="23" class="orch-title">🎯 ORCHESTRATOR · ON</text>
+          <text x="75" y="40" class="orch-meta">TO <tspan id="orch-worker-name" style="fill:var(--cyan);font-weight:800">rtl-worker</tspan>  ·  pending <tspan style="fill:var(--fg);font-weight:700">0</tspan>  ·  last <tspan style="fill:var(--ok);font-weight:700">✓ from equiv-worker</tspan></text>
+          <text x="1195" y="30" class="orch-meta" text-anchor="end" style="font-size:10.5px;font-style:italic;opacity:0.8">6 lanes · bidirectional control</text>
+        </g>
+
+        <!-- Bidirectional control arrows: orchestrator bus ↔ each lane top.
+             Drawn as TWO parallel single-headed arrows per lane (dispatch ↓
+             on the left, return ↑ on the right) so heads are clearly
+             separated rather than crammed into one short path. -->
+        <path class="edge-dispatch" d="M 112 46 L 112 74" marker-end="url(#arrow-dispatch)" id="orch-arrow-1d" />
+        <path class="edge-dispatch" d="M 128 74 L 128 46" marker-end="url(#arrow-dispatch)" id="orch-arrow-1u" />
+
+        <path class="edge-dispatch" d="M 312 46 L 312 74" marker-end="url(#arrow-dispatch)" id="orch-arrow-2d" />
+        <path class="edge-dispatch" d="M 328 74 L 328 46" marker-end="url(#arrow-dispatch)" id="orch-arrow-2u" />
+
+        <!-- Lane 3 (rtl-gen) currently active dispatch target — amber -->
+        <path class="edge-dispatch active" d="M 512 46 L 512 74" marker-end="url(#arrow-dispatch-active)" id="orch-arrow-3d" />
+        <path class="edge-dispatch active" d="M 528 74 L 528 46" marker-end="url(#arrow-dispatch-active)" id="orch-arrow-3u" />
+
+        <path class="edge-dispatch" d="M 712 46 L 712 74" marker-end="url(#arrow-dispatch)" id="orch-arrow-4d" />
+        <path class="edge-dispatch" d="M 728 74 L 728 46" marker-end="url(#arrow-dispatch)" id="orch-arrow-4u" />
+
+        <path class="edge-dispatch" d="M 912 46 L 912 74" marker-end="url(#arrow-dispatch)" id="orch-arrow-5d" />
+        <path class="edge-dispatch" d="M 928 74 L 928 46" marker-end="url(#arrow-dispatch)" id="orch-arrow-5u" />
+
+        <path class="edge-dispatch" d="M 1112 46 L 1112 74" marker-end="url(#arrow-dispatch)" id="orch-arrow-6d" />
+        <path class="edge-dispatch" d="M 1128 74 L 1128 46" marker-end="url(#arrow-dispatch)" id="orch-arrow-6u" />
+
+        <!-- (animated packet on lane 3 removed by user request — keep the
+             static amber bidirectional arrows only) -->
+
+        <!-- Lanes -->
+        <g class="pipe-flow-lane">
+          <rect x="30" y="76" width="180" height="382" rx="8" />
+          <text x="42" y="100" class="pipe-flow-lane-title-text"><tspan class="pipe-flow-lane-num">1.</tspan><tspan dx="6">SSOT</tspan></text>
+        </g>
+        <g class="pipe-flow-lane">
+          <rect x="230" y="76" width="180" height="382" rx="8" />
+          <text x="242" y="100" class="pipe-flow-lane-title-text"><tspan class="pipe-flow-lane-num">2.</tspan><tspan dx="6">MODELS</tspan></text>
+        </g>
+        <g class="pipe-flow-lane">
+          <rect x="430" y="76" width="180" height="382" rx="8" />
+          <text x="442" y="100" class="pipe-flow-lane-title-text"><tspan class="pipe-flow-lane-num">3.</tspan><tspan dx="6">RTL</tspan></text>
+        </g>
+        <g class="pipe-flow-lane">
+          <rect x="630" y="76" width="180" height="382" rx="8" />
+          <text x="642" y="100" class="pipe-flow-lane-title-text"><tspan class="pipe-flow-lane-num">4.</tspan><tspan dx="6">BRANCH</tspan></text>
+        </g>
+        <g class="pipe-flow-lane">
+          <rect x="830" y="76" width="180" height="382" rx="8" />
+          <text x="842" y="100" class="pipe-flow-lane-title-text"><tspan class="pipe-flow-lane-num">5.</tspan><tspan dx="6">VERIFY · EDA</tspan></text>
+        </g>
+        <g class="pipe-flow-lane">
+          <rect x="1030" y="76" width="180" height="382" rx="8" />
+          <text x="1042" y="100" class="pipe-flow-lane-title-text"><tspan class="pipe-flow-lane-num">6.</tspan><tspan dx="6">SIGNOFF</tspan></text>
+          <text x="1042" y="116" class="pipe-flow-lane-hint">post-route</text>
+        </g>
+
+        <!-- ── Active route (13 numbered steps) ── -->
+
+        <!-- 1: ssot → fl-model -->
+        <path class="edge-active" d="M 204 249 L 212 249 Q 218 249 218 243 L 218 175 Q 218 169 224 169 L 236 169" marker-end="url(#arrow-active)" id="path-1" />
+
+        <!-- 2: fl-model → cl-model (straight down inside col 2) -->
+        <path class="edge-active" d="M 320 198 L 320 220" marker-end="url(#arrow-active)" id="path-2" />
+
+        <!-- 3: cl-model → equivalence (straight down inside col 2) -->
+        <path class="edge-active" d="M 320 278 L 320 300" marker-end="url(#arrow-active)" id="path-3" />
+
+        <!-- 4: equivalence → rtl-gen (up-right via gutter x=425) -->
+        <path class="edge-active" d="M 404 329 L 418 329 Q 425 329 425 323 L 425 255 Q 425 249 430 249 L 436 249" marker-end="url(#arrow-active)" id="path-4" />
+
+        <!-- 6: rtl → lint (up-right, gutter x=618) -->
+        <path class="edge-active" d="M 604 249 L 612 249 Q 618 249 618 243 L 618 175 Q 618 169 624 169 L 636 169" marker-end="url(#arrow-active)" id="path-6" />
+
+        <!-- 7: rtl → tb (horizontal) -->
+        <path class="edge-active" d="M 604 249 L 636 249" marker-end="url(#arrow-active)" id="path-7" />
+
+        <!-- 8: tb → sim (horizontal, both row 2) -->
+        <path class="edge-active" d="M 804 249 L 836 249" marker-end="url(#arrow-active)" id="path-8" />
+
+        <!-- 9: sim ↔ sim-debug (bidirectional, drawn as two parallel
+             single-headed arrows so BOTH heads are clearly visible
+             instead of cramming two markers onto a 22-px line) -->
+        <path class="edge-active" d="M 912 198 L 912 218"
+              marker-end="url(#arrow-active)" id="path-9a" />
+        <path class="edge-active" d="M 928 220 L 928 200"
+              marker-end="url(#arrow-active)" id="path-9b" />
+
+        <!-- 10: rtl → syn (down-right, gutter x=624) -->
+        <path class="edge-active" d="M 604 249 L 614 249 Q 624 249 624 255 L 624 323 Q 624 329 630 329 L 636 329" marker-end="url(#arrow-active)" id="path-10" />
+
+        <!-- 11: syn → sta (horizontal) -->
+        <path class="edge-active" d="M 804 329 L 836 329" marker-end="url(#arrow-active)" id="path-11" />
+
+        <!-- 12: pnr → sta-post (horizontal) — was path-13, renumbered after dropping the long rtl→pnr route. pnr's input is now only via syn (path 14). -->
+        <path class="edge-active" d="M 1004 409 L 1036 409" marker-end="url(#arrow-active)" id="path-12" />
+
+        <!-- 13: sim → coverage (horizontal, both row 2) — was path-14 -->
+        <path class="edge-active" d="M 1004 249 L 1036 249" marker-end="url(#arrow-active)" id="path-13" />
+
+        <!-- 14: syn → pnr (down-right via gutter x=818) — was path-15 -->
+        <path class="edge-active" d="M 804 329 L 812 329 Q 818 329 818 335 L 818 403 Q 818 409 826 409 L 836 409" marker-end="url(#arrow-active)" id="path-14" />
+
+        <!-- ── Nodes ── -->
+
+        <!-- ssot-gen · passed -->
+        <g class="node in-flow" data-state="passed" transform="translate(36, 220)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">ssot-gen</text>
+          <text x="12" y="36" class="node-sub">12 sections · v0.4.1</text>
+          <g class="pill" data-state="passed" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">passed</text>
+          </g>
+        </g>
+
+        <!-- fl-model · passed -->
+        <g class="node in-flow" data-state="passed" transform="translate(236, 140)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">fl-model</text>
+          <text x="12" y="36" class="node-sub">2 174 packets · ✓ goals</text>
+          <g class="pill" data-state="passed" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">passed</text>
+          </g>
+        </g>
+
+        <!-- cl-model · passed -->
+        <g class="node in-flow" data-state="passed" transform="translate(236, 220)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">cl-model</text>
+          <text x="12" y="36" class="node-sub">cycle-acc · 4 ports</text>
+          <g class="pill" data-state="passed" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">passed</text>
+          </g>
+        </g>
+
+        <!-- equivalence · passed -->
+        <g class="node in-flow" data-state="passed" transform="translate(236, 300)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">equivalence</text>
+          <text x="12" y="36" class="node-sub">FL ≡ CL · 8 192 vec</text>
+          <g class="pill" data-state="passed" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">passed</text>
+          </g>
+        </g>
+
+        <!-- rtl-gen · running -->
+        <g class="node in-flow" data-state="running" transform="translate(436, 220)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">rtl-gen</text>
+          <text x="12" y="36" class="node-sub">iter 14 · gpt-5-codex</text>
+          <g class="pill" data-state="running" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">running</text>
+          </g>
+        </g>
+
+        <!-- lint · ready (NEXT) -->
+        <g class="node in-flow next" data-state="ready" transform="translate(636, 140)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">lint</text>
+          <text x="12" y="36" class="node-sub">awaiting rtl handoff</text>
+          <g class="pill" data-state="ready" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">ready</text>
+          </g>
+          <g class="next-badge" transform="translate(62, -18)">
+            <rect width="44" height="14" rx="7"/>
+            <text x="22" y="10" text-anchor="middle">NEXT ▸</text>
+          </g>
+        </g>
+
+        <!-- tb-gen · locked -->
+        <g class="node in-flow" data-state="locked" transform="translate(636, 220)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">tb-gen</text>
+          <text x="12" y="36" class="node-sub">awaiting rtl</text>
+          <g class="pill" data-state="locked" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">locked</text>
+          </g>
+        </g>
+
+        <!-- syn · locked -->
+        <g class="node in-flow" data-state="locked" transform="translate(636, 300)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">syn</text>
+          <text x="12" y="36" class="node-sub">awaiting rtl-gen</text>
+          <g class="pill" data-state="locked" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">locked</text>
+          </g>
+        </g>
+
+        <!-- sim-debug · locked (row 1, above sim) -->
+        <g class="node in-flow" data-state="locked" transform="translate(836, 140)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">sim-debug</text>
+          <text x="12" y="36" class="node-sub">awaiting sim</text>
+          <g class="pill" data-state="locked" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">locked</text>
+          </g>
+        </g>
+
+        <!-- sim · locked (row 2, beside tb-gen) -->
+        <g class="node in-flow" data-state="locked" transform="translate(836, 220)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">sim</text>
+          <text x="12" y="36" class="node-sub">awaiting tb</text>
+          <g class="pill" data-state="locked" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">locked</text>
+          </g>
+        </g>
+
+        <!-- sta · locked (leaf of syn) -->
+        <g class="node in-flow" data-state="locked" transform="translate(836, 300)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">sta</text>
+          <text x="12" y="36" class="node-sub">awaiting syn · leaf</text>
+          <g class="pill" data-state="locked" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">locked</text>
+          </g>
+        </g>
+
+        <!-- pnr · locked (input from syn only) -->
+        <g class="node in-flow" data-state="locked" transform="translate(836, 380)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">pnr</text>
+          <text x="12" y="36" class="node-sub">awaiting syn</text>
+          <g class="pill" data-state="locked" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">locked</text>
+          </g>
+        </g>
+
+        <!-- coverage · locked (row 2, beside sim) -->
+        <g class="node in-flow" data-state="locked" transform="translate(1036, 220)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">coverage</text>
+          <text x="12" y="36" class="node-sub">awaiting sim</text>
+          <g class="pill" data-state="locked" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">locked</text>
+          </g>
+        </g>
+
+        <!-- sta-post · locked -->
+        <g class="node in-flow" data-state="locked" transform="translate(1036, 380)">
+          <rect width="168" height="58" rx="7"/>
+          <text x="12" y="20" class="node-title">sta-post</text>
+          <text x="12" y="36" class="node-sub">awaiting pnr</text>
+          <g class="pill" data-state="locked" transform="translate(108, 6)">
+            <rect width="52" height="15" rx="7.5"/>
+            <circle cx="8" cy="7.5" r="3" class="pill-dot"/>
+            <text x="16" y="11">locked</text>
+          </g>
+        </g>
+
+        <!-- START badge on ssot -->
+        <g class="start-badge" transform="translate(-10, 240)">
+          <rect width="42" height="18" rx="9"/>
+          <text x="21" y="13" text-anchor="middle">START</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- ── Stage cards (3-up sample row) ────────────────── -->
+    <div class="pipe-cards">
+      <!-- rtl-gen running -->
+      <div class="pipe-card" data-state="running">
+        <div class="pipe-card-hd">
+          <span class="pipe-card-glyph" style="color: var(--cyan);">▶</span>
+          <span class="pipe-card-label">rtl-gen</span>
+          <span class="pipe-card-state" data-s="running">running</span>
+        </div>
+        <div class="pipe-card-dots">
+          <span class="pipe-dot" data-kpi="pass"></span>
+          <span class="pipe-dot" data-kpi="pass"></span>
+          <span class="pipe-dot" data-kpi="warn"></span>
+          <span class="pipe-dot"></span>
+          <span class="pipe-dot"></span>
+        </div>
+        <div class="pipe-progress"><div class="pipe-progress-fill"></div></div>
+        <div class="pipe-card-top">rtl/axi_dma_top.sv — synthesizing channel arbiter</div>
+        <div class="pipe-card-sec">14 it · 142s · gpt-5-codex</div>
+        <div class="pipe-card-tail">~ wrote axi_dma_ch_arb.sv (164 lines) — running lint pre-check</div>
+        <div class="pipe-card-actions">
+          <button class="pipe-btn">⏹ running</button>
+          <button class="pipe-btn ghost">open tail ↗</button>
+        </div>
+      </div>
+
+      <!-- equivalence passed -->
+      <div class="pipe-card" data-state="passed">
+        <div class="pipe-card-hd">
+          <span class="pipe-card-glyph" style="color: var(--ok);">✓</span>
+          <span class="pipe-card-label">equivalence</span>
+          <span class="pipe-card-state" data-s="passed">passed</span>
+        </div>
+        <div class="pipe-card-dots">
+          <span class="pipe-dot" data-kpi="pass"></span>
+          <span class="pipe-dot" data-kpi="pass"></span>
+          <span class="pipe-dot" data-kpi="pass"></span>
+          <span class="pipe-dot" data-kpi="pass"></span>
+          <span class="pipe-dot" data-kpi="pass"></span>
+        </div>
+        <div class="pipe-card-top">FL ≡ CL across 8 192 stimulus vectors</div>
+        <div class="pipe-card-sec">3 it · 38s · claude-haiku-4.5</div>
+        <div class="pipe-card-actions">
+          <button class="pipe-btn ghost">[ open evidence ▾ ]</button>
+          <button class="pipe-btn">▶ rerun</button>
+        </div>
+      </div>
+
+      <!-- lint locked -->
+      <div class="pipe-card" data-state="locked">
+        <div class="pipe-card-hd">
+          <span class="pipe-card-glyph" style="color: var(--accent);">◌</span>
+          <span class="pipe-card-label">lint</span>
+          <span class="pipe-card-state" data-s="locked">ready</span>
+        </div>
+        <div class="pipe-card-dots">
+          <span class="pipe-dot"></span>
+          <span class="pipe-dot"></span>
+          <span class="pipe-dot"></span>
+        </div>
+        <div class="pipe-card-top">awaiting rtl handoff (in ~2 min)</div>
+        <div class="pipe-card-sec">spyglass · clean-first policy</div>
+        <div class="pipe-card-actions">
+          <button class="pipe-btn" disabled>▶ run</button>
+          <button class="pipe-btn ghost">policy ↗</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /pipe-flow-map -->
+</div><!-- /pipe-shell -->
+</body>
+</html>
