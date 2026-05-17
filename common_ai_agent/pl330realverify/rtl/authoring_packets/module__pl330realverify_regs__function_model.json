@@ -1,0 +1,2385 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 68,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model",
+      "module_task_count": 97,
+      "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330realverify_regs.sv",
+      "name": "pl330realverify_regs",
+      "refs": [
+        "cycle_model.handshake_rules.APB_ACCESS",
+        "decomposition.units.apb_registers",
+        "error_handling",
+        "error_handling.error_sources",
+        "function_model.transactions.FM_APB_READ",
+        "function_model.transactions.FM_APB_WRITE",
+        "function_model.transactions.FM_IRQ_CLEAR",
+        "function_model.transactions.FM_RESET",
+        "interrupts",
+        "interrupts.sources",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list",
+        "rtl_contract",
+        "rtl_contract.input_map"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330realverify_regs.sv",
+        "name": "pl330realverify_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_channel_fsm.sv",
+        "name": "pl330realverify_channel_fsm",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_rd.sv",
+        "name": "pl330realverify_axi_rd",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_wr.sv",
+        "name": "pl330realverify_axi_wr",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_datapath.sv",
+        "name": "pl330realverify_datapath",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_event_irq.sv",
+        "name": "pl330realverify_event_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify.sv",
+        "name": "pl330realverify",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[0].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[0].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "paddr_i",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "sub_modules[0].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "psel_i",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "sub_modules[0].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "penable_i",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "sub_modules[0].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwrite_i",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "sub_modules[0].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwdata_i",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "sub_modules[0].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pstrb_i",
+        "signal": "pstrb",
+        "signal_terms": [
+          "pstrb"
+        ],
+        "source_ref": "sub_modules[0].connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "prdata_o",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "sub_modules[0].connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pready_o",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "sub_modules[0].connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pslverr_o",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "sub_modules[0].connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "irq_o",
+        "signal": "dmac_irq",
+        "signal_terms": [
+          "dmac_irq"
+        ],
+        "source_ref": "sub_modules[0].connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "paddr_i",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "psel_i",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "penable_i",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwrite_i",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwdata_i",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pstrb_i",
+        "signal": "pstrb",
+        "signal_terms": [
+          "pstrb"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "prdata_o",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pready_o",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pslverr_o",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "integration.connections[10]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Production-quality PL330-like DMA verification target with APB register block, channel FSM, AXI read/write adapters, datapath, and event/interrupt block.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 12,
+      "min_logic_modules": 6,
+      "min_modules": 7,
+      "min_procedural_blocks": 14,
+      "min_source_files": 7,
+      "min_state_updates": 20,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 41,
+    "open_required_count": 41,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330realverify",
+  "kind": "module",
+  "owner_file": "rtl/pl330realverify_regs.sv",
+  "owner_module": "pl330realverify_regs",
+  "packet_id": "module__pl330realverify_regs__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 1,
+      "function_model.input": 5,
+      "function_model.output": 3,
+      "function_model.output_rule": 8,
+      "function_model.precondition": 5,
+      "function_model.side_effect": 3,
+      "function_model.state_update": 13,
+      "function_model.transaction": 3
+    },
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model",
+      "module_task_count": 97,
+      "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 41,
+    "required_count": 41,
+    "source_refs": [
+      "function_model.transactions.FM_RESET",
+      "function_model.transactions.FM_RESET.preconditions.precondition_0",
+      "function_model.transactions.FM_RESET.inputs.input_0",
+      "function_model.transactions.FM_RESET.outputs.output_0",
+      "function_model.transactions.FM_RESET.output_rules.irq_reset",
+      "function_model.transactions.FM_RESET.output_rules.pready_reset",
+      "function_model.transactions.FM_RESET.output_rules.pslverr_reset",
+      "function_model.transactions.FM_RESET.state_updates.sar",
+      "function_model.transactions.FM_RESET.state_updates.dar",
+      "function_model.transactions.FM_RESET.state_updates.loop_remaining",
+      "function_model.transactions.FM_RESET.state_updates.status",
+      "function_model.transactions.FM_RESET.state_updates.error_code",
+      "function_model.transactions.FM_RESET.state_updates.rd_buf",
+      "function_model.transactions.FM_RESET.state_updates.intstatus",
+      "function_model.transactions.FM_RESET.state_updates.inten",
+      "function_model.transactions.FM_RESET.side_effects.side_effect_0",
+      "function_model.transactions.FM_APB_WRITE",
+      "function_model.transactions.FM_APB_WRITE.preconditions.precondition_0",
+      "function_model.transactions.FM_APB_WRITE.preconditions.precondition_1",
+      "function_model.transactions.FM_APB_WRITE.inputs.input_0",
+      "function_model.transactions.FM_APB_WRITE.inputs.input_1",
+      "function_model.transactions.FM_APB_WRITE.inputs.input_2",
+      "function_model.transactions.FM_APB_WRITE.outputs.output_0",
+      "function_model.transactions.FM_APB_WRITE.output_rules.apb_write_ready"
+    ],
+    "status_counts": {
+      "planned": 41
+    },
+    "task_count": 41
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_RESET",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_RESET.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: id=FM_RESET; name=reset_architecture.",
+      "evidence_terms": [],
+      "id": "RTL-0097",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "reset_architecture"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_RESET: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.preconditions.precondition_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: value=dmacresetn == 0.",
+      "evidence_terms": [],
+      "id": "RTL-0098",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "dmacresetn == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_RESET: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.inputs.input_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"dmac_irq\", \"pready\", \"pslverr\"] is the implementation/observation point for reset_architecture"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.inputs.input_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: id=FM_RESET; name=reset_architecture; port=[\"dmac_irq\", \"pready\", \"pslverr\"]; signal=[\"dmacresetn\"]; state=[\"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"rd_buf\", \"intstatus\", \"inten\"].",
+      "evidence_terms": [
+        "buf",
+        "code",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "dmacresetn",
+        "error_code",
+        "inten",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "pready",
+        "pslverr",
+        "rd",
+        "rd_buf"
+      ],
+      "id": "RTL-0099",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "reset_architecture",
+        "port": "[\"dmac_irq\", \"pready\", \"pslverr\"]",
+        "signal": "[\"dmacresetn\"]",
+        "state": "[\"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"rd_buf\", \"intstatus\", \"inten\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"dmac_irq\", \"pready\", \"pslverr\"] is the implementation/observation point for reset_architecture"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: id=FM_RESET; name=reset_architecture; port=[\"dmac_irq\", \"pready\", \"pslverr\"]; signal=[\"All externally visible output valids and interrupt are deasserted during reset.\"]; state=[\"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"rd_buf\", \"intstatus\", \"inten\"].",
+      "evidence_terms": [
+        "buf",
+        "code",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "inten",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "pready",
+        "pslverr",
+        "rd",
+        "rd_buf",
+        "remaining"
+      ],
+      "id": "RTL-0100",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "reset_architecture",
+        "port": "[\"dmac_irq\", \"pready\", \"pslverr\"]",
+        "signal": "[\"All externally visible output valids and interrupt are deasserted during reset.\"]",
+        "state": "[\"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"rd_buf\", \"intstatus\", \"inten\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_RESET: irq_reset",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.output_rules.irq_reset",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "irq_reset width matches SSOT value 1",
+        "irq_reset RTL expression implements SSOT expression 0",
+        "DUT port dmac_irq is the implementation/observation point for irq_reset",
+        "irq_reset is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.output_rules.irq_reset.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: name=irq_reset; port=dmac_irq; expr=0; width=1.",
+      "evidence_terms": [
+        "dmac",
+        "dmac_irq",
+        "irq",
+        "irq_reset",
+        "reset"
+      ],
+      "id": "RTL-0101",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.output_rules.irq_reset",
+      "ssot_context": {
+        "expr": "0",
+        "name": "irq_reset",
+        "port": "dmac_irq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.output_rules.irq_reset"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_RESET: pready_reset",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.output_rules.pready_reset",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "pready_reset width matches SSOT value 1",
+        "pready_reset RTL expression implements SSOT expression 0",
+        "DUT port pready is the implementation/observation point for pready_reset",
+        "pready_reset is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.output_rules.pready_reset.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: name=pready_reset; port=pready; expr=0; width=1.",
+      "evidence_terms": [
+        "pready",
+        "pready_reset",
+        "reset"
+      ],
+      "id": "RTL-0102",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.output_rules.pready_reset",
+      "ssot_context": {
+        "expr": "0",
+        "name": "pready_reset",
+        "port": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.output_rules.pready_reset"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_RESET: pslverr_reset",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.output_rules.pslverr_reset",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "pslverr_reset width matches SSOT value 1",
+        "pslverr_reset RTL expression implements SSOT expression 0",
+        "DUT port pslverr is the implementation/observation point for pslverr_reset",
+        "pslverr_reset is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.output_rules.pslverr_reset.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: name=pslverr_reset; port=pslverr; expr=0; width=1.",
+      "evidence_terms": [
+        "pslverr",
+        "pslverr_reset",
+        "reset"
+      ],
+      "id": "RTL-0103",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.output_rules.pslverr_reset",
+      "ssot_context": {
+        "expr": "0",
+        "name": "pslverr_reset",
+        "port": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.output_rules.pslverr_reset"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: sar",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.sar",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "sar width matches SSOT value 32",
+        "sar RTL expression implements SSOT expression 0",
+        "sar updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.sar.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: name=sar; expr=0; width=32.",
+      "evidence_terms": [
+        "sar"
+      ],
+      "id": "RTL-0104",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.sar",
+      "ssot_context": {
+        "expr": "0",
+        "name": "sar",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.sar"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: dar",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.dar",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "dar width matches SSOT value 32",
+        "dar RTL expression implements SSOT expression 0",
+        "dar updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.dar.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: name=dar; expr=0; width=32.",
+      "evidence_terms": [
+        "dar"
+      ],
+      "id": "RTL-0105",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.dar",
+      "ssot_context": {
+        "expr": "0",
+        "name": "dar",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.dar"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: loop_remaining",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.loop_remaining",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "loop_remaining width matches SSOT value 8",
+        "loop_remaining RTL expression implements SSOT expression 0",
+        "loop_remaining updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.loop_remaining.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: name=loop_remaining; expr=0; width=8.",
+      "evidence_terms": [
+        "loop",
+        "loop_remaining",
+        "remaining"
+      ],
+      "id": "RTL-0106",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.loop_remaining",
+      "ssot_context": {
+        "expr": "0",
+        "name": "loop_remaining",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.loop_remaining"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: status",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.status",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "status width matches SSOT value 4",
+        "status RTL expression implements SSOT expression 0",
+        "status updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.status.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: name=status; expr=0; width=4.",
+      "evidence_terms": [
+        "status"
+      ],
+      "id": "RTL-0107",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.status",
+      "ssot_context": {
+        "expr": "0",
+        "name": "status",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.status"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: error_code",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.error_code",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "error_code width matches SSOT value 4",
+        "error_code RTL expression implements SSOT expression 0",
+        "error_code updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.error_code.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: name=error_code; expr=0; width=4.",
+      "evidence_terms": [
+        "code",
+        "error_code"
+      ],
+      "id": "RTL-0108",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.error_code",
+      "ssot_context": {
+        "expr": "0",
+        "name": "error_code",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.error_code"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: rd_buf",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.rd_buf",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "rd_buf width matches SSOT value 64",
+        "rd_buf RTL expression implements SSOT expression 0",
+        "rd_buf updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.rd_buf.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: name=rd_buf; expr=0; width=64.",
+      "evidence_terms": [
+        "buf",
+        "rd",
+        "rd_buf"
+      ],
+      "id": "RTL-0109",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.rd_buf",
+      "ssot_context": {
+        "expr": "0",
+        "name": "rd_buf",
+        "width": "64"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.rd_buf"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: intstatus",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.intstatus",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "intstatus width matches SSOT value 32",
+        "intstatus RTL expression implements SSOT expression 0",
+        "intstatus updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.intstatus.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: name=intstatus; expr=0; width=32.",
+      "evidence_terms": [
+        "intstatus"
+      ],
+      "id": "RTL-0110",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.intstatus",
+      "ssot_context": {
+        "expr": "0",
+        "name": "intstatus",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.intstatus"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: inten",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.inten",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "inten width matches SSOT value 32",
+        "inten RTL expression implements SSOT expression 0",
+        "inten updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.inten.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: name=inten; expr=0; width=32.",
+      "evidence_terms": [
+        "inten"
+      ],
+      "id": "RTL-0111",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.inten",
+      "ssot_context": {
+        "expr": "0",
+        "name": "inten",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.inten"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RESET: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"dmac_irq\", \"pready\", \"pslverr\"] is the implementation/observation point for reset_architecture"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.side_effects.side_effect_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.\nSSOT item context: id=FM_RESET; name=reset_architecture; port=[\"dmac_irq\", \"pready\", \"pslverr\"]; signal=[\"All architectural state returns to declared reset values.\"]; state=[\"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"rd_buf\", \"intstatus\", \"inten\"].",
+      "evidence_terms": [
+        "buf",
+        "code",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "inten",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "pready",
+        "pslverr",
+        "rd",
+        "rd_buf",
+        "remaining"
+      ],
+      "id": "RTL-0112",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "reset_architecture",
+        "port": "[\"dmac_irq\", \"pready\", \"pslverr\"]",
+        "signal": "[\"All architectural state returns to declared reset values.\"]",
+        "state": "[\"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"rd_buf\", \"intstatus\", \"inten\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_APB_WRITE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_WRITE.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: id=FM_APB_WRITE; name=apb_register_write.",
+      "evidence_terms": [],
+      "id": "RTL-0113",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE",
+      "ssot_context": {
+        "id": "FM_APB_WRITE",
+        "name": "apb_register_write"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APB_WRITE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.preconditions.precondition_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: value=dmacresetn == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0114",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "dmacresetn == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APB_WRITE: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.preconditions.precondition_1.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: value=psel == 1 and penable == 1 and pwrite == 1 and pready == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0115",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "psel == 1 and penable == 1 and pwrite == 1 and pready == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.preconditions.precondition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_APB_WRITE: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.inputs.input_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for apb_register_write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.inputs.input_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=[\"pready\", \"pslverr\"]; signal=[\"paddr\"]; state=[\"inten\", \"intstatus\", \"sar\", \"dar\"].",
+      "evidence_terms": [
+        "dar",
+        "inten",
+        "intstatus",
+        "paddr",
+        "pready",
+        "pslverr",
+        "sar"
+      ],
+      "id": "RTL-0116",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_APB_WRITE",
+        "name": "apb_register_write",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"paddr\"]",
+        "state": "[\"inten\", \"intstatus\", \"sar\", \"dar\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_APB_WRITE: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.inputs.input_1",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for apb_register_write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.inputs.input_1.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=[\"pready\", \"pslverr\"]; signal=[\"pwdata\"]; state=[\"inten\", \"intstatus\", \"sar\", \"dar\"].",
+      "evidence_terms": [
+        "dar",
+        "inten",
+        "intstatus",
+        "pready",
+        "pslverr",
+        "pwdata",
+        "sar"
+      ],
+      "id": "RTL-0117",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.inputs.input_1",
+      "ssot_context": {
+        "id": "FM_APB_WRITE",
+        "name": "apb_register_write",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"pwdata\"]",
+        "state": "[\"inten\", \"intstatus\", \"sar\", \"dar\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.inputs.input_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_APB_WRITE: input_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.inputs.input_2",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for apb_register_write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.inputs.input_2.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=[\"pready\", \"pslverr\"]; signal=[\"pstrb\"]; state=[\"inten\", \"intstatus\", \"sar\", \"dar\"].",
+      "evidence_terms": [
+        "dar",
+        "inten",
+        "intstatus",
+        "pready",
+        "pslverr",
+        "pstrb",
+        "sar"
+      ],
+      "id": "RTL-0118",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.inputs.input_2",
+      "ssot_context": {
+        "id": "FM_APB_WRITE",
+        "name": "apb_register_write",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"pstrb\"]",
+        "state": "[\"inten\", \"intstatus\", \"sar\", \"dar\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.inputs.input_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for apb_register_write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.outputs.output_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=[\"pready\", \"pslverr\"]; signal=[\"pready acknowledges the access; pslverr reports illegal address/access/strobe.\"]; state=[\"inten\", \"intstatus\", \"sar\", \"dar\"].",
+      "evidence_terms": [
+        "dar",
+        "inten",
+        "intstatus",
+        "pready",
+        "pslverr",
+        "sar"
+      ],
+      "id": "RTL-0119",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_APB_WRITE",
+        "name": "apb_register_write",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"pready acknowledges the access; pslverr reports illegal address/access/strobe.\"]",
+        "state": "[\"inten\", \"intstatus\", \"sar\", \"dar\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_WRITE: apb_write_ready",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.output_rules.apb_write_ready",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "apb_write_ready width matches SSOT value 1",
+        "apb_write_ready RTL expression implements SSOT expression 1",
+        "DUT port pready is the implementation/observation point for apb_write_ready",
+        "apb_write_ready is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.output_rules.apb_write_ready.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: name=apb_write_ready; port=pready; expr=1; width=1.",
+      "evidence_terms": [
+        "apb",
+        "apb_write_ready",
+        "pready",
+        "ready",
+        "write"
+      ],
+      "id": "RTL-0120",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.output_rules.apb_write_ready",
+      "ssot_context": {
+        "expr": "1",
+        "name": "apb_write_ready",
+        "port": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.output_rules.apb_write_ready"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_WRITE: apb_write_error",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.output_rules.apb_write_error",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "apb_write_error width matches SSOT value 1",
+        "apb_write_error RTL expression implements SSOT expression 1 if illegal_apb_access == 1 else 0",
+        "DUT port pslverr is the implementation/observation point for apb_write_error",
+        "apb_write_error is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.output_rules.apb_write_error.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: name=apb_write_error; port=pslverr; expr=1 if illegal_apb_access == 1 else 0; width=1.",
+      "evidence_terms": [
+        "apb",
+        "apb_write_error",
+        "illegal",
+        "illegal_apb_access",
+        "pslverr",
+        "write"
+      ],
+      "id": "RTL-0121",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.output_rules.apb_write_error",
+      "ssot_context": {
+        "expr": "1 if illegal_apb_access == 1 else 0",
+        "name": "apb_write_error",
+        "port": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.output_rules.apb_write_error"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_WRITE: inten",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.state_updates.inten",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "inten width matches SSOT value 32",
+        "inten RTL expression implements SSOT expression ((inten & (~write_mask_32)) | (pwdata & write_mask_32)) if (apb_addr_inten == 1 and illegal_apb_access == 0) else inten",
+        "inten updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.state_updates.inten.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: name=inten; expr=((inten & (~write_mask_32)) | (pwdata & write_mask_32)) if (apb_addr_inten == 1 and illegal_apb_access == 0) else inten; width=32.",
+      "evidence_terms": [
+        "addr",
+        "apb",
+        "apb_addr_inten",
+        "illegal",
+        "illegal_apb_access",
+        "inten"
+      ],
+      "id": "RTL-0122",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.state_updates.inten",
+      "ssot_context": {
+        "expr": "((inten & (~write_mask_32)) | (pwdata & write_mask_32)) if (apb_addr_inten == 1 and illegal_apb_access == 0) else inten",
+        "name": "inten",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.state_updates.inten"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_WRITE: intstatus",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.state_updates.intstatus",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "intstatus width matches SSOT value 32",
+        "intstatus RTL expression implements SSOT expression (intstatus & (~pwdata)) if (apb_addr_intstatus == 1 and illegal_apb_access == 0) else intstatus",
+        "intstatus updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.state_updates.intstatus.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: name=intstatus; expr=(intstatus & (~pwdata)) if (apb_addr_intstatus == 1 and illegal_apb_access == 0) else intstatus; width=32.",
+      "evidence_terms": [
+        "addr",
+        "apb",
+        "apb_addr_intstatus",
+        "illegal",
+        "illegal_apb_access",
+        "intstatus"
+      ],
+      "id": "RTL-0123",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.state_updates.intstatus",
+      "ssot_context": {
+        "expr": "(intstatus & (~pwdata)) if (apb_addr_intstatus == 1 and illegal_apb_access == 0) else intstatus",
+        "name": "intstatus",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.state_updates.intstatus"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_WRITE: sar",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.state_updates.sar",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "sar width matches SSOT value 32",
+        "sar RTL expression implements SSOT expression pwdata if (apb_addr_sar == 1 and channel_idle == 1 and illegal_apb_access == 0) else sar",
+        "sar updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.state_updates.sar.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: name=sar; expr=pwdata if (apb_addr_sar == 1 and channel_idle == 1 and illegal_apb_access == 0) else sar; width=32.",
+      "evidence_terms": [
+        "addr",
+        "apb",
+        "apb_addr_sar",
+        "channel",
+        "channel_idle",
+        "idle",
+        "illegal",
+        "illegal_apb_access",
+        "sar"
+      ],
+      "id": "RTL-0124",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.state_updates.sar",
+      "ssot_context": {
+        "expr": "pwdata if (apb_addr_sar == 1 and channel_idle == 1 and illegal_apb_access == 0) else sar",
+        "name": "sar",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.state_updates.sar"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_WRITE: dar",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.state_updates.dar",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "dar width matches SSOT value 32",
+        "dar RTL expression implements SSOT expression pwdata if (apb_addr_dar == 1 and channel_idle == 1 and illegal_apb_access == 0) else dar",
+        "dar updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.state_updates.dar.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: name=dar; expr=pwdata if (apb_addr_dar == 1 and channel_idle == 1 and illegal_apb_access == 0) else dar; width=32.",
+      "evidence_terms": [
+        "addr",
+        "apb",
+        "apb_addr_dar",
+        "channel",
+        "channel_idle",
+        "dar",
+        "idle",
+        "illegal",
+        "illegal_apb_access"
+      ],
+      "id": "RTL-0125",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.state_updates.dar",
+      "ssot_context": {
+        "expr": "pwdata if (apb_addr_dar == 1 and channel_idle == 1 and illegal_apb_access == 0) else dar",
+        "name": "dar",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.state_updates.dar"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_WRITE: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for apb_register_write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.side_effects.side_effect_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=[\"pready\", \"pslverr\"]; signal=[\"Writable register fields update only through declared write_effect rules; reserved fields ignore writes.\"]; state=[\"inten\", \"intstatus\", \"sar\", \"dar\"].",
+      "evidence_terms": [
+        "Writable",
+        "dar",
+        "inten",
+        "intstatus",
+        "pready",
+        "pslverr",
+        "sar",
+        "write",
+        "write_effect"
+      ],
+      "id": "RTL-0126",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_APB_WRITE",
+        "name": "apb_register_write",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"Writable register fields update only through declared write_effect rules; reserved fields ignore writes.\"]",
+        "state": "[\"inten\", \"intstatus\", \"sar\", \"dar\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_APB_WRITE: ERR_APB_ILLEGAL",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE.error_cases.ERR_APB_ILLEGAL",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for apb_register_write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE.error_cases.ERR_APB_ILLEGAL.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.\nSSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=[\"pready\", \"pslverr\"]; signal=[{\"condition\": \"illegal_apb_access == 1\", \"id\": \"ERR_APB_ILLEGAL\", \"result\": \"pslverr asserted for the completing acc...; state=[\"inten\", \"intstatus\", \"sar\", \"dar\"].",
+      "evidence_terms": [
+        "APB",
+        "DMA",
+        "ERR",
+        "ERR_APB_ILLEGAL",
+        "ILLEGAL",
+        "apb",
+        "dar",
+        "illegal",
+        "illegal_apb_access",
+        "inten",
+        "intstatus",
+        "pready",
+        "pslverr",
+        "sar"
+      ],
+      "id": "RTL-0127",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE.error_cases.ERR_APB_ILLEGAL",
+      "ssot_context": {
+        "id": "FM_APB_WRITE",
+        "name": "apb_register_write",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[{\"condition\": \"illegal_apb_access == 1\", \"id\": \"ERR_APB_ILLEGAL\", \"result\": \"pslverr asserted for the completing acc...",
+        "state": "[\"inten\", \"intstatus\", \"sar\", \"dar\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE.error_cases.ERR_APB_ILLEGAL"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_APB_READ",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_READ.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.\nSSOT item context: id=FM_APB_READ; name=apb_register_read.",
+      "evidence_terms": [],
+      "id": "RTL-0128",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ",
+      "ssot_context": {
+        "id": "FM_APB_READ",
+        "name": "apb_register_read"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APB_READ: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ.preconditions.precondition_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.\nSSOT item context: value=dmacresetn == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0129",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "dmacresetn == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APB_READ: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ.preconditions.precondition_1.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.\nSSOT item context: value=psel == 1 and penable == 1 and pwrite == 0 and pready == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0130",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "psel == 1 and penable == 1 and pwrite == 0 and pready == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ.preconditions.precondition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_APB_READ: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ.inputs.input_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"pready\", \"pslverr\", \"prdata\"] is the implementation/observation point for apb_register_read"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ.inputs.input_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.\nSSOT item context: id=FM_APB_READ; name=apb_register_read; port=[\"pready\", \"pslverr\", \"prdata\"]; signal=[\"paddr\"]; state=[\"status\"].",
+      "evidence_terms": [
+        "paddr",
+        "prdata",
+        "pready",
+        "pslverr",
+        "status"
+      ],
+      "id": "RTL-0131",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_APB_READ",
+        "name": "apb_register_read",
+        "port": "[\"pready\", \"pslverr\", \"prdata\"]",
+        "signal": "[\"paddr\"]",
+        "state": "[\"status\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_READ: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"pready\", \"pslverr\", \"prdata\"] is the implementation/observation point for apb_register_read"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ.outputs.output_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.\nSSOT item context: id=FM_APB_READ; name=apb_register_read; port=[\"pready\", \"pslverr\", \"prdata\"]; signal=[\"prdata returns the decoded register value with reserved bits forced to zero.\"]; state=[\"status\"].",
+      "evidence_terms": [
+        "prdata",
+        "pready",
+        "pslverr",
+        "status"
+      ],
+      "id": "RTL-0132",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_APB_READ",
+        "name": "apb_register_read",
+        "port": "[\"pready\", \"pslverr\", \"prdata\"]",
+        "signal": "[\"prdata returns the decoded register value with reserved bits forced to zero.\"]",
+        "state": "[\"status\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_READ: apb_read_ready",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ.output_rules.apb_read_ready",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "apb_read_ready width matches SSOT value 1",
+        "apb_read_ready RTL expression implements SSOT expression 1",
+        "DUT port pready is the implementation/observation point for apb_read_ready",
+        "apb_read_ready is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ.output_rules.apb_read_ready.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.\nSSOT item context: name=apb_read_ready; port=pready; expr=1; width=1.",
+      "evidence_terms": [
+        "apb",
+        "apb_read_ready",
+        "pready",
+        "read",
+        "ready"
+      ],
+      "id": "RTL-0133",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ.output_rules.apb_read_ready",
+      "ssot_context": {
+        "expr": "1",
+        "name": "apb_read_ready",
+        "port": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ.output_rules.apb_read_ready"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_READ: apb_read_error",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ.output_rules.apb_read_error",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "apb_read_error width matches SSOT value 1",
+        "apb_read_error RTL expression implements SSOT expression 1 if illegal_apb_access == 1 else 0",
+        "DUT port pslverr is the implementation/observation point for apb_read_error",
+        "apb_read_error is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ.output_rules.apb_read_error.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.\nSSOT item context: name=apb_read_error; port=pslverr; expr=1 if illegal_apb_access == 1 else 0; width=1.",
+      "evidence_terms": [
+        "apb",
+        "apb_read_error",
+        "illegal",
+        "illegal_apb_access",
+        "pslverr",
+        "read"
+      ],
+      "id": "RTL-0134",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ.output_rules.apb_read_error",
+      "ssot_context": {
+        "expr": "1 if illegal_apb_access == 1 else 0",
+        "name": "apb_read_error",
+        "port": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ.output_rules.apb_read_error"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_READ: apb_read_data",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ.output_rules.apb_read_data",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "apb_read_data width matches SSOT value 32",
+        "apb_read_data RTL expression implements SSOT expression 0 if illegal_apb_access == 1 else (register_read_value & 0xFFFFFFFF)",
+        "DUT port prdata is the implementation/observation point for apb_read_data",
+        "apb_read_data is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ.output_rules.apb_read_data.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.\nSSOT item context: name=apb_read_data; port=prdata; expr=0 if illegal_apb_access == 1 else (register_read_value & 0xFFFFFFFF); width=32.",
+      "evidence_terms": [
+        "apb",
+        "apb_read_data",
+        "data",
+        "illegal",
+        "illegal_apb_access",
+        "prdata",
+        "read",
+        "register",
+        "register_read_value",
+        "value",
+        "xFFFFFFFF"
+      ],
+      "id": "RTL-0135",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ.output_rules.apb_read_data",
+      "ssot_context": {
+        "expr": "0 if illegal_apb_access == 1 else (register_read_value & 0xFFFFFFFF)",
+        "name": "apb_read_data",
+        "port": "prdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ.output_rules.apb_read_data"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_READ: status",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ.state_updates.status",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "status width matches SSOT value 4",
+        "status RTL expression implements SSOT expression status",
+        "status updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ.state_updates.status.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.\nSSOT item context: name=status; expr=status; width=4.",
+      "evidence_terms": [
+        "status"
+      ],
+      "id": "RTL-0136",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ.state_updates.status",
+      "ssot_context": {
+        "expr": "status",
+        "name": "status",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ.state_updates.status"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_READ: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330realverify_regs.sv",
+        "DUT port [\"pready\", \"pslverr\", \"prdata\"] is the implementation/observation point for apb_register_read"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ.side_effects.side_effect_0.\nOwner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.\nSSOT item context: id=FM_APB_READ; name=apb_register_read; port=[\"pready\", \"pslverr\", \"prdata\"]; signal=[\"APB reads do not alter architectural state.\"]; state=[\"status\"].",
+      "evidence_terms": [
+        "APB",
+        "prdata",
+        "pready",
+        "pslverr",
+        "status"
+      ],
+      "id": "RTL-0137",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_APB_READ",
+        "name": "apb_register_read",
+        "port": "[\"pready\", \"pslverr\", \"prdata\"]",
+        "signal": "[\"APB reads do not alter architectural state.\"]",
+        "state": "[\"status\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b7f6b796d440c4cbbe6eee1a6a6f5fafdb0e14d478c2a39e323259db96338d34",
+  "top": "pl330realverify",
+  "type": "rtl_authoring_packet"
+}

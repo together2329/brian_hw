@@ -1,0 +1,223 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 68,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330realverify_axi_rd.sv, rtl/pl330realverify_axi_wr.sv",
+      "name": "pl330realverify_axi_rd/pl330realverify_axi_wr",
+      "refs": [],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330realverify_regs.sv",
+        "name": "pl330realverify_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_channel_fsm.sv",
+        "name": "pl330realverify_channel_fsm",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_rd.sv",
+        "name": "pl330realverify_axi_rd",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_wr.sv",
+        "name": "pl330realverify_axi_wr",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_datapath.sv",
+        "name": "pl330realverify_datapath",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_event_irq.sv",
+        "name": "pl330realverify_event_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify.sv",
+        "name": "pl330realverify",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Production-quality PL330-like DMA verification target with APB register block, channel FSM, AXI read/write adapters, datapath, and event/interrupt block.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 12,
+      "min_logic_modules": 6,
+      "min_modules": 7,
+      "min_procedural_blocks": 14,
+      "min_source_files": 7,
+      "min_state_updates": 20,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330realverify",
+  "kind": "module",
+  "owner_file": "rtl/pl330realverify_axi_rd.sv, rtl/pl330realverify_axi_wr.sv",
+  "owner_module": "pl330realverify_axi_rd/pl330realverify_axi_wr",
+  "packet_id": "module__pl330realverify_axi_rd_pl330realverify_axi_wr",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 1,
+    "required_count": 1,
+    "source_refs": [
+      "workflow_todos.rtl-gen[3]"
+    ],
+    "status_counts": {
+      "planned": 1
+    },
+    "task_count": 1
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement AXI read/write single-outstanding protocol adapters",
+      "criteria": [
+        "AR/AW/W payloads remain stable while valid is asserted and ready is low",
+        "R data captures only on rvalid and rready with rresp OKAY",
+        "B response consumes only on bvalid and bready",
+        "Non-OKAY rresp and bresp produce the declared ERR_AXI_RD/ERR_AXI_WR fault indications",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[3]",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv, rtl/pl330realverify_axi_wr.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules.AXI_AR, cycle_model.handshake_rules.AXI_AW, cycle_model.handshake_rules.AXI_B, cycle_model.handshake_rules.AXI_R, cycle_model.handshake_rules.AXI_W, error_handling.error_sources, io_list.interfaces.axi_rd_master, io_list.interfaces.axi_wr_master"
+      ],
+      "detail": "Implement pl330realverify_axi_rd and pl330realverify_axi_wr with stable payload hold-until-ready behavior, response classification, single-outstanding policy, and ready/valid timing from cycle_model.handshake_rules.\nSSOT ref: workflow_todos.rtl-gen[3].\nOwner: pl330realverify_axi_rd/pl330realverify_axi_wr in rtl/pl330realverify_axi_rd.sv, rtl/pl330realverify_axi_wr.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_AXI_ADAPTERS.",
+      "evidence_terms": [
+        "ADAPTERS",
+        "AR",
+        "AW",
+        "AXI",
+        "AXI_AR",
+        "AXI_AW",
+        "AXI_B",
+        "AXI_R",
+        "AXI_W",
+        "RTL_TODO_AXI_ADAPTERS",
+        "TODO",
+        "axi",
+        "axi_rd_master",
+        "axi_wr_master",
+        "error_handling",
+        "error_sources"
+      ],
+      "id": "RTL-0030",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv, rtl/pl330realverify_axi_wr.sv",
+      "owner_module": "pl330realverify_axi_rd/pl330realverify_axi_wr",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[3]",
+      "ssot_context": {
+        "id": "RTL_TODO_AXI_ADAPTERS"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.AXI_AR",
+        "cycle_model.handshake_rules.AXI_AW",
+        "cycle_model.handshake_rules.AXI_B",
+        "cycle_model.handshake_rules.AXI_R",
+        "cycle_model.handshake_rules.AXI_W",
+        "error_handling.error_sources",
+        "io_list.interfaces.axi_rd_master",
+        "io_list.interfaces.axi_wr_master",
+        "workflow_todos.rtl-gen[3]"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_AXI_ADAPTERS",
+        "source_refs": [
+          "cycle_model.handshake_rules.AXI_AR",
+          "cycle_model.handshake_rules.AXI_AW",
+          "cycle_model.handshake_rules.AXI_B",
+          "cycle_model.handshake_rules.AXI_R",
+          "cycle_model.handshake_rules.AXI_W",
+          "error_handling.error_sources",
+          "io_list.interfaces.axi_rd_master",
+          "io_list.interfaces.axi_wr_master"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    }
+  ],
+  "todo_plan_sha256": "b7f6b796d440c4cbbe6eee1a6a6f5fafdb0e14d478c2a39e323259db96338d34",
+  "top": "pl330realverify",
+  "type": "rtl_authoring_packet"
+}

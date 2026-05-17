@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "pl330realverify",
+  "source": "model/functional_model.py",
+  "passed": false,
+  "self_check": {
+    "passed": false,
+    "checks": 8,
+    "failed": 0,
+    "transactions": 7,
+    "transaction_results": [
+      {
+        "id": "FM_RESET",
+        "name": "reset_architecture",
+        "kind": "FM_RESET",
+        "passed": true,
+        "result": {
+          "kind": "reset",
+          "resp": 0,
+          "state": {
+            "sar": 0,
+            "dar": 0,
+            "loop_remaining": 0,
+            "status": 0,
+            "error_code": 0,
+            "rd_buf": 0,
+            "intstatus": 0,
+            "inten": 0,
+            "pc": 0,
+            "busy": 0,
+            "error": 0
+          }
+        }
+      },
+      {
+        "id": "FM_APB_WRITE",
+        "name": "apb_register_write",
+        "kind": "FM_APB_WRITE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_APB_WRITE",
+          "transaction_name": "apb_register_write",
+          "sample_accepted": 1,
+          "apb_write_ready": 1,
+          "pready": 1,
+          "apb_write_error": 0,
+          "pslverr": 0,
+          "state_updates": {
+            "inten": 0,
+            "intstatus": 0,
+            "sar": 0,
+            "dar": 0
+          }
+        }
+      },
+      {
+        "id": "FM_APB_READ",
+        "name": "apb_register_read",
+        "kind": "FM_APB_READ",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_APB_READ",
+          "transaction_name": "apb_register_read",
+          "sample_accepted": 1,
+          "apb_read_ready": 1,
+          "pready": 1,
+          "apb_read_error": 0,
+          "pslverr": 0,
+          "apb_read_data": 14,
+          "prdata": 14,
+          "state_updates": {
+            "status": 0
+          }
+        }
+      },
+      {
+        "id": "FM_TRANSFER",
+        "name": "single_or_multi_beat_memory_copy",
+        "kind": "FM_TRANSFER",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_TRANSFER",
+          "transaction_name": "single_or_multi_beat_memory_copy",
+          "sample_accepted": 1,
+          "write_payload": 0,
+          "wdata": 0,
+          "write_strobes": 255,
+          "wstrb": 255,
+          "irq_after_transfer": 0,
+          "dmac_irq": 0,
+          "state_updates": {
+            "rd_buf": 0,
+            "sar": 8,
+            "dar": 8,
+            "loop_remaining": 0,
+            "status": 6,
+            "error_code": 0,
+            "intstatus": 1
+          }
+        }
+      },
+      {
+        "id": "FM_WFP",
+        "name": "wait_for_peripheral_event",
+        "kind": "FM_WFP",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_WFP",
+          "transaction_name": "wait_for_peripheral_event",
+          "sample_accepted": 1,
+          "irq_during_wfp": 0,
+          "dmac_irq": 0,
+          "state_updates": {
+            "status": 2,
+            "loop_remaining": 0
+          }
+        }
+      },
+      {
+        "id": "FM_FAULT",
+        "name": "fault_completion",
+        "kind": "FM_FAULT",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_FAULT",
+          "transaction_name": "fault_completion",
+          "sample_accepted": 1,
+          "irq_after_fault": 0,
+          "dmac_irq": 0,
+          "state_updates": {
+            "status": 8,
+            "error_code": 0,
+            "intstatus": 257
+          }
+        }
+      },
+      {
+        "id": "FM_IRQ_CLEAR",
+        "name": "interrupt_write_one_to_clear",
+        "kind": "FM_IRQ_CLEAR",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_IRQ_CLEAR",
+          "transaction_name": "interrupt_write_one_to_clear",
+          "sample_accepted": 1,
+          "irq_after_w1c": 0,
+          "dmac_irq": 0,
+          "state_updates": {
+            "intstatus": 256
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 8,
+    "coverage_bins": 95,
+    "invariants_total": 5,
+    "invariants_evaluated": 4,
+    "invariants_failed": [
+      {
+        "name": "not (status == 8 and error_code == 0)",
+        "expr": "not (status == 8 and error_code == 0)"
+      }
+    ],
+    "invariants_skipped": [
+      {
+        "name": "not (write_beat_done == 1 and read_buffe",
+        "expr": "not (write_beat_done == 1 and read_buffer_valid == 0)",
+        "reason": "'unknown rule name write_beat_done'"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 5,
+    "error_cases_planned": 5
+  },
+  "decomposition_units": 13,
+  "fcov_bins": 95,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "pl330realverify/req/",
+      "pl330realverify/yaml/pl330realverify.ssot.yaml",
+      "pl330realverify/model/functional_model.py",
+      "pl330realverify/cov/fcov_plan.json",
+      "pl330realverify/yaml/pl330realverify.ssot.yaml#io_list",
+      "pl330realverify/yaml/pl330realverify.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "pl330realverify/rtl/",
+      "pl330realverify/tb/",
+      "pl330realverify/sim/",
+      "pl330realverify/vectors/",
+      "pl330realverify/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

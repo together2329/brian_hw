@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "type": "cl_functional_coverage_plan",
+  "ip": "pl330realverify",
+  "source": "pl330realverify/yaml/pl330realverify.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "cl",
+  "summary": {
+    "total_bins": 29,
+    "by_class": {
+      "protocol_handshake": 8,
+      "latency_bin": 21
+    }
+  },
+  "bins": [
+    {
+      "id": "cycle_apb_access",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "apb_access"
+    },
+    {
+      "id": "cycle_apb_read_data",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "apb_read_data"
+    },
+    {
+      "id": "cycle_axi_ar",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "description": "axi_ar"
+    },
+    {
+      "id": "cycle_axi_r",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[3]",
+      "description": "axi_r"
+    },
+    {
+      "id": "cycle_axi_aw",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[4]",
+      "description": "axi_aw"
+    },
+    {
+      "id": "cycle_axi_w",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[5]",
+      "description": "axi_w"
+    },
+    {
+      "id": "cycle_axi_b",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[6]",
+      "description": "axi_b"
+    },
+    {
+      "id": "cycle_irq_level",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[7]",
+      "description": "irq_level"
+    },
+    {
+      "id": "latency_register_read_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_read",
+      "description": "register_read latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_register_read_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_read",
+      "description": "register_read latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_register_read_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_read",
+      "description": "register_read latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_register_read_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_read",
+      "description": "register_read latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_register_write_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_write",
+      "description": "register_write latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_register_write_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_write",
+      "description": "register_write latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_register_write_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_write",
+      "description": "register_write latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_register_write_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_write",
+      "description": "register_write latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_event_release_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.event_release",
+      "description": "event_release latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_event_release_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.event_release",
+      "description": "event_release latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_event_release_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.event_release",
+      "description": "event_release latency ~mid (1 cycles)",
+      "bucket": "mid",
+      "cycles": 1
+    },
+    {
+      "id": "latency_event_release_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.event_release",
+      "description": "event_release latency == 2 cycles",
+      "bucket": "max",
+      "cycles": 2
+    },
+    {
+      "id": "latency_event_release_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.event_release",
+      "description": "event_release latency > 2 cycles",
+      "bucket": ">max",
+      "threshold": 2
+    },
+    {
+      "id": "latency_single_beat_transfer_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.single_beat_transfer",
+      "description": "single_beat_transfer latency < 5 cycles",
+      "bucket": "<min",
+      "threshold": 5
+    },
+    {
+      "id": "latency_single_beat_transfer_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.single_beat_transfer",
+      "description": "single_beat_transfer latency == 5 cycles",
+      "bucket": "min",
+      "cycles": 5
+    },
+    {
+      "id": "latency_single_beat_transfer_unbounded",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.single_beat_transfer",
+      "description": "single_beat_transfer latency unbounded (no max_cycles)",
+      "bucket": "unbounded"
+    },
+    {
+      "id": "latency_interrupt_assertion_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.interrupt_assertion",
+      "description": "interrupt_assertion latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_interrupt_assertion_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.interrupt_assertion",
+      "description": "interrupt_assertion latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_interrupt_assertion_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.interrupt_assertion",
+      "description": "interrupt_assertion latency ~mid (1 cycles)",
+      "bucket": "mid",
+      "cycles": 1
+    },
+    {
+      "id": "latency_interrupt_assertion_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.interrupt_assertion",
+      "description": "interrupt_assertion latency == 2 cycles",
+      "bucket": "max",
+      "cycles": 2
+    },
+    {
+      "id": "latency_interrupt_assertion_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.interrupt_assertion",
+      "description": "interrupt_assertion latency > 2 cycles",
+      "bucket": ">max",
+      "threshold": 2
+    }
+  ]
+}

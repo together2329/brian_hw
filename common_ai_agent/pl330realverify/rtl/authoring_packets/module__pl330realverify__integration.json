@@ -1,0 +1,2620 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 68,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 3,
+      "key": "integration",
+      "module_task_count": 71,
+      "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "integration",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330realverify.sv",
+      "name": "pl330realverify",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330realverify_regs.sv",
+        "name": "pl330realverify_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_channel_fsm.sv",
+        "name": "pl330realverify_channel_fsm",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_rd.sv",
+        "name": "pl330realverify_axi_rd",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_wr.sv",
+        "name": "pl330realverify_axi_wr",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_datapath.sv",
+        "name": "pl330realverify_datapath",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_event_irq.sv",
+        "name": "pl330realverify_event_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify.sv",
+        "name": "pl330realverify",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[0].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[0].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "paddr_i",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "sub_modules[0].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "psel_i",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "sub_modules[0].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "penable_i",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "sub_modules[0].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwrite_i",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "sub_modules[0].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwdata_i",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "sub_modules[0].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pstrb_i",
+        "signal": "pstrb",
+        "signal_terms": [
+          "pstrb"
+        ],
+        "source_ref": "sub_modules[0].connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "prdata_o",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "sub_modules[0].connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pready_o",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "sub_modules[0].connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pslverr_o",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "sub_modules[0].connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "irq_o",
+        "signal": "dmac_irq",
+        "signal_terms": [
+          "dmac_irq"
+        ],
+        "source_ref": "sub_modules[0].connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[1].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[1].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "start_cmd_i",
+        "signal": "start_cmd",
+        "signal_terms": [
+          "start_cmd"
+        ],
+        "source_ref": "sub_modules[1].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "halt_cmd_i",
+        "signal": "halt_cmd",
+        "signal_terms": [
+          "halt_cmd"
+        ],
+        "source_ref": "sub_modules[1].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "selected_event_i",
+        "signal": "selected_event",
+        "signal_terms": [
+          "selected_event"
+        ],
+        "source_ref": "sub_modules[1].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "state_o",
+        "signal": "channel_state",
+        "signal_terms": [
+          "channel_state"
+        ],
+        "source_ref": "sub_modules[1].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[2].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[2].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arvalid_o",
+        "signal": "arvalid",
+        "signal_terms": [
+          "arvalid"
+        ],
+        "source_ref": "sub_modules[2].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arready_i",
+        "signal": "arready",
+        "signal_terms": [
+          "arready"
+        ],
+        "source_ref": "sub_modules[2].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rvalid_i",
+        "signal": "rvalid",
+        "signal_terms": [
+          "rvalid"
+        ],
+        "source_ref": "sub_modules[2].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rready_o",
+        "signal": "rready",
+        "signal_terms": [
+          "rready"
+        ],
+        "source_ref": "sub_modules[2].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rdata_i",
+        "signal": "rdata",
+        "signal_terms": [
+          "rdata"
+        ],
+        "source_ref": "sub_modules[2].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rresp_i",
+        "signal": "rresp",
+        "signal_terms": [
+          "rresp"
+        ],
+        "source_ref": "sub_modules[2].connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[3].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[3].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "awvalid_o",
+        "signal": "awvalid",
+        "signal_terms": [
+          "awvalid"
+        ],
+        "source_ref": "sub_modules[3].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "awready_i",
+        "signal": "awready",
+        "signal_terms": [
+          "awready"
+        ],
+        "source_ref": "sub_modules[3].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "wvalid_o",
+        "signal": "wvalid",
+        "signal_terms": [
+          "wvalid"
+        ],
+        "source_ref": "sub_modules[3].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "wready_i",
+        "signal": "wready",
+        "signal_terms": [
+          "wready"
+        ],
+        "source_ref": "sub_modules[3].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "bvalid_i",
+        "signal": "bvalid",
+        "signal_terms": [
+          "bvalid"
+        ],
+        "source_ref": "sub_modules[3].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "bready_o",
+        "signal": "bready",
+        "signal_terms": [
+          "bready"
+        ],
+        "source_ref": "sub_modules[3].connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "bresp_i",
+        "signal": "bresp",
+        "signal_terms": [
+          "bresp"
+        ],
+        "source_ref": "sub_modules[3].connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[4].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[4].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "src_addr_o",
+        "signal": "araddr",
+        "signal_terms": [
+          "araddr"
+        ],
+        "source_ref": "sub_modules[4].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "dst_addr_o",
+        "signal": "awaddr",
+        "signal_terms": [
+          "awaddr"
+        ],
+        "source_ref": "sub_modules[4].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "rd_data_i",
+        "signal": "rdata",
+        "signal_terms": [
+          "rdata"
+        ],
+        "source_ref": "sub_modules[4].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "wr_data_o",
+        "signal": "wdata",
+        "signal_terms": [
+          "wdata"
+        ],
+        "source_ref": "sub_modules[4].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[5].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[5].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "peripheral_events_i",
+        "signal": "peripheral_events",
+        "signal_terms": [
+          "peripheral_events"
+        ],
+        "source_ref": "sub_modules[5].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "irq_o",
+        "signal": "dmac_irq",
+        "signal_terms": [
+          "dmac_irq"
+        ],
+        "source_ref": "sub_modules[5].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "paddr_i",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "psel_i",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "penable_i",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwrite_i",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwdata_i",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pstrb_i",
+        "signal": "pstrb",
+        "signal_terms": [
+          "pstrb"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "prdata_o",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pready_o",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pslverr_o",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "state_o",
+        "signal": "channel_state",
+        "signal_terms": [
+          "channel_state"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arvalid_o",
+        "signal": "arvalid",
+        "signal_terms": [
+          "arvalid"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arready_i",
+        "signal": "arready",
+        "signal_terms": [
+          "arready"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rvalid_i",
+        "signal": "rvalid",
+        "signal_terms": [
+          "rvalid"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rready_o",
+        "signal": "rready",
+        "signal_terms": [
+          "rready"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "awvalid_o",
+        "signal": "awvalid",
+        "signal_terms": [
+          "awvalid"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "wvalid_o",
+        "signal": "wvalid",
+        "signal_terms": [
+          "wvalid"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "bready_o",
+        "signal": "bready",
+        "signal_terms": [
+          "bready"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "rd_data_i",
+        "signal": "rdata",
+        "signal_terms": [
+          "rdata"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "wr_data_o",
+        "signal": "wdata",
+        "signal_terms": [
+          "wdata"
+        ],
+        "source_ref": "integration.connections[20]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "peripheral_events_i",
+        "signal": "peripheral_events",
+        "signal_terms": [
+          "peripheral_events"
+        ],
+        "source_ref": "integration.connections[21]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "irq_o",
+        "signal": "dmac_irq",
+        "signal_terms": [
+          "dmac_irq"
+        ],
+        "source_ref": "integration.connections[22]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "dmaclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "dmaclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "dmacresetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "dmacresetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "12"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pstrb",
+          "pstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pstrb",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "arid",
+          "axi_rd_master_arid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arid",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "6"
+      },
+      {
+        "aliases": [
+          "araddr",
+          "axi_rd_master_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "araddr",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "arlen",
+          "axi_rd_master_arlen"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arlen",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "arsize",
+          "axi_rd_master_arsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arsize",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "arburst",
+          "axi_rd_master_arburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arburst",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "arcache",
+          "axi_rd_master_arcache"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arcache",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "arprot",
+          "axi_rd_master_arprot"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arprot",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "arvalid",
+          "axi_rd_master_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arvalid",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "arready",
+          "axi_rd_master_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "arready",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rid",
+          "rid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rid",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "6"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rdata",
+          "rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rdata",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "64"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rresp",
+          "rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rresp",
+        "source_ref": "io_list.interfaces[1].ports[11]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rlast",
+          "rlast"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rlast",
+        "source_ref": "io_list.interfaces[1].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rvalid",
+          "rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rvalid",
+        "source_ref": "io_list.interfaces[1].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rready",
+          "rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "rready",
+        "source_ref": "io_list.interfaces[1].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "awid",
+          "axi_wr_master_awid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awid",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "6"
+      },
+      {
+        "aliases": [
+          "awaddr",
+          "axi_wr_master_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awaddr",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "awlen",
+          "axi_wr_master_awlen"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awlen",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "awsize",
+          "axi_wr_master_awsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awsize",
+        "source_ref": "io_list.interfaces[2].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "awburst",
+          "axi_wr_master_awburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awburst",
+        "source_ref": "io_list.interfaces[2].ports[4]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "awcache",
+          "axi_wr_master_awcache"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awcache",
+        "source_ref": "io_list.interfaces[2].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "awprot",
+          "axi_wr_master_awprot"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awprot",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "awvalid",
+          "axi_wr_master_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awvalid",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "awready",
+          "axi_wr_master_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "awready",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_wdata",
+          "wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wdata",
+        "source_ref": "io_list.interfaces[2].ports[9]",
+        "width": "64"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_wstrb",
+          "wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wstrb",
+        "source_ref": "io_list.interfaces[2].ports[10]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_wlast",
+          "wlast"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wlast",
+        "source_ref": "io_list.interfaces[2].ports[11]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_wvalid",
+          "wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wvalid",
+        "source_ref": "io_list.interfaces[2].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_wready",
+          "wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wready",
+        "source_ref": "io_list.interfaces[2].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_bid",
+          "bid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "bid",
+        "source_ref": "io_list.interfaces[2].ports[14]",
+        "width": "6"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_bresp",
+          "bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "bresp",
+        "source_ref": "io_list.interfaces[2].ports[15]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_bvalid",
+          "bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "bvalid",
+        "source_ref": "io_list.interfaces[2].ports[16]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_bready",
+          "bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "bready",
+        "source_ref": "io_list.interfaces[2].ports[17]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "event_inputs_peripheral_events",
+          "peripheral_events"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "peripheral_events",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "dmac_irq",
+          "interrupt_output_dmac_irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "dmac_irq",
+        "source_ref": "io_list.interfaces[4].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": {
+      "basis": "Production-quality PL330-like DMA verification target with APB register block, channel FSM, AXI read/write adapters, datapath, and event/interrupt block.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 12,
+      "min_logic_modules": 6,
+      "min_modules": 7,
+      "min_procedural_blocks": 14,
+      "min_source_files": 7,
+      "min_state_updates": 20,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 27,
+    "open_required_count": 27,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330realverify",
+  "kind": "module",
+  "owner_file": "rtl/pl330realverify.sv",
+  "owner_module": "pl330realverify",
+  "packet_id": "module__pl330realverify__integration",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "integration.connections": 23,
+      "integration.dependencies": 4
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 3,
+      "key": "integration",
+      "module_task_count": 71,
+      "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "integration",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 27,
+    "required_count": 27,
+    "source_refs": [
+      "integration.dependencies.external_modules",
+      "integration.dependencies.external_clocks",
+      "integration.dependencies.external_resets",
+      "integration.dependencies.external_protocols",
+      "integration.connections.dmaclk",
+      "integration.connections.dmacresetn",
+      "integration.connections.paddr",
+      "integration.connections.psel",
+      "integration.connections.penable",
+      "integration.connections.pwrite",
+      "integration.connections.pwdata",
+      "integration.connections.pstrb",
+      "integration.connections.prdata",
+      "integration.connections.pready",
+      "integration.connections.pslverr",
+      "integration.connections.channel_state",
+      "integration.connections.arvalid",
+      "integration.connections.arready",
+      "integration.connections.rvalid",
+      "integration.connections.rready",
+      "integration.connections.awvalid",
+      "integration.connections.wvalid",
+      "integration.connections.bready",
+      "integration.connections.rdata"
+    ],
+    "status_counts": {
+      "planned": 27
+    },
+    "task_count": 27
+  },
+  "tasks": [
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_modules",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_modules",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_modules.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: name=external_modules.",
+      "evidence_terms": [],
+      "id": "RTL-0336",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_modules",
+      "ssot_context": {
+        "name": "external_modules"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_modules"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_clocks",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_clocks",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_clocks.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: name=external_clocks; value=[\"dmaclk\"].",
+      "evidence_terms": [],
+      "id": "RTL-0337",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_clocks",
+      "ssot_context": {
+        "name": "external_clocks",
+        "value": "[\"dmaclk\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_clocks"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_resets",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_resets",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_resets.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: name=external_resets; value=[\"dmacresetn\"].",
+      "evidence_terms": [],
+      "id": "RTL-0338",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_resets",
+      "ssot_context": {
+        "name": "external_resets",
+        "value": "[\"dmacresetn\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_resets"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_protocols",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_protocols",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_protocols.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: name=external_protocols; value=[\"APB4\", \"AXI4\"].",
+      "evidence_terms": [],
+      "id": "RTL-0339",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_protocols",
+      "ssot_context": {
+        "name": "external_protocols",
+        "value": "[\"APB4\", \"AXI4\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_protocols"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dmaclk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dmaclk",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port clk_i is the implementation/observation point for clk_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dmaclk.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=clk_i; signal=dmaclk.",
+      "evidence_terms": [
+        "clk",
+        "clk_i",
+        "dmaclk"
+      ],
+      "id": "RTL-0340",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dmaclk",
+      "ssot_context": {
+        "port": "clk_i",
+        "signal": "dmaclk"
+      },
+      "ssot_refs": [
+        "integration.connections.dmaclk"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dmacresetn",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dmacresetn",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port rst_ni is the implementation/observation point for rst_ni"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dmacresetn.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=rst_ni; signal=dmacresetn.",
+      "evidence_terms": [
+        "dmacresetn",
+        "ni",
+        "rst",
+        "rst_ni"
+      ],
+      "id": "RTL-0341",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dmacresetn",
+      "ssot_context": {
+        "port": "rst_ni",
+        "signal": "dmacresetn"
+      },
+      "ssot_refs": [
+        "integration.connections.dmacresetn"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item paddr",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.paddr",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port paddr_i is the implementation/observation point for paddr_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.paddr.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=paddr_i; signal=paddr.",
+      "evidence_terms": [
+        "paddr",
+        "paddr_i"
+      ],
+      "id": "RTL-0342",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.paddr",
+      "ssot_context": {
+        "port": "paddr_i",
+        "signal": "paddr"
+      },
+      "ssot_refs": [
+        "integration.connections.paddr"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item psel",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.psel",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port psel_i is the implementation/observation point for psel_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.psel.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=psel_i; signal=psel.",
+      "evidence_terms": [
+        "psel",
+        "psel_i"
+      ],
+      "id": "RTL-0343",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.psel",
+      "ssot_context": {
+        "port": "psel_i",
+        "signal": "psel"
+      },
+      "ssot_refs": [
+        "integration.connections.psel"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item penable",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.penable",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port penable_i is the implementation/observation point for penable_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.penable.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=penable_i; signal=penable.",
+      "evidence_terms": [
+        "penable",
+        "penable_i"
+      ],
+      "id": "RTL-0344",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.penable",
+      "ssot_context": {
+        "port": "penable_i",
+        "signal": "penable"
+      },
+      "ssot_refs": [
+        "integration.connections.penable"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pwrite",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pwrite",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port pwrite_i is the implementation/observation point for pwrite_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pwrite.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=pwrite_i; signal=pwrite.",
+      "evidence_terms": [
+        "pwrite",
+        "pwrite_i"
+      ],
+      "id": "RTL-0345",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pwrite",
+      "ssot_context": {
+        "port": "pwrite_i",
+        "signal": "pwrite"
+      },
+      "ssot_refs": [
+        "integration.connections.pwrite"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pwdata",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pwdata",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port pwdata_i is the implementation/observation point for pwdata_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pwdata.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=pwdata_i; signal=pwdata.",
+      "evidence_terms": [
+        "pwdata",
+        "pwdata_i"
+      ],
+      "id": "RTL-0346",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pwdata",
+      "ssot_context": {
+        "port": "pwdata_i",
+        "signal": "pwdata"
+      },
+      "ssot_refs": [
+        "integration.connections.pwdata"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pstrb",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pstrb",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port pstrb_i is the implementation/observation point for pstrb_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pstrb.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=pstrb_i; signal=pstrb.",
+      "evidence_terms": [
+        "pstrb",
+        "pstrb_i"
+      ],
+      "id": "RTL-0347",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pstrb",
+      "ssot_context": {
+        "port": "pstrb_i",
+        "signal": "pstrb"
+      },
+      "ssot_refs": [
+        "integration.connections.pstrb"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item prdata",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.prdata",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port prdata_o is the implementation/observation point for prdata_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.prdata.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=prdata_o; signal=prdata.",
+      "evidence_terms": [
+        "prdata",
+        "prdata_o"
+      ],
+      "id": "RTL-0348",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.prdata",
+      "ssot_context": {
+        "port": "prdata_o",
+        "signal": "prdata"
+      },
+      "ssot_refs": [
+        "integration.connections.prdata"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pready",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pready",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port pready_o is the implementation/observation point for pready_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pready.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=pready_o; signal=pready.",
+      "evidence_terms": [
+        "pready",
+        "pready_o"
+      ],
+      "id": "RTL-0349",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pready",
+      "ssot_context": {
+        "port": "pready_o",
+        "signal": "pready"
+      },
+      "ssot_refs": [
+        "integration.connections.pready"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pslverr",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pslverr",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port pslverr_o is the implementation/observation point for pslverr_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pslverr.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=pslverr_o; signal=pslverr.",
+      "evidence_terms": [
+        "pslverr",
+        "pslverr_o"
+      ],
+      "id": "RTL-0350",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pslverr",
+      "ssot_context": {
+        "port": "pslverr_o",
+        "signal": "pslverr"
+      },
+      "ssot_refs": [
+        "integration.connections.pslverr"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item channel_state",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.channel_state",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port state_o is the implementation/observation point for state_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.channel_state.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=state_o; signal=channel_state.",
+      "evidence_terms": [
+        "channel",
+        "channel_state",
+        "state_o"
+      ],
+      "id": "RTL-0351",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.channel_state",
+      "ssot_context": {
+        "port": "state_o",
+        "signal": "channel_state"
+      },
+      "ssot_refs": [
+        "integration.connections.channel_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item arvalid",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.arvalid",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port arvalid_o is the implementation/observation point for arvalid_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.arvalid.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=arvalid_o; signal=arvalid.",
+      "evidence_terms": [
+        "arvalid",
+        "arvalid_o"
+      ],
+      "id": "RTL-0352",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.arvalid",
+      "ssot_context": {
+        "port": "arvalid_o",
+        "signal": "arvalid"
+      },
+      "ssot_refs": [
+        "integration.connections.arvalid"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item arready",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.arready",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port arready_i is the implementation/observation point for arready_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.arready.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=arready_i; signal=arready.",
+      "evidence_terms": [
+        "arready",
+        "arready_i"
+      ],
+      "id": "RTL-0353",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.arready",
+      "ssot_context": {
+        "port": "arready_i",
+        "signal": "arready"
+      },
+      "ssot_refs": [
+        "integration.connections.arready"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item rvalid",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.rvalid",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port rvalid_i is the implementation/observation point for rvalid_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.rvalid.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=rvalid_i; signal=rvalid.",
+      "evidence_terms": [
+        "rvalid",
+        "rvalid_i"
+      ],
+      "id": "RTL-0354",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.rvalid",
+      "ssot_context": {
+        "port": "rvalid_i",
+        "signal": "rvalid"
+      },
+      "ssot_refs": [
+        "integration.connections.rvalid"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item rready",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.rready",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port rready_o is the implementation/observation point for rready_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.rready.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=rready_o; signal=rready.",
+      "evidence_terms": [
+        "rready",
+        "rready_o"
+      ],
+      "id": "RTL-0355",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.rready",
+      "ssot_context": {
+        "port": "rready_o",
+        "signal": "rready"
+      },
+      "ssot_refs": [
+        "integration.connections.rready"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item awvalid",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.awvalid",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port awvalid_o is the implementation/observation point for awvalid_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.awvalid.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=awvalid_o; signal=awvalid.",
+      "evidence_terms": [
+        "awvalid",
+        "awvalid_o"
+      ],
+      "id": "RTL-0356",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.awvalid",
+      "ssot_context": {
+        "port": "awvalid_o",
+        "signal": "awvalid"
+      },
+      "ssot_refs": [
+        "integration.connections.awvalid"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item wvalid",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.wvalid",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port wvalid_o is the implementation/observation point for wvalid_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.wvalid.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=wvalid_o; signal=wvalid.",
+      "evidence_terms": [
+        "wvalid",
+        "wvalid_o"
+      ],
+      "id": "RTL-0357",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.wvalid",
+      "ssot_context": {
+        "port": "wvalid_o",
+        "signal": "wvalid"
+      },
+      "ssot_refs": [
+        "integration.connections.wvalid"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item bready",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.bready",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port bready_o is the implementation/observation point for bready_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.bready.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=bready_o; signal=bready.",
+      "evidence_terms": [
+        "bready",
+        "bready_o"
+      ],
+      "id": "RTL-0358",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.bready",
+      "ssot_context": {
+        "port": "bready_o",
+        "signal": "bready"
+      },
+      "ssot_refs": [
+        "integration.connections.bready"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item rdata",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.rdata",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port rd_data_i is the implementation/observation point for rd_data_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.rdata.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=rd_data_i; signal=rdata.",
+      "evidence_terms": [
+        "data",
+        "rd",
+        "rd_data_i",
+        "rdata"
+      ],
+      "id": "RTL-0359",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.rdata",
+      "ssot_context": {
+        "port": "rd_data_i",
+        "signal": "rdata"
+      },
+      "ssot_refs": [
+        "integration.connections.rdata"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item wdata",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.wdata",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port wr_data_o is the implementation/observation point for wr_data_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.wdata.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=wr_data_o; signal=wdata.",
+      "evidence_terms": [
+        "data",
+        "wdata",
+        "wr",
+        "wr_data_o"
+      ],
+      "id": "RTL-0360",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.wdata",
+      "ssot_context": {
+        "port": "wr_data_o",
+        "signal": "wdata"
+      },
+      "ssot_refs": [
+        "integration.connections.wdata"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item peripheral_events",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.peripheral_events",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port peripheral_events_i is the implementation/observation point for peripheral_events_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.peripheral_events.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=peripheral_events_i; signal=peripheral_events.",
+      "evidence_terms": [
+        "peripheral",
+        "peripheral_events",
+        "peripheral_events_i"
+      ],
+      "id": "RTL-0361",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.peripheral_events",
+      "ssot_context": {
+        "port": "peripheral_events_i",
+        "signal": "peripheral_events"
+      },
+      "ssot_refs": [
+        "integration.connections.peripheral_events"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dmac_irq",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dmac_irq",
+        "Primary implementation evidence is in rtl/pl330realverify.sv",
+        "DUT port irq_o is the implementation/observation point for irq_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dmac_irq.\nOwner: pl330realverify in rtl/pl330realverify.sv via integration.\nSSOT item context: port=irq_o; signal=dmac_irq.",
+      "evidence_terms": [
+        "dmac",
+        "dmac_irq",
+        "irq",
+        "irq_o"
+      ],
+      "id": "RTL-0362",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dmac_irq",
+      "ssot_context": {
+        "port": "irq_o",
+        "signal": "dmac_irq"
+      },
+      "ssot_refs": [
+        "integration.connections.dmac_irq"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b7f6b796d440c4cbbe6eee1a6a6f5fafdb0e14d478c2a39e323259db96338d34",
+  "top": "pl330realverify",
+  "type": "rtl_authoring_packet"
+}

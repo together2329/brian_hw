@@ -1,0 +1,2456 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 68,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model",
+      "module_task_count": 104,
+      "rule": "Owner module pl330realverify_channel_fsm is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330realverify_channel_fsm.sv",
+      "name": "pl330realverify_channel_fsm",
+      "refs": [
+        "cycle_model",
+        "cycle_model.backpressure",
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "decomposition.units.channel_control",
+        "fsm",
+        "fsm.channel_fsm",
+        "function_model",
+        "function_model.transactions.FM_FAULT",
+        "function_model.transactions.FM_TRANSFER",
+        "function_model.transactions.FM_WFP"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330realverify_regs.sv",
+        "name": "pl330realverify_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_channel_fsm.sv",
+        "name": "pl330realverify_channel_fsm",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_rd.sv",
+        "name": "pl330realverify_axi_rd",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_wr.sv",
+        "name": "pl330realverify_axi_wr",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_datapath.sv",
+        "name": "pl330realverify_datapath",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_event_irq.sv",
+        "name": "pl330realverify_event_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify.sv",
+        "name": "pl330realverify",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[1].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[1].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "start_cmd_i",
+        "signal": "start_cmd",
+        "signal_terms": [
+          "start_cmd"
+        ],
+        "source_ref": "sub_modules[1].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "halt_cmd_i",
+        "signal": "halt_cmd",
+        "signal_terms": [
+          "halt_cmd"
+        ],
+        "source_ref": "sub_modules[1].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "selected_event_i",
+        "signal": "selected_event",
+        "signal_terms": [
+          "selected_event"
+        ],
+        "source_ref": "sub_modules[1].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "state_o",
+        "signal": "channel_state",
+        "signal_terms": [
+          "channel_state"
+        ],
+        "source_ref": "sub_modules[1].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "state_o",
+        "signal": "channel_state",
+        "signal_terms": [
+          "channel_state"
+        ],
+        "source_ref": "integration.connections[11]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Production-quality PL330-like DMA verification target with APB register block, channel FSM, AXI read/write adapters, datapath, and event/interrupt block.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 12,
+      "min_logic_modules": 6,
+      "min_modules": 7,
+      "min_procedural_blocks": 14,
+      "min_source_files": 7,
+      "min_state_updates": 20,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 44,
+    "open_required_count": 44,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330realverify",
+  "kind": "module",
+  "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+  "owner_module": "pl330realverify_channel_fsm",
+  "packet_id": "module__pl330realverify_channel_fsm__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 2,
+      "function_model.input": 8,
+      "function_model.invariant": 5,
+      "function_model.output": 4,
+      "function_model.output_rule": 4,
+      "function_model.precondition": 10,
+      "function_model.side_effect": 4,
+      "function_model.state_update": 5,
+      "function_model.transaction": 2
+    },
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model",
+      "module_task_count": 104,
+      "rule": "Owner module pl330realverify_channel_fsm is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 44,
+    "required_count": 44,
+    "source_refs": [
+      "function_model.transactions.FM_TRANSFER.preconditions.precondition_0",
+      "function_model.transactions.FM_TRANSFER.preconditions.precondition_1",
+      "function_model.transactions.FM_TRANSFER.preconditions.precondition_2",
+      "function_model.transactions.FM_TRANSFER.preconditions.precondition_3",
+      "function_model.transactions.FM_TRANSFER.preconditions.precondition_4",
+      "function_model.transactions.FM_TRANSFER.inputs.input_0",
+      "function_model.transactions.FM_TRANSFER.inputs.input_1",
+      "function_model.transactions.FM_TRANSFER.inputs.input_2",
+      "function_model.transactions.FM_TRANSFER.inputs.input_3",
+      "function_model.transactions.FM_TRANSFER.outputs.output_0",
+      "function_model.transactions.FM_TRANSFER.outputs.output_1",
+      "function_model.transactions.FM_TRANSFER.output_rules.write_payload",
+      "function_model.transactions.FM_TRANSFER.output_rules.write_strobes",
+      "function_model.transactions.FM_TRANSFER.output_rules.irq_after_transfer",
+      "function_model.transactions.FM_TRANSFER.side_effects.side_effect_0",
+      "function_model.transactions.FM_TRANSFER.side_effects.side_effect_1",
+      "function_model.transactions.FM_WFP",
+      "function_model.transactions.FM_WFP.preconditions.precondition_0",
+      "function_model.transactions.FM_WFP.preconditions.precondition_1",
+      "function_model.transactions.FM_WFP.preconditions.precondition_2",
+      "function_model.transactions.FM_WFP.inputs.input_0",
+      "function_model.transactions.FM_WFP.inputs.input_1",
+      "function_model.transactions.FM_WFP.outputs.output_0",
+      "function_model.transactions.FM_WFP.state_updates.status"
+    ],
+    "status_counts": {
+      "planned": 44
+    },
+    "task_count": 44
+  },
+  "tasks": [
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_TRANSFER: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.preconditions.precondition_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: value=dmacresetn == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0139",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "dmacresetn == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_TRANSFER: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.preconditions.precondition_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: value=start_cmd == 1.",
+      "evidence_terms": [
+        "cmd",
+        "start",
+        "start_cmd"
+      ],
+      "id": "RTL-0140",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "start_cmd == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.preconditions.precondition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_TRANSFER: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.preconditions.precondition_2.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: value=fault_inject == 0.",
+      "evidence_terms": [
+        "fault",
+        "fault_inject",
+        "inject"
+      ],
+      "id": "RTL-0141",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "fault_inject == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.preconditions.precondition_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_TRANSFER: precondition_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.preconditions.precondition_3",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.preconditions.precondition_3.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: value=(sar % (DATA_WIDTH // 8)) == 0.",
+      "evidence_terms": [
+        "DATA",
+        "DATA_WIDTH",
+        "WIDTH"
+      ],
+      "id": "RTL-0142",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.preconditions.precondition_3",
+      "ssot_context": {
+        "value": "(sar % (DATA_WIDTH // 8)) == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.preconditions.precondition_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_TRANSFER: precondition_4",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.preconditions.precondition_4",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.preconditions.precondition_4.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: value=(dar % (DATA_WIDTH // 8)) == 0.",
+      "evidence_terms": [
+        "DATA",
+        "DATA_WIDTH",
+        "WIDTH"
+      ],
+      "id": "RTL-0143",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.preconditions.precondition_4",
+      "ssot_context": {
+        "value": "(dar % (DATA_WIDTH // 8)) == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.preconditions.precondition_4"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_TRANSFER: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.inputs.input_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"wdata\", \"wstrb\", \"dmac_irq\"] is the implementation/observation point for single_or_multi_beat_memory_copy"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.inputs.input_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy; port=[\"wdata\", \"wstrb\", \"dmac_irq\"]; signal=[\"rdata\"]; state=[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "buf",
+        "code",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "rd",
+        "rd_buf",
+        "rdata",
+        "remaining",
+        "sar",
+        "status"
+      ],
+      "id": "RTL-0144",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_TRANSFER",
+        "name": "single_or_multi_beat_memory_copy",
+        "port": "[\"wdata\", \"wstrb\", \"dmac_irq\"]",
+        "signal": "[\"rdata\"]",
+        "state": "[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_TRANSFER: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.inputs.input_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"wdata\", \"wstrb\", \"dmac_irq\"] is the implementation/observation point for single_or_multi_beat_memory_copy"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.inputs.input_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy; port=[\"wdata\", \"wstrb\", \"dmac_irq\"]; signal=[\"rresp\"]; state=[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "buf",
+        "code",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "rd",
+        "rd_buf",
+        "remaining",
+        "rresp",
+        "sar",
+        "status"
+      ],
+      "id": "RTL-0145",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.inputs.input_1",
+      "ssot_context": {
+        "id": "FM_TRANSFER",
+        "name": "single_or_multi_beat_memory_copy",
+        "port": "[\"wdata\", \"wstrb\", \"dmac_irq\"]",
+        "signal": "[\"rresp\"]",
+        "state": "[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.inputs.input_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_TRANSFER: input_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.inputs.input_2",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"wdata\", \"wstrb\", \"dmac_irq\"] is the implementation/observation point for single_or_multi_beat_memory_copy"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.inputs.input_2.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy; port=[\"wdata\", \"wstrb\", \"dmac_irq\"]; signal=[\"bresp\"]; state=[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "bresp",
+        "buf",
+        "code",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "rd",
+        "rd_buf",
+        "remaining",
+        "sar",
+        "status"
+      ],
+      "id": "RTL-0146",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.inputs.input_2",
+      "ssot_context": {
+        "id": "FM_TRANSFER",
+        "name": "single_or_multi_beat_memory_copy",
+        "port": "[\"wdata\", \"wstrb\", \"dmac_irq\"]",
+        "signal": "[\"bresp\"]",
+        "state": "[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.inputs.input_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_TRANSFER: input_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.inputs.input_3",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"wdata\", \"wstrb\", \"dmac_irq\"] is the implementation/observation point for single_or_multi_beat_memory_copy"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.inputs.input_3.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy; port=[\"wdata\", \"wstrb\", \"dmac_irq\"]; signal=[\"loop_count\"]; state=[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "buf",
+        "code",
+        "count",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_count",
+        "loop_remaining",
+        "rd",
+        "rd_buf",
+        "remaining",
+        "sar"
+      ],
+      "id": "RTL-0147",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.inputs.input_3",
+      "ssot_context": {
+        "id": "FM_TRANSFER",
+        "name": "single_or_multi_beat_memory_copy",
+        "port": "[\"wdata\", \"wstrb\", \"dmac_irq\"]",
+        "signal": "[\"loop_count\"]",
+        "state": "[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.inputs.input_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_TRANSFER: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"wdata\", \"wstrb\", \"dmac_irq\"] is the implementation/observation point for single_or_multi_beat_memory_copy"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.outputs.output_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy; port=[\"wdata\", \"wstrb\", \"dmac_irq\"]; signal=[\"Each successful beat writes the captured read data to the destination address.\"]; state=[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "Each",
+        "buf",
+        "code",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "rd",
+        "rd_buf",
+        "remaining",
+        "sar",
+        "status"
+      ],
+      "id": "RTL-0148",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_TRANSFER",
+        "name": "single_or_multi_beat_memory_copy",
+        "port": "[\"wdata\", \"wstrb\", \"dmac_irq\"]",
+        "signal": "[\"Each successful beat writes the captured read data to the destination address.\"]",
+        "state": "[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_TRANSFER: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.outputs.output_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"wdata\", \"wstrb\", \"dmac_irq\"] is the implementation/observation point for single_or_multi_beat_memory_copy"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.outputs.output_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy; port=[\"wdata\", \"wstrb\", \"dmac_irq\"]; signal=[\"Final successful beat sets status COMPLETED and raises the channel-complete pending bit.\"]; state=[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "COMPLETED",
+        "Final",
+        "buf",
+        "code",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "rd",
+        "rd_buf",
+        "remaining",
+        "sar"
+      ],
+      "id": "RTL-0149",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.outputs.output_1",
+      "ssot_context": {
+        "id": "FM_TRANSFER",
+        "name": "single_or_multi_beat_memory_copy",
+        "port": "[\"wdata\", \"wstrb\", \"dmac_irq\"]",
+        "signal": "[\"Final successful beat sets status COMPLETED and raises the channel-complete pending bit.\"]",
+        "state": "[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.outputs.output_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_TRANSFER: write_payload",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.output_rules.write_payload",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "write_payload width matches SSOT value 64",
+        "write_payload RTL expression implements SSOT expression rd_buf",
+        "DUT port wdata is the implementation/observation point for write_payload",
+        "write_payload is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.output_rules.write_payload.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: name=write_payload; port=wdata; expr=rd_buf; width=64.",
+      "evidence_terms": [
+        "buf",
+        "payload",
+        "rd",
+        "rd_buf",
+        "wdata",
+        "write",
+        "write_payload"
+      ],
+      "id": "RTL-0150",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.output_rules.write_payload",
+      "ssot_context": {
+        "expr": "rd_buf",
+        "name": "write_payload",
+        "port": "wdata",
+        "width": "64"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.output_rules.write_payload"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_TRANSFER: write_strobes",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.output_rules.write_strobes",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "write_strobes width matches SSOT value 8",
+        "write_strobes RTL expression implements SSOT expression (1 << (DATA_WIDTH // 8)) - 1",
+        "DUT port wstrb is the implementation/observation point for write_strobes",
+        "write_strobes is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.output_rules.write_strobes.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: name=write_strobes; port=wstrb; expr=(1 << (DATA_WIDTH // 8)) - 1; width=8.",
+      "evidence_terms": [
+        "DATA",
+        "DATA_WIDTH",
+        "WIDTH",
+        "strobes",
+        "write",
+        "write_strobes",
+        "wstrb"
+      ],
+      "id": "RTL-0151",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.output_rules.write_strobes",
+      "ssot_context": {
+        "expr": "(1 << (DATA_WIDTH // 8)) - 1",
+        "name": "write_strobes",
+        "port": "wstrb",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.output_rules.write_strobes"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_TRANSFER: irq_after_transfer",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.output_rules.irq_after_transfer",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "irq_after_transfer width matches SSOT value 1",
+        "irq_after_transfer RTL expression implements SSOT expression 1 if ((intstatus | complete_irq_mask) & inten) != 0 else 0",
+        "DUT port dmac_irq is the implementation/observation point for irq_after_transfer",
+        "irq_after_transfer is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.output_rules.irq_after_transfer.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: name=irq_after_transfer; port=dmac_irq; expr=1 if ((intstatus | complete_irq_mask) & inten) != 0 else 0; width=1.",
+      "evidence_terms": [
+        "after",
+        "complete",
+        "complete_irq_mask",
+        "dmac",
+        "dmac_irq",
+        "irq",
+        "irq_after_transfer",
+        "mask",
+        "transfer"
+      ],
+      "id": "RTL-0152",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.output_rules.irq_after_transfer",
+      "ssot_context": {
+        "expr": "1 if ((intstatus | complete_irq_mask) & inten) != 0 else 0",
+        "name": "irq_after_transfer",
+        "port": "dmac_irq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.output_rules.irq_after_transfer"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_TRANSFER: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"wdata\", \"wstrb\", \"dmac_irq\"] is the implementation/observation point for single_or_multi_beat_memory_copy"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.side_effects.side_effect_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy; port=[\"wdata\", \"wstrb\", \"dmac_irq\"]; signal=[\"SAR and DAR increment by DATA_WIDTH/8 bytes after each successful write response.\"]; state=[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "DAR",
+        "DATA",
+        "DATA_WIDTH",
+        "SAR",
+        "WIDTH",
+        "buf",
+        "code",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "rd"
+      ],
+      "id": "RTL-0160",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_TRANSFER",
+        "name": "single_or_multi_beat_memory_copy",
+        "port": "[\"wdata\", \"wstrb\", \"dmac_irq\"]",
+        "signal": "[\"SAR and DAR increment by DATA_WIDTH/8 bytes after each successful write response.\"]",
+        "state": "[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_TRANSFER: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"wdata\", \"wstrb\", \"dmac_irq\"] is the implementation/observation point for single_or_multi_beat_memory_copy"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.side_effects.side_effect_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_TRANSFER.\nSSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy; port=[\"wdata\", \"wstrb\", \"dmac_irq\"]; signal=[\"loop_remaining decrements after each successful write response.\"]; state=[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "buf",
+        "code",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "rd",
+        "rd_buf",
+        "remaining",
+        "sar",
+        "status",
+        "wdata"
+      ],
+      "id": "RTL-0161",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.side_effects.side_effect_1",
+      "ssot_context": {
+        "id": "FM_TRANSFER",
+        "name": "single_or_multi_beat_memory_copy",
+        "port": "[\"wdata\", \"wstrb\", \"dmac_irq\"]",
+        "signal": "[\"loop_remaining decrements after each successful write response.\"]",
+        "state": "[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.side_effects.side_effect_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_WFP",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_WFP",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_WFP.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_WFP.\nSSOT item context: id=FM_WFP; name=wait_for_peripheral_event.",
+      "evidence_terms": [],
+      "id": "RTL-0164",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WFP",
+      "ssot_context": {
+        "id": "FM_WFP",
+        "name": "wait_for_peripheral_event"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WFP"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_WFP: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WFP.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WFP.preconditions.precondition_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_WFP.\nSSOT item context: value=dmacresetn == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0165",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WFP.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "dmacresetn == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WFP.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_WFP: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WFP.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WFP.preconditions.precondition_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_WFP.\nSSOT item context: value=start_cmd == 1.",
+      "evidence_terms": [
+        "cmd",
+        "start",
+        "start_cmd"
+      ],
+      "id": "RTL-0166",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WFP.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "start_cmd == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WFP.preconditions.precondition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_WFP: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WFP.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WFP.preconditions.precondition_2.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_WFP.\nSSOT item context: value=wfp_enable == 1.",
+      "evidence_terms": [
+        "enable",
+        "wfp",
+        "wfp_enable"
+      ],
+      "id": "RTL-0167",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WFP.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "wfp_enable == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WFP.preconditions.precondition_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_WFP: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WFP.inputs.input_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for wait_for_peripheral_event"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WFP.inputs.input_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_WFP.\nSSOT item context: id=FM_WFP; name=wait_for_peripheral_event; port=[\"dmac_irq\"]; signal=[\"peripheral_events\"]; state=[\"status\", \"loop_remaining\"].",
+      "evidence_terms": [
+        "dmac",
+        "dmac_irq",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "peripheral",
+        "peripheral_events",
+        "remaining",
+        "status"
+      ],
+      "id": "RTL-0168",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WFP.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_WFP",
+        "name": "wait_for_peripheral_event",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[\"peripheral_events\"]",
+        "state": "[\"status\", \"loop_remaining\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WFP.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_WFP: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WFP.inputs.input_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for wait_for_peripheral_event"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WFP.inputs.input_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_WFP.\nSSOT item context: id=FM_WFP; name=wait_for_peripheral_event; port=[\"dmac_irq\"]; signal=[\"wfp_event\"]; state=[\"status\", \"loop_remaining\"].",
+      "evidence_terms": [
+        "dmac",
+        "dmac_irq",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "remaining",
+        "status",
+        "wfp",
+        "wfp_event"
+      ],
+      "id": "RTL-0169",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WFP.inputs.input_1",
+      "ssot_context": {
+        "id": "FM_WFP",
+        "name": "wait_for_peripheral_event",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[\"wfp_event\"]",
+        "state": "[\"status\", \"loop_remaining\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WFP.inputs.input_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_WFP: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WFP.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for wait_for_peripheral_event"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WFP.outputs.output_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_WFP.\nSSOT item context: id=FM_WFP; name=wait_for_peripheral_event; port=[\"dmac_irq\"]; signal=[\"Channel remains WAITING_FOR_PERIPHERAL until the selected event bit is sampled high.\"]; state=[\"status\", \"loop_remaining\"].",
+      "evidence_terms": [
+        "Channel",
+        "PERIPHERAL",
+        "WAITING",
+        "WAITING_FOR_PERIPHERAL",
+        "dmac",
+        "dmac_irq",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "remaining",
+        "status"
+      ],
+      "id": "RTL-0170",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WFP.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_WFP",
+        "name": "wait_for_peripheral_event",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[\"Channel remains WAITING_FOR_PERIPHERAL until the selected event bit is sampled high.\"]",
+        "state": "[\"status\", \"loop_remaining\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WFP.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_WFP: status",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WFP.state_updates.status",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "status width matches SSOT value 4",
+        "status RTL expression implements SSOT expression 1 if selected_event == 1 else 2",
+        "status updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WFP.state_updates.status.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_WFP.\nSSOT item context: name=status; expr=1 if selected_event == 1 else 2; width=4.",
+      "evidence_terms": [
+        "selected",
+        "selected_event",
+        "status"
+      ],
+      "id": "RTL-0172",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WFP.state_updates.status",
+      "ssot_context": {
+        "expr": "1 if selected_event == 1 else 2",
+        "name": "status",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WFP.state_updates.status"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_WFP: loop_remaining",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WFP.state_updates.loop_remaining",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "loop_remaining width matches SSOT value 8",
+        "loop_remaining RTL expression implements SSOT expression loop_remaining",
+        "loop_remaining updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WFP.state_updates.loop_remaining.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_WFP.\nSSOT item context: name=loop_remaining; expr=loop_remaining; width=8.",
+      "evidence_terms": [
+        "loop",
+        "loop_remaining",
+        "remaining"
+      ],
+      "id": "RTL-0173",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WFP.state_updates.loop_remaining",
+      "ssot_context": {
+        "expr": "loop_remaining",
+        "name": "loop_remaining",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WFP.state_updates.loop_remaining"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_WFP: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WFP.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for wait_for_peripheral_event"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WFP.side_effects.side_effect_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_WFP.\nSSOT item context: id=FM_WFP; name=wait_for_peripheral_event; port=[\"dmac_irq\"]; signal=[\"No AXI transaction is issued while selected_event is zero.\"]; state=[\"status\", \"loop_remaining\"].",
+      "evidence_terms": [
+        "AXI",
+        "dmac",
+        "dmac_irq",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "remaining",
+        "selected",
+        "selected_event",
+        "status"
+      ],
+      "id": "RTL-0174",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WFP.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_WFP",
+        "name": "wait_for_peripheral_event",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[\"No AXI transaction is issued while selected_event is zero.\"]",
+        "state": "[\"status\", \"loop_remaining\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WFP.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_FAULT",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_FAULT.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: id=FM_FAULT; name=fault_completion.",
+      "evidence_terms": [],
+      "id": "RTL-0175",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT",
+      "ssot_context": {
+        "id": "FM_FAULT",
+        "name": "fault_completion"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FAULT: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.preconditions.precondition_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: value=dmacresetn == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0176",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "dmacresetn == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FAULT: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.preconditions.precondition_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: value=fault_condition == 1.",
+      "evidence_terms": [
+        "condition",
+        "fault",
+        "fault_condition"
+      ],
+      "id": "RTL-0177",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "fault_condition == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.preconditions.precondition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_FAULT: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.inputs.input_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for fault_completion"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.inputs.input_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: id=FM_FAULT; name=fault_completion; port=[\"dmac_irq\"]; signal=[\"fault_condition\"]; state=[\"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "code",
+        "condition",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "fault",
+        "fault_condition",
+        "intstatus",
+        "irq",
+        "status"
+      ],
+      "id": "RTL-0178",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_FAULT",
+        "name": "fault_completion",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[\"fault_condition\"]",
+        "state": "[\"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_FAULT: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.inputs.input_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for fault_completion"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.inputs.input_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: id=FM_FAULT; name=fault_completion; port=[\"dmac_irq\"]; signal=[\"fault_code\"]; state=[\"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "code",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "fault",
+        "fault_code",
+        "intstatus",
+        "irq",
+        "status"
+      ],
+      "id": "RTL-0179",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.inputs.input_1",
+      "ssot_context": {
+        "id": "FM_FAULT",
+        "name": "fault_completion",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[\"fault_code\"]",
+        "state": "[\"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.inputs.input_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FAULT: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for fault_completion"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.outputs.output_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: id=FM_FAULT; name=fault_completion; port=[\"dmac_irq\"]; signal=[\"Fault status is latched and a channel-fault pending interrupt is set.\"]; state=[\"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "Fault",
+        "code",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq",
+        "status"
+      ],
+      "id": "RTL-0180",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_FAULT",
+        "name": "fault_completion",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[\"Fault status is latched and a channel-fault pending interrupt is set.\"]",
+        "state": "[\"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_FAULT: irq_after_fault",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.output_rules.irq_after_fault",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "irq_after_fault width matches SSOT value 1",
+        "irq_after_fault RTL expression implements SSOT expression 1 if ((intstatus | fault_irq_mask) & inten) != 0 else 0",
+        "DUT port dmac_irq is the implementation/observation point for irq_after_fault",
+        "irq_after_fault is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.output_rules.irq_after_fault.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: name=irq_after_fault; port=dmac_irq; expr=1 if ((intstatus | fault_irq_mask) & inten) != 0 else 0; width=1.",
+      "evidence_terms": [
+        "after",
+        "dmac",
+        "dmac_irq",
+        "fault",
+        "fault_irq_mask",
+        "irq",
+        "irq_after_fault",
+        "mask"
+      ],
+      "id": "RTL-0181",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.output_rules.irq_after_fault",
+      "ssot_context": {
+        "expr": "1 if ((intstatus | fault_irq_mask) & inten) != 0 else 0",
+        "name": "irq_after_fault",
+        "port": "dmac_irq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.output_rules.irq_after_fault"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FAULT: status",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.state_updates.status",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "status width matches SSOT value 4",
+        "status RTL expression implements SSOT expression 8",
+        "status updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.state_updates.status.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: name=status; expr=8; width=4.",
+      "evidence_terms": [
+        "status"
+      ],
+      "id": "RTL-0182",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.state_updates.status",
+      "ssot_context": {
+        "expr": "8",
+        "name": "status",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.state_updates.status"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FAULT: error_code",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.state_updates.error_code",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "error_code width matches SSOT value 4",
+        "error_code RTL expression implements SSOT expression fault_code",
+        "error_code updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.state_updates.error_code.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: name=error_code; expr=fault_code; width=4.",
+      "evidence_terms": [
+        "code",
+        "error_code",
+        "fault",
+        "fault_code"
+      ],
+      "id": "RTL-0183",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.state_updates.error_code",
+      "ssot_context": {
+        "expr": "fault_code",
+        "name": "error_code",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.state_updates.error_code"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FAULT: intstatus",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.state_updates.intstatus",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "intstatus width matches SSOT value 32",
+        "intstatus RTL expression implements SSOT expression intstatus | fault_irq_mask",
+        "intstatus updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.state_updates.intstatus.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: name=intstatus; expr=intstatus | fault_irq_mask; width=32.",
+      "evidence_terms": [
+        "fault",
+        "fault_irq_mask",
+        "intstatus",
+        "irq",
+        "mask"
+      ],
+      "id": "RTL-0184",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.state_updates.intstatus",
+      "ssot_context": {
+        "expr": "intstatus | fault_irq_mask",
+        "name": "intstatus",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.state_updates.intstatus"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_FAULT: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for fault_completion"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.side_effects.side_effect_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: id=FM_FAULT; name=fault_completion; port=[\"dmac_irq\"]; signal=[\"First fault wins until software clears INTSTATUS and restarts the channel.\"]; state=[\"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "First",
+        "INTSTATUS",
+        "code",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq",
+        "status"
+      ],
+      "id": "RTL-0185",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_FAULT",
+        "name": "fault_completion",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[\"First fault wins until software clears INTSTATUS and restarts the channel.\"]",
+        "state": "[\"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_FAULT: ERR_UNALIGNED",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.error_cases.ERR_UNALIGNED",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for fault_completion"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.error_cases.ERR_UNALIGNED.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: id=FM_FAULT; name=fault_completion; port=[\"dmac_irq\"]; signal=[{\"condition\": \"addresses_aligned == 0\", \"id\": \"ERR_UNALIGNED\", \"result\": \"status=FAULTED and error_code=ERR_UNALIGNE...; state=[\"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "ERR",
+        "ERR_UNALIGNED",
+        "FAULTED",
+        "UNALIGNED",
+        "addresses",
+        "addresses_aligned",
+        "aligned",
+        "code",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq",
+        "status"
+      ],
+      "id": "RTL-0186",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.error_cases.ERR_UNALIGNED",
+      "ssot_context": {
+        "id": "FM_FAULT",
+        "name": "fault_completion",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[{\"condition\": \"addresses_aligned == 0\", \"id\": \"ERR_UNALIGNED\", \"result\": \"status=FAULTED and error_code=ERR_UNALIGNE...",
+        "state": "[\"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.error_cases.ERR_UNALIGNED"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_FAULT: ERR_DEBUG_REJECT",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FAULT.error_cases.ERR_DEBUG_REJECT",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for fault_completion"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FAULT.error_cases.ERR_DEBUG_REJECT.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.transactions.FM_FAULT.\nSSOT item context: id=FM_FAULT; name=fault_completion; port=[\"dmac_irq\"]; signal=[{\"condition\": \"debug_execute == 1 and manager_busy == 1\", \"id\": \"ERR_DEBUG_REJECT\", \"result\": \"debug command rejecte...; state=[\"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "DEBUG",
+        "ERR",
+        "ERR_DEBUG_REJECT",
+        "REJECT",
+        "busy",
+        "code",
+        "debug",
+        "debug_execute",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "execute",
+        "intstatus",
+        "irq",
+        "manager",
+        "manager_busy"
+      ],
+      "id": "RTL-0187",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FAULT.error_cases.ERR_DEBUG_REJECT",
+      "ssot_context": {
+        "id": "FM_FAULT",
+        "name": "fault_completion",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[{\"condition\": \"debug_execute == 1 and manager_busy == 1\", \"id\": \"ERR_DEBUG_REJECT\", \"result\": \"debug command rejecte...",
+        "state": "[\"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FAULT.error_cases.ERR_DEBUG_REJECT"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\"] is the implementation/observation point for [\"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.\nSSOT item context: port=[\"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\"]; signal=not (write_beat_done == 1 and read_buffer_valid == 0); state=[\"rd_buf\"].",
+      "evidence_terms": [
+        "beat",
+        "buf",
+        "buffer",
+        "dmac",
+        "dmac_irq",
+        "done",
+        "irq",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rd",
+        "rd_buf",
+        "read",
+        "read_buffer_valid",
+        "valid",
+        "wdata"
+      ],
+      "id": "RTL-0197",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "port": "[\"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\"]",
+        "signal": "not (write_beat_done == 1 and read_buffer_valid == 0)",
+        "state": "[\"rd_buf\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"... is the implementation/observation point for [\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"..."
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.\nSSOT item context: port=[\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"...; signal=not (status == 6 and error_code != 0); state=[\"status\", \"error_code\"].",
+      "evidence_terms": [
+        "code",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "irq",
+        "prdata",
+        "pready",
+        "pslverr",
+        "status",
+        "wdata",
+        "wstrb"
+      ],
+      "id": "RTL-0198",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "port": "[\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"...",
+        "signal": "not (status == 6 and error_code != 0)",
+        "state": "[\"status\", \"error_code\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"... is the implementation/observation point for [\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"..."
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.\nSSOT item context: port=[\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"...; signal=not (status == 8 and error_code == 0); state=[\"status\", \"error_code\"].",
+      "evidence_terms": [
+        "code",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "irq",
+        "prdata",
+        "pready",
+        "pslverr",
+        "status",
+        "wdata",
+        "wstrb"
+      ],
+      "id": "RTL-0199",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "port": "[\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"prdata\", \"wdata\", \"wstrb\", \"dmac_irq\", \"...",
+        "signal": "not (status == 8 and error_code == 0)",
+        "state": "[\"status\", \"error_code\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_3",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_3",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\", \"dmac_irq\", \"dmac_irq\"] is the implementation/observation point for [\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\", \"dmac_irq\", \"dmac_irq\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.\nSSOT item context: port=[\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\", \"dmac_irq\", \"dmac_irq\"]; signal=(intstatus & (~0x1FFFF)) == 0; state=[\"intstatus\"].",
+      "evidence_terms": [
+        "dmac",
+        "dmac_irq",
+        "intstatus",
+        "irq",
+        "pready",
+        "pslverr",
+        "wdata",
+        "wstrb",
+        "x1FFFF"
+      ],
+      "id": "RTL-0200",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_3",
+      "ssot_context": {
+        "port": "[\"dmac_irq\", \"pready\", \"pslverr\", \"pready\", \"pslverr\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\", \"dmac_irq\", \"dmac_irq\"]",
+        "signal": "(intstatus & (~0x1FFFF)) == 0",
+        "state": "[\"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_4",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_4",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "DUT port [\"dmac_irq\", \"pready\", \"pslverr\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\"] is the implementation/observation point for [\"dmac_irq\", \"pready\", \"pslverr\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_4.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via function_model.\nSSOT item context: port=[\"dmac_irq\", \"pready\", \"pslverr\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\"]; signal=loop_remaining >= 0; state=[\"loop_remaining\"].",
+      "evidence_terms": [
+        "dmac",
+        "dmac_irq",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "pready",
+        "pslverr",
+        "remaining",
+        "wdata",
+        "wstrb"
+      ],
+      "id": "RTL-0201",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_4",
+      "ssot_context": {
+        "port": "[\"dmac_irq\", \"pready\", \"pslverr\", \"wdata\", \"wstrb\", \"dmac_irq\", \"dmac_irq\"]",
+        "signal": "loop_remaining >= 0",
+        "state": "[\"loop_remaining\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_4"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b7f6b796d440c4cbbe6eee1a6a6f5fafdb0e14d478c2a39e323259db96338d34",
+  "top": "pl330realverify",
+  "type": "rtl_authoring_packet"
+}

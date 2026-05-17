@@ -1,0 +1,830 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "pl330realverify",
+  "source": "pl330realverify/yaml/pl330realverify.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "pl330realverify/req/",
+      "pl330realverify/yaml/pl330realverify.ssot.yaml",
+      "pl330realverify/model/functional_model.py",
+      "pl330realverify/cov/fcov_plan.json",
+      "pl330realverify/yaml/pl330realverify.ssot.yaml#io_list",
+      "pl330realverify/yaml/pl330realverify.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "pl330realverify/rtl/",
+      "pl330realverify/tb/",
+      "pl330realverify/sim/",
+      "pl330realverify/vectors/",
+      "pl330realverify/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC_RESET_APB_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC_RESET_APB",
+      "description": "Reset and APB discovery"
+    },
+    {
+      "id": "SC_SINGLE_BEAT_COPY_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC_SINGLE_BEAT_COPY",
+      "description": "Single-beat DMA memory copy"
+    },
+    {
+      "id": "SC_MULTI_BEAT_COPY_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC_MULTI_BEAT_COPY",
+      "description": "Multi-beat address and loop progression"
+    },
+    {
+      "id": "SC_AXI_BACKPRESSURE_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC_AXI_BACKPRESSURE",
+      "description": "AXI ready/valid hold behavior under backpressure"
+    },
+    {
+      "id": "SC_WFP_EVENT_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC_WFP_EVENT",
+      "description": "Wait-for-peripheral event gating"
+    },
+    {
+      "id": "SC_AXI_READ_FAULT_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC_AXI_READ_FAULT",
+      "description": "AXI read fault propagation"
+    },
+    {
+      "id": "SC_AXI_WRITE_FAULT_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC_AXI_WRITE_FAULT",
+      "description": "AXI write fault propagation"
+    },
+    {
+      "id": "SC_W1C_IRQ_CLEAR_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC_W1C_IRQ_CLEAR",
+      "description": "Interrupt enable and W1C clear"
+    },
+    {
+      "id": "SC_DEBUG_COMMAND_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC_DEBUG_COMMAND",
+      "description": "Debug command pulse and rejection"
+    },
+    {
+      "id": "fcov_reset",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_RESET",
+      "source_ref": "function_model.transactions.FM_RESET",
+      "description": "Reset architectural behavior observed."
+    },
+    {
+      "id": "fcov_apb_read",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_APB_READ",
+      "source_ref": "function_model.transactions.FM_APB_READ",
+      "description": "APB read transaction observed."
+    },
+    {
+      "id": "fcov_apb_write",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_APB_WRITE",
+      "source_ref": "function_model.transactions.FM_APB_WRITE",
+      "description": "APB write and side effects observed."
+    },
+    {
+      "id": "fcov_transfer",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_TRANSFER",
+      "source_ref": "function_model.transactions.FM_TRANSFER",
+      "description": "Legal DMA copy behavior observed."
+    },
+    {
+      "id": "fcov_wfp",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_WFP",
+      "source_ref": "function_model.transactions.FM_WFP",
+      "description": "Wait-for-peripheral behavior observed."
+    },
+    {
+      "id": "fcov_fault_rd",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_RD",
+      "source_ref": "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_RD",
+      "description": "Read error behavior observed."
+    },
+    {
+      "id": "fcov_fault_wr",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_WR",
+      "source_ref": "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_WR",
+      "description": "Write error behavior observed."
+    },
+    {
+      "id": "fcov_irq_clear",
+      "class": "side_effect",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_IRQ_CLEAR",
+      "source_ref": "function_model.transactions.FM_IRQ_CLEAR",
+      "description": "Interrupt W1C clear behavior observed."
+    },
+    {
+      "id": "ccov_apb_access",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.APB_ACCESS",
+      "source_ref": "cycle_model.handshake_rules.APB_ACCESS",
+      "description": "APB completing access observed."
+    },
+    {
+      "id": "ccov_axi_ar_hold",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.AXI_AR",
+      "source_ref": "cycle_model.handshake_rules.AXI_AR",
+      "description": "AR hold-until-ready behavior observed."
+    },
+    {
+      "id": "ccov_axi_r_capture",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.AXI_R",
+      "source_ref": "cycle_model.handshake_rules.AXI_R",
+      "description": "R channel capture observed."
+    },
+    {
+      "id": "ccov_axi_aw_w",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.AXI_AW",
+      "source_ref": "cycle_model.handshake_rules.AXI_AW",
+      "description": "AW/W independent handshake behavior observed."
+    },
+    {
+      "id": "ccov_axi_b",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.AXI_B",
+      "source_ref": "cycle_model.handshake_rules.AXI_B",
+      "description": "B response consumption observed."
+    },
+    {
+      "id": "ccov_irq_level",
+      "class": "interrupt",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.IRQ_LEVEL",
+      "source_ref": "cycle_model.handshake_rules.IRQ_LEVEL",
+      "description": "Level interrupt combine observed."
+    },
+    {
+      "id": "ccov_pipeline_all_stages",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline",
+      "source_ref": "cycle_model.pipeline",
+      "description": "Each declared pipeline stage observed."
+    },
+    {
+      "id": "ccov_channel_fsm",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions",
+      "source_ref": "fsm.channel_fsm.transitions",
+      "description": "Declared legal channel FSM transitions observed."
+    },
+    {
+      "id": "ccov_performance_outstanding",
+      "class": "outstanding",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "Single-outstanding limit exercised."
+    },
+    {
+      "id": "ccov_performance_depth",
+      "class": "depth",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "Declared pipeline/buffer depth exercised."
+    },
+    {
+      "id": "ccov_performance_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "No-backpressure throughput condition exercised."
+    },
+    {
+      "id": "function_reset_architecture",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_reset",
+      "description": "reset_architecture"
+    },
+    {
+      "id": "function_apb_register_write",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm_apb_write",
+      "description": "apb_register_write"
+    },
+    {
+      "id": "function_apb_register_read",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.fm_apb_read",
+      "description": "apb_register_read"
+    },
+    {
+      "id": "function_single_or_multi_beat_memory_copy",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[3]",
+      "source_ref": "function_model.transactions.fm_transfer",
+      "description": "single_or_multi_beat_memory_copy"
+    },
+    {
+      "id": "function_wait_for_peripheral_event",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[4]",
+      "source_ref": "function_model.transactions.fm_wfp",
+      "description": "wait_for_peripheral_event"
+    },
+    {
+      "id": "function_fault_completion",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[5]",
+      "source_ref": "function_model.transactions.fm_fault",
+      "description": "fault_completion"
+    },
+    {
+      "id": "function_interrupt_write_one_to_clear",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[6]",
+      "source_ref": "function_model.transactions.fm_irq_clear",
+      "description": "interrupt_write_one_to_clear"
+    },
+    {
+      "id": "cycle_apb_access",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'id': 'APB_ACCESS', 'signal': 'pready', 'rule': 'pready asserts only for psel==1 and penable==1 and completes exactly one APB transfer.', 'sample_condition': 'psel == 1 and penable == 1'}"
+    },
+    {
+      "id": "cycle_apb_read_data",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'id': 'APB_READ_DATA', 'signal': 'prdata', 'rule': 'prdata is stable for the completing read access and reserved bits read zero.', 'sample_condition': 'psel == 1 and penable == 1 and pwrite == 0 and pready == 1'}"
+    },
+    {
+      "id": "cycle_axi_ar",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'id': 'AXI_AR', 'signal': 'arvalid', 'rule': 'Hold arvalid and AR payload stable until arvalid and arready are sampled high.', 'sample_condition': 'arvalid == 1 and arready == 1'}"
+    },
+    {
+      "id": "cycle_axi_r",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[3]",
+      "source_ref": "cycle_model.handshake_rules[3]",
+      "description": "{'id': 'AXI_R', 'signal': 'rready', 'rule': 'Assert rready only when rd_buf can accept rdata; capture exactly one beat on rvalid and rready.', 'sample_condition': 'rvalid == 1 and rready == 1'}"
+    },
+    {
+      "id": "cycle_axi_aw",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[4]",
+      "source_ref": "cycle_model.handshake_rules[4]",
+      "description": "{'id': 'AXI_AW', 'signal': 'awvalid', 'rule': 'Hold awvalid and AW payload stable until awvalid and awready are sampled high.', 'sample_condition': 'awvalid == 1 and awready == 1'}"
+    },
+    {
+      "id": "cycle_axi_w",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[5]",
+      "source_ref": "cycle_model.handshake_rules[5]",
+      "description": "{'id': 'AXI_W', 'signal': 'wvalid', 'rule': 'Hold wvalid, wdata, wstrb, and wlast stable until wvalid and wready are sampled high.', 'sample_condition': 'wvalid == 1 and wready == 1'}"
+    },
+    {
+      "id": "cycle_axi_b",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[6]",
+      "source_ref": "cycle_model.handshake_rules[6]",
+      "description": "{'id': 'AXI_B', 'signal': 'bready', 'rule': 'Assert bready while waiting for write response; consume bresp on bvalid and bready.', 'sample_condition': 'bvalid == 1 and bready == 1'}"
+    },
+    {
+      "id": "cycle_irq_level",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[7]",
+      "source_ref": "cycle_model.handshake_rules[7]",
+      "description": "{'id': 'IRQ_LEVEL', 'signal': 'dmac_irq', 'rule': 'dmac_irq equals the OR-reduction of intstatus & inten after reset, terminal updates, and W1C clears settle.', 'sample_condition': 'dmacresetn == 1'}"
+    },
+    {
+      "id": "cycle_latency_register_read",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_read",
+      "source_ref": "cycle_model.latency.register_read",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'pready/prdata/pslverr complete in APB access phase.'}"
+    },
+    {
+      "id": "cycle_latency_register_write",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_write",
+      "source_ref": "cycle_model.latency.register_write",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'Writable side effects occur on the completing APB access cycle.'}"
+    },
+    {
+      "id": "cycle_latency_event_release",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.event_release",
+      "source_ref": "cycle_model.latency.event_release",
+      "description": "{'min_cycles': 1, 'max_cycles': 2, 'description': 'Selected peripheral event sampled then WFP state can advance.'}"
+    },
+    {
+      "id": "cycle_latency_single_beat_transfer",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.single_beat_transfer",
+      "source_ref": "cycle_model.latency.single_beat_transfer",
+      "description": "{'min_cycles': 5, 'max_cycles': None, 'description': 'Command accept, AR, R, AW/W, and B stages; max is unbounded under AXI backpressure.'}"
+    },
+    {
+      "id": "cycle_latency_interrupt_assertion",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.interrupt_assertion",
+      "source_ref": "cycle_model.latency.interrupt_assertion",
+      "description": "{'min_cycles': 1, 'max_cycles': 2, 'description': 'Pending enabled interrupt reflects terminal status or W1C clear within two cycles.'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_apb_accept",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Decode APB access, update configuration or emit start/halt/debug pulses."
+    },
+    {
+      "id": "cycle_pipeline_s1_cmd_accept",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Latch channel command, SAR, DAR, count, WFP configuration, and error precheck results."
+    },
+    {
+      "id": "cycle_pipeline_s2_wfp",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "If WFP is enabled, hold state until selected peripheral event samples high."
+    },
+    {
+      "id": "cycle_pipeline_s3_issue_read",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[3]",
+      "source_ref": "cycle_model.pipeline[3]",
+      "description": "Drive AXI AR payload and hold until AR handshake."
+    },
+    {
+      "id": "cycle_pipeline_s4_capture_read",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[4]",
+      "source_ref": "cycle_model.pipeline[4]",
+      "description": "Accept AXI R beat, classify rresp, and capture rdata into rd_buf."
+    },
+    {
+      "id": "cycle_pipeline_s5_issue_write",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[5]",
+      "source_ref": "cycle_model.pipeline[5]",
+      "description": "Drive AXI AW and W payloads; each channel may complete independently but both must handshake before B wait."
+    },
+    {
+      "id": "cycle_pipeline_s6_write_resp",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[6]",
+      "source_ref": "cycle_model.pipeline[6]",
+      "description": "Consume AXI B response, update address/count/status/interrupts."
+    },
+    {
+      "id": "cycle_pipeline_s7_terminal",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[7]",
+      "source_ref": "cycle_model.pipeline[7]",
+      "description": "Post COMPLETED or FAULTED status and level interrupt state."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "A write data beat must not be issued before the corresponding read data beat has been accepted into rd_buf."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "A channel-complete interrupt pending bit is set only after the final successful B response."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "A channel-fault interrupt pending bit is set on the first detected fault before any later completion status."
+    },
+    {
+      "id": "cycle_ordering_3",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[3]",
+      "source_ref": "cycle_model.ordering[3]",
+      "description": "APB W1C clear does not clear configuration registers or address counters."
+    },
+    {
+      "id": "cycle_ordering_4",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[4]",
+      "source_ref": "cycle_model.ordering[4]",
+      "description": "For each channel, at most one read burst and one write burst are outstanding in this engineering subset."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "If arready is zero, AR payload remains stable and no read transaction is counted."
+    },
+    {
+      "id": "cycle_backpressure_1",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[1]",
+      "source_ref": "cycle_model.backpressure[1]",
+      "description": "If rvalid is zero, rd_buf and downstream write stage remain stable."
+    },
+    {
+      "id": "cycle_backpressure_2",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[2]",
+      "source_ref": "cycle_model.backpressure[2]",
+      "description": "If awready or wready is zero, write payload/address/control remain stable until handshakes occur."
+    },
+    {
+      "id": "cycle_backpressure_3",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[3]",
+      "source_ref": "cycle_model.backpressure[3]",
+      "description": "If bvalid is zero, architectural completion/fault for that write is delayed."
+    },
+    {
+      "id": "cycle_backpressure_4",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[4]",
+      "source_ref": "cycle_model.backpressure[4]",
+      "description": "APB accesses are not backpressured in the baseline beyond the single access phase."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'read_max': 1, 'write_max': 1, 'per_channel': True, 'description': 'Single outstanding read/write in the engineering subset.'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 8, 'queue_depth': 1, 'rd_buffer_depth': 1, 'description': 'Visible cycle-model pipeline and buffering depth.'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "500"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_beats_per_cycle': 1, 'condition': 'No APB command gap, WFP disabled or already satisfied, no AXI backpressure, no AXI errors, aligned addresses.'}"
+    },
+    {
+      "id": "fsm_channel_fsm_stopped_to_executing_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[0]",
+      "source_ref": "fsm.channel_fsm.transitions[0]",
+      "description": "start_cmd == 1 and fault_inject == 0 and addresses_aligned == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_stopped_to_fault_completing_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[1]",
+      "source_ref": "fsm.channel_fsm.transitions[1]",
+      "description": "start_cmd == 1 and (fault_inject == 1 or addresses_aligned == 0)"
+    },
+    {
+      "id": "fsm_channel_fsm_executing_to_waiting_for_peripheral_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[2]",
+      "source_ref": "fsm.channel_fsm.transitions[2]",
+      "description": "wfp_enable == 1 and selected_event == 0"
+    },
+    {
+      "id": "fsm_channel_fsm_waiting_for_peripheral_to_issue_read_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[3]",
+      "source_ref": "fsm.channel_fsm.transitions[3]",
+      "description": "selected_event == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_executing_to_issue_read_4",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[4]",
+      "source_ref": "fsm.channel_fsm.transitions[4]",
+      "description": "wfp_enable == 0 or selected_event == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_issue_read_to_wait_read_5",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[5]",
+      "source_ref": "fsm.channel_fsm.transitions[5]",
+      "description": "arvalid == 1 and arready == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_wait_read_to_issue_write_6",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[6]",
+      "source_ref": "fsm.channel_fsm.transitions[6]",
+      "description": "rvalid == 1 and rready == 1 and rresp == 0"
+    },
+    {
+      "id": "fsm_channel_fsm_wait_read_to_fault_completing_7",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[7]",
+      "source_ref": "fsm.channel_fsm.transitions[7]",
+      "description": "rvalid == 1 and rready == 1 and rresp != 0"
+    },
+    {
+      "id": "fsm_channel_fsm_issue_write_to_wait_write_resp_8",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[8]",
+      "source_ref": "fsm.channel_fsm.transitions[8]",
+      "description": "aw_handshake == 1 and w_handshake == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_wait_write_resp_to_completing_9",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[9]",
+      "source_ref": "fsm.channel_fsm.transitions[9]",
+      "description": "bvalid == 1 and bready == 1 and bresp == 0 and loop_remaining == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_wait_write_resp_to_issue_read_10",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[10]",
+      "source_ref": "fsm.channel_fsm.transitions[10]",
+      "description": "bvalid == 1 and bready == 1 and bresp == 0 and loop_remaining > 1"
+    },
+    {
+      "id": "fsm_channel_fsm_wait_write_resp_to_fault_completing_11",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[11]",
+      "source_ref": "fsm.channel_fsm.transitions[11]",
+      "description": "bvalid == 1 and bready == 1 and bresp != 0"
+    },
+    {
+      "id": "fsm_channel_fsm_completing_to_completed_12",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[12]",
+      "source_ref": "fsm.channel_fsm.transitions[12]",
+      "description": "complete_status_posted == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_fault_completing_to_faulted_13",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[13]",
+      "source_ref": "fsm.channel_fsm.transitions[13]",
+      "description": "fault_status_posted == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_completed_to_stopped_14",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[14]",
+      "source_ref": "fsm.channel_fsm.transitions[14]",
+      "description": "start_cmd == 0 and halt_cmd == 0"
+    },
+    {
+      "id": "fsm_channel_fsm_faulted_to_stopped_15",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_fsm.transitions[15]",
+      "source_ref": "fsm.channel_fsm.transitions[15]",
+      "description": "fault_clear == 1"
+    },
+    {
+      "id": "fsm_register_fsm_apb_idle_to_apb_setup_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.register_fsm.transitions[0]",
+      "source_ref": "fsm.register_fsm.transitions[0]",
+      "description": "psel == 1 and penable == 0"
+    },
+    {
+      "id": "fsm_register_fsm_apb_setup_to_apb_access_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.register_fsm.transitions[1]",
+      "source_ref": "fsm.register_fsm.transitions[1]",
+      "description": "psel == 1 and penable == 1"
+    },
+    {
+      "id": "fsm_register_fsm_apb_access_to_apb_idle_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.register_fsm.transitions[2]",
+      "source_ref": "fsm.register_fsm.transitions[2]",
+      "description": "pready == 1"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_DEBUG_REJECT', 'condition': 'debug_execute == 1 and manager_busy == 1', 'architectural_effect': 'error_code=1, debug command rejected, DBG_DONE pending set when INTEN.dbg_done_en is enabled'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_UNALIGNED', 'condition': '((sar % (DATA_WIDTH // 8)) != 0 or (dar % (DATA_WIDTH // 8)) != 0) and SUPPORT_UNALIGNED == 0', 'architectural_effect': 'status=FAULTED, error_code=2, CH_FAULT pending set, no AXI issue'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[2]",
+      "source_ref": "error_handling.error_sources[2]",
+      "description": "{'id': 'ERR_AXI_RD', 'condition': 'rvalid == 1 and rready == 1 and rresp != 0', 'architectural_effect': 'status=FAULTED, error_code=3, CH_FAULT pending set, no destination write for failed beat'}"
+    },
+    {
+      "id": "error_error_3",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[3]",
+      "source_ref": "error_handling.error_sources[3]",
+      "description": "{'id': 'ERR_AXI_WR', 'condition': 'bvalid == 1 and bready == 1 and bresp != 0', 'architectural_effect': 'status=FAULTED, error_code=4, CH_FAULT pending set, completion suppressed'}"
+    },
+    {
+      "id": "error_error_4",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[4]",
+      "source_ref": "error_handling.error_sources[4]",
+      "description": "{'id': 'ERR_EVENT_TIMEOUT', 'condition': 'event_timeout_enabled == 1 and event_wait_counter_expired == 1', 'architectural_effect': 'status=FAULTED, error_code=5, CH_FAULT pending set'}"
+    },
+    {
+      "id": "error_error_5",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[5]",
+      "source_ref": "error_handling.error_sources[5]",
+      "description": "{'id': 'ERR_APB_ILLEGAL', 'condition': 'psel == 1 and penable == 1 and illegal_apb_access == 1', 'architectural_effect': 'pslverr=1 for that access; DMA channel architectural state unchanged'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 95,
+    "scenario_bins": 9,
+    "transaction_bins": 7,
+    "protocol_bins": 8,
+    "state_transition_bins": 20,
+    "error_bins": 6
+  }
+}

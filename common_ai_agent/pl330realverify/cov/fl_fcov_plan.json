@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "type": "fl_functional_coverage_plan",
+  "ip": "pl330realverify",
+  "source": "pl330realverify/yaml/pl330realverify.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "fl",
+  "summary": {
+    "total_bins": 41,
+    "by_class": {
+      "scenario": 9,
+      "transaction_type": 7,
+      "state_transition": 19,
+      "error": 6
+    }
+  },
+  "bins": [
+    {
+      "id": "SC_RESET_APB_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC_RESET_APB",
+      "description": "Reset and APB discovery"
+    },
+    {
+      "id": "SC_SINGLE_BEAT_COPY_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC_SINGLE_BEAT_COPY",
+      "description": "Single-beat DMA memory copy"
+    },
+    {
+      "id": "SC_MULTI_BEAT_COPY_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC_MULTI_BEAT_COPY",
+      "description": "Multi-beat address and loop progression"
+    },
+    {
+      "id": "SC_AXI_BACKPRESSURE_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC_AXI_BACKPRESSURE",
+      "description": "AXI ready/valid hold behavior under backpressure"
+    },
+    {
+      "id": "SC_WFP_EVENT_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC_WFP_EVENT",
+      "description": "Wait-for-peripheral event gating"
+    },
+    {
+      "id": "SC_AXI_READ_FAULT_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC_AXI_READ_FAULT",
+      "description": "AXI read fault propagation"
+    },
+    {
+      "id": "SC_AXI_WRITE_FAULT_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC_AXI_WRITE_FAULT",
+      "description": "AXI write fault propagation"
+    },
+    {
+      "id": "SC_W1C_IRQ_CLEAR_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC_W1C_IRQ_CLEAR",
+      "description": "Interrupt enable and W1C clear"
+    },
+    {
+      "id": "SC_DEBUG_COMMAND_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC_DEBUG_COMMAND",
+      "description": "Debug command pulse and rejection"
+    },
+    {
+      "id": "function_reset_architecture",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "reset_architecture"
+    },
+    {
+      "id": "function_apb_register_write",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "apb_register_write"
+    },
+    {
+      "id": "function_apb_register_read",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "apb_register_read"
+    },
+    {
+      "id": "function_single_or_multi_beat_memory_copy",
+      "class": "transaction_type",
+      "source": "function_model.transactions[3]",
+      "description": "single_or_multi_beat_memory_copy"
+    },
+    {
+      "id": "function_wait_for_peripheral_event",
+      "class": "transaction_type",
+      "source": "function_model.transactions[4]",
+      "description": "wait_for_peripheral_event"
+    },
+    {
+      "id": "function_fault_completion",
+      "class": "transaction_type",
+      "source": "function_model.transactions[5]",
+      "description": "fault_completion"
+    },
+    {
+      "id": "function_interrupt_write_one_to_clear",
+      "class": "transaction_type",
+      "source": "function_model.transactions[6]",
+      "description": "interrupt_write_one_to_clear"
+    },
+    {
+      "id": "fsm_channel_fsm_stopped_to_executing_0",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[0]",
+      "description": "start_cmd == 1 and fault_inject == 0 and addresses_aligned == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_stopped_to_fault_completing_1",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[1]",
+      "description": "start_cmd == 1 and (fault_inject == 1 or addresses_aligned == 0)"
+    },
+    {
+      "id": "fsm_channel_fsm_executing_to_waiting_for_peripheral_2",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[2]",
+      "description": "wfp_enable == 1 and selected_event == 0"
+    },
+    {
+      "id": "fsm_channel_fsm_waiting_for_peripheral_to_issue_read_3",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[3]",
+      "description": "selected_event == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_executing_to_issue_read_4",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[4]",
+      "description": "wfp_enable == 0 or selected_event == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_issue_read_to_wait_read_5",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[5]",
+      "description": "arvalid == 1 and arready == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_wait_read_to_issue_write_6",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[6]",
+      "description": "rvalid == 1 and rready == 1 and rresp == 0"
+    },
+    {
+      "id": "fsm_channel_fsm_wait_read_to_fault_completing_7",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[7]",
+      "description": "rvalid == 1 and rready == 1 and rresp != 0"
+    },
+    {
+      "id": "fsm_channel_fsm_issue_write_to_wait_write_resp_8",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[8]",
+      "description": "aw_handshake == 1 and w_handshake == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_wait_write_resp_to_completing_9",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[9]",
+      "description": "bvalid == 1 and bready == 1 and bresp == 0 and loop_remaining == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_wait_write_resp_to_issue_read_10",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[10]",
+      "description": "bvalid == 1 and bready == 1 and bresp == 0 and loop_remaining > 1"
+    },
+    {
+      "id": "fsm_channel_fsm_wait_write_resp_to_fault_completing_11",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[11]",
+      "description": "bvalid == 1 and bready == 1 and bresp != 0"
+    },
+    {
+      "id": "fsm_channel_fsm_completing_to_completed_12",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[12]",
+      "description": "complete_status_posted == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_fault_completing_to_faulted_13",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[13]",
+      "description": "fault_status_posted == 1"
+    },
+    {
+      "id": "fsm_channel_fsm_completed_to_stopped_14",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[14]",
+      "description": "start_cmd == 0 and halt_cmd == 0"
+    },
+    {
+      "id": "fsm_channel_fsm_faulted_to_stopped_15",
+      "class": "state_transition",
+      "source": "fsm.channel_fsm.transitions[15]",
+      "description": "fault_clear == 1"
+    },
+    {
+      "id": "fsm_register_fsm_apb_idle_to_apb_setup_0",
+      "class": "state_transition",
+      "source": "fsm.register_fsm.transitions[0]",
+      "description": "psel == 1 and penable == 0"
+    },
+    {
+      "id": "fsm_register_fsm_apb_setup_to_apb_access_1",
+      "class": "state_transition",
+      "source": "fsm.register_fsm.transitions[1]",
+      "description": "psel == 1 and penable == 1"
+    },
+    {
+      "id": "fsm_register_fsm_apb_access_to_apb_idle_2",
+      "class": "state_transition",
+      "source": "fsm.register_fsm.transitions[2]",
+      "description": "pready == 1"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_DEBUG_REJECT', 'condition': 'debug_execute == 1 and manager_busy == 1', 'architectural_effect': 'error_code=1, debug command rejected, DBG_DONE pending set when INTEN.dbg_done_en is enabled'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "source": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_UNALIGNED', 'condition': '((sar % (DATA_WIDTH // 8)) != 0 or (dar % (DATA_WIDTH // 8)) != 0) and SUPPORT_UNALIGNED == 0', 'architectural_effect': 'status=FAULTED, error_code=2, CH_FAULT pending set, no AXI issue'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "source": "error_handling.error_sources[2]",
+      "description": "{'id': 'ERR_AXI_RD', 'condition': 'rvalid == 1 and rready == 1 and rresp != 0', 'architectural_effect': 'status=FAULTED, error_code=3, CH_FAULT pending set, no destination write for failed beat'}"
+    },
+    {
+      "id": "error_error_3",
+      "class": "error",
+      "source": "error_handling.error_sources[3]",
+      "description": "{'id': 'ERR_AXI_WR', 'condition': 'bvalid == 1 and bready == 1 and bresp != 0', 'architectural_effect': 'status=FAULTED, error_code=4, CH_FAULT pending set, completion suppressed'}"
+    },
+    {
+      "id": "error_error_4",
+      "class": "error",
+      "source": "error_handling.error_sources[4]",
+      "description": "{'id': 'ERR_EVENT_TIMEOUT', 'condition': 'event_timeout_enabled == 1 and event_wait_counter_expired == 1', 'architectural_effect': 'status=FAULTED, error_code=5, CH_FAULT pending set'}"
+    },
+    {
+      "id": "error_error_5",
+      "class": "error",
+      "source": "error_handling.error_sources[5]",
+      "description": "{'id': 'ERR_APB_ILLEGAL', 'condition': 'psel == 1 and penable == 1 and illegal_apb_access == 1', 'architectural_effect': 'pslverr=1 for that access; DMA channel architectural state unchanged'}"
+    }
+  ]
+}

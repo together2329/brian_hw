@@ -1,0 +1,311 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 68,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 5,
+      "key": "workflow_todo",
+      "module_task_count": 104,
+      "rule": "Owner module pl330realverify_channel_fsm is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330realverify_channel_fsm.sv",
+      "name": "pl330realverify_channel_fsm",
+      "refs": [
+        "cycle_model",
+        "cycle_model.backpressure",
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "decomposition.units.channel_control",
+        "fsm",
+        "fsm.channel_fsm",
+        "function_model",
+        "function_model.transactions.FM_FAULT",
+        "function_model.transactions.FM_TRANSFER",
+        "function_model.transactions.FM_WFP"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330realverify_regs.sv",
+        "name": "pl330realverify_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_channel_fsm.sv",
+        "name": "pl330realverify_channel_fsm",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_rd.sv",
+        "name": "pl330realverify_axi_rd",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_wr.sv",
+        "name": "pl330realverify_axi_wr",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_datapath.sv",
+        "name": "pl330realverify_datapath",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_event_irq.sv",
+        "name": "pl330realverify_event_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify.sv",
+        "name": "pl330realverify",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[1].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[1].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "start_cmd_i",
+        "signal": "start_cmd",
+        "signal_terms": [
+          "start_cmd"
+        ],
+        "source_ref": "sub_modules[1].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "halt_cmd_i",
+        "signal": "halt_cmd",
+        "signal_terms": [
+          "halt_cmd"
+        ],
+        "source_ref": "sub_modules[1].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "selected_event_i",
+        "signal": "selected_event",
+        "signal_terms": [
+          "selected_event"
+        ],
+        "source_ref": "sub_modules[1].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "state_o",
+        "signal": "channel_state",
+        "signal_terms": [
+          "channel_state"
+        ],
+        "source_ref": "sub_modules[1].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "state_o",
+        "signal": "channel_state",
+        "signal_terms": [
+          "channel_state"
+        ],
+        "source_ref": "integration.connections[11]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Production-quality PL330-like DMA verification target with APB register block, channel FSM, AXI read/write adapters, datapath, and event/interrupt block.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 12,
+      "min_logic_modules": 6,
+      "min_modules": 7,
+      "min_procedural_blocks": 14,
+      "min_source_files": 7,
+      "min_state_updates": 20,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330realverify",
+  "kind": "module",
+  "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+  "owner_module": "pl330realverify_channel_fsm",
+  "packet_id": "module__pl330realverify_channel_fsm__workflow_todo",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 5,
+      "key": "workflow_todo",
+      "module_task_count": 104,
+      "rule": "Owner module pl330realverify_channel_fsm is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 1,
+    "required_count": 1,
+    "source_refs": [
+      "workflow_todos.rtl-gen[2]"
+    ],
+    "status_counts": {
+      "planned": 1
+    },
+    "task_count": 1
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement channel FSM and command sequencing",
+      "criteria": [
+        "Reset state is STOPPED and state transitions match fsm.channel_fsm.transitions",
+        "No AXI traffic is issued while WAITING_FOR_PERIPHERAL and selected_event is zero",
+        "Completion is posted only after final successful B response",
+        "First fault transitions through FAULT_COMPLETING to FAULTED and suppresses same-transfer completion",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "Semantic source_refs covered: cycle_model.ordering, cycle_model.pipeline, fsm.channel_fsm, function_model.transactions.FM_FAULT, function_model.transactions.FM_WFP"
+      ],
+      "detail": "Implement pl330realverify_channel_fsm legal states and transitions, command accept, WFP hold/release, AXI stage sequencing, completion/fault terminal states, and halt/fault-clear behavior according to fsm.channel_fsm and cycle_model.pipeline/order/backpressure.\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_CHANNEL_FSM.",
+      "evidence_terms": [
+        "CHANNEL",
+        "FAULT",
+        "FM",
+        "FM_FAULT",
+        "FM_WFP",
+        "RTL_TODO_CHANNEL_FSM",
+        "TODO",
+        "WFP",
+        "channel",
+        "channel_fsm",
+        "pl330realverify",
+        "pl330realverify_channel_fsm"
+      ],
+      "id": "RTL-0029",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "ssot_context": {
+        "id": "RTL_TODO_CHANNEL_FSM"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "fsm.channel_fsm",
+        "function_model.transactions.FM_FAULT",
+        "function_model.transactions.FM_WFP",
+        "workflow_todos.rtl-gen[2]"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_CHANNEL_FSM",
+        "source_refs": [
+          "cycle_model.ordering",
+          "cycle_model.pipeline",
+          "fsm.channel_fsm",
+          "function_model.transactions.FM_FAULT",
+          "function_model.transactions.FM_WFP"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    }
+  ],
+  "todo_plan_sha256": "b7f6b796d440c4cbbe6eee1a6a6f5fafdb0e14d478c2a39e323259db96338d34",
+  "top": "pl330realverify",
+  "type": "rtl_authoring_packet"
+}

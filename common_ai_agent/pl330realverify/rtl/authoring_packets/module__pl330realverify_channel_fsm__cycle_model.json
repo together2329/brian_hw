@@ -1,0 +1,1263 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 68,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 2,
+      "key": "cycle_model",
+      "module_task_count": 104,
+      "rule": "Owner module pl330realverify_channel_fsm is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330realverify_channel_fsm.sv",
+      "name": "pl330realverify_channel_fsm",
+      "refs": [
+        "cycle_model",
+        "cycle_model.backpressure",
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "decomposition.units.channel_control",
+        "fsm",
+        "fsm.channel_fsm",
+        "function_model",
+        "function_model.transactions.FM_FAULT",
+        "function_model.transactions.FM_TRANSFER",
+        "function_model.transactions.FM_WFP"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330realverify_regs.sv",
+        "name": "pl330realverify_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_channel_fsm.sv",
+        "name": "pl330realverify_channel_fsm",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_rd.sv",
+        "name": "pl330realverify_axi_rd",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_wr.sv",
+        "name": "pl330realverify_axi_wr",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_datapath.sv",
+        "name": "pl330realverify_datapath",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_event_irq.sv",
+        "name": "pl330realverify_event_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify.sv",
+        "name": "pl330realverify",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[1].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[1].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "start_cmd_i",
+        "signal": "start_cmd",
+        "signal_terms": [
+          "start_cmd"
+        ],
+        "source_ref": "sub_modules[1].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "halt_cmd_i",
+        "signal": "halt_cmd",
+        "signal_terms": [
+          "halt_cmd"
+        ],
+        "source_ref": "sub_modules[1].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "selected_event_i",
+        "signal": "selected_event",
+        "signal_terms": [
+          "selected_event"
+        ],
+        "source_ref": "sub_modules[1].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "state_o",
+        "signal": "channel_state",
+        "signal_terms": [
+          "channel_state"
+        ],
+        "source_ref": "sub_modules[1].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "state_o",
+        "signal": "channel_state",
+        "signal_terms": [
+          "channel_state"
+        ],
+        "source_ref": "integration.connections[11]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Production-quality PL330-like DMA verification target with APB register block, channel FSM, AXI read/write adapters, datapath, and event/interrupt block.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 12,
+      "min_logic_modules": 6,
+      "min_modules": 7,
+      "min_procedural_blocks": 14,
+      "min_source_files": 7,
+      "min_state_updates": 20,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 25,
+    "open_required_count": 25,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330realverify",
+  "kind": "module",
+  "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+  "owner_module": "pl330realverify_channel_fsm",
+  "packet_id": "module__pl330realverify_channel_fsm__cycle_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 5,
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 2,
+      "cycle_model.latency": 1,
+      "cycle_model.observability": 2,
+      "cycle_model.ordering": 5,
+      "cycle_model.pipeline": 8,
+      "cycle_model.reset": 1
+    },
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 2,
+      "key": "cycle_model",
+      "module_task_count": 104,
+      "rule": "Owner module pl330realverify_channel_fsm is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 25,
+    "required_count": 25,
+    "source_refs": [
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.handshake_rules.APB_READ_DATA",
+      "cycle_model.handshake_rules.IRQ_LEVEL",
+      "cycle_model.pipeline.S0_APB_ACCEPT",
+      "cycle_model.pipeline.S1_CMD_ACCEPT",
+      "cycle_model.pipeline.S2_WFP",
+      "cycle_model.pipeline.S3_ISSUE_READ",
+      "cycle_model.pipeline.S4_CAPTURE_READ",
+      "cycle_model.pipeline.S5_ISSUE_WRITE",
+      "cycle_model.pipeline.S6_WRITE_RESP",
+      "cycle_model.pipeline.S7_TERMINAL",
+      "cycle_model.ordering.ordering_rule_0",
+      "cycle_model.ordering.ordering_rule_1",
+      "cycle_model.ordering.ordering_rule_2",
+      "cycle_model.ordering.ordering_rule_3",
+      "cycle_model.ordering.ordering_rule_4",
+      "cycle_model.backpressure.backpressure_rule_0",
+      "cycle_model.backpressure.backpressure_rule_1",
+      "cycle_model.backpressure.backpressure_rule_2",
+      "cycle_model.backpressure.backpressure_rule_3",
+      "cycle_model.backpressure.backpressure_rule_4",
+      "cycle_model.observability.observability_signal_0"
+    ],
+    "status_counts": {
+      "planned": 25
+    },
+    "task_count": 25
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.\nSSOT item context: value=dmaclk.",
+      "evidence_terms": [],
+      "id": "RTL-0202",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "dmaclk"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0203",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0204",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: APB_READ_DATA",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.APB_READ_DATA",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "APB_READ_DATA appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.APB_READ_DATA.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.\nSSOT item context: id=APB_READ_DATA; signal=prdata.",
+      "evidence_terms": [
+        "APB",
+        "APB_READ_DATA",
+        "DATA",
+        "READ",
+        "prdata"
+      ],
+      "id": "RTL-0206",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.APB_READ_DATA",
+      "ssot_context": {
+        "id": "APB_READ_DATA",
+        "signal": "prdata"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.APB_READ_DATA"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: IRQ_LEVEL",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.IRQ_LEVEL",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "IRQ_LEVEL appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.IRQ_LEVEL.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.\nSSOT item context: id=IRQ_LEVEL; signal=dmac_irq.",
+      "evidence_terms": [
+        "IRQ",
+        "IRQ_LEVEL",
+        "LEVEL",
+        "dmac",
+        "dmac_irq",
+        "irq"
+      ],
+      "id": "RTL-0212",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.IRQ_LEVEL",
+      "ssot_context": {
+        "id": "IRQ_LEVEL",
+        "signal": "dmac_irq"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.IRQ_LEVEL"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S0_APB_ACCEPT",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S0_APB_ACCEPT",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.pipeline.S0_APB_ACCEPT timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S0_APB_ACCEPT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_APB_ACCEPT.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.pipeline.\nSSOT item context: stage=S0_APB_ACCEPT; action=Decode APB access, update configuration or emit start/halt/debug pulses.; cycle=0.",
+      "evidence_terms": [],
+      "id": "RTL-0213",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S0_APB_ACCEPT",
+      "ssot_context": {
+        "action": "Decode APB access, update configuration or emit start/halt/debug pulses.",
+        "cycle": "0",
+        "stage": "S0_APB_ACCEPT"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_APB_ACCEPT"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S1_CMD_ACCEPT",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S1_CMD_ACCEPT",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.pipeline.S1_CMD_ACCEPT timing uses SSOT cycle/latency 1",
+        "cycle_model.pipeline.S1_CMD_ACCEPT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_CMD_ACCEPT.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.pipeline.\nSSOT item context: stage=S1_CMD_ACCEPT; action=Latch channel command, SAR, DAR, count, WFP configuration, and error precheck results.; cycle=1.",
+      "evidence_terms": [],
+      "id": "RTL-0214",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S1_CMD_ACCEPT",
+      "ssot_context": {
+        "action": "Latch channel command, SAR, DAR, count, WFP configuration, and error precheck results.",
+        "cycle": "1",
+        "stage": "S1_CMD_ACCEPT"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_CMD_ACCEPT"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S2_WFP",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S2_WFP",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.pipeline.S2_WFP timing uses SSOT cycle/latency 1..N",
+        "cycle_model.pipeline.S2_WFP appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_WFP.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.pipeline.\nSSOT item context: stage=S2_WFP; action=If WFP is enabled, hold state until selected peripheral event samples high.; cycle=1..N.",
+      "evidence_terms": [],
+      "id": "RTL-0215",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S2_WFP",
+      "ssot_context": {
+        "action": "If WFP is enabled, hold state until selected peripheral event samples high.",
+        "cycle": "1..N",
+        "stage": "S2_WFP"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S2_WFP"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S3_ISSUE_READ",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S3_ISSUE_READ",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.pipeline.S3_ISSUE_READ timing uses SSOT cycle/latency N..M",
+        "cycle_model.pipeline.S3_ISSUE_READ appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S3_ISSUE_READ.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.pipeline.\nSSOT item context: stage=S3_ISSUE_READ; action=Drive AXI AR payload and hold until AR handshake.; cycle=N..M.",
+      "evidence_terms": [],
+      "id": "RTL-0216",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S3_ISSUE_READ",
+      "ssot_context": {
+        "action": "Drive AXI AR payload and hold until AR handshake.",
+        "cycle": "N..M",
+        "stage": "S3_ISSUE_READ"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S3_ISSUE_READ"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S4_CAPTURE_READ",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S4_CAPTURE_READ",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.pipeline.S4_CAPTURE_READ timing uses SSOT cycle/latency M..P",
+        "cycle_model.pipeline.S4_CAPTURE_READ appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S4_CAPTURE_READ.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.pipeline.\nSSOT item context: stage=S4_CAPTURE_READ; action=Accept AXI R beat, classify rresp, and capture rdata into rd_buf.; cycle=M..P.",
+      "evidence_terms": [
+        "buf",
+        "rd",
+        "rd_buf"
+      ],
+      "id": "RTL-0217",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S4_CAPTURE_READ",
+      "ssot_context": {
+        "action": "Accept AXI R beat, classify rresp, and capture rdata into rd_buf.",
+        "cycle": "M..P",
+        "stage": "S4_CAPTURE_READ"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S4_CAPTURE_READ"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S5_ISSUE_WRITE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S5_ISSUE_WRITE",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.pipeline.S5_ISSUE_WRITE timing uses SSOT cycle/latency P..Q",
+        "cycle_model.pipeline.S5_ISSUE_WRITE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S5_ISSUE_WRITE.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.pipeline.\nSSOT item context: stage=S5_ISSUE_WRITE; action=Drive AXI AW and W payloads; each channel may complete independently but both must handshake before B wait.; cycle=P..Q.",
+      "evidence_terms": [],
+      "id": "RTL-0218",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S5_ISSUE_WRITE",
+      "ssot_context": {
+        "action": "Drive AXI AW and W payloads; each channel may complete independently but both must handshake before B wait.",
+        "cycle": "P..Q",
+        "stage": "S5_ISSUE_WRITE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S5_ISSUE_WRITE"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S6_WRITE_RESP",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S6_WRITE_RESP",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.pipeline.S6_WRITE_RESP timing uses SSOT cycle/latency Q..R",
+        "cycle_model.pipeline.S6_WRITE_RESP appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S6_WRITE_RESP.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.pipeline.\nSSOT item context: stage=S6_WRITE_RESP; action=Consume AXI B response, update address/count/status/interrupts.; cycle=Q..R.",
+      "evidence_terms": [],
+      "id": "RTL-0219",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S6_WRITE_RESP",
+      "ssot_context": {
+        "action": "Consume AXI B response, update address/count/status/interrupts.",
+        "cycle": "Q..R",
+        "stage": "S6_WRITE_RESP"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S6_WRITE_RESP"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S7_TERMINAL",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S7_TERMINAL",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.pipeline.S7_TERMINAL timing uses SSOT cycle/latency R+1",
+        "cycle_model.pipeline.S7_TERMINAL appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S7_TERMINAL.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.pipeline.\nSSOT item context: stage=S7_TERMINAL; action=Post COMPLETED or FAULTED status and level interrupt state.; cycle=R+1.",
+      "evidence_terms": [],
+      "id": "RTL-0220",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S7_TERMINAL",
+      "ssot_context": {
+        "action": "Post COMPLETED or FAULTED status and level interrupt state.",
+        "cycle": "R+1",
+        "stage": "S7_TERMINAL"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S7_TERMINAL"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.ordering.\nSSOT item context: value=A write data beat must not be issued before the corresponding read data beat has been accepted into rd_buf..",
+      "evidence_terms": [],
+      "id": "RTL-0221",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "A write data beat must not be issued before the corresponding read data beat has been accepted into rd_buf."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.ordering.\nSSOT item context: value=A channel-complete interrupt pending bit is set only after the final successful B response..",
+      "evidence_terms": [],
+      "id": "RTL-0222",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "ssot_context": {
+        "value": "A channel-complete interrupt pending bit is set only after the final successful B response."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_2",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.ordering.\nSSOT item context: value=A channel-fault interrupt pending bit is set on the first detected fault before any later completion status..",
+      "evidence_terms": [],
+      "id": "RTL-0223",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_2",
+      "ssot_context": {
+        "value": "A channel-fault interrupt pending bit is set on the first detected fault before any later completion status."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_3",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_3",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.ordering.\nSSOT item context: value=APB W1C clear does not clear configuration registers or address counters..",
+      "evidence_terms": [],
+      "id": "RTL-0224",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_3",
+      "ssot_context": {
+        "value": "APB W1C clear does not clear configuration registers or address counters."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_4",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_4",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.ordering.ordering_rule_4 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_4.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.ordering.\nSSOT item context: value=For each channel, at most one read burst and one write burst are outstanding in this engineering subset..",
+      "evidence_terms": [],
+      "id": "RTL-0225",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_4",
+      "ssot_context": {
+        "value": "For each channel, at most one read burst and one write burst are outstanding in this engineering subset."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_4"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.backpressure.\nSSOT item context: value=If arready is zero, AR payload remains stable and no read transaction is counted..",
+      "evidence_terms": [],
+      "id": "RTL-0226",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "If arready is zero, AR payload remains stable and no read transaction is counted."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.backpressure.backpressure_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.backpressure.\nSSOT item context: value=If rvalid is zero, rd_buf and downstream write stage remain stable..",
+      "evidence_terms": [
+        "buf",
+        "rd",
+        "rd_buf"
+      ],
+      "id": "RTL-0227",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_1",
+      "ssot_context": {
+        "value": "If rvalid is zero, rd_buf and downstream write stage remain stable."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_2",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.backpressure.backpressure_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_2.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.backpressure.\nSSOT item context: value=If awready or wready is zero, write payload/address/control remain stable until handshakes occur..",
+      "evidence_terms": [],
+      "id": "RTL-0228",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_2",
+      "ssot_context": {
+        "value": "If awready or wready is zero, write payload/address/control remain stable until handshakes occur."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_3",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_3",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.backpressure.backpressure_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_3.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.backpressure.\nSSOT item context: value=If bvalid is zero, architectural completion/fault for that write is delayed..",
+      "evidence_terms": [],
+      "id": "RTL-0229",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_3",
+      "ssot_context": {
+        "value": "If bvalid is zero, architectural completion/fault for that write is delayed."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_4",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_4",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.backpressure.backpressure_rule_4 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_4.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.backpressure.\nSSOT item context: value=APB accesses are not backpressured in the baseline beyond the single access phase..",
+      "evidence_terms": [],
+      "id": "RTL-0230",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_4",
+      "ssot_context": {
+        "value": "APB accesses are not backpressured in the baseline beyond the single access phase."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_4"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.\nSSOT item context: value=Every function_model transaction maps to one or more cycle_model stages and at least one coverage bin..",
+      "evidence_terms": [],
+      "id": "RTL-0231",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "ssot_context": {
+        "value": "Every function_model transaction maps to one or more cycle_model stages and at least one coverage bin."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_1",
+        "Primary implementation evidence is in rtl/pl330realverify_channel_fsm.sv",
+        "cycle_model.observability.observability_signal_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_1.\nOwner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via cycle_model.\nSSOT item context: value=Waveform debug must show state, start_cmd, selected_event, AXI handshakes, rd_buf, status, error_code, intstatus, int....",
+      "evidence_terms": [],
+      "id": "RTL-0232",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_1",
+      "ssot_context": {
+        "value": "Waveform debug must show state, start_cmd, selected_event, AXI handshakes, rd_buf, status, error_code, intstatus, int..."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b7f6b796d440c4cbbe6eee1a6a6f5fafdb0e14d478c2a39e323259db96338d34",
+  "top": "pl330realverify",
+  "type": "rtl_authoring_packet"
+}

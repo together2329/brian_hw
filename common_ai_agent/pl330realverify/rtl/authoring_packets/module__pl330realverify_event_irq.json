@@ -1,0 +1,1644 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 68,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 30,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330realverify_event_irq.sv",
+      "name": "pl330realverify_event_irq",
+      "refs": [
+        "decomposition.units.event_interrupt",
+        "function_model",
+        "function_model.transactions.FM_IRQ_CLEAR",
+        "function_model.transactions.FM_WFP",
+        "interrupts",
+        "io_list",
+        "io_list.interfaces.event_inputs",
+        "io_list.interfaces.interrupt_output",
+        "registers",
+        "registers.register_list.CONTROL",
+        "registers.register_list.INTEN",
+        "registers.register_list.INTSTATUS"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330realverify_regs.sv",
+        "name": "pl330realverify_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_channel_fsm.sv",
+        "name": "pl330realverify_channel_fsm",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_rd.sv",
+        "name": "pl330realverify_axi_rd",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_wr.sv",
+        "name": "pl330realverify_axi_wr",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_datapath.sv",
+        "name": "pl330realverify_datapath",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_event_irq.sv",
+        "name": "pl330realverify_event_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify.sv",
+        "name": "pl330realverify",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[5].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[5].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "peripheral_events_i",
+        "signal": "peripheral_events",
+        "signal_terms": [
+          "peripheral_events"
+        ],
+        "source_ref": "sub_modules[5].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "irq_o",
+        "signal": "dmac_irq",
+        "signal_terms": [
+          "dmac_irq"
+        ],
+        "source_ref": "sub_modules[5].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "peripheral_events_i",
+        "signal": "peripheral_events",
+        "signal_terms": [
+          "peripheral_events"
+        ],
+        "source_ref": "integration.connections[21]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "irq_o",
+        "signal": "dmac_irq",
+        "signal_terms": [
+          "dmac_irq"
+        ],
+        "source_ref": "integration.connections[22]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Production-quality PL330-like DMA verification target with APB register block, channel FSM, AXI read/write adapters, datapath, and event/interrupt block.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 12,
+      "min_logic_modules": 6,
+      "min_modules": 7,
+      "min_procedural_blocks": 14,
+      "min_source_files": 7,
+      "min_state_updates": 20,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 30,
+    "open_required_count": 30,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330realverify",
+  "kind": "module",
+  "owner_file": "rtl/pl330realverify_event_irq.sv",
+  "owner_module": "pl330realverify_event_irq",
+  "packet_id": "module__pl330realverify_event_irq",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "function_model.input": 1,
+      "function_model.output": 1,
+      "function_model.output_rule": 2,
+      "function_model.precondition": 3,
+      "function_model.side_effect": 1,
+      "function_model.state_update": 1,
+      "function_model.transaction": 1,
+      "io_list.port": 2,
+      "registers.field": 14,
+      "registers.register": 3
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 30,
+      "task_limit": 48
+    },
+    "open_required_count": 30,
+    "required_count": 30,
+    "source_refs": [
+      "function_model.transactions.FM_WFP.output_rules.irq_during_wfp",
+      "function_model.transactions.FM_IRQ_CLEAR",
+      "function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_0",
+      "function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_1",
+      "function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_2",
+      "function_model.transactions.FM_IRQ_CLEAR.inputs.input_0",
+      "function_model.transactions.FM_IRQ_CLEAR.outputs.output_0",
+      "function_model.transactions.FM_IRQ_CLEAR.output_rules.irq_after_w1c",
+      "function_model.transactions.FM_IRQ_CLEAR.state_updates.intstatus",
+      "function_model.transactions.FM_IRQ_CLEAR.side_effects.side_effect_0",
+      "registers.register_list.INTEN",
+      "registers.register_list.INTEN.fields.ch_complete_en",
+      "registers.register_list.INTEN.fields.ch_fault_en",
+      "registers.register_list.INTEN.fields.dbg_done_en",
+      "registers.register_list.INTEN.fields.reserved_31_17",
+      "registers.register_list.INTSTATUS",
+      "registers.register_list.INTSTATUS.fields.ch_complete",
+      "registers.register_list.INTSTATUS.fields.ch_fault",
+      "registers.register_list.INTSTATUS.fields.dbg_done",
+      "registers.register_list.INTSTATUS.fields.reserved_31_17",
+      "registers.register_list.CONTROL",
+      "registers.register_list.CONTROL.fields.start",
+      "registers.register_list.CONTROL.fields.halt",
+      "registers.register_list.CONTROL.fields.wfp_enable"
+    ],
+    "status_counts": {
+      "planned": 30
+    },
+    "task_count": 30
+  },
+  "tasks": [
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_WFP: irq_during_wfp",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WFP.output_rules.irq_during_wfp",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "irq_during_wfp width matches SSOT value 1",
+        "irq_during_wfp RTL expression implements SSOT expression 1 if (intstatus & inten) != 0 else 0",
+        "DUT port dmac_irq is the implementation/observation point for irq_during_wfp",
+        "irq_during_wfp is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WFP.output_rules.irq_during_wfp.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_WFP.\nSSOT item context: name=irq_during_wfp; port=dmac_irq; expr=1 if (intstatus & inten) != 0 else 0; width=1.",
+      "evidence_terms": [
+        "dmac",
+        "dmac_irq",
+        "during",
+        "irq",
+        "irq_during_wfp",
+        "wfp"
+      ],
+      "id": "RTL-0171",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WFP.output_rules.irq_during_wfp",
+      "ssot_context": {
+        "expr": "1 if (intstatus & inten) != 0 else 0",
+        "name": "irq_during_wfp",
+        "port": "dmac_irq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WFP.output_rules.irq_during_wfp"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_IRQ_CLEAR",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_IRQ_CLEAR",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_IRQ_CLEAR.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.\nSSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear.",
+      "evidence_terms": [],
+      "id": "RTL-0188",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_IRQ_CLEAR",
+      "ssot_context": {
+        "id": "FM_IRQ_CLEAR",
+        "name": "interrupt_write_one_to_clear"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_IRQ_CLEAR"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_IRQ_CLEAR: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_0.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.\nSSOT item context: value=dmacresetn == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0189",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "dmacresetn == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_IRQ_CLEAR: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_1.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.\nSSOT item context: value=apb_addr_intstatus == 1.",
+      "evidence_terms": [
+        "addr",
+        "apb",
+        "apb_addr_intstatus",
+        "intstatus"
+      ],
+      "id": "RTL-0190",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "apb_addr_intstatus == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_IRQ_CLEAR: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_2.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.\nSSOT item context: value=psel == 1 and penable == 1 and pwrite == 1 and pready == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0191",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "psel == 1 and penable == 1 and pwrite == 1 and pready == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_IRQ_CLEAR: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_IRQ_CLEAR.inputs.input_0",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for interrupt_write_one_to_clear"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_IRQ_CLEAR.inputs.input_0.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.\nSSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear; port=[\"dmac_irq\"]; signal=[\"pwdata\"]; state=[\"intstatus\"].",
+      "evidence_terms": [
+        "dmac",
+        "dmac_irq",
+        "intstatus",
+        "irq",
+        "pwdata"
+      ],
+      "id": "RTL-0192",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_IRQ_CLEAR.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_IRQ_CLEAR",
+        "name": "interrupt_write_one_to_clear",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[\"pwdata\"]",
+        "state": "[\"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_IRQ_CLEAR.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_IRQ_CLEAR: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_IRQ_CLEAR.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for interrupt_write_one_to_clear"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_IRQ_CLEAR.outputs.output_0.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.\nSSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear; port=[\"dmac_irq\"]; signal=[\"dmac_irq reflects the enabled pending status after the W1C clear.\"]; state=[\"intstatus\"].",
+      "evidence_terms": [
+        "W1C",
+        "dmac",
+        "dmac_irq",
+        "intstatus",
+        "irq"
+      ],
+      "id": "RTL-0193",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_IRQ_CLEAR.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_IRQ_CLEAR",
+        "name": "interrupt_write_one_to_clear",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[\"dmac_irq reflects the enabled pending status after the W1C clear.\"]",
+        "state": "[\"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_IRQ_CLEAR.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_IRQ_CLEAR: irq_after_w1c",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_IRQ_CLEAR.output_rules.irq_after_w1c",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "irq_after_w1c width matches SSOT value 1",
+        "irq_after_w1c RTL expression implements SSOT expression 1 if ((intstatus & (~pwdata)) & inten) != 0 else 0",
+        "DUT port dmac_irq is the implementation/observation point for irq_after_w1c",
+        "irq_after_w1c is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_IRQ_CLEAR.output_rules.irq_after_w1c.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.\nSSOT item context: name=irq_after_w1c; port=dmac_irq; expr=1 if ((intstatus & (~pwdata)) & inten) != 0 else 0; width=1.",
+      "evidence_terms": [
+        "after",
+        "dmac",
+        "dmac_irq",
+        "irq",
+        "irq_after_w1c",
+        "w1c"
+      ],
+      "id": "RTL-0194",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_IRQ_CLEAR.output_rules.irq_after_w1c",
+      "ssot_context": {
+        "expr": "1 if ((intstatus & (~pwdata)) & inten) != 0 else 0",
+        "name": "irq_after_w1c",
+        "port": "dmac_irq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_IRQ_CLEAR.output_rules.irq_after_w1c"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_IRQ_CLEAR: intstatus",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_IRQ_CLEAR.state_updates.intstatus",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "intstatus width matches SSOT value 32",
+        "intstatus RTL expression implements SSOT expression intstatus & (~pwdata)",
+        "intstatus updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_IRQ_CLEAR.state_updates.intstatus.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.\nSSOT item context: name=intstatus; expr=intstatus & (~pwdata); width=32.",
+      "evidence_terms": [
+        "intstatus"
+      ],
+      "id": "RTL-0195",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_IRQ_CLEAR.state_updates.intstatus",
+      "ssot_context": {
+        "expr": "intstatus & (~pwdata)",
+        "name": "intstatus",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_IRQ_CLEAR.state_updates.intstatus"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_IRQ_CLEAR: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_IRQ_CLEAR.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "DUT port [\"dmac_irq\"] is the implementation/observation point for interrupt_write_one_to_clear"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_IRQ_CLEAR.side_effects.side_effect_0.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.\nSSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear; port=[\"dmac_irq\"]; signal=[\"Only bits written as one are cleared; bits written as zero retain their prior value.\"]; state=[\"intstatus\"].",
+      "evidence_terms": [
+        "Only",
+        "dmac",
+        "dmac_irq",
+        "intstatus",
+        "irq"
+      ],
+      "id": "RTL-0196",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_IRQ_CLEAR.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_IRQ_CLEAR",
+        "name": "interrupt_write_one_to_clear",
+        "port": "[\"dmac_irq\"]",
+        "signal": "[\"Only bits written as one are cleared; bits written as zero retain their prior value.\"]",
+        "state": "[\"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_IRQ_CLEAR.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register INTEN",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.INTEN",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "INTEN width matches SSOT value 32",
+        "INTEN reset behavior matches SSOT value 0",
+        "INTEN access policy rw is implemented without read/write shortcuts",
+        "INTEN decode uses SSOT address/offset 32"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTEN.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTEN.\nSSOT item context: name=INTEN; width=32; reset=0; access=rw; offset=32.",
+      "evidence_terms": [
+        "INTEN"
+      ],
+      "id": "RTL-0241",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTEN",
+      "ssot_context": {
+        "access": "rw",
+        "name": "INTEN",
+        "offset": "32",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTEN"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTEN.ch_complete_en",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTEN.fields.ch_complete_en",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "ch_complete_en reset behavior matches SSOT value 0",
+        "ch_complete_en access policy rw is implemented without read/write shortcuts",
+        "ch_complete_en readback returns implemented RTL state when readable",
+        "ch_complete_en write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.ch_complete_en.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTEN.\nSSOT item context: name=ch_complete_en; reset=0; access=rw.",
+      "evidence_terms": [
+        "ch",
+        "ch_complete_en",
+        "complete",
+        "en"
+      ],
+      "id": "RTL-0242",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTEN.fields.ch_complete_en",
+      "ssot_context": {
+        "access": "rw",
+        "name": "ch_complete_en",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTEN.fields.ch_complete_en"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTEN.ch_fault_en",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTEN.fields.ch_fault_en",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "ch_fault_en reset behavior matches SSOT value 0",
+        "ch_fault_en access policy rw is implemented without read/write shortcuts",
+        "ch_fault_en readback returns implemented RTL state when readable",
+        "ch_fault_en write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.ch_fault_en.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTEN.\nSSOT item context: name=ch_fault_en; reset=0; access=rw.",
+      "evidence_terms": [
+        "ch",
+        "ch_fault_en",
+        "en",
+        "fault"
+      ],
+      "id": "RTL-0243",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTEN.fields.ch_fault_en",
+      "ssot_context": {
+        "access": "rw",
+        "name": "ch_fault_en",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTEN.fields.ch_fault_en"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTEN.dbg_done_en",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTEN.fields.dbg_done_en",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "dbg_done_en reset behavior matches SSOT value 0",
+        "dbg_done_en access policy rw is implemented without read/write shortcuts",
+        "dbg_done_en readback returns implemented RTL state when readable",
+        "dbg_done_en write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.dbg_done_en.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTEN.\nSSOT item context: name=dbg_done_en; reset=0; access=rw.",
+      "evidence_terms": [
+        "dbg",
+        "dbg_done_en",
+        "done",
+        "en"
+      ],
+      "id": "RTL-0244",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTEN.fields.dbg_done_en",
+      "ssot_context": {
+        "access": "rw",
+        "name": "dbg_done_en",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTEN.fields.dbg_done_en"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTEN.reserved_31_17",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTEN.fields.reserved_31_17",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "reserved_31_17 reset behavior matches SSOT value 0",
+        "reserved_31_17 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_17 readback returns implemented RTL state when readable",
+        "reserved_31_17 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.reserved_31_17.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTEN.\nSSOT item context: name=reserved_31_17; reset=0; access=reserved.",
+      "evidence_terms": [
+        "17",
+        "31",
+        "reserved",
+        "reserved_31_17"
+      ],
+      "id": "RTL-0245",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTEN.fields.reserved_31_17",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_17",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTEN.fields.reserved_31_17"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register INTSTATUS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.INTSTATUS",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "INTSTATUS width matches SSOT value 32",
+        "INTSTATUS reset behavior matches SSOT value 0",
+        "INTSTATUS access policy w1c is implemented without read/write shortcuts",
+        "INTSTATUS decode uses SSOT address/offset 36"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTSTATUS.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTSTATUS.\nSSOT item context: name=INTSTATUS; width=32; reset=0; access=w1c; offset=36.",
+      "evidence_terms": [
+        "INTSTATUS"
+      ],
+      "id": "RTL-0246",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTSTATUS",
+      "ssot_context": {
+        "access": "w1c",
+        "name": "INTSTATUS",
+        "offset": "36",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTSTATUS"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTSTATUS.ch_complete",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTSTATUS.fields.ch_complete",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "ch_complete reset behavior matches SSOT value 0",
+        "ch_complete access policy w1c is implemented without read/write shortcuts",
+        "ch_complete readback returns implemented RTL state when readable",
+        "ch_complete write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTATUS.fields.ch_complete.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTSTATUS.\nSSOT item context: name=ch_complete; reset=0; access=w1c.",
+      "evidence_terms": [
+        "ch",
+        "ch_complete",
+        "complete"
+      ],
+      "id": "RTL-0247",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTSTATUS.fields.ch_complete",
+      "ssot_context": {
+        "access": "w1c",
+        "name": "ch_complete",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTSTATUS.fields.ch_complete"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTSTATUS.ch_fault",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTSTATUS.fields.ch_fault",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "ch_fault reset behavior matches SSOT value 0",
+        "ch_fault access policy w1c is implemented without read/write shortcuts",
+        "ch_fault readback returns implemented RTL state when readable",
+        "ch_fault write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTATUS.fields.ch_fault.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTSTATUS.\nSSOT item context: name=ch_fault; reset=0; access=w1c.",
+      "evidence_terms": [
+        "ch",
+        "ch_fault",
+        "fault"
+      ],
+      "id": "RTL-0248",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTSTATUS.fields.ch_fault",
+      "ssot_context": {
+        "access": "w1c",
+        "name": "ch_fault",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTSTATUS.fields.ch_fault"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTSTATUS.dbg_done",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTSTATUS.fields.dbg_done",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "dbg_done reset behavior matches SSOT value 0",
+        "dbg_done access policy w1c is implemented without read/write shortcuts",
+        "dbg_done readback returns implemented RTL state when readable",
+        "dbg_done write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTATUS.fields.dbg_done.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTSTATUS.\nSSOT item context: name=dbg_done; reset=0; access=w1c.",
+      "evidence_terms": [
+        "dbg",
+        "dbg_done",
+        "done"
+      ],
+      "id": "RTL-0249",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTSTATUS.fields.dbg_done",
+      "ssot_context": {
+        "access": "w1c",
+        "name": "dbg_done",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTSTATUS.fields.dbg_done"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTSTATUS.reserved_31_17",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTSTATUS.fields.reserved_31_17",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "reserved_31_17 reset behavior matches SSOT value 0",
+        "reserved_31_17 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_17 readback returns implemented RTL state when readable",
+        "reserved_31_17 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTATUS.fields.reserved_31_17.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTSTATUS.\nSSOT item context: name=reserved_31_17; reset=0; access=reserved.",
+      "evidence_terms": [
+        "17",
+        "31",
+        "reserved",
+        "reserved_31_17"
+      ],
+      "id": "RTL-0250",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTSTATUS.fields.reserved_31_17",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_17",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTSTATUS.fields.reserved_31_17"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CONTROL",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CONTROL",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "CONTROL width matches SSOT value 32",
+        "CONTROL reset behavior matches SSOT value 0",
+        "CONTROL access policy rw is implemented without read/write shortcuts",
+        "CONTROL decode uses SSOT address/offset 276"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CONTROL.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.\nSSOT item context: name=CONTROL; width=32; reset=0; access=rw; offset=276.",
+      "evidence_terms": [],
+      "id": "RTL-0264",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CONTROL",
+        "offset": "276",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.start",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.start",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "start reset behavior matches SSOT value 0",
+        "start access policy rw1p is implemented without read/write shortcuts",
+        "start readback returns implemented RTL state when readable",
+        "start write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.start.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.\nSSOT item context: name=start; reset=0; access=rw1p.",
+      "evidence_terms": [
+        "start"
+      ],
+      "id": "RTL-0265",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.start",
+      "ssot_context": {
+        "access": "rw1p",
+        "name": "start",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.start"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.halt",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.halt",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "halt reset behavior matches SSOT value 0",
+        "halt access policy rw1p is implemented without read/write shortcuts",
+        "halt readback returns implemented RTL state when readable",
+        "halt write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.halt.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.\nSSOT item context: name=halt; reset=0; access=rw1p.",
+      "evidence_terms": [
+        "halt"
+      ],
+      "id": "RTL-0266",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.halt",
+      "ssot_context": {
+        "access": "rw1p",
+        "name": "halt",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.halt"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.wfp_enable",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.wfp_enable",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "wfp_enable reset behavior matches SSOT value 0",
+        "wfp_enable access policy rw is implemented without read/write shortcuts",
+        "wfp_enable readback returns implemented RTL state when readable",
+        "wfp_enable write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.wfp_enable.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.\nSSOT item context: name=wfp_enable; reset=0; access=rw.",
+      "evidence_terms": [
+        "enable",
+        "wfp",
+        "wfp_enable"
+      ],
+      "id": "RTL-0267",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.wfp_enable",
+      "ssot_context": {
+        "access": "rw",
+        "name": "wfp_enable",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.wfp_enable"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.wfp_event",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.wfp_event",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "wfp_event reset behavior matches SSOT value 0",
+        "wfp_event access policy rw is implemented without read/write shortcuts",
+        "wfp_event readback returns implemented RTL state when readable",
+        "wfp_event write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.wfp_event.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.\nSSOT item context: name=wfp_event; reset=0; access=rw.",
+      "evidence_terms": [
+        "wfp",
+        "wfp_event"
+      ],
+      "id": "RTL-0268",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.wfp_event",
+      "ssot_context": {
+        "access": "rw",
+        "name": "wfp_event",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.wfp_event"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.fault_inject",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.fault_inject",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "fault_inject reset behavior matches SSOT value 0",
+        "fault_inject access policy rw is implemented without read/write shortcuts",
+        "fault_inject readback returns implemented RTL state when readable",
+        "fault_inject write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.fault_inject.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.\nSSOT item context: name=fault_inject; reset=0; access=rw.",
+      "evidence_terms": [
+        "fault",
+        "fault_inject",
+        "inject"
+      ],
+      "id": "RTL-0269",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.fault_inject",
+      "ssot_context": {
+        "access": "rw",
+        "name": "fault_inject",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.fault_inject"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.reserved_31_17",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.reserved_31_17",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "reserved_31_17 reset behavior matches SSOT value 0",
+        "reserved_31_17 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_17 readback returns implemented RTL state when readable",
+        "reserved_31_17 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.reserved_31_17.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.\nSSOT item context: name=reserved_31_17; reset=0; access=reserved.",
+      "evidence_terms": [
+        "17",
+        "31",
+        "reserved",
+        "reserved_31_17"
+      ],
+      "id": "RTL-0270",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.reserved_31_17",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_17",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.reserved_31_17"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module pl330realverify_event_irq is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.pl330realverify_event_irq.module_equivalence",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.pl330realverify_event_irq.module_equivalence.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0380",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.pl330realverify_event_irq.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.pl330realverify_event_irq.module_equivalence"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port peripheral_events",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.event_inputs.ports.peripheral_events",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "peripheral_events width matches SSOT value 32",
+        "peripheral_events port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.event_inputs.ports.peripheral_events.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via io_list.interfaces.event_inputs.\nSSOT item context: name=peripheral_events; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0086",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.event_inputs.ports.peripheral_events",
+      "ssot_context": {
+        "direction": "input",
+        "name": "peripheral_events",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.event_inputs.ports.peripheral_events"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port dmac_irq",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.interrupt_output.ports.dmac_irq",
+        "Primary implementation evidence is in rtl/pl330realverify_event_irq.sv",
+        "dmac_irq width matches SSOT value 1",
+        "dmac_irq port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.interrupt_output.ports.dmac_irq.\nOwner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via io_list.interfaces.interrupt_output.\nSSOT item context: name=dmac_irq; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0087",
+      "owner_file": "rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_event_irq",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.interrupt_output.ports.dmac_irq",
+      "ssot_context": {
+        "direction": "output",
+        "name": "dmac_irq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.interrupt_output.ports.dmac_irq"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b7f6b796d440c4cbbe6eee1a6a6f5fafdb0e14d478c2a39e323259db96338d34",
+  "top": "pl330realverify",
+  "type": "rtl_authoring_packet"
+}

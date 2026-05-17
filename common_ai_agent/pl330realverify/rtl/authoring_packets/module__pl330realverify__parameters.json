@@ -1,0 +1,1847 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 68,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 2,
+      "key": "parameters",
+      "module_task_count": 71,
+      "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "parameters",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330realverify.sv",
+      "name": "pl330realverify",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330realverify_regs.sv",
+        "name": "pl330realverify_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_channel_fsm.sv",
+        "name": "pl330realverify_channel_fsm",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_rd.sv",
+        "name": "pl330realverify_axi_rd",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_wr.sv",
+        "name": "pl330realverify_axi_wr",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_datapath.sv",
+        "name": "pl330realverify_datapath",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_event_irq.sv",
+        "name": "pl330realverify_event_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify.sv",
+        "name": "pl330realverify",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[0].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[0].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "paddr_i",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "sub_modules[0].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "psel_i",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "sub_modules[0].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "penable_i",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "sub_modules[0].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwrite_i",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "sub_modules[0].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwdata_i",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "sub_modules[0].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pstrb_i",
+        "signal": "pstrb",
+        "signal_terms": [
+          "pstrb"
+        ],
+        "source_ref": "sub_modules[0].connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "prdata_o",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "sub_modules[0].connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pready_o",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "sub_modules[0].connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pslverr_o",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "sub_modules[0].connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "irq_o",
+        "signal": "dmac_irq",
+        "signal_terms": [
+          "dmac_irq"
+        ],
+        "source_ref": "sub_modules[0].connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[1].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[1].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "start_cmd_i",
+        "signal": "start_cmd",
+        "signal_terms": [
+          "start_cmd"
+        ],
+        "source_ref": "sub_modules[1].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "halt_cmd_i",
+        "signal": "halt_cmd",
+        "signal_terms": [
+          "halt_cmd"
+        ],
+        "source_ref": "sub_modules[1].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "selected_event_i",
+        "signal": "selected_event",
+        "signal_terms": [
+          "selected_event"
+        ],
+        "source_ref": "sub_modules[1].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "state_o",
+        "signal": "channel_state",
+        "signal_terms": [
+          "channel_state"
+        ],
+        "source_ref": "sub_modules[1].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[2].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[2].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arvalid_o",
+        "signal": "arvalid",
+        "signal_terms": [
+          "arvalid"
+        ],
+        "source_ref": "sub_modules[2].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arready_i",
+        "signal": "arready",
+        "signal_terms": [
+          "arready"
+        ],
+        "source_ref": "sub_modules[2].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rvalid_i",
+        "signal": "rvalid",
+        "signal_terms": [
+          "rvalid"
+        ],
+        "source_ref": "sub_modules[2].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rready_o",
+        "signal": "rready",
+        "signal_terms": [
+          "rready"
+        ],
+        "source_ref": "sub_modules[2].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rdata_i",
+        "signal": "rdata",
+        "signal_terms": [
+          "rdata"
+        ],
+        "source_ref": "sub_modules[2].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rresp_i",
+        "signal": "rresp",
+        "signal_terms": [
+          "rresp"
+        ],
+        "source_ref": "sub_modules[2].connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[3].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[3].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "awvalid_o",
+        "signal": "awvalid",
+        "signal_terms": [
+          "awvalid"
+        ],
+        "source_ref": "sub_modules[3].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "awready_i",
+        "signal": "awready",
+        "signal_terms": [
+          "awready"
+        ],
+        "source_ref": "sub_modules[3].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "wvalid_o",
+        "signal": "wvalid",
+        "signal_terms": [
+          "wvalid"
+        ],
+        "source_ref": "sub_modules[3].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "wready_i",
+        "signal": "wready",
+        "signal_terms": [
+          "wready"
+        ],
+        "source_ref": "sub_modules[3].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "bvalid_i",
+        "signal": "bvalid",
+        "signal_terms": [
+          "bvalid"
+        ],
+        "source_ref": "sub_modules[3].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "bready_o",
+        "signal": "bready",
+        "signal_terms": [
+          "bready"
+        ],
+        "source_ref": "sub_modules[3].connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "bresp_i",
+        "signal": "bresp",
+        "signal_terms": [
+          "bresp"
+        ],
+        "source_ref": "sub_modules[3].connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[4].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[4].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "src_addr_o",
+        "signal": "araddr",
+        "signal_terms": [
+          "araddr"
+        ],
+        "source_ref": "sub_modules[4].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "dst_addr_o",
+        "signal": "awaddr",
+        "signal_terms": [
+          "awaddr"
+        ],
+        "source_ref": "sub_modules[4].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "rd_data_i",
+        "signal": "rdata",
+        "signal_terms": [
+          "rdata"
+        ],
+        "source_ref": "sub_modules[4].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "wr_data_o",
+        "signal": "wdata",
+        "signal_terms": [
+          "wdata"
+        ],
+        "source_ref": "sub_modules[4].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[5].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[5].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "peripheral_events_i",
+        "signal": "peripheral_events",
+        "signal_terms": [
+          "peripheral_events"
+        ],
+        "source_ref": "sub_modules[5].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "irq_o",
+        "signal": "dmac_irq",
+        "signal_terms": [
+          "dmac_irq"
+        ],
+        "source_ref": "sub_modules[5].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "paddr_i",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "psel_i",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "penable_i",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwrite_i",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pwdata_i",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pstrb_i",
+        "signal": "pstrb",
+        "signal_terms": [
+          "pstrb"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "prdata_o",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pready_o",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_regs",
+        "port": "pslverr_o",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_channel_fsm",
+        "port": "state_o",
+        "signal": "channel_state",
+        "signal_terms": [
+          "channel_state"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arvalid_o",
+        "signal": "arvalid",
+        "signal_terms": [
+          "arvalid"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arready_i",
+        "signal": "arready",
+        "signal_terms": [
+          "arready"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rvalid_i",
+        "signal": "rvalid",
+        "signal_terms": [
+          "rvalid"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rready_o",
+        "signal": "rready",
+        "signal_terms": [
+          "rready"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "awvalid_o",
+        "signal": "awvalid",
+        "signal_terms": [
+          "awvalid"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "wvalid_o",
+        "signal": "wvalid",
+        "signal_terms": [
+          "wvalid"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_wr",
+        "port": "bready_o",
+        "signal": "bready",
+        "signal_terms": [
+          "bready"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "rd_data_i",
+        "signal": "rdata",
+        "signal_terms": [
+          "rdata"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "wr_data_o",
+        "signal": "wdata",
+        "signal_terms": [
+          "wdata"
+        ],
+        "source_ref": "integration.connections[20]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "peripheral_events_i",
+        "signal": "peripheral_events",
+        "signal_terms": [
+          "peripheral_events"
+        ],
+        "source_ref": "integration.connections[21]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_event_irq",
+        "port": "irq_o",
+        "signal": "dmac_irq",
+        "signal_terms": [
+          "dmac_irq"
+        ],
+        "source_ref": "integration.connections[22]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "dmaclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "dmaclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "dmacresetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "dmacresetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "12"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pstrb",
+          "pstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pstrb",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "arid",
+          "axi_rd_master_arid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arid",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "6"
+      },
+      {
+        "aliases": [
+          "araddr",
+          "axi_rd_master_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "araddr",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "arlen",
+          "axi_rd_master_arlen"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arlen",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "arsize",
+          "axi_rd_master_arsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arsize",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "arburst",
+          "axi_rd_master_arburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arburst",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "arcache",
+          "axi_rd_master_arcache"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arcache",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "arprot",
+          "axi_rd_master_arprot"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arprot",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "arvalid",
+          "axi_rd_master_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arvalid",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "arready",
+          "axi_rd_master_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "arready",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rid",
+          "rid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rid",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "6"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rdata",
+          "rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rdata",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "64"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rresp",
+          "rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rresp",
+        "source_ref": "io_list.interfaces[1].ports[11]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rlast",
+          "rlast"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rlast",
+        "source_ref": "io_list.interfaces[1].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rvalid",
+          "rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rvalid",
+        "source_ref": "io_list.interfaces[1].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_master_rready",
+          "rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "rready",
+        "source_ref": "io_list.interfaces[1].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "awid",
+          "axi_wr_master_awid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awid",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "6"
+      },
+      {
+        "aliases": [
+          "awaddr",
+          "axi_wr_master_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awaddr",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "awlen",
+          "axi_wr_master_awlen"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awlen",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "awsize",
+          "axi_wr_master_awsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awsize",
+        "source_ref": "io_list.interfaces[2].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "awburst",
+          "axi_wr_master_awburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awburst",
+        "source_ref": "io_list.interfaces[2].ports[4]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "awcache",
+          "axi_wr_master_awcache"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awcache",
+        "source_ref": "io_list.interfaces[2].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "awprot",
+          "axi_wr_master_awprot"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awprot",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "awvalid",
+          "axi_wr_master_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "awvalid",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "awready",
+          "axi_wr_master_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "awready",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_wdata",
+          "wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wdata",
+        "source_ref": "io_list.interfaces[2].ports[9]",
+        "width": "64"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_wstrb",
+          "wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wstrb",
+        "source_ref": "io_list.interfaces[2].ports[10]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_wlast",
+          "wlast"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wlast",
+        "source_ref": "io_list.interfaces[2].ports[11]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_wvalid",
+          "wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wvalid",
+        "source_ref": "io_list.interfaces[2].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_wready",
+          "wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wready",
+        "source_ref": "io_list.interfaces[2].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_bid",
+          "bid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "bid",
+        "source_ref": "io_list.interfaces[2].ports[14]",
+        "width": "6"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_bresp",
+          "bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "bresp",
+        "source_ref": "io_list.interfaces[2].ports[15]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_bvalid",
+          "bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "bvalid",
+        "source_ref": "io_list.interfaces[2].ports[16]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_master_bready",
+          "bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "bready",
+        "source_ref": "io_list.interfaces[2].ports[17]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "event_inputs_peripheral_events",
+          "peripheral_events"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "peripheral_events",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "dmac_irq",
+          "interrupt_output_dmac_irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "dmac_irq",
+        "source_ref": "io_list.interfaces[4].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": {
+      "basis": "Production-quality PL330-like DMA verification target with APB register block, channel FSM, AXI read/write adapters, datapath, and event/interrupt block.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 12,
+      "min_logic_modules": 6,
+      "min_modules": 7,
+      "min_procedural_blocks": 14,
+      "min_source_files": 7,
+      "min_state_updates": 20,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 10,
+    "open_required_count": 10,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330realverify",
+  "kind": "module",
+  "owner_file": "rtl/pl330realverify.sv",
+  "owner_module": "pl330realverify",
+  "packet_id": "module__pl330realverify__parameters",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "parameters.item": 10
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 2,
+      "key": "parameters",
+      "module_task_count": 71,
+      "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "parameters",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 10,
+    "required_count": 10,
+    "source_refs": [
+      "parameters.DATA_WIDTH",
+      "parameters.ADDR_WIDTH",
+      "parameters.ID_WIDTH",
+      "parameters.NUM_CHANNELS",
+      "parameters.NUM_EVENTS",
+      "parameters.REG_ADDR_WIDTH",
+      "parameters.MAX_BURST_LEN",
+      "parameters.CLOCK_FREQ_MHZ",
+      "parameters.RESET_POLARITY",
+      "parameters.SUPPORT_UNALIGNED"
+    ],
+    "status_counts": {
+      "planned": 10
+    },
+    "task_count": 10
+  },
+  "tasks": [
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter DATA_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.DATA_WIDTH",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DATA_WIDTH.\nOwner: pl330realverify in rtl/pl330realverify.sv via parameters.\nSSOT item context: name=DATA_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.DATA_WIDTH",
+      "ssot_context": {
+        "name": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.DATA_WIDTH"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter ADDR_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.ADDR_WIDTH",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.ADDR_WIDTH.\nOwner: pl330realverify in rtl/pl330realverify.sv via parameters.\nSSOT item context: name=ADDR_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.ADDR_WIDTH",
+      "ssot_context": {
+        "name": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.ADDR_WIDTH"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter ID_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.ID_WIDTH",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.ID_WIDTH.\nOwner: pl330realverify in rtl/pl330realverify.sv via parameters.\nSSOT item context: name=ID_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.ID_WIDTH",
+      "ssot_context": {
+        "name": "ID_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.ID_WIDTH"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter NUM_CHANNELS",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.NUM_CHANNELS",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.NUM_CHANNELS.\nOwner: pl330realverify in rtl/pl330realverify.sv via parameters.\nSSOT item context: name=NUM_CHANNELS.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.NUM_CHANNELS",
+      "ssot_context": {
+        "name": "NUM_CHANNELS"
+      },
+      "ssot_refs": [
+        "parameters.NUM_CHANNELS"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter NUM_EVENTS",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.NUM_EVENTS",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.NUM_EVENTS.\nOwner: pl330realverify in rtl/pl330realverify.sv via parameters.\nSSOT item context: name=NUM_EVENTS.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.NUM_EVENTS",
+      "ssot_context": {
+        "name": "NUM_EVENTS"
+      },
+      "ssot_refs": [
+        "parameters.NUM_EVENTS"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter REG_ADDR_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.REG_ADDR_WIDTH",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.REG_ADDR_WIDTH.\nOwner: pl330realverify in rtl/pl330realverify.sv via parameters.\nSSOT item context: name=REG_ADDR_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.REG_ADDR_WIDTH",
+      "ssot_context": {
+        "name": "REG_ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.REG_ADDR_WIDTH"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter MAX_BURST_LEN",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.MAX_BURST_LEN",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.MAX_BURST_LEN.\nOwner: pl330realverify in rtl/pl330realverify.sv via parameters.\nSSOT item context: name=MAX_BURST_LEN.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.MAX_BURST_LEN",
+      "ssot_context": {
+        "name": "MAX_BURST_LEN"
+      },
+      "ssot_refs": [
+        "parameters.MAX_BURST_LEN"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter CLOCK_FREQ_MHZ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.CLOCK_FREQ_MHZ",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.CLOCK_FREQ_MHZ.\nOwner: pl330realverify in rtl/pl330realverify.sv via parameters.\nSSOT item context: name=CLOCK_FREQ_MHZ.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.CLOCK_FREQ_MHZ",
+      "ssot_context": {
+        "name": "CLOCK_FREQ_MHZ"
+      },
+      "ssot_refs": [
+        "parameters.CLOCK_FREQ_MHZ"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter RESET_POLARITY",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.RESET_POLARITY",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.RESET_POLARITY.\nOwner: pl330realverify in rtl/pl330realverify.sv via parameters.\nSSOT item context: name=RESET_POLARITY.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.RESET_POLARITY",
+      "ssot_context": {
+        "name": "RESET_POLARITY"
+      },
+      "ssot_refs": [
+        "parameters.RESET_POLARITY"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter SUPPORT_UNALIGNED",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.SUPPORT_UNALIGNED",
+        "Primary implementation evidence is in rtl/pl330realverify.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.SUPPORT_UNALIGNED.\nOwner: pl330realverify in rtl/pl330realverify.sv via parameters.\nSSOT item context: name=SUPPORT_UNALIGNED.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.SUPPORT_UNALIGNED",
+      "ssot_context": {
+        "name": "SUPPORT_UNALIGNED"
+      },
+      "ssot_refs": [
+        "parameters.SUPPORT_UNALIGNED"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b7f6b796d440c4cbbe6eee1a6a6f5fafdb0e14d478c2a39e323259db96338d34",
+  "top": "pl330realverify",
+  "type": "rtl_authoring_packet"
+}

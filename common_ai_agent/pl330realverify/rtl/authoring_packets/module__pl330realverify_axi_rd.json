@@ -1,0 +1,1233 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 68,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 22,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330realverify_axi_rd.sv",
+      "name": "pl330realverify_axi_rd",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules.AXI_AR",
+        "cycle_model.handshake_rules.AXI_R",
+        "decomposition.units.axi_read_adapter",
+        "error_handling",
+        "error_handling.error_sources.ERR_AXI_RD",
+        "function_model.transactions.FM_TRANSFER",
+        "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_RD",
+        "io_list",
+        "io_list.interfaces.axi_rd_master"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330realverify_regs.sv",
+        "name": "pl330realverify_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_channel_fsm.sv",
+        "name": "pl330realverify_channel_fsm",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_rd.sv",
+        "name": "pl330realverify_axi_rd",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_wr.sv",
+        "name": "pl330realverify_axi_wr",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_datapath.sv",
+        "name": "pl330realverify_datapath",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_event_irq.sv",
+        "name": "pl330realverify_event_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify.sv",
+        "name": "pl330realverify",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[2].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[2].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arvalid_o",
+        "signal": "arvalid",
+        "signal_terms": [
+          "arvalid"
+        ],
+        "source_ref": "sub_modules[2].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arready_i",
+        "signal": "arready",
+        "signal_terms": [
+          "arready"
+        ],
+        "source_ref": "sub_modules[2].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rvalid_i",
+        "signal": "rvalid",
+        "signal_terms": [
+          "rvalid"
+        ],
+        "source_ref": "sub_modules[2].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rready_o",
+        "signal": "rready",
+        "signal_terms": [
+          "rready"
+        ],
+        "source_ref": "sub_modules[2].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rdata_i",
+        "signal": "rdata",
+        "signal_terms": [
+          "rdata"
+        ],
+        "source_ref": "sub_modules[2].connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rresp_i",
+        "signal": "rresp",
+        "signal_terms": [
+          "rresp"
+        ],
+        "source_ref": "sub_modules[2].connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arvalid_o",
+        "signal": "arvalid",
+        "signal_terms": [
+          "arvalid"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "arready_i",
+        "signal": "arready",
+        "signal_terms": [
+          "arready"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rvalid_i",
+        "signal": "rvalid",
+        "signal_terms": [
+          "rvalid"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_axi_rd",
+        "port": "rready_o",
+        "signal": "rready",
+        "signal_terms": [
+          "rready"
+        ],
+        "source_ref": "integration.connections[15]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Production-quality PL330-like DMA verification target with APB register block, channel FSM, AXI read/write adapters, datapath, and event/interrupt block.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 12,
+      "min_logic_modules": 6,
+      "min_modules": 7,
+      "min_procedural_blocks": 14,
+      "min_source_files": 7,
+      "min_state_updates": 20,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 22,
+    "open_required_count": 22,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330realverify",
+  "kind": "module",
+  "owner_file": "rtl/pl330realverify_axi_rd.sv",
+  "owner_module": "pl330realverify_axi_rd",
+  "packet_id": "module__pl330realverify_axi_rd",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.handshake_rules": 4,
+      "equivalence.module": 1,
+      "function_model.error_case": 1,
+      "function_model.transaction": 1,
+      "io_list.port": 15
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 22,
+      "task_limit": 48
+    },
+    "open_required_count": 22,
+    "required_count": 22,
+    "source_refs": [
+      "function_model.transactions.FM_TRANSFER",
+      "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_RD",
+      "cycle_model.handshake_rules.AXI_AR",
+      "cycle_model.handshake_rules.AXI_R",
+      "cycle_model.handshake_rules.AXI_W",
+      "cycle_model.handshake_rules.AXI_B",
+      "sub_modules.pl330realverify_axi_rd.module_equivalence",
+      "io_list.interfaces.axi_rd_master.ports.arid",
+      "io_list.interfaces.axi_rd_master.ports.araddr",
+      "io_list.interfaces.axi_rd_master.ports.arlen",
+      "io_list.interfaces.axi_rd_master.ports.arsize",
+      "io_list.interfaces.axi_rd_master.ports.arburst",
+      "io_list.interfaces.axi_rd_master.ports.arcache",
+      "io_list.interfaces.axi_rd_master.ports.arprot",
+      "io_list.interfaces.axi_rd_master.ports.arvalid",
+      "io_list.interfaces.axi_rd_master.ports.arready",
+      "io_list.interfaces.axi_rd_master.ports.rid",
+      "io_list.interfaces.axi_rd_master.ports.rdata",
+      "io_list.interfaces.axi_rd_master.ports.rresp",
+      "io_list.interfaces.axi_rd_master.ports.rlast",
+      "io_list.interfaces.axi_rd_master.ports.rvalid",
+      "io_list.interfaces.axi_rd_master.ports.rready"
+    ],
+    "status_counts": {
+      "planned": 22
+    },
+    "task_count": 22
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_TRANSFER",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_TRANSFER.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_RD.\nSSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy.",
+      "evidence_terms": [],
+      "id": "RTL-0138",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER",
+      "ssot_context": {
+        "id": "FM_TRANSFER",
+        "name": "single_or_multi_beat_memory_copy"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_TRANSFER: ERR_AXI_RD",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_RD",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "DUT port [\"wdata\", \"wstrb\", \"dmac_irq\"] is the implementation/observation point for single_or_multi_beat_memory_copy"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_RD.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_RD.\nSSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy; port=[\"wdata\", \"wstrb\", \"dmac_irq\"]; signal=[{\"condition\": \"rvalid == 1 and rready == 1 and rresp != 0\", \"id\": \"ERR_AXI_RD\", \"result\": \"status=FAULTED, error_cod...; state=[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"].",
+      "evidence_terms": [
+        "AXI",
+        "CH",
+        "CH_FAULT",
+        "ERR",
+        "ERR_AXI_RD",
+        "FAULT",
+        "FAULTED",
+        "RD",
+        "buf",
+        "code",
+        "dar",
+        "dmac",
+        "dmac_irq",
+        "error_code",
+        "intstatus",
+        "irq"
+      ],
+      "id": "RTL-0162",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_RD",
+      "ssot_context": {
+        "id": "FM_TRANSFER",
+        "name": "single_or_multi_beat_memory_copy",
+        "port": "[\"wdata\", \"wstrb\", \"dmac_irq\"]",
+        "signal": "[{\"condition\": \"rvalid == 1 and rready == 1 and rresp != 0\", \"id\": \"ERR_AXI_RD\", \"result\": \"status=FAULTED, error_cod...",
+        "state": "[\"rd_buf\", \"sar\", \"dar\", \"loop_remaining\", \"status\", \"error_code\", \"intstatus\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_RD"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: AXI_AR",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.AXI_AR",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "AXI_AR appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.AXI_AR.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via cycle_model.handshake_rules.AXI_AR.\nSSOT item context: id=AXI_AR; signal=arvalid.",
+      "evidence_terms": [
+        "AR",
+        "AXI",
+        "AXI_AR",
+        "arvalid"
+      ],
+      "id": "RTL-0207",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.AXI_AR",
+      "ssot_context": {
+        "id": "AXI_AR",
+        "signal": "arvalid"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.AXI_AR"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: AXI_R",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.AXI_R",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "AXI_R appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.AXI_R.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via cycle_model.handshake_rules.AXI_AR.\nSSOT item context: id=AXI_R; signal=rready.",
+      "evidence_terms": [
+        "AXI",
+        "AXI_R",
+        "rready"
+      ],
+      "id": "RTL-0208",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.AXI_R",
+      "ssot_context": {
+        "id": "AXI_R",
+        "signal": "rready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.AXI_R"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: AXI_W",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.AXI_W",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "AXI_W appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.AXI_W.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via cycle_model.handshake_rules.AXI_AR.\nSSOT item context: id=AXI_W; signal=wvalid.",
+      "evidence_terms": [
+        "AXI",
+        "AXI_W",
+        "wvalid"
+      ],
+      "id": "RTL-0210",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.AXI_W",
+      "ssot_context": {
+        "id": "AXI_W",
+        "signal": "wvalid"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.AXI_W"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: AXI_B",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.AXI_B",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "AXI_B appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.AXI_B.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via cycle_model.handshake_rules.AXI_AR.\nSSOT item context: id=AXI_B; signal=bready.",
+      "evidence_terms": [
+        "AXI",
+        "AXI_B",
+        "bready"
+      ],
+      "id": "RTL-0211",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.AXI_B",
+      "ssot_context": {
+        "id": "AXI_B",
+        "signal": "bready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.AXI_B"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module pl330realverify_axi_rd is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.pl330realverify_axi_rd.module_equivalence",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.pl330realverify_axi_rd.module_equivalence.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0377",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.pl330realverify_axi_rd.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.pl330realverify_axi_rd.module_equivalence"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port arid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.arid",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "arid width matches SSOT value 6",
+        "arid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.arid.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=arid; width=6; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0053",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.arid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "arid",
+        "width": "6"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.arid"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port araddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.araddr",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "araddr width matches SSOT value 32",
+        "araddr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.araddr.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=araddr; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0054",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.araddr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "araddr",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.araddr"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port arlen",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.arlen",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "arlen width matches SSOT value 8",
+        "arlen port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.arlen.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=arlen; width=8; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0055",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.arlen",
+      "ssot_context": {
+        "direction": "output",
+        "name": "arlen",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.arlen"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port arsize",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.arsize",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "arsize width matches SSOT value 3",
+        "arsize port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.arsize.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=arsize; width=3; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0056",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.arsize",
+      "ssot_context": {
+        "direction": "output",
+        "name": "arsize",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.arsize"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port arburst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.arburst",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "arburst width matches SSOT value 2",
+        "arburst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.arburst.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=arburst; width=2; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0057",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.arburst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "arburst",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.arburst"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port arcache",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.arcache",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "arcache width matches SSOT value 4",
+        "arcache port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.arcache.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=arcache; width=4; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0058",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.arcache",
+      "ssot_context": {
+        "direction": "output",
+        "name": "arcache",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.arcache"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port arprot",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.arprot",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "arprot width matches SSOT value 3",
+        "arprot port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.arprot.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=arprot; width=3; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0059",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.arprot",
+      "ssot_context": {
+        "direction": "output",
+        "name": "arprot",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.arprot"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port arvalid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.arvalid",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "arvalid width matches SSOT value 1",
+        "arvalid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.arvalid.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=arvalid; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0060",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.arvalid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "arvalid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.arvalid"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port arready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.arready",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "arready width matches SSOT value 1",
+        "arready port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.arready.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=arready; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0061",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.arready",
+      "ssot_context": {
+        "direction": "input",
+        "name": "arready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.arready"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.rid",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "rid width matches SSOT value 6",
+        "rid port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.rid.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=rid; width=6; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0062",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.rid",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rid",
+        "width": "6"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.rid"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.rdata",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "rdata width matches SSOT value 64",
+        "rdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.rdata.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=rdata; width=64; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0063",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.rdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rdata",
+        "width": "64"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.rdata"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rresp",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.rresp",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "rresp width matches SSOT value 2",
+        "rresp port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.rresp.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=rresp; width=2; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0064",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.rresp",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rresp",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.rresp"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rlast",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.rlast",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "rlast width matches SSOT value 1",
+        "rlast port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.rlast.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=rlast; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0065",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.rlast",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rlast",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.rlast"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rvalid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.rvalid",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "rvalid width matches SSOT value 1",
+        "rvalid port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.rvalid.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=rvalid; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0066",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.rvalid",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rvalid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.rvalid"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_master.ports.rready",
+        "Primary implementation evidence is in rtl/pl330realverify_axi_rd.sv",
+        "rready width matches SSOT value 1",
+        "rready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_master.ports.rready.\nOwner: pl330realverify_axi_rd in rtl/pl330realverify_axi_rd.sv via io_list.interfaces.axi_rd_master.\nSSOT item context: name=rready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0067",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv",
+      "owner_module": "pl330realverify_axi_rd",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_master.ports.rready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "rready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_master.ports.rready"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b7f6b796d440c4cbbe6eee1a6a6f5fafdb0e14d478c2a39e323259db96338d34",
+  "top": "pl330realverify",
+  "type": "rtl_authoring_packet"
+}

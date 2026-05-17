@@ -1,0 +1,1120 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 68,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 19,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330realverify_datapath.sv",
+      "name": "pl330realverify_datapath",
+      "refs": [
+        "dataflow",
+        "dataflow.loop_control",
+        "dataflow.read_path",
+        "dataflow.write_path",
+        "decomposition.units.datapath",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM_TRANSFER",
+        "function_model.transactions.FM_TRANSFER.state_updates",
+        "memory",
+        "memory.instances.rd_buf"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330realverify_regs.sv",
+        "name": "pl330realverify_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_channel_fsm.sv",
+        "name": "pl330realverify_channel_fsm",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_rd.sv",
+        "name": "pl330realverify_axi_rd",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_axi_wr.sv",
+        "name": "pl330realverify_axi_wr",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_datapath.sv",
+        "name": "pl330realverify_datapath",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify_event_irq.sv",
+        "name": "pl330realverify_event_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330realverify.sv",
+        "name": "pl330realverify",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "clk_i",
+        "signal": "dmaclk",
+        "signal_terms": [
+          "dmaclk"
+        ],
+        "source_ref": "sub_modules[4].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "rst_ni",
+        "signal": "dmacresetn",
+        "signal_terms": [
+          "dmacresetn"
+        ],
+        "source_ref": "sub_modules[4].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "src_addr_o",
+        "signal": "araddr",
+        "signal_terms": [
+          "araddr"
+        ],
+        "source_ref": "sub_modules[4].connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "dst_addr_o",
+        "signal": "awaddr",
+        "signal_terms": [
+          "awaddr"
+        ],
+        "source_ref": "sub_modules[4].connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "rd_data_i",
+        "signal": "rdata",
+        "signal_terms": [
+          "rdata"
+        ],
+        "source_ref": "sub_modules[4].connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "wr_data_o",
+        "signal": "wdata",
+        "signal_terms": [
+          "wdata"
+        ],
+        "source_ref": "sub_modules[4].connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "rd_data_i",
+        "signal": "rdata",
+        "signal_terms": [
+          "rdata"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pl330realverify_datapath",
+        "port": "wr_data_o",
+        "signal": "wdata",
+        "signal_terms": [
+          "wdata"
+        ],
+        "source_ref": "integration.connections[20]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Production-quality PL330-like DMA verification target with APB register block, channel FSM, AXI read/write adapters, datapath, and event/interrupt block.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 12,
+      "min_logic_modules": 6,
+      "min_modules": 7,
+      "min_procedural_blocks": 14,
+      "min_source_files": 7,
+      "min_state_updates": 20,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 19,
+    "open_required_count": 19,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330realverify",
+  "kind": "module",
+  "owner_file": "rtl/pl330realverify_datapath.sv",
+  "owner_module": "pl330realverify_datapath",
+  "packet_id": "module__pl330realverify_datapath",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "function_model.state_update": 7,
+      "function_model.state_variable": 9,
+      "memory.instances": 2
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 19,
+      "task_limit": 48
+    },
+    "open_required_count": 19,
+    "required_count": 19,
+    "source_refs": [
+      "function_model.state_variables.sar",
+      "function_model.state_variables.dar",
+      "function_model.state_variables.loop_remaining",
+      "function_model.state_variables.status",
+      "function_model.state_variables.error_code",
+      "function_model.state_variables.rd_buf",
+      "function_model.state_variables.intstatus",
+      "function_model.state_variables.inten",
+      "function_model.state_variables.pc",
+      "function_model.transactions.FM_TRANSFER.state_updates.rd_buf",
+      "function_model.transactions.FM_TRANSFER.state_updates.sar",
+      "function_model.transactions.FM_TRANSFER.state_updates.dar",
+      "function_model.transactions.FM_TRANSFER.state_updates.loop_remaining",
+      "function_model.transactions.FM_TRANSFER.state_updates.status",
+      "function_model.transactions.FM_TRANSFER.state_updates.error_code",
+      "function_model.transactions.FM_TRANSFER.state_updates.intstatus",
+      "memory.instances.rd_buf",
+      "memory.instances.channel_state_bank",
+      "sub_modules.pl330realverify_datapath.module_equivalence"
+    ],
+    "status_counts": {
+      "planned": 19
+    },
+    "task_count": 19
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state sar",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.sar",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "sar width matches SSOT value 32",
+        "sar reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.sar.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.state_variables.\nSSOT item context: name=sar; width=32; reset=0.",
+      "evidence_terms": [
+        "sar"
+      ],
+      "id": "RTL-0088",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.sar",
+      "ssot_context": {
+        "name": "sar",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.sar"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state dar",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.dar",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "dar width matches SSOT value 32",
+        "dar reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.dar.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.state_variables.\nSSOT item context: name=dar; width=32; reset=0.",
+      "evidence_terms": [
+        "dar"
+      ],
+      "id": "RTL-0089",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.dar",
+      "ssot_context": {
+        "name": "dar",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.dar"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state loop_remaining",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.loop_remaining",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "loop_remaining width matches SSOT value 8",
+        "loop_remaining reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.loop_remaining.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.state_variables.\nSSOT item context: name=loop_remaining; width=8; reset=0.",
+      "evidence_terms": [
+        "loop",
+        "loop_remaining",
+        "remaining"
+      ],
+      "id": "RTL-0090",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.loop_remaining",
+      "ssot_context": {
+        "name": "loop_remaining",
+        "reset": "0",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.loop_remaining"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state status",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.status",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "status width matches SSOT value 4",
+        "status reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.status.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.state_variables.\nSSOT item context: name=status; width=4; reset=0.",
+      "evidence_terms": [
+        "status"
+      ],
+      "id": "RTL-0091",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.status",
+      "ssot_context": {
+        "name": "status",
+        "reset": "0",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.status"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state error_code",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.error_code",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "error_code width matches SSOT value 4",
+        "error_code reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.error_code.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.state_variables.\nSSOT item context: name=error_code; width=4; reset=0.",
+      "evidence_terms": [
+        "code",
+        "error_code"
+      ],
+      "id": "RTL-0092",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.error_code",
+      "ssot_context": {
+        "name": "error_code",
+        "reset": "0",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.error_code"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state rd_buf",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.rd_buf",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "rd_buf width matches SSOT value 64",
+        "rd_buf reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.rd_buf.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.state_variables.\nSSOT item context: name=rd_buf; width=64; reset=0.",
+      "evidence_terms": [
+        "buf",
+        "rd",
+        "rd_buf"
+      ],
+      "id": "RTL-0093",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.rd_buf",
+      "ssot_context": {
+        "name": "rd_buf",
+        "reset": "0",
+        "width": "64"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.rd_buf"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state intstatus",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.intstatus",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "intstatus width matches SSOT value 32",
+        "intstatus reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.intstatus.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.state_variables.\nSSOT item context: name=intstatus; width=32; reset=0.",
+      "evidence_terms": [
+        "intstatus"
+      ],
+      "id": "RTL-0094",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.intstatus",
+      "ssot_context": {
+        "name": "intstatus",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.intstatus"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state inten",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.inten",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "inten width matches SSOT value 32",
+        "inten reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.inten.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.state_variables.\nSSOT item context: name=inten; width=32; reset=0.",
+      "evidence_terms": [
+        "inten"
+      ],
+      "id": "RTL-0095",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.inten",
+      "ssot_context": {
+        "name": "inten",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.inten"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state pc",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.pc",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "pc width matches SSOT value 32",
+        "pc reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.pc.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.state_variables.\nSSOT item context: name=pc; width=32; reset=0.",
+      "evidence_terms": [
+        "pc"
+      ],
+      "id": "RTL-0096",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.pc",
+      "ssot_context": {
+        "name": "pc",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.pc"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_TRANSFER: rd_buf",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.state_updates.rd_buf",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "rd_buf width matches SSOT value 64",
+        "rd_buf RTL expression implements SSOT expression rdata if (rvalid == 1 and rready == 1 and rresp == 0) else rd_buf",
+        "rd_buf updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.state_updates.rd_buf.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.transactions.FM_TRANSFER.state_updates.\nSSOT item context: name=rd_buf; expr=rdata if (rvalid == 1 and rready == 1 and rresp == 0) else rd_buf; width=64.",
+      "evidence_terms": [
+        "buf",
+        "rd",
+        "rd_buf"
+      ],
+      "id": "RTL-0153",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.state_updates.rd_buf",
+      "ssot_context": {
+        "expr": "rdata if (rvalid == 1 and rready == 1 and rresp == 0) else rd_buf",
+        "name": "rd_buf",
+        "width": "64"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.state_updates.rd_buf"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_TRANSFER: sar",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.state_updates.sar",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "sar width matches SSOT value 32",
+        "sar RTL expression implements SSOT expression sar + (DATA_WIDTH // 8)",
+        "sar updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.state_updates.sar.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.transactions.FM_TRANSFER.state_updates.\nSSOT item context: name=sar; expr=sar + (DATA_WIDTH // 8); width=32.",
+      "evidence_terms": [
+        "DATA",
+        "DATA_WIDTH",
+        "WIDTH",
+        "sar"
+      ],
+      "id": "RTL-0154",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.state_updates.sar",
+      "ssot_context": {
+        "expr": "sar + (DATA_WIDTH // 8)",
+        "name": "sar",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.state_updates.sar"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_TRANSFER: dar",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.state_updates.dar",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "dar width matches SSOT value 32",
+        "dar RTL expression implements SSOT expression dar + (DATA_WIDTH // 8)",
+        "dar updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.state_updates.dar.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.transactions.FM_TRANSFER.state_updates.\nSSOT item context: name=dar; expr=dar + (DATA_WIDTH // 8); width=32.",
+      "evidence_terms": [
+        "DATA",
+        "DATA_WIDTH",
+        "WIDTH",
+        "dar"
+      ],
+      "id": "RTL-0155",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.state_updates.dar",
+      "ssot_context": {
+        "expr": "dar + (DATA_WIDTH // 8)",
+        "name": "dar",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.state_updates.dar"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_TRANSFER: loop_remaining",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.state_updates.loop_remaining",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "loop_remaining width matches SSOT value 8",
+        "loop_remaining RTL expression implements SSOT expression max(loop_remaining - 1, 0)",
+        "loop_remaining updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.state_updates.loop_remaining.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.transactions.FM_TRANSFER.state_updates.\nSSOT item context: name=loop_remaining; expr=max(loop_remaining - 1, 0); width=8.",
+      "evidence_terms": [
+        "loop",
+        "loop_remaining",
+        "remaining"
+      ],
+      "id": "RTL-0156",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.state_updates.loop_remaining",
+      "ssot_context": {
+        "expr": "max(loop_remaining - 1, 0)",
+        "name": "loop_remaining",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.state_updates.loop_remaining"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_TRANSFER: status",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.state_updates.status",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "status width matches SSOT value 4",
+        "status RTL expression implements SSOT expression 6 if loop_remaining <= 1 else 1",
+        "status updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.state_updates.status.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.transactions.FM_TRANSFER.state_updates.\nSSOT item context: name=status; expr=6 if loop_remaining <= 1 else 1; width=4.",
+      "evidence_terms": [
+        "loop",
+        "loop_remaining",
+        "remaining",
+        "status"
+      ],
+      "id": "RTL-0157",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.state_updates.status",
+      "ssot_context": {
+        "expr": "6 if loop_remaining <= 1 else 1",
+        "name": "status",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.state_updates.status"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_TRANSFER: error_code",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.state_updates.error_code",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "error_code width matches SSOT value 4",
+        "error_code RTL expression implements SSOT expression 0",
+        "error_code updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.state_updates.error_code.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.transactions.FM_TRANSFER.state_updates.\nSSOT item context: name=error_code; expr=0; width=4.",
+      "evidence_terms": [
+        "code",
+        "error_code"
+      ],
+      "id": "RTL-0158",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.state_updates.error_code",
+      "ssot_context": {
+        "expr": "0",
+        "name": "error_code",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.state_updates.error_code"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_TRANSFER: intstatus",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TRANSFER.state_updates.intstatus",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "intstatus width matches SSOT value 32",
+        "intstatus RTL expression implements SSOT expression intstatus | complete_irq_mask if loop_remaining <= 1 else intstatus",
+        "intstatus updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TRANSFER.state_updates.intstatus.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via function_model.transactions.FM_TRANSFER.state_updates.\nSSOT item context: name=intstatus; expr=intstatus | complete_irq_mask if loop_remaining <= 1 else intstatus; width=32.",
+      "evidence_terms": [
+        "complete",
+        "complete_irq_mask",
+        "intstatus",
+        "irq",
+        "loop",
+        "loop_remaining",
+        "mask",
+        "remaining"
+      ],
+      "id": "RTL-0159",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TRANSFER.state_updates.intstatus",
+      "ssot_context": {
+        "expr": "intstatus | complete_irq_mask if loop_remaining <= 1 else intstatus",
+        "name": "intstatus",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TRANSFER.state_updates.intstatus"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "memory.instances",
+      "content": "Implement memory item rd_buf",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref memory.instances.rd_buf",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "rd_buf width matches SSOT value 64",
+        "rd_buf reset behavior matches SSOT value 0",
+        "rd_buf timing uses SSOT cycle/latency 0",
+        "rd_buf storage depth matches SSOT value 1"
+      ],
+      "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.rd_buf.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via memory.instances.rd_buf.\nSSOT item context: name=rd_buf; width=64; depth=1; reset=0; latency=0.",
+      "evidence_terms": [
+        "buf",
+        "rd",
+        "rd_buf"
+      ],
+      "id": "RTL-0273",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "memory.instances.rd_buf",
+      "ssot_context": {
+        "depth": "1",
+        "latency": "0",
+        "name": "rd_buf",
+        "reset": "0",
+        "width": "64"
+      },
+      "ssot_refs": [
+        "memory.instances.rd_buf"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "memory.instances",
+      "content": "Implement memory item channel_state_bank",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref memory.instances.channel_state_bank",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv",
+        "channel_state_bank width matches SSOT value 96",
+        "channel_state_bank reset behavior matches SSOT value 0",
+        "channel_state_bank timing uses SSOT cycle/latency 0",
+        "channel_state_bank storage depth matches SSOT value 8"
+      ],
+      "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.channel_state_bank.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via memory.\nSSOT item context: name=channel_state_bank; width=96; depth=8; reset=0; latency=0.",
+      "evidence_terms": [
+        "bank",
+        "channel",
+        "channel_state_bank"
+      ],
+      "id": "RTL-0274",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "memory.instances.channel_state_bank",
+      "ssot_context": {
+        "depth": "8",
+        "latency": "0",
+        "name": "channel_state_bank",
+        "reset": "0",
+        "width": "96"
+      },
+      "ssot_refs": [
+        "memory.instances.channel_state_bank"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module pl330realverify_datapath is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.pl330realverify_datapath.module_equivalence",
+        "Primary implementation evidence is in rtl/pl330realverify_datapath.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.pl330realverify_datapath.module_equivalence.\nOwner: pl330realverify_datapath in rtl/pl330realverify_datapath.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0379",
+      "owner_file": "rtl/pl330realverify_datapath.sv",
+      "owner_module": "pl330realverify_datapath",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.pl330realverify_datapath.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.pl330realverify_datapath.module_equivalence"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b7f6b796d440c4cbbe6eee1a6a6f5fafdb0e14d478c2a39e323259db96338d34",
+  "top": "pl330realverify",
+  "type": "rtl_authoring_packet"
+}

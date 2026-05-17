@@ -23,6 +23,8 @@ sub_modules:
     description: "APB register decode, CSR storage, W1C interrupt/status behavior, and register-driven command pulses."
     implements: ["registers.register_list", "io_list.interfaces.apb_slave", "interrupts.sources", "error_handling.error_sources", "rtl_contract.input_map"]
     source_sections: ["registers", "io_list", "interrupts", "error_handling", "rtl_contract"]
+    function_model_refs: ["function_model.transactions.FM_APB_WRITE", "function_model.transactions.FM_APB_READ", "function_model.transactions.FM_IRQ_CLEAR", "function_model.transactions.FM_RESET"]
+    decomposition_refs: ["decomposition.units.apb_registers"]
     register_refs: ["registers.register_list"]
     ssot_refs: ["io_list.interfaces.apb_slave"]
     cycle_model_refs: ["cycle_model.handshake_rules.APB_ACCESS"]
@@ -47,8 +49,9 @@ sub_modules:
     implements: ["fsm.channel_fsm", "cycle_model.pipeline", "function_model.transactions.FM_TRANSFER", "function_model.transactions.FM_WFP"]
     source_sections: ["fsm", "cycle_model", "function_model"]
     fsm_refs: ["fsm.channel_fsm"]
+    decomposition_refs: ["decomposition.units.channel_control"]
     cycle_model_refs: ["cycle_model.pipeline", "cycle_model.ordering", "cycle_model.backpressure"]
-    function_model_refs: ["function_model.transactions.FM_TRANSFER", "function_model.transactions.FM_WFP"]
+    function_model_refs: ["function_model.transactions.FM_TRANSFER", "function_model.transactions.FM_WFP", "function_model.transactions.FM_FAULT"]
     connections:
       - { port: "clk_i", signal: "dmaclk" }
       - { port: "rst_ni", signal: "dmacresetn" }
@@ -64,6 +67,8 @@ sub_modules:
     implements: ["io_list.interfaces.axi_rd_master", "cycle_model.handshake_rules.AXI_AR", "cycle_model.handshake_rules.AXI_R", "error_handling.error_sources.ERR_AXI_RD"]
     source_sections: ["io_list", "cycle_model", "error_handling"]
     ssot_refs: ["io_list.interfaces.axi_rd_master"]
+    function_model_refs: ["function_model.transactions.FM_TRANSFER", "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_RD"]
+    decomposition_refs: ["decomposition.units.axi_read_adapter"]
     cycle_model_refs: ["cycle_model.handshake_rules.AXI_AR", "cycle_model.handshake_rules.AXI_R"]
     connections:
       - { port: "clk_i", signal: "dmaclk" }
@@ -82,6 +87,8 @@ sub_modules:
     implements: ["io_list.interfaces.axi_wr_master", "cycle_model.handshake_rules.AXI_AW", "cycle_model.handshake_rules.AXI_W", "cycle_model.handshake_rules.AXI_B", "error_handling.error_sources.ERR_AXI_WR"]
     source_sections: ["io_list", "cycle_model", "error_handling"]
     ssot_refs: ["io_list.interfaces.axi_wr_master"]
+    function_model_refs: ["function_model.transactions.FM_TRANSFER", "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_WR"]
+    decomposition_refs: ["decomposition.units.axi_write_adapter"]
     cycle_model_refs: ["cycle_model.handshake_rules.AXI_AW", "cycle_model.handshake_rules.AXI_W", "cycle_model.handshake_rules.AXI_B"]
     connections:
       - { port: "clk_i", signal: "dmaclk" }
@@ -101,6 +108,7 @@ sub_modules:
     implements: ["function_model.state_variables", "function_model.transactions.FM_TRANSFER.state_updates", "dataflow.read_path", "dataflow.write_path", "memory.instances.rd_buf"]
     source_sections: ["function_model", "dataflow", "memory"]
     function_model_refs: ["function_model.state_variables", "function_model.transactions.FM_TRANSFER"]
+    decomposition_refs: ["decomposition.units.datapath"]
     dataflow_refs: ["dataflow.read_path", "dataflow.write_path", "dataflow.loop_control"]
     connections:
       - { port: "clk_i", signal: "dmaclk" }
@@ -118,6 +126,7 @@ sub_modules:
     source_sections: ["io_list", "interrupts", "function_model", "registers"]
     ssot_refs: ["io_list.interfaces.event_inputs", "io_list.interfaces.interrupt_output"]
     function_model_refs: ["function_model.transactions.FM_WFP", "function_model.transactions.FM_IRQ_CLEAR"]
+    decomposition_refs: ["decomposition.units.event_interrupt"]
     register_refs: ["registers.register_list.INTEN", "registers.register_list.INTSTATUS", "registers.register_list.CONTROL"]
     connections:
       - { port: "clk_i", signal: "dmaclk" }
@@ -158,6 +167,9 @@ decomposition:
       verification_impact: ["test_requirements.scenarios.SC_WFP_EVENT", "test_requirements.scenarios.SC_W1C_IRQ_CLEAR"]
 rtl_contract:
   transaction: "FM_TRANSFER"
+  clock: "dmaclk"
+  reset: "dmacresetn"
+  reset_active: "low"
   sample_condition: "dmacresetn == 1 and start_cmd == 1"
   reset_contract:
     reset_signal: "dmacresetn"
@@ -189,7 +201,7 @@ rtl_contract:
   state_updates:
     - { name: "sar", reset: 0, width: 32, expr: "sar + (DATA_WIDTH // 8) if write_response_ok == 1 else sar" }
     - { name: "dar", reset: 0, width: 32, expr: "dar + (DATA_WIDTH // 8) if write_response_ok == 1 else dar" }
-    - { name: "loop_remaining", reset: 0, width: 8, expr: "max(loop_remaining - 1, 0) if write_response_ok == 1 else loop_remaining" }
+    - { name: "loop_remaining", reset: 0, width: 8, expr: "(loop_remaining - 1) if (write_response_ok == 1 and loop_remaining > 0) else loop_remaining" }
     - { name: "status", reset: 0, width: 4, expr: "8 if fault_condition == 1 else (6 if transfer_done == 1 else status)" }
     - { name: "error_code", reset: 0, width: 4, expr: "fault_code if fault_condition == 1 else error_code" }
     - { name: "intstatus", reset: 0, width: 32, expr: "(intstatus | complete_irq_mask | fault_irq_mask) & (~w1c_mask)" }
@@ -397,7 +409,7 @@ features:
     trigger: "APB write to DBGCMD."
     datapath: "DBGCMD.channel selects the target channel for a debug command pulse; PC is observable but external microcode fetch is out of scope."
     control: "register block emits debug_execute only when manager_busy is low; busy rejection maps to ERR_DEBUG_REJECT."
-    output: "Debug pulse/status and optional debug-done interrupt."
+    output: "Debug pulse/status and parameterized debug-done interrupt controlled by INTEN.dbg_done_en."
   - name: "Fault classification and first-error-wins"
     trigger: "Non-OKAY AXI responses, unaligned start when SUPPORT_UNALIGNED=0, debug reject, or fault_inject."
     datapath: "Fault classifier writes CSR.error_code and INTSTATUS.ch_fault."
@@ -434,7 +446,7 @@ dataflow:
     sequence: "event -> INTSTATUS bit set/clear -> AND with INTEN -> OR-reduce to dmac_irq"
   debug_path:
     source: "DBGCMD and PC registers"
-    sequence: "APB write DBGCMD -> debug_execute pulse if manager idle -> optional status/IRQ update"
+    sequence: "APB write DBGCMD -> debug_execute pulse if manager idle -> parameterized status/IRQ update through INTEN.dbg_done_en"
     scope: "Instruction RAM/fetch/decode is not modeled in this engineering subset; PC is observable configuration state."
 function_model:
   purpose: "Executable cycle-independent behavioral contract for PL330-like DMA transfer, wait-for-peripheral, debug command, APB register side effects, interrupt clear, and fault behavior."
@@ -451,6 +463,15 @@ function_model:
     ERR_AXI_RD: 3
     ERR_AXI_WR: 4
     ERR_EVENT_TIMEOUT: 5
+  derived_signals:
+    - { name: "start_cmd", width: 1, expr: "1 if (psel == 1 and penable == 1 and pwrite == 1 and paddr == 276 and (pwdata & 1) != 0) else 0" }
+    - { name: "write_response_ok", width: 1, expr: "1 if (bvalid == 1 and bready == 1 and bresp == 0) else 0" }
+    - { name: "transfer_done", width: 1, expr: "1 if (write_response_ok == 1 and loop_remaining <= 1) else 0" }
+    - { name: "fault_condition", width: 1, expr: "1 if ((rvalid == 1 and rready == 1 and rresp != 0) or (bvalid == 1 and bready == 1 and bresp != 0)) else 0" }
+    - { name: "fault_code", width: 4, expr: "3 if (rvalid == 1 and rready == 1 and rresp != 0) else (4 if (bvalid == 1 and bready == 1 and bresp != 0) else 0)" }
+    - { name: "complete_irq_mask", width: 32, expr: "1" }
+    - { name: "fault_irq_mask", width: 32, expr: "256" }
+    - { name: "w1c_mask", width: 32, expr: "pwdata if (psel == 1 and penable == 1 and pwrite == 1 and paddr == 36) else 0" }
   state_variables:
     - { name: "sar", source: "registers.SAR.src_addr", reset: 0, width: 32, description: "Current source byte address for the selected channel." }
     - { name: "dar", source: "registers.DAR.dst_addr", reset: 0, width: 32, description: "Current destination byte address for the selected channel." }
@@ -1022,7 +1043,7 @@ security:
     - "Reserved register fields cannot store attacker-controlled state."
 error_handling:
   error_sources:
-    - { id: "ERR_DEBUG_REJECT", condition: "debug_execute == 1 and manager_busy == 1", architectural_effect: "error_code=1, debug command rejected, optional DBG_DONE pending set" }
+    - { id: "ERR_DEBUG_REJECT", condition: "debug_execute == 1 and manager_busy == 1", architectural_effect: "error_code=1, debug command rejected, DBG_DONE pending set when INTEN.dbg_done_en is enabled" }
     - { id: "ERR_UNALIGNED", condition: "((sar % (DATA_WIDTH // 8)) != 0 or (dar % (DATA_WIDTH // 8)) != 0) and SUPPORT_UNALIGNED == 0", architectural_effect: "status=FAULTED, error_code=2, CH_FAULT pending set, no AXI issue" }
     - { id: "ERR_AXI_RD", condition: "rvalid == 1 and rready == 1 and rresp != 0", architectural_effect: "status=FAULTED, error_code=3, CH_FAULT pending set, no destination write for failed beat" }
     - { id: "ERR_AXI_WR", condition: "bvalid == 1 and bready == 1 and bresp != 0", architectural_effect: "status=FAULTED, error_code=4, CH_FAULT pending set, completion suppressed" }
@@ -1128,7 +1149,7 @@ integration:
 dft:
   scan_required: false
   test_mode:
-    enable_signal: "external_test_mode_optional"
+    enable_signal: "external_test_mode_cfg"
     reset_behavior: "dmacresetn remains the only functional reset; scan/test reset insertion is downstream DFT-owned if enabled."
   controllability:
     - { item: "dmaclk", method: "Top-level clock port is directly controllable by testbench/ATE." }
@@ -1230,7 +1251,7 @@ coding_rules:
     - "Shared parameters come from rtl/pl330realverify_param.vh included inside consuming modules; no package file is generated."
     - "BANNED in generated RTL subset: typedef, enum, always_ff, always_comb, always_latch, package, endpackage, import, interface, modport, task, function, for, while, initial blocks in synthesizable RTL."
   lint_waivers:
-    - { id: "UNUSEDSIGNAL", scope: "optional debug/status observability nets", justification: "Some debug probes may be retained only for waveform/coverage visibility." }
+    - { id: "UNUSEDSIGNAL", scope: "parameterized debug/status observability nets", justification: "Some debug probes may be retained only for waveform/coverage visibility." }
     - { id: "WIDTHEXPAND", scope: "parameterized DATA_WIDTH expressions", justification: "Width expansion is acceptable only where expression width is explicitly bounded by output port width." }
   rtl_gen_constraints:
     - "Top module must be rtl/pl330realverify.sv and module name pl330realverify."

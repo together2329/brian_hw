@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "pl330realverify",
+  "source": "model/cycle_model.py",
+  "backend": "pymtl3",
+  "pymtl3_available": true,
+  "timestamp": "2026-05-17T13:52:12Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "pymtl3",
+    "pymtl3_available": true,
+    "transactions": 7,
+    "results_observed": 6,
+    "coverage_bins": 20,
+    "coverage_hit": 20,
+    "performance_targets": {
+      "frequency_mhz": 500,
+      "throughput": {
+        "sustained_beats_per_cycle": 1,
+        "condition": "No APB command gap, WFP disabled or already satisfied, no AXI backpressure, no AXI errors, aligned addresses."
+      },
+      "outstanding": {
+        "read_max": 1,
+        "write_max": 1,
+        "description": "Single outstanding read/write in the engineering subset."
+      },
+      "pipeline_stages": 8,
+      "queue_depth": 1
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 500,
+    "throughput": {
+      "sustained_beats_per_cycle": 1,
+      "condition": "No APB command gap, WFP disabled or already satisfied, no AXI backpressure, no AXI errors, aligned addresses."
+    },
+    "outstanding": {
+      "read_max": 1,
+      "write_max": 1,
+      "description": "Single outstanding read/write in the engineering subset."
+    },
+    "pipeline_stages": 8,
+    "queue_depth": 1
+  },
+  "decomposition_units": 6,
+  "fcov_bins": 20
+}
