@@ -1,7 +1,25 @@
 # Wiki Log
 
+## 2026-05-18
+
+- Added [[atlas-pipeline-worker-workspace-jump]] to document the real UI
+  workflow drilldown behavior: clicking `ssot-gen`, `rtl-gen`, or `tb-gen` in
+  the Pipeline worker row opens `.session/<session>/<ip>/<workflow>` in
+  Workspace, shows worker chat history, and previews the representative SSOT,
+  RTL authoring status, or cocotb TB file. Cross-linked it from
+  [[atlas-pipeline-screen]] and
+  [[pl330-real-orchestrator-ui-lessons-20260517]] so future UI work preserves
+  the Orchestrator-first product boundary while keeping worker evidence
+  inspectable.
+
 ## 2026-05-17
 
+- New page [[pl330-real-orchestrator-ui-lessons-20260517]] captures the visible
+  ATLAS UI PL330 lessons from `pl330realverify`: Browser/API/worker evidence is
+  product authority, user should talk only to Orchestrator chat, RTL handoff is
+  `/ssot-rtl <ip>` instead of a preloaded TODO payload, active job dedupe fixes
+  duplicate loading dispatches, and the `TB failed` card in this run came from
+  an accidental operator dispatch/cancel rather than real TB evidence.
 - Added `doc/wiki/atcwdt200-pipeline-run-20260517.md` for the Andes watchdog
   timer flow started from `/Users/brian/Desktop/andes/atcwdt200`. The snapshot
   records clean SSOT/FL/CL/equiv/RTL/TB/lint evidence, the current sim stop

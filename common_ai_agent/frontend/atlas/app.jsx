@@ -1114,6 +1114,7 @@ const App = () => {
   React.useEffect(() => {
     try { localStorage.atlasScreen = screen; } catch (_) {}
   }, [screen]);
+  const workflowWorkspaceOpenRef = React.useRef(false);
 
   React.useEffect(() => {
     const onOpenEvidence = (ev) => {
@@ -1132,6 +1133,56 @@ const App = () => {
     window.addEventListener('atlas:open_evidence', onOpenEvidence);
     return () => window.removeEventListener('atlas:open_evidence', onOpenEvidence);
   }, []);
+
+  React.useEffect(() => {
+    const onOpenWorkflowWorkspace = (ev) => {
+      const detail = ev?.detail || {};
+      const workflow = normalizeSession(detail.workflow || '');
+      if (!workflow) return;
+      if (!confirmStopForWorkflowSwitch(workflow)) return;
+      const parsed = splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace || '');
+      const owner = normalizeSession(
+        detail.sessionId ||
+        parsed.sessionId ||
+        activeSessionId ||
+        window.ATLAS_USER_SESSION_ID ||
+        (window.ATLAS_USER && window.ATLAS_USER.username) ||
+        'default'
+      ) || 'default';
+      const ip = normalizeSession(
+        detail.ip ||
+        parsed.ipId ||
+        activeIp ||
+        window.SCOPE_PATH ||
+        WORKFLOW_DEFAULT
+      ) || WORKFLOW_DEFAULT;
+      const path = String(detail.path || '').trim();
+
+      workflowWorkspaceOpenRef.current = true;
+      activateNamespace(owner, ip, workflow, true);
+      setScreen('workspace');
+      if (path) {
+        try { localStorage.setItem('atlasPreviewPath', path); } catch (_) {}
+        setTimeout(() => {
+          try {
+            window.dispatchEvent(new CustomEvent('atlas-chip-open', {
+              detail: { path, source: detail.source || 'pipeline' },
+            }));
+          } catch (_) {}
+        }, 0);
+      }
+    };
+    window.addEventListener('atlas:open_workflow_workspace', onOpenWorkflowWorkspace);
+    return () => window.removeEventListener('atlas:open_workflow_workspace', onOpenWorkflowWorkspace);
+  }, [
+    activeIp,
+    activeNamespace,
+    activeSessionId,
+    activateNamespace,
+    confirmStopForWorkflowSwitch,
+    normalizeSession,
+    splitSessionNamespace,
+  ]);
 
   // Auto-switch the agent's workflow when entering / leaving Architect.
   // Architect is a SoC-level supervisor (one tier above ssot-gen,
@@ -1160,6 +1211,10 @@ const App = () => {
         activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, targetWorkflow, true);
       }
     } else if (prev === 'architect' || prev === 'pipeline') {
+      if (workflowWorkspaceOpenRef.current) {
+        workflowWorkspaceOpenRef.current = false;
+        return;
+      }
       // Leaving pipeline/architect → fall back to default (could be
       // smarter and restore the prior workflow, but default keeps
       // things simple).

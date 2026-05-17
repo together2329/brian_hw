@@ -1,10 +1,46 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-17T07:23:49Z",
+  "generated_at": "2026-05-17T22:57:36Z",
   "root": "doc/wiki",
-  "node_count": 40,
-  "edge_count": 251,
-  "tags": {},
+  "node_count": 43,
+  "edge_count": 278,
+  "tags": {
+    "atlas-ui": [
+      "atlas-pipeline-worker-workspace-jump",
+      "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "debugging": [
+      "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "multi-worker": [
+      "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "orchestrator": [
+      "atlas-pipeline-worker-workspace-jump",
+      "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "pipeline": [
+      "atlas-pipeline-worker-workspace-jump"
+    ],
+    "pl330": [
+      "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "real-llm": [
+      "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "rtl-gen": [
+      "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "worker": [
+      "atlas-pipeline-worker-workspace-jump"
+    ],
+    "workflow": [
+      "atlas-pipeline-worker-workspace-jump"
+    ],
+    "workspace": [
+      "atlas-pipeline-worker-workspace-jump"
+    ]
+  },
   "types": {
     "reference": [
       "agent-autonomous-ip-implementation-pattern",
@@ -36,6 +72,7 @@
       "pipeline-progress-debugging",
       "provider-and-llm-call-accounting",
       "quad-spi-orch-run-20260517",
+      "round2-retry-budget-cross-workflow-routing-20260517",
       "rtl-gen-ssot-contract",
       "rtl-version-run-history",
       "run-mode-and-provenance-policy",
@@ -47,6 +84,12 @@
       "workflow-feedback-and-scheduling",
       "workflow-improvement-candidates",
       "workflow-ownership-and-boundaries"
+    ],
+    "run": [
+      "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "runbook": [
+      "atlas-pipeline-worker-workspace-jump"
     ]
   },
   "nodes": [
@@ -201,7 +244,9 @@
       ],
       "incoming": [
         "atlas-pipeline-screen",
-        "index"
+        "atlas-pipeline-worker-workspace-jump",
+        "index",
+        "pl330-real-orchestrator-ui-lessons-20260517"
       ],
       "broken_refs": [],
       "updated": "",
@@ -222,14 +267,17 @@
         "workflow-ownership-and-boundaries",
         "workflow-feedback-and-scheduling",
         "deterministic-emit-stages",
+        "atlas-pipeline-worker-workspace-jump",
         "atlas-pipeline-db-state"
       ],
       "incoming": [
         "atlas-pipeline-db-state",
+        "atlas-pipeline-worker-workspace-jump",
         "index",
         "log",
         "orchestrator-workflow-bring-up-20260517",
         "pipeline-progress-debugging",
+        "pl330-real-orchestrator-ui-lessons-20260517",
         "run-mode-and-provenance-policy",
         "ui-design-references"
       ],
@@ -237,7 +285,47 @@
       "updated": "",
       "summary": "`◫ Pipeline` is a top-level ATLAS screen that turns the 14-stage common_ai_agent flow into a click-to-run + glance-to-read situation board. It replaced the mock `◫ Architect` screen on 2026-05-16 (see [[log]] entry).",
       "path": "doc/wiki/atlas-pipeline-screen.md",
-      "size_bytes": 17532
+      "size_bytes": 18561
+    },
+    {
+      "id": "atlas-pipeline-worker-workspace-jump",
+      "title": "ATLAS Pipeline Worker Workspace Jump",
+      "type": "runbook",
+      "tags": [
+        "atlas-ui",
+        "pipeline",
+        "workspace",
+        "workflow",
+        "orchestrator",
+        "worker"
+      ],
+      "related": [
+        "atlas-pipeline-screen",
+        "pl330-real-orchestrator-ui-lessons-20260517",
+        "orchestrator-worker-handoff",
+        "pipeline-progress-debugging",
+        "multi-user-worker-isolation",
+        "atlas-pipeline-db-state"
+      ],
+      "outgoing": [
+        "atlas-pipeline-screen",
+        "pl330-real-orchestrator-ui-lessons-20260517",
+        "orchestrator-worker-handoff",
+        "pipeline-progress-debugging",
+        "multi-user-worker-isolation",
+        "atlas-pipeline-db-state"
+      ],
+      "incoming": [
+        "atlas-pipeline-screen",
+        "index",
+        "log",
+        "pl330-real-orchestrator-ui-lessons-20260517"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-18",
+      "summary": "Pipeline worker details must be inspectable from the visible UI. When the user clicks `ssot-gen`, `rtl-gen`, or `tb-gen` in the Pipeline worker row, ATLAS should open that worker's real workspace so the user can see the chat history, files, artifacts, and recent evidence created by that workflow.",
+      "path": "doc/wiki/atlas-pipeline-worker-workspace-jump.md",
+      "size_bytes": 8691
     },
     {
       "id": "common-ai-agent-map",
@@ -346,6 +434,7 @@
         "orchestrator-worker-handoff",
         "orchestrator-workflow-bring-up-20260517",
         "parallel-todo-sub-agent-workers",
+        "pl330-real-orchestrator-ui-lessons-20260517",
         "provider-and-llm-call-accounting",
         "quad-spi-orch-run-20260517",
         "rtl-gen-ssot-contract",
@@ -495,12 +584,14 @@
         "workflow-ownership-and-boundaries",
         "atlas-pipeline-screen",
         "pipeline-progress-debugging",
+        "atlas-pipeline-worker-workspace-jump",
         "run-mode-and-provenance-policy",
         "arm-m0-min-current-status",
         "multi-user-worker-isolation",
         "multi-user-worker-conflicts",
         "orchestrator-worker-handoff",
         "orchestrator-worker-handoff-review",
+        "pl330-real-orchestrator-ui-lessons-20260517",
         "golden-todo-evidence",
         "wiki-curation-policy",
         "agent-autonomous-ip-implementation-pattern",
@@ -525,6 +616,7 @@
         "gpio-orchestrator-multiworker-run",
         "quad-spi-orch-run-20260517",
         "octa-ddr-spi-orch-run-20260517",
+        "round2-retry-budget-cross-workflow-routing-20260517",
         "atcuart100-pipeline-run",
         "atcwdt200-pipeline-run-20260517",
         "dma-real-sim-debug-knowhow",
@@ -540,7 +632,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 14388
+      "size_bytes": 16362
     },
     {
       "id": "karpathy-llm-wiki-pattern",
@@ -574,6 +666,9 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "atlas-pipeline-worker-workspace-jump",
+        "atlas-pipeline-screen",
+        "pl330-real-orchestrator-ui-lessons-20260517",
         "run-mode-and-provenance-policy",
         "index",
         "pipeline-progress-debugging",
@@ -581,7 +676,6 @@
         "orchestrator-worker-handoff",
         "orchestrator-worker-handoff-review",
         "gpio-serial-pipeline-run",
-        "atlas-pipeline-screen",
         "workflow-ownership-and-boundaries",
         "ui-design-references",
         "arm-m0-min-pipeline-run",
@@ -600,9 +694,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added `doc/wiki/atcwdt200-pipeline-run-20260517.md` for the Andes watchdog timer flow started from `/Users/brian/Desktop/andes/atcwdt200`. The snapshot records clean SSOT/FL/CL/equiv/RTL/TB/lint evidence, the current sim stop condition (`TESTS=1 PASS=1` plus `[SIM ESCALATE] scoreboard_failed=11`), and recurring lessons around generated…",
+      "summary": "- Added [[atlas-pipeline-worker-workspace-jump]] to document the real UI workflow drilldown behavior: clicking `ssot-gen`, `rtl-gen`, or `tb-gen` in the Pipeline worker row opens `.session/<session>/<ip>/<workflow>` in Workspace, shows worker chat history, and previews the representative SSOT, RTL authoring status, or cocotb TB file. Cross-linked it from…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 49872
+      "size_bytes": 50920
     },
     {
       "id": "mini-cpu-rerun-20260517",
@@ -641,6 +735,7 @@
         "index",
         "octa-ddr-spi-orch-run-20260517",
         "orchestrator-workflow-bring-up-20260517",
+        "pl330-real-orchestrator-ui-lessons-20260517",
         "quad-spi-orch-run-20260517",
         "ssot-gen-pass-pipeline"
       ],
@@ -660,9 +755,11 @@
       "incoming": [
         "agent-autonomous-ip-implementation-pattern",
         "atcuart100-pipeline-run",
+        "atlas-pipeline-worker-workspace-jump",
         "index",
         "log",
-        "pipeline-progress-debugging"
+        "pipeline-progress-debugging",
+        "pl330-real-orchestrator-ui-lessons-20260517"
       ],
       "broken_refs": [],
       "updated": "",
@@ -687,7 +784,8 @@
       ],
       "incoming": [
         "index",
-        "orchestrator-workflow-bring-up-20260517"
+        "orchestrator-workflow-bring-up-20260517",
+        "round2-retry-budget-cross-workflow-routing-20260517"
       ],
       "broken_refs": [],
       "updated": "",
@@ -710,6 +808,7 @@
         "human-review-and-escalation"
       ],
       "incoming": [
+        "atlas-pipeline-worker-workspace-jump",
         "full-flow-pipeline",
         "gpio-orchestrator-multiworker-run",
         "index",
@@ -720,7 +819,9 @@
         "orchestrator-workflow-bring-up-20260517",
         "parallel-todo-sub-agent-workers",
         "pipeline-progress-debugging",
+        "pl330-real-orchestrator-ui-lessons-20260517",
         "quad-spi-orch-run-20260517",
+        "round2-retry-budget-cross-workflow-routing-20260517",
         "run-mode-and-provenance-policy",
         "workflow-feedback-and-scheduling",
         "workflow-improvement-candidates"
@@ -773,7 +874,8 @@
         "atcuart100-pipeline-run"
       ],
       "incoming": [
-        "index"
+        "index",
+        "pl330-real-orchestrator-ui-lessons-20260517"
       ],
       "broken_refs": [],
       "updated": "",
@@ -825,8 +927,10 @@
       ],
       "incoming": [
         "agent-autonomous-ip-implementation-pattern",
+        "atlas-pipeline-worker-workspace-jump",
         "index",
         "log",
+        "pl330-real-orchestrator-ui-lessons-20260517",
         "wiki-curation-policy"
       ],
       "broken_refs": [],
@@ -834,6 +938,56 @@
       "summary": "This page defines how ATLAS should debug progress for pipeline and worker runs without guessing from scattered files.",
       "path": "doc/wiki/pipeline-progress-debugging.md",
       "size_bytes": 5225
+    },
+    {
+      "id": "pl330-real-orchestrator-ui-lessons-20260517",
+      "title": "PL330 Real Orchestrator UI Lessons 2026-05-17",
+      "type": "run",
+      "tags": [
+        "atlas-ui",
+        "orchestrator",
+        "pl330",
+        "rtl-gen",
+        "multi-worker",
+        "debugging",
+        "real-llm"
+      ],
+      "related": [
+        "orchestrator-workflow-bring-up-20260517",
+        "orchestrator-worker-handoff",
+        "pipeline-progress-debugging",
+        "multi-user-worker-isolation",
+        "multi-user-worker-conflicts",
+        "full-flow-pipeline",
+        "rtl-gen-ssot-contract",
+        "atlas-pipeline-screen",
+        "atlas-pipeline-worker-workspace-jump",
+        "atlas-pipeline-db-state",
+        "round2-retry-budget-cross-workflow-routing-20260517"
+      ],
+      "outgoing": [
+        "orchestrator-workflow-bring-up-20260517",
+        "orchestrator-worker-handoff",
+        "pipeline-progress-debugging",
+        "multi-user-worker-isolation",
+        "multi-user-worker-conflicts",
+        "full-flow-pipeline",
+        "rtl-gen-ssot-contract",
+        "atlas-pipeline-screen",
+        "atlas-pipeline-worker-workspace-jump",
+        "atlas-pipeline-db-state",
+        "round2-retry-budget-cross-workflow-routing-20260517"
+      ],
+      "incoming": [
+        "atlas-pipeline-worker-workspace-jump",
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-17",
+      "summary": "Real-use debugging record for the `pl330realverify` ATLAS UI run. This page captures the mistakes that only became visible when the user watched the UI and insisted on real Orchestrator + worker execution rather than headless shortcuts or mock progress.",
+      "path": "doc/wiki/pl330-real-orchestrator-ui-lessons-20260517.md",
+      "size_bytes": 11899
     },
     {
       "id": "provider-and-llm-call-accounting",
@@ -878,13 +1032,36 @@
       "incoming": [
         "index",
         "octa-ddr-spi-orch-run-20260517",
-        "orchestrator-workflow-bring-up-20260517"
+        "orchestrator-workflow-bring-up-20260517",
+        "round2-retry-budget-cross-workflow-routing-20260517"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "Status: pipeline reached `sim-debug` with 60/60 scoreboard rows, 29 goals passing and 31 owner-classified mismatches (28 `rtl-gen`, 3 `tb-gen`). RTL compile/lint are clean and `tb-gen` is green; the remaining work is a real FL-vs-RTL behavior closure loop on the SSOT-derived RTL.",
       "path": "doc/wiki/quad-spi-orch-run-20260517.md",
       "size_bytes": 16631
+    },
+    {
+      "id": "round2-retry-budget-cross-workflow-routing-20260517",
+      "title": "Round 2 — Retry Budget + Cross-Workflow Routing Validation (2026-05-17)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "orchestrator-worker-handoff",
+        "quad-spi-orch-run-20260517",
+        "octa-ddr-spi-orch-run-20260517",
+        "run-mode-and-provenance-policy"
+      ],
+      "incoming": [
+        "index",
+        "pl330-real-orchestrator-ui-lessons-20260517"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Status: end-to-end orchestrator routing flow validated on `simple_uart_tx`. RTL bug injected, kimi `sim_debug` worker silent-failed twice, retry budget exhausted, orchestrator escalated to fallback classification, codex `rtl-gen` applied the repair, and the re-run cocotb suite returned **5/5 PASS**.",
+      "path": "doc/wiki/round2-retry-budget-cross-workflow-routing-20260517.md",
+      "size_bytes": 7282
     },
     {
       "id": "rtl-gen-ssot-contract",
@@ -906,6 +1083,7 @@
         "gpio-orchestrator-multiworker-run",
         "gpio-serial-pipeline-run",
         "index",
+        "pl330-real-orchestrator-ui-lessons-20260517",
         "ssot-gen-pass-pipeline",
         "workflow-improvement-candidates"
       ],
@@ -954,7 +1132,8 @@
       "incoming": [
         "index",
         "log",
-        "orchestrator-workflow-bring-up-20260517"
+        "orchestrator-workflow-bring-up-20260517",
+        "round2-retry-budget-cross-workflow-routing-20260517"
       ],
       "broken_refs": [],
       "updated": "",

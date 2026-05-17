@@ -38,6 +38,59 @@
     'pnr': ['syn'],
     'sta-post': ['pnr'],
   };
+  window.PIPELINE_STAGE_WORKFLOW = {
+    ssot: 'ssot-gen',
+    'fl-model': 'fl-model-gen',
+    'cl-model': 'fl-model-gen',
+    equivalence: 'fl-model-gen',
+    rtl: 'rtl-gen',
+    lint: 'lint',
+    tb: 'tb-gen',
+    sim: 'sim',
+    coverage: 'coverage',
+    'sim-debug': 'sim_debug',
+    'goal-audit': 'sim_debug',
+    syn: 'syn',
+    sta: 'sta',
+    pnr: 'pnr',
+    'sta-post': 'sta-post',
+  };
+  window.PIPELINE_WORKSPACE_WORKFLOWS = new Set(['ssot-gen', 'rtl-gen', 'tb-gen']);
+  window.PIPELINE_WORKFLOW_PRIMARY_STAGE = {
+    'ssot-gen': 'ssot',
+    'rtl-gen': 'rtl',
+    'tb-gen': 'tb',
+  };
+  window.pipelineWorkflowForStage = function pipelineWorkflowForStage(stageId) {
+    return (window.PIPELINE_STAGE_WORKFLOW || {})[stageId] || stageId || '';
+  };
+  window.pipelineDefaultWorkspacePath = function pipelineDefaultWorkspacePath(ip, workflow, stageId, evidencePaths) {
+    const paths = Array.isArray(evidencePaths) ? evidencePaths.filter(Boolean) : [];
+    const wf = String(workflow || '').trim();
+    const id = String(stageId || '').trim();
+    if (paths.length && paths[0] !== `${ip}/tb/cocotb/`) return paths[0];
+    if (!ip) return '';
+    if (wf === 'ssot-gen' || id === 'ssot') return `${ip}/yaml/${ip}.ssot.yaml`;
+    if (wf === 'rtl-gen' || id === 'rtl') return `${ip}/rtl/rtl_authoring_status.md`;
+    if (wf === 'tb-gen' || id === 'tb') return `${ip}/tb/cocotb/test_${ip}.py`;
+    return paths[0] || '';
+  };
+  window.openPipelineWorkflowWorkspace = function openPipelineWorkflowWorkspace({ ip, workflow, stageId, path } = {}) {
+    const wf = String(workflow || window.pipelineWorkflowForStage(stageId) || '').trim();
+    const targetIp = String(ip || '').trim();
+    if (!targetIp || !wf) return;
+    const stage = stageId || (window.PIPELINE_WORKFLOW_PRIMARY_STAGE || {})[wf] || '';
+    const resolvedPath = path || (
+      window.pipelineDefaultWorkspacePath
+        ? window.pipelineDefaultWorkspacePath(targetIp, wf, stage, [])
+        : ''
+    );
+    try {
+      window.dispatchEvent(new CustomEvent('atlas:open_workflow_workspace', {
+        detail: { ip: targetIp, workflow: wf, stage, path: resolvedPath, source: 'pipeline' },
+      }));
+    } catch (_) {}
+  };
 
   // Phase bands used to group stage cards. Mirrors the layout sketch in
   // /Users/brian/.claude/plans/i-need-team-chat-magical-koala.md §Layout.
@@ -463,13 +516,23 @@ function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
           const live = w.running_count > 0;
           const reachable = w.status === 'ok';
           const sel = currentTarget === w.workflow;
+          const opensWorkspace = window.PIPELINE_WORKSPACE_WORKFLOWS
+            && window.PIPELINE_WORKSPACE_WORKFLOWS.has(w.workflow);
           return (
             <button key={w.workflow}
                     className="pipe-orchestra-worker"
                     data-state={reachable ? (live ? 'running' : 'idle') : 'down'}
                     data-selected={sel ? 'yes' : 'no'}
-                    onClick={() => onSelectTarget && onSelectTarget(w.workflow)}
-                    title={`Click to set chat target to ${w.workflow}`}>
+                    onClick={() => {
+                      if (opensWorkspace && window.openPipelineWorkflowWorkspace) {
+                        window.openPipelineWorkflowWorkspace({ ip, workflow: w.workflow });
+                        return;
+                      }
+                      if (onSelectTarget) onSelectTarget(w.workflow);
+                    }}
+                    title={opensWorkspace
+                      ? `Open ${w.workflow} workspace and history`
+                      : `Click to set chat target to ${w.workflow}`}>
               <span className="pipe-orchestra-worker-head">
                 <span className="pipe-orchestra-worker-dot" data-live={live ? 'yes' : 'no'} />
                 <span className="pipe-orchestra-worker-name">{w.workflow}</span>
@@ -1057,6 +1120,23 @@ window.StageCard = function StageCard({ stageId, info, ip, onChain }) {
   const liveTail = data.live_tail || '';
   const progress = data.progress;
   const evidencePaths = data.evidence_paths || [];
+  const workflow = data.workflow || (window.pipelineWorkflowForStage && window.pipelineWorkflowForStage(stageId)) || stageId;
+  const workspacePath = window.pipelineDefaultWorkspacePath
+    ? window.pipelineDefaultWorkspacePath(ip, workflow, stageId, evidencePaths)
+    : (evidencePaths[0] || '');
+  const canOpenWorkspace = !!(
+    ip && workflow && window.PIPELINE_WORKSPACE_WORKFLOWS
+    && window.PIPELINE_WORKSPACE_WORKFLOWS.has(workflow)
+  );
+  const openWorkspace = () => {
+    if (!canOpenWorkspace || !window.openPipelineWorkflowWorkspace) return;
+    window.openPipelineWorkflowWorkspace({
+      ip,
+      workflow,
+      stageId,
+      path: workspacePath,
+    });
+  };
 
   // "Start here" highlight: SSOT card when nothing has run yet — gives the
   // user an unambiguous entry point on a fresh IP instead of a sea of locked
@@ -1138,6 +1218,14 @@ window.StageCard = function StageCard({ stageId, info, ip, onChain }) {
         )}
       </div>
       <div className="pipe-stage-actions">
+        {canOpenWorkspace && (
+          <button className="pipe-stage-workspace rb-btn"
+                  disabled={!ip}
+                  title={`Open ${workflow} workspace, chat history, files, and artifacts`}
+                  onClick={(e) => { e.stopPropagation(); openWorkspace(); }}>
+            ⌂ workspace
+          </button>
+        )}
         <button className="pipe-stage-run rb-btn"
                 disabled={isLocked || isRunning || !ip}
                 onClick={(e) => { e.stopPropagation(); dispatchOne(); }}>

@@ -14,11 +14,13 @@ This section is additive; it does not replace the reading order below.
 | Overall source-of-truth map | [[common-ai-agent-map]] |
 | What owns SSOT/RTL/TB/sim/coverage artifacts | [[workflow-ownership-and-boundaries]] |
 | How to run/debug the visible product flow | [[atlas-pipeline-screen]] + [[pipeline-progress-debugging]] |
+| How Pipeline worker detail opens real workspaces | [[atlas-pipeline-worker-workspace-jump]] |
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
 | Current CPU handoff / approval / README status | [[arm-m0-min-current-status]] |
 | Multi-user or shared-worker collision risk | [[multi-user-worker-isolation]] + [[multi-user-worker-conflicts]] |
 | Orchestrator/worker handoff concept | [[orchestrator-worker-handoff]] + [[orchestrator-worker-handoff-review]] |
+| PL330 visible UI Orchestrator/worker lessons | [[pl330-real-orchestrator-ui-lessons-20260517]] |
 | Evidence approval and TodoTracker behavior | [[golden-todo-evidence]] |
 | When to update wiki during development | [[wiki-curation-policy]] |
 | How agent autonomously implements a new IP end-to-end | [[agent-autonomous-ip-implementation-pattern]] |
@@ -53,6 +55,7 @@ regression.
 ## UI
 
 - [[atlas-pipeline-screen]] — `◫ Pipeline` top-level screen: click-to-run stage dispatcher, per-stage scoresheet, owner-aware blame routing.
+- [[atlas-pipeline-worker-workspace-jump]] — how `ssot-gen`, `rtl-gen`, and `tb-gen` worker detail clicks open the real workflow workspace, chat history, and representative artifacts.
 - [[run-mode-and-provenance-policy]] — placement and semantics for global `Run Mode` plus `Exec Mode`, and the Pipeline-specific evidence summary.
 - [[atlas-pipeline-db-state]] — how `/api/pipeline/state` derives state (DB-first, FS-fallback for hand-placed evidence) and the migration plan for moving KPI dots fully into the DB.
 - [[pipeline-progress-debugging]] — shared observability contract for worker jobs, headless reproduction logs, stuck LLM calls, and same-environment validation.
@@ -78,6 +81,7 @@ be loaded on a different machine and inspected without recreating the DB.
 - [[agent-autonomous-ip-implementation-pattern]] — "Wiki만 보고 DMA 구현 완주한 패턴" 메타 분석: 에이전트가 문서를 선별하고, 합리적 순서를 도출하고, 소유자 규칙을 준수하고, 증거 기반으로 자가 교정하고, 노하우를 기록하는 5가지 자율 실행 능력의 분해. 14태스크 타이임라인, 7개 결정 갈림길, arm-m0-min 비교, 재사용 템플릿 포함 (2026-05-17).
 - [[triple-llm-rv32i-experiment]] — `rv32i_min` SSOT 동일 입력을 3개 LLM provider(claude / gpt-codex / glm)에 병렬로 흘려 동일 파이프라인(ssot-gen → fl/cl → equiv-goals → rtl-gen)을 거치게 한 비교 실험. provider별 출력 품질·실패 패턴·재시도 비용을 한 시야로 측정.
 - [[orchestrator-workflow-bring-up-20260517]] — `workflow/orchestrator/` 디렉토리가 실재로 만들어진 날의 풀 세션 기록: 13파일(system_prompt + routing_policy + retry_budget + 7 slash commands + run-to-green template) 생성, 5 worker × 4 model spawn (glm / gpt-5.3-codex / deepseek / kimi), trace JSONL 인프라(`core/orchestrator_trace.py` + `/api/orchestrator/trace`), Pipeline UI orchestra view (WorkerOrchestraBar + PendingQABanner + OrchestratorTraceStrip + 양방향 화살표), 그리고 sub-agent fire-and-forget 패턴이 interactive workflow(ssot-gen)에서 hang 되는 mismatch 발견 + QA card escape hatch fix까지. e2e 검증: real-LLM orchestrator(gpt-5.5 xhigh)가 3개 worker에 분산 dispatch + sim_debug worker 단일 dispatch + scratch `simple_counter` SSOT 생성 후 pending QA로 자동 정지 (2026-05-17).
+- [[pl330-real-orchestrator-ui-lessons-20260517]] — visible ATLAS UI validation on `pl330realverify`: user challenged fake-looking progress, real Browser/API/worker evidence was required, Orchestrator must dispatch workers instead of direct worker chat, RTL handoff should be `/ssot-rtl <ip>` rather than a giant TODO payload, and active scoped job dedupe prevents duplicate loading runs. RTL compile/lint passed; full RTL audit still had open required TODOs. Also records the accidental `tb-gen` dispatch/cancel that polluted the TB stage card (2026-05-17).
 
 ## Debugging And Operations
 
@@ -85,6 +89,7 @@ be loaded on a different machine and inspected without recreating the DB.
 - [[multi-user-worker-isolation]] — first stop for "could this worker belong to another user/IP/session?"
 - [[provider-and-llm-call-accounting]] — first stop for "how many LLM calls/tokens/cost did this workflow use?"
 - [[rtl-version-run-history]] — first stop for "which SSOT/RTL/TB version did this lint/sim/coverage/syn/sta/pnr run use?"
+- [[pl330-real-orchestrator-ui-lessons-20260517]] — first stop for visible UI Orchestrator/worker validation, `/ssot-rtl` handoff versus TODO payloads, duplicate dispatch loading, and contaminated stage-card status.
 
 ## Open Improvements
 
@@ -103,6 +108,7 @@ be loaded on a different machine and inspected without recreating the DB.
 - Keep user-visible SSOT YAML clean; store resolved defaults and field authority in resolved SSOT plus provenance sidecars.
 - Approval comes from deterministic evidence or human authority, not from LLM prose.
 - When a debugging surface changes, update code, tests, real-use validation notes, and wiki together.
+- For RTL worker handoff, dispatch `/ssot-rtl <ip>` and let `rtl-gen` read the dynamic RTL ledgers from disk. Do not preload the `ssot-rtl` TODO template as an HTTP payload.
 
 ## Source Docs
 

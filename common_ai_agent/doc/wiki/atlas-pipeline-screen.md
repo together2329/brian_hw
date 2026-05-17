@@ -7,7 +7,8 @@ board. It replaced the mock `◫ Architect` screen on 2026-05-16 (see
 
 Related: [[full-flow-pipeline]] · [[ui-design-references]] ·
 [[workflow-ownership-and-boundaries]] ·
-[[workflow-feedback-and-scheduling]] · [[deterministic-emit-stages]]
+[[workflow-feedback-and-scheduling]] · [[deterministic-emit-stages]] ·
+[[atlas-pipeline-worker-workspace-jump]]
 
 ## Why it exists
 
@@ -302,6 +303,26 @@ Click a dot → opens the source JSON in the existing `FileViewer` overlay.
 | e | Follow blame | failed card shows `! sim blame→rtl-gen`; `[ go fix rtl-gen ]` dispatches rtl-gen with the feedback packet path templated into prompt (per [[workflow-feedback-and-scheduling]]) |
 | f | Abort running | running card shows `⏹` (Esc keybind) → `POST /api/job/{id}/cancel` |
 | g | Switch mode | run-bar mode chip toggle sends `/mode pipeline` or `/mode normal` through chat input; warn-color when `interactive` |
+| h | Inspect worker workspace | click `ssot-gen`, `rtl-gen`, or `tb-gen` in the worker orchestra row → opens `⌂ Workspace` for `.session/<session>/<ip>/<workflow>` and previews the representative artifact; see [[atlas-pipeline-worker-workspace-jump]] |
+
+## Worker Workspace Drilldown
+
+Pipeline is Orchestrator-first, but worker work must still be auditable. The
+worker orchestra row therefore treats `ssot-gen`, `rtl-gen`, and `tb-gen` as
+workspace drilldown buttons:
+
+```text
+ssot-gen -> <ip>/yaml/<ip>.ssot.yaml
+rtl-gen  -> <ip>/rtl/rtl_authoring_status.md
+tb-gen   -> <ip>/tb/cocotb/test_<ip>.py
+```
+
+The click switches the active namespace to
+`.session/<session_id>/<ip>/<workflow>`, opens the Workspace screen, and opens
+that representative file. Other worker buttons keep their existing
+target-selection behavior unless they are explicitly promoted into this
+workspace-drilldown set. Implementation and verification details live in
+[[atlas-pipeline-worker-workspace-jump]].
 
 ## Anti-patterns deliberately avoided
 
