@@ -135,14 +135,14 @@ module mini_axi_slave_wrapper #(
     assign write_outstanding_o = aw_count + b_count;
     assign read_outstanding_o  = r_count;
 
-    assign S_AXI_AWREADY = (write_outstanding_o < OUTSTANDING_COUNT);
-    assign S_AXI_WREADY  = (aw_count != 3'd0) && (b_count < OUTSTANDING_COUNT);
+    assign S_AXI_AWREADY = (write_outstanding_o < OUTSTANDING_COUNT) || b_pop;
+    assign S_AXI_WREADY  = (aw_count != 3'd0) && ((b_count < OUTSTANDING_COUNT) || b_pop);
 
     assign S_AXI_BVALID  = (b_count != 3'd0);
     assign S_AXI_BID     = b_id_q[b_rd_ptr];
     assign S_AXI_BRESP   = b_resp_q[b_rd_ptr];
 
-    assign S_AXI_ARREADY = (r_count < OUTSTANDING_COUNT);
+    assign S_AXI_ARREADY = (r_count < OUTSTANDING_COUNT) || r_pop;
 
     assign S_AXI_RVALID  = (r_count != 3'd0);
     assign S_AXI_RID     = r_id_q[r_rd_ptr];

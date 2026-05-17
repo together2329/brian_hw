@@ -1,0 +1,7 @@
+{
+  "chat_trace": "orchestrator-to-sim_debug",
+  "status": "pass",
+  "top": "mini_axi_slave_wrapper",
+  "waveform": "sim/mini_axi_slave_wrapper.vcd",
+  "wrapper_required": false
+}

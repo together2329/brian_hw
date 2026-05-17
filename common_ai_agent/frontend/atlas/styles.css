@@ -3964,6 +3964,240 @@ body[data-resize-cursor="col"] {
   padding: 2px 4px;
 }
 
+/* Light pipeline palette. The pipeline page was originally drawn as a
+   self-contained dark canvas, so several surfaces used fixed charcoal values
+   instead of the app theme tokens. Keep dark as the default and explicitly
+   remap those fixed surfaces when the app switches to light/paper. */
+[data-theme="light"] .pipe-col-left,
+[data-theme="paper"] .pipe-col-left,
+[data-theme="light"] .pipe-col-right,
+[data-theme="paper"] .pipe-col-right,
+[data-theme="light"] .pipe-flow-control,
+[data-theme="paper"] .pipe-flow-control,
+[data-theme="light"] .pipe-flow-inspector,
+[data-theme="paper"] .pipe-flow-inspector {
+  background: var(--panel);
+}
+[data-theme="light"] .pipe-col-center,
+[data-theme="paper"] .pipe-col-center,
+[data-theme="light"] .pipe-flow-map,
+[data-theme="paper"] .pipe-flow-map {
+  background: var(--bg);
+}
+[data-theme="light"] .pipe-flow-control,
+[data-theme="paper"] .pipe-flow-control {
+  border-bottom-color: var(--line);
+}
+[data-theme="light"] .pipe-stage-rail-head,
+[data-theme="paper"] .pipe-stage-rail-head,
+[data-theme="light"] .pipe-flow-tab,
+[data-theme="paper"] .pipe-flow-tab,
+[data-theme="light"] .pipe-flow-step-pill,
+[data-theme="paper"] .pipe-flow-step-pill,
+[data-theme="light"] .pipe-flow-orch-strip,
+[data-theme="paper"] .pipe-flow-orch-strip,
+[data-theme="light"] .pipe-trace-strip,
+[data-theme="paper"] .pipe-trace-strip,
+[data-theme="light"] .pipe-orchestra-conductor,
+[data-theme="paper"] .pipe-orchestra-conductor,
+[data-theme="light"] .pipe-orchestra-worker,
+[data-theme="paper"] .pipe-orchestra-worker,
+[data-theme="light"] .pipe-flow-choice,
+[data-theme="paper"] .pipe-flow-choice,
+[data-theme="light"] .pipe-step-card,
+[data-theme="paper"] .pipe-step-card,
+[data-theme="light"] .pipe-flow-inspector .pipe-stage-card,
+[data-theme="paper"] .pipe-flow-inspector .pipe-stage-card {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.025);
+}
+[data-theme="light"] .pipe-stage-rail-select,
+[data-theme="paper"] .pipe-stage-rail-select {
+  background: var(--field-bg);
+  border-color: var(--line);
+  color: var(--fg);
+}
+[data-theme="light"] .pipe-green-card,
+[data-theme="paper"] .pipe-green-card {
+  border-color: rgba(183, 121, 31, 0.26);
+  background:
+    linear-gradient(180deg, rgba(183, 121, 31, 0.10), rgba(15, 23, 42, 0.02)),
+    var(--panel);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.10);
+}
+[data-theme="light"] .pipe-green-card[data-state="green"],
+[data-theme="paper"] .pipe-green-card[data-state="green"] {
+  border-color: color-mix(in oklch, var(--ok) 50%, var(--line));
+  background:
+    linear-gradient(180deg, color-mix(in oklch, var(--ok) 10%, transparent), rgba(15, 23, 42, 0.02)),
+    var(--panel);
+}
+[data-theme="light"] .pipe-green-bar,
+[data-theme="paper"] .pipe-green-bar {
+  background: rgba(15, 23, 42, 0.10);
+}
+[data-theme="light"] .pipe-green-step,
+[data-theme="paper"] .pipe-green-step {
+  border-color: rgba(15, 23, 42, 0.10);
+  background: rgba(15, 23, 42, 0.035);
+}
+[data-theme="light"] .pipe-green-step-reason,
+[data-theme="paper"] .pipe-green-step-reason,
+[data-theme="light"] .pipe-stage-rail-sub,
+[data-theme="paper"] .pipe-stage-rail-sub {
+  color: rgba(64, 74, 88, 0.76);
+}
+[data-theme="light"] .pipe-green-owner,
+[data-theme="paper"] .pipe-green-owner {
+  border-color: rgba(15, 23, 42, 0.12);
+}
+[data-theme="light"] .pipe-stage-rail-row,
+[data-theme="paper"] .pipe-stage-rail-row {
+  border-color: rgba(15, 23, 42, 0.10);
+  background: rgba(15, 23, 42, 0.02);
+}
+[data-theme="light"] .pipe-stage-rail-legend,
+[data-theme="paper"] .pipe-stage-rail-legend {
+  border-top-color: rgba(15, 23, 42, 0.10);
+}
+[data-theme="light"] .pipe-flow-tab.sel,
+[data-theme="paper"] .pipe-flow-tab.sel,
+[data-theme="light"] .pipe-flow-step-pill.sel,
+[data-theme="paper"] .pipe-flow-step-pill.sel,
+[data-theme="light"] .pipe-stage-rail-row.sel,
+[data-theme="paper"] .pipe-stage-rail-row.sel,
+[data-theme="light"] .pipe-flow-choice.sel,
+[data-theme="paper"] .pipe-flow-choice.sel,
+[data-theme="light"] .pipe-step-card.sel,
+[data-theme="paper"] .pipe-step-card.sel {
+  border-color: #b7791f;
+  background: rgba(183, 121, 31, 0.10);
+}
+[data-theme="light"] .pipe-flow-tab b,
+[data-theme="paper"] .pipe-flow-tab b,
+[data-theme="light"] .pipe-stage-rail-ip,
+[data-theme="paper"] .pipe-stage-rail-ip,
+[data-theme="light"] .pipe-flow-choice-meta,
+[data-theme="paper"] .pipe-flow-choice-meta {
+  color: #9a5b08;
+}
+[data-theme="light"] .pipe-flow-step-pill span,
+[data-theme="paper"] .pipe-flow-step-pill span,
+[data-theme="light"] .pipe-green-step-index,
+[data-theme="paper"] .pipe-green-step-index,
+[data-theme="light"] .pipe-step-index,
+[data-theme="paper"] .pipe-step-index {
+  background: #b7791f;
+  color: #ffffff;
+}
+[data-theme="light"] .pipe-flow-orch-strip[data-on="yes"],
+[data-theme="paper"] .pipe-flow-orch-strip[data-on="yes"],
+[data-theme="light"] .pipe-orchestra-conductor[data-active="yes"],
+[data-theme="paper"] .pipe-orchestra-conductor[data-active="yes"],
+[data-theme="light"] .pipe-orchestra-worker[data-state="running"],
+[data-theme="paper"] .pipe-orchestra-worker[data-state="running"] {
+  border-color: rgba(183, 121, 31, 0.34);
+  background: rgba(183, 121, 31, 0.07);
+}
+[data-theme="light"] .pipe-orchestra-conductor-model,
+[data-theme="paper"] .pipe-orchestra-conductor-model,
+[data-theme="light"] .pipe-trace-group,
+[data-theme="paper"] .pipe-trace-group,
+[data-theme="light"] .pipe-qa-chip,
+[data-theme="paper"] .pipe-qa-chip {
+  background: rgba(15, 23, 42, 0.04);
+}
+[data-theme="light"] .pipe-trace-body,
+[data-theme="paper"] .pipe-trace-body {
+  border-top-color: var(--line);
+}
+[data-theme="light"] .pipe-flow-canvas,
+[data-theme="paper"] .pipe-flow-canvas {
+  border-color: var(--line);
+  background:
+    linear-gradient(90deg, rgba(80, 96, 124, 0.10) 1px, transparent 1px) 0 0/190px 100%,
+    radial-gradient(circle at 1px 1px, rgba(80, 96, 124, 0.13) 1px, transparent 0) 0 0/28px 28px,
+    #f8fafc;
+}
+[data-theme="light"] .pipe-flow-lane rect,
+[data-theme="paper"] .pipe-flow-lane rect {
+  fill: rgba(15, 23, 42, 0.025);
+  stroke: rgba(15, 23, 42, 0.10);
+}
+[data-theme="light"] .pipe-flow-lane text,
+[data-theme="paper"] .pipe-flow-lane text,
+[data-theme="light"] .pipe-flow-lane-hint,
+[data-theme="paper"] .pipe-flow-lane-hint {
+  fill: rgba(64, 74, 88, 0.68);
+}
+[data-theme="light"] .pipe-flow-edge-muted,
+[data-theme="paper"] .pipe-flow-edge-muted {
+  stroke: rgba(96, 110, 130, 0.36);
+}
+[data-theme="light"] .pipe-flow-arrow-muted,
+[data-theme="paper"] .pipe-flow-arrow-muted {
+  fill: rgba(96, 110, 130, 0.46);
+}
+[data-theme="light"] .pipe-flow-edge-active,
+[data-theme="paper"] .pipe-flow-edge-active {
+  stroke: #b7791f;
+  filter: drop-shadow(0 0 3px rgba(183, 121, 31, 0.28));
+}
+[data-theme="light"] .pipe-flow-arrow-active,
+[data-theme="paper"] .pipe-flow-arrow-active,
+[data-theme="light"] .pipe-flow-step-dot,
+[data-theme="paper"] .pipe-flow-step-dot {
+  fill: #b7791f;
+}
+[data-theme="light"] .pipe-flow-step-dot,
+[data-theme="paper"] .pipe-flow-step-dot {
+  stroke: #f8fafc;
+}
+[data-theme="light"] .pipe-flow-step-num,
+[data-theme="paper"] .pipe-flow-step-num {
+  fill: #ffffff;
+}
+[data-theme="light"] .pipe-flow-node.context,
+[data-theme="paper"] .pipe-flow-node.context {
+  opacity: 0.52;
+}
+[data-theme="light"] .pipe-flow-node rect,
+[data-theme="paper"] .pipe-flow-node rect {
+  fill: rgba(255, 255, 255, 0.98);
+  stroke: rgba(85, 96, 116, 0.32);
+}
+[data-theme="light"] .pipe-flow-node.in-flow rect,
+[data-theme="paper"] .pipe-flow-node.in-flow rect {
+  fill: #fff7df;
+  stroke: #b7791f;
+}
+[data-theme="light"] .pipe-flow-node.selected rect,
+[data-theme="paper"] .pipe-flow-node.selected rect {
+  stroke: #8a530e;
+  filter: drop-shadow(0 0 6px rgba(183, 121, 31, 0.24));
+}
+[data-theme="light"] .pipe-flow-node[data-state="passed"] rect,
+[data-theme="light"] .pipe-flow-node[data-state="ok"] rect,
+[data-theme="paper"] .pipe-flow-node[data-state="passed"] rect,
+[data-theme="paper"] .pipe-flow-node[data-state="ok"] rect {
+  fill: color-mix(in oklch, var(--ok) 11%, #ffffff);
+}
+[data-theme="light"] .pipe-flow-node[data-state="failed"] rect,
+[data-theme="light"] .pipe-flow-node[data-state="err"] rect,
+[data-theme="paper"] .pipe-flow-node[data-state="failed"] rect,
+[data-theme="paper"] .pipe-flow-node[data-state="err"] rect {
+  fill: color-mix(in oklch, var(--err) 11%, #ffffff);
+}
+[data-theme="light"] .pipe-flow-node[data-state="virtual"] rect,
+[data-theme="paper"] .pipe-flow-node[data-state="virtual"] rect {
+  fill: #fffaf0;
+  stroke: rgba(183, 121, 31, 0.36);
+}
+[data-theme="light"] .pipe-flow-node-sub,
+[data-theme="paper"] .pipe-flow-node-sub {
+  fill: rgba(64, 74, 88, 0.78);
+}
+
 /* ── Animations ─────────────────────────────────────────────────── */
 @keyframes pipe-pulse-ring {
   0%   { box-shadow: 0 0 0 0 color-mix(in oklch, var(--cyan) 70%, transparent); }

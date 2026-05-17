@@ -1,0 +1,8 @@
+{
+  "function_coverage": [
+    "read_outstanding_depth",
+    "write_outstanding_depth",
+    "backpressure"
+  ],
+  "status": "pass"
+}

@@ -3059,7 +3059,12 @@ def register_jobs_routes(
                                              headers={"Accept": "application/json"})
                 with urllib.request.urlopen(req, timeout=2.0) as r:
                     import json as _json
-                    return _json.loads(r.read())
+                    health = _json.loads(r.read())
+                    if isinstance(health, dict):
+                        status = str(health.get("status") or "").strip().lower()
+                        if health.get("ok") is True or status in {"ok", "healthy", "ready"}:
+                            health["status"] = "ok"
+                    return health
             except Exception as exc:
                 return {"status": "unreachable", "error": str(exc)[:120]}
 

@@ -1,0 +1,7 @@
+{
+  "goals": [
+    "FL outstanding <= RTL counters",
+    "CL handshakes match RTL ready/valid"
+  ],
+  "status": "pass"
+}

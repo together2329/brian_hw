@@ -1,0 +1,5 @@
+{
+  "model": "kimi",
+  "status": "pass",
+  "testbench": "tb/tb_mini_axi_slave_wrapper.sv"
+}

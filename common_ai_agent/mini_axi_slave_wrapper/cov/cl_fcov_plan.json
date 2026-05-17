@@ -1,0 +1,8 @@
+{
+  "cycle_coverage": [
+    "ar_stall_at_4",
+    "aw_stall_at_4",
+    "b_r_drain"
+  ],
+  "status": "pass"
+}

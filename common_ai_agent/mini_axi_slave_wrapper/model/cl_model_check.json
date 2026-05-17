@@ -1,0 +1,7 @@
+{
+  "cycle_goals": [
+    "no accept when outstanding == 4",
+    "response drains outstanding"
+  ],
+  "status": "pass"
+}

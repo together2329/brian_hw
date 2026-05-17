@@ -1,0 +1,16 @@
+{
+  "errors": 0,
+  "source_mapping": {
+    "rtl": "rtl/mini_axi_slave_wrapper.sv"
+  },
+  "status": "pass",
+  "toolchains": {
+    "pyslang": {
+      "status": "compatibility-pass"
+    },
+    "verilator": {
+      "returncode": 0
+    }
+  },
+  "warnings": 0
+}

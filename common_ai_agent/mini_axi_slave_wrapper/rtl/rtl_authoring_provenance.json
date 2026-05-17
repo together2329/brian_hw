@@ -1,0 +1,9 @@
+{
+  "ip": "mini_axi_slave_wrapper",
+  "model": "gpt-5.3-codex",
+  "orchestrator_worker": true,
+  "status": "pass",
+  "surface": "atlas_ui",
+  "updated_at": "2026-05-17T10:44:14Z",
+  "workflow": "rtl-gen"
+}

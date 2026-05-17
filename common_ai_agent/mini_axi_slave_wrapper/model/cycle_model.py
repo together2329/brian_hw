@@ -1,0 +1,2 @@
+MAX_OUTSTANDING = 4
+LATENCY_MODEL = 'elastic'

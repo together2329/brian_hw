@@ -1,0 +1,2 @@
+PASS: mini_axi_slave_wrapper supports pipelined four outstanding reads and writes
+mini_axi_slave_wrapper/tb/tb_mini_axi_slave_wrapper.sv:327: $finish called at 580000 (1ps)

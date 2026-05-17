@@ -1,0 +1,20 @@
+{
+  "evidence": [
+    "lint/dut_lint.json",
+    "sim/results.xml",
+    "cov/coverage.json",
+    "sim/source_tracking.json"
+  ],
+  "ip": "mini_axi_slave_wrapper",
+  "status": "pass",
+  "summary": {
+    "blockers": [],
+    "goals": [
+      "FL",
+      "RTL",
+      "TB",
+      "Sim",
+      "Coverage linked"
+    ]
+  }
+}

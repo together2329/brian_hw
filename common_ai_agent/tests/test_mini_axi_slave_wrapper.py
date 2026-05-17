@@ -44,4 +44,4 @@ def test_mini_axi_slave_wrapper_supports_four_outstanding(tmp_path: Path) -> Non
         check=False,
     )
     assert ran.returncode == 0, ran.stderr + ran.stdout
-    assert "supports four outstanding reads and writes" in ran.stdout
+    assert "supports pipelined four outstanding reads and writes" in ran.stdout

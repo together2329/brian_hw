@@ -1,0 +1,8 @@
+{
+  "hierarchy": [
+    "mini_axi_slave_wrapper"
+  ],
+  "source": "rtl/mini_axi_slave_wrapper.sv",
+  "status": "pass",
+  "top": "mini_axi_slave_wrapper"
+}

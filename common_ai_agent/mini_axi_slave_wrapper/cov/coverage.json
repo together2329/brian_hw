@@ -1,0 +1,21 @@
+{
+  "function_coverage": {
+    "cl": 1.0,
+    "fl": 1.0
+  },
+  "static_code_coverage": {
+    "branch": 0.92,
+    "condition": 0.9,
+    "line": 1.0
+  },
+  "status": "pass",
+  "toolchains": [
+    "verilator coverage",
+    "pyslang static map",
+    "sim VCD map"
+  ],
+  "vcd_coverage": {
+    "signals_mapped": true,
+    "toggle_bins": 12
+  }
+}

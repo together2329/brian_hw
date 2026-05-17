@@ -226,10 +226,51 @@ module tb_mini_axi_slave_wrapper;
         @(negedge ACLK);
         #1 check_true(write_outstanding_o == 3'd4, "four B responses should remain outstanding");
 
-        drain_b(4'h0);
-        drain_b(4'h1);
+        S_AXI_AWID    = 4'h4;
+        S_AXI_AWADDR  = 8'h10;
+        S_AXI_AWLEN   = 8'd0;
+        S_AXI_AWSIZE  = 3'd2;
+        S_AXI_AWBURST = 2'b01;
+        S_AXI_AWVALID = 1'b1;
+        S_AXI_BREADY  = 1'b1;
+        #1;
+        check_true(S_AXI_BVALID, "BVALID should be queued during pipelined AW accept");
+        check_true(S_AXI_BID == 4'h0, "pipelined B drain should preserve oldest BID");
+        check_true(S_AXI_AWREADY, "AWREADY should accept while BREADY drains a full outstanding slot");
+        @(posedge ACLK);
+        @(negedge ACLK);
+        S_AXI_AWVALID = 1'b0;
+        S_AXI_BREADY  = 1'b0;
+        #1 check_true(write_outstanding_o == 3'd4, "pipelined AW accept should keep four writes outstanding");
+
+        S_AXI_AWID    = 4'h5;
+        S_AXI_AWADDR  = 8'h14;
+        S_AXI_AWLEN   = 8'd0;
+        S_AXI_AWSIZE  = 3'd2;
+        S_AXI_AWBURST = 2'b01;
+        S_AXI_AWVALID = 1'b1;
+        S_AXI_WDATA  = 32'h5555_0004;
+        S_AXI_WSTRB  = 4'hf;
+        S_AXI_WLAST  = 1'b1;
+        S_AXI_WVALID = 1'b1;
+        S_AXI_BREADY = 1'b1;
+        #1;
+        check_true(S_AXI_AWREADY, "AWREADY should accept while W and B overlap at full depth");
+        check_true(S_AXI_WREADY, "WREADY should accept while BREADY drains a response slot");
+        check_true(S_AXI_BVALID, "BVALID should remain asserted during pipelined W/B overlap");
+        check_true(S_AXI_BID == 4'h1, "pipelined W/B overlap should drain the next BID");
+        @(posedge ACLK);
+        @(negedge ACLK);
+        S_AXI_AWVALID = 1'b0;
+        S_AXI_WVALID = 1'b0;
+        S_AXI_BREADY = 1'b0;
+        #1 check_true(write_outstanding_o == 3'd4, "pipelined AW/W/B overlap should keep four writes outstanding");
+
+        issue_w(32'h6666_0005);
         drain_b(4'h2);
         drain_b(4'h3);
+        drain_b(4'h4);
+        drain_b(4'h5);
         @(negedge ACLK);
         #1 check_true(write_outstanding_o == 3'd0, "write outstanding count should drain to zero");
 
@@ -243,12 +284,22 @@ module tb_mini_axi_slave_wrapper;
         S_AXI_ARADDR  = 8'h10;
         S_AXI_ARVALID = 1'b1;
         #1 check_true(!S_AXI_ARREADY, "fifth AR must backpressure at depth four");
+        S_AXI_RREADY  = 1'b1;
+        #1;
+        check_true(S_AXI_ARREADY, "ARREADY should accept while RREADY drains a full outstanding slot");
+        check_true(S_AXI_RVALID, "RVALID should be queued during pipelined AR accept");
+        check_true(S_AXI_RID == 4'ha, "pipelined R drain should preserve oldest RID");
+        check_true(S_AXI_RDATA == 32'h1111_0000, "pipelined R drain data mismatch");
+        @(posedge ACLK);
+        @(negedge ACLK);
         S_AXI_ARVALID = 1'b0;
+        S_AXI_RREADY  = 1'b0;
+        #1 check_true(read_outstanding_o == 3'd4, "pipelined AR accept should keep four reads outstanding");
 
-        drain_r(4'ha, 32'h1111_0000);
         drain_r(4'hb, 32'h2222_0001);
         drain_r(4'hc, 32'h3333_0002);
         drain_r(4'hd, 32'h4444_0003);
+        drain_r(4'he, 32'h5555_0004);
         @(negedge ACLK);
         #1 check_true(read_outstanding_o == 3'd0, "read outstanding count should drain to zero");
 
@@ -272,7 +323,7 @@ module tb_mini_axi_slave_wrapper;
         @(negedge ACLK);
         S_AXI_RREADY = 1'b0;
 
-        $display("PASS: mini_axi_slave_wrapper supports four outstanding reads and writes");
+        $display("PASS: mini_axi_slave_wrapper supports pipelined four outstanding reads and writes");
         $finish;
     end
 endmodule
