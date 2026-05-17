@@ -1,0 +1,27 @@
+{
+  "next_action": "Repair SSOT function_model transaction rules or approve explicit observable mappings, then rerun /tb.",
+  "questions": [
+    {
+      "decision_needed": "Provide structured output_rules/state_updates or an explicit observable mapping for EQ_STATE_CHANNEL_FSM_FAULTED_TO_STOPPED_15 (channel_fsm_FAULTED_to_STOPPED_15) so tb-gen can compare FL expected values against RTL signals.",
+      "downstream_effect": "Without this contract, the generated scoreboard can run cocotb but cannot prove FL-vs-RTL equivalence.",
+      "evidence": "FunctionalModel returned unsupported_transaction for a required equivalence goal",
+      "id": "TB_SELF_CHECK_001",
+      "recommended_default": "Update the SSOT function_model transaction with structured output_rules/state_updates, then rerun fl-model-gen, equiv-goals, tb-gen, and sim."
+    },
+    {
+      "decision_needed": "Provide structured output_rules/state_updates or an explicit observable mapping for EQ_STATE_CHANNEL_FSM_FAULT_COMPLETING_TO_FAULTED_13 (channel_fsm_FAULT_COMPLETING_to_FAULTED_13) so tb-gen can compare FL expected values against RTL signals.",
+      "downstream_effect": "Without this contract, the generated scoreboard can run cocotb but cannot prove FL-vs-RTL equivalence.",
+      "evidence": "FunctionalModel returned unsupported_transaction for a required equivalence goal",
+      "id": "TB_SELF_CHECK_002",
+      "recommended_default": "Update the SSOT function_model transaction with structured output_rules/state_updates, then rerun fl-model-gen, equiv-goals, tb-gen, and sim."
+    }
+  ],
+  "reason": "SSOT/FunctionalModel contract is not concrete enough for FL-vs-RTL scoreboard comparison",
+  "self_check": {
+    "checked": 81,
+    "model_errors": 0,
+    "required_goals": 81,
+    "ssot_questions": 0,
+    "unsupported_transactions": 2
+  }
+}

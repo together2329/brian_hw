@@ -23,6 +23,7 @@ import hashlib
 import subprocess
 import threading
 import time
+import xml.etree.ElementTree as ET
 import uuid
 from pathlib import Path
 from typing import Any, Callable
@@ -90,16 +91,52 @@ _STAGE_ARTIFACT_TYPES = {
     "rtl": "rtl",
     "tb": "tb",
 }
+
+
+def _junit_counts(results_xml: Path) -> tuple[int, int, int]:
+    """Return (tests, failures, errors) for testsuite or testsuites XML."""
+    root = ET.parse(str(results_xml)).getroot()
+    suite_nodes = [node for node in root.iter() if node.tag.endswith("testsuite")]
+    if root.tag.endswith("testsuite"):
+        suite_nodes = [root]
+
+    tests = failures = errors = 0
+    for node in suite_nodes:
+        tests += int(float(node.get("tests", 0) or 0))
+        failures += int(float(node.get("failures", 0) or 0))
+        errors += int(float(node.get("errors", 0) or 0))
+
+    if tests == 0:
+        tests = int(float(root.get("tests", 0) or 0))
+    if failures == 0:
+        failures = int(float(root.get("failures", 0) or 0))
+    if errors == 0:
+        errors = int(float(root.get("errors", 0) or 0))
+
+    cases = [node for node in root.iter() if node.tag.endswith("testcase")]
+    if tests == 0 and cases:
+        tests = len(cases)
+    if failures == 0 and cases:
+        failures = sum(
+            1 for case in cases
+            if any(child.tag.endswith("failure") for child in list(case))
+        )
+    if errors == 0 and cases:
+        errors = sum(
+            1 for case in cases
+            if any(child.tag.endswith("error") for child in list(case))
+        )
+    return tests, failures, errors
 _RUN_MODES = ("starter", "engineering", "signoff")
 _EXEC_MODES = ("single-worker", "orchestrator")
 _WORKER_MODEL_DEFAULTS = {
     "orchestrator": "gpt-5.5",
-    "ssot-gen": "deepseek",
+    "ssot-gen": "gpt-5.5",
     "fl-model-gen": "gpt-5.5",
     "rtl-gen": "gpt-5.3-codex",
-    "tb-gen": "kimi",
-    "sim_debug": "glm-5.1",
-    "lint": "gpt-5.3-codex",
+    "tb-gen": "deepseek",
+    "sim_debug": "kimi",
+    "lint": "deepseek",
     "sim": "gpt-5.3-codex",
     "coverage": "gpt-5.3-codex",
     "goal-audit": "gpt-5.5",
@@ -1253,7 +1290,10 @@ def _default_todo_template_for_job(workflow: str, stage_id: str, ip: str) -> str
     if stage_id == "equivalence":
         return "ssot-equiv-goals"
     if workflow == "rtl-gen" or stage_id == "rtl":
-        return "ssot-rtl"
+        # RTL owns a dynamic ledger that can contain hundreds of SSOT-derived
+        # tasks. The worker should run /ssot-rtl and read the ledger from disk,
+        # not receive it as an HTTP todo template payload.
+        return ""
     if stage_id == "lint":
         return "lint-fix"
     if workflow == "tb-gen" or stage_id == "tb":
@@ -1485,6 +1525,107 @@ def _public_job(job: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in job.items() if not k.startswith("_")}
 
 
+_ACTIVE_DISPATCH_STATES = {"pending", "queued", "running"}
+
+
+def _active_job_conflicts(
+    *,
+    ip: str,
+    stage_ids: list[str] | set[str] | tuple[str, ...],
+    workflows: list[str] | set[str] | tuple[str, ...] = (),
+    user_id: str = "",
+    db_user_id: str = "",
+) -> list[dict[str, Any]]:
+    """Return active jobs that would duplicate the same scoped worker lane."""
+    ip_name = str(ip or "").strip()
+    stage_set = {str(item or "").strip() for item in stage_ids if str(item or "").strip()}
+    workflow_set = {str(item or "").strip() for item in workflows if str(item or "").strip()}
+    user_name = str(user_id or "").strip()
+    db_user = str(db_user_id or "").strip()
+    conflicts: list[dict[str, Any]] = []
+    with _jobs_lock:
+        for job in _jobs.values():
+            status = str(job.get("status") or "").strip()
+            if status not in _ACTIVE_DISPATCH_STATES:
+                continue
+            if ip_name and str(job.get("ip") or "").strip() != ip_name:
+                continue
+            job_db_user = str(job.get("db_user_id") or "").strip()
+            if db_user and job_db_user and job_db_user != db_user:
+                continue
+            job_user = str(job.get("user_id") or "").strip()
+            if not db_user and user_name and job_user and job_user != user_name:
+                continue
+            job_stage = str(job.get("stage_id") or "").strip()
+            job_workflow = str(job.get("workflow") or "").strip()
+            if stage_set and job_stage not in stage_set and job_workflow not in stage_set:
+                continue
+            if workflow_set and job_workflow not in workflow_set and job_stage not in workflow_set:
+                continue
+            conflicts.append(_public_job(job))
+    return conflicts
+
+
+def _dedupe_payload(conflicts: list[dict[str, Any]], *, ip: str) -> dict[str, Any]:
+    pipeline_ids = sorted({
+        str(job.get("pipeline_run_id") or job.get("pipeline_id") or "")
+        for job in conflicts
+        if str(job.get("pipeline_run_id") or job.get("pipeline_id") or "")
+    })
+    return {
+        "ok": True,
+        "deduped": True,
+        "status": "already_running",
+        "ip": ip,
+        "pipeline_id": pipeline_ids[0] if len(pipeline_ids) == 1 else "",
+        "pipeline_run_id": pipeline_ids[0] if len(pipeline_ids) == 1 else "",
+        "existing_jobs": conflicts,
+        "jobs": conflicts,
+        "reply": (
+            f"{ip} already has active worker job(s): "
+            + ", ".join(
+                f"{job.get('stage_id') or job.get('workflow')}:{job.get('status')}"
+                for job in conflicts[:6]
+            )
+        ),
+    }
+
+
+def _refresh_rtl_authoring_provenance_for_job(job: dict[str, Any], project_root: Path) -> bool:
+    stage = str(job.get("stage_id") or "").strip()
+    workflow = str(job.get("workflow") or "").strip()
+    if stage != "rtl" and workflow != "rtl-gen":
+        return False
+    ip = str(job.get("ip") or "").strip()
+    if not ip or ".." in ip or "/" in ip or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+        return False
+    provenance_path = project_root / ip / "rtl" / "rtl_authoring_provenance.json"
+    filelist_path = project_root / ip / "list" / f"{ip}.f"
+    if provenance_path.is_file() and filelist_path.is_file():
+        return False
+    if job.get("_rtl_provenance_refresh_attempted"):
+        return False
+    job["_rtl_provenance_refresh_attempted"] = True
+    try:
+        try:
+            from src.headless_workflow import HeadlessWorkflowRunner
+        except ModuleNotFoundError:
+            from headless_workflow import HeadlessWorkflowRunner  # type: ignore[no-redef]
+
+        runner = HeadlessWorkflowRunner(
+            root=str(project_root),
+            model=str(job.get("model") or ""),
+            run_mode=str(job.get("run_mode") or _current_run_mode()),
+        )
+        ok = bool(runner._refresh_rtl_filelist_and_provenance(ip))
+    except Exception as exc:
+        job["rtl_provenance_error"] = str(exc)
+        return False
+    if ok:
+        job["rtl_provenance_refreshed"] = True
+    return ok
+
+
 def _job_artifact_recovery(
     job: dict[str, Any],
     project_root: Path,
@@ -1549,6 +1690,7 @@ def _job_artifact_recovery(
     if stage == "equivalence":
         return _any_file("verify/equivalence_goals.json")
     if stage == "rtl" or workflow == "rtl-gen":
+        _refresh_rtl_authoring_provenance_for_job(job, project_root)
         filelist  = ip_dir / "list" / f"{ip}.f"
         rtl_dir   = ip_dir / "rtl"
         rtl_files = list(rtl_dir.glob("*.sv")) + list(rtl_dir.glob("*.v")) if rtl_dir.is_dir() else []
@@ -1653,9 +1795,8 @@ def _job_artifact_failure(
             results_xml = ip_dir / "tb" / "cocotb" / "results.xml"
         if results_xml.is_file():
             try:
-                import xml.etree.ElementTree as _ET
-                root_el = _ET.parse(str(results_xml)).getroot()
-                failures = int(root_el.get("failures", 0)) + int(root_el.get("errors", 0))
+                _tests, failures, errors = _junit_counts(results_xml)
+                failures += errors
             except Exception:
                 return True, f"unparseable artifact: {ip}/{results_xml.relative_to(ip_dir).as_posix()}"
             if failures > 0:
@@ -1989,13 +2130,46 @@ def register_jobs_routes(
             return JSONResponse({"error": f"invalid worker {worker_override!r}"}, status_code=400)
 
         stage_id = stage_raw or (_PIPELINE_BY_WORKFLOW.get(workflow) or {}).get("id", workflow)
+        _, _ = _refresh_tracked_jobs(project_root())
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request)
+        conflicts = _active_job_conflicts(
+            ip=ip,
+            stage_ids=[stage_id],
+            workflows=[workflow],
+            user_id=request_user,
+            db_user_id=request_db_user,
+        )
+        if conflicts:
+            payload = _dedupe_payload(conflicts, ip=ip)
+            first = conflicts[0]
+            payload.update({
+                "job_id": first.get("job_id", ""),
+                "run_id": first.get("run_id", ""),
+                "worker": first.get("worker", ""),
+                "session": first.get("session", ""),
+                "session_dir": first.get("session_dir", ""),
+                "scope_path": first.get("scope_path", ""),
+                "stage_id": first.get("stage_id", stage_id),
+                "workflow": first.get("workflow", workflow),
+                "model": first.get("model", ""),
+                "reasoning_effort": first.get("reasoning_effort", ""),
+                "toolchain": first.get("toolchain", ""),
+                "run_mode": first.get("run_mode", run_mode or _current_run_mode()),
+                "exec_mode": first.get("exec_mode", exec_mode or _current_exec_mode()),
+                "user_id": first.get("user_id", request_user),
+                "workflow_run_id": first.get("workflow_run_id", ""),
+                "db_session_id": first.get("db_session_id", ""),
+                "worker_command": first.get("worker_command", ""),
+            })
+            return JSONResponse(payload)
         job = _make_job_record(
             workflow=workflow, ip=ip, prompt=prompt, model=model,
             session_name=session_name, stage_id=stage_id,
             worker_override=worker_override, auto_start=True, template=template,
             rtl_version_id=rtl_version_id, run_mode=run_mode, exec_mode=exec_mode,
-            user_id=_request_username(request),
-            db_user_id=_request_db_user_id(request),
+            user_id=request_user,
+            db_user_id=request_db_user,
         )
         if job.get("status") == "error":
             return JSONResponse({"error": job.get("error"), "worker": job.get("worker")}, status_code=502)
@@ -2046,6 +2220,9 @@ def register_jobs_routes(
 
         created: list = []
         errors:  list = []
+        _, _ = _refresh_tracked_jobs(project_root())
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request)
         for idx, item in enumerate(items):
             if not isinstance(item, dict):
                 errors.append({"index": idx, "error": "job must be an object"})
@@ -2095,13 +2272,25 @@ def register_jobs_routes(
                 continue
 
             stage_id = stage_raw or (_PIPELINE_BY_WORKFLOW.get(workflow) or {}).get("id", workflow)
+            conflicts = _active_job_conflicts(
+                ip=ip,
+                stage_ids=[stage_id],
+                workflows=[workflow],
+                user_id=request_user,
+                db_user_id=request_db_user,
+            )
+            if conflicts:
+                payload = _dedupe_payload(conflicts, ip=ip)
+                payload["index"] = idx
+                created.append(payload)
+                continue
             job = _make_job_record(
                 workflow=workflow, ip=ip, prompt=prompt, model=model,
                 session_name=session_name, stage_id=stage_id,
                 worker_override=worker_override, auto_start=True, template=template,
                 rtl_version_id=rtl_version_id, run_mode=run_mode, exec_mode=exec_mode,
-                user_id=_request_username(request),
-                db_user_id=_request_db_user_id(request),
+                user_id=request_user,
+                db_user_id=request_db_user,
             )
             created.append(_public_job(job))
 
@@ -2335,10 +2524,8 @@ def register_jobs_routes(
                     results_xml = ip_dir / "tb" / "cocotb" / "results.xml"
                 if results_xml.is_file():
                     try:
-                        import xml.etree.ElementTree as _ET
-                        root_el = _ET.parse(str(results_xml)).getroot()
-                        failures = int(root_el.get("failures", 0)) + int(root_el.get("errors", 0))
-                        tests = int(root_el.get("tests", 0))
+                        tests, failures, errors = _junit_counts(results_xml)
+                        failures += errors
                         return (f"{tests} tests · {failures} failures", "")
                     except Exception:
                         pass
@@ -2604,12 +2791,32 @@ def register_jobs_routes(
                 resolved.append(stage)
         schedule = "serial" if requested_schedule == "auto" and exec_mode == "single-worker" else _resolve_pipeline_schedule(requested_schedule, resolved)
         resolved = _ordered_pipeline_stages(resolved)
-        pipeline_id      = uuid.uuid4().hex[:12]
         owner_user_id    = _request_username(request)
-        jobs: list       = []
-        stage_job_ids: dict[str, str] = {}
         selected_stage_ids = [stage["id"] for stage in resolved]
         db_user_id = _request_db_user_id(request)
+        _, _ = _refresh_tracked_jobs(project_root())
+        conflicts = _active_job_conflicts(
+            ip=ip,
+            stage_ids=selected_stage_ids,
+            workflows=[stage["workflow"] for stage in resolved],
+            user_id=owner_user_id,
+            db_user_id=db_user_id,
+        )
+        if conflicts:
+            payload = _dedupe_payload(conflicts, ip=ip)
+            payload.update({
+                "schedule": schedule,
+                "requested_schedule": requested_schedule,
+                "run_mode": run_mode,
+                "exec_mode": exec_mode,
+                "user_id": owner_user_id,
+                "stages": resolved,
+            })
+            return JSONResponse(payload)
+
+        pipeline_id      = uuid.uuid4().hex[:12]
+        jobs: list       = []
+        stage_job_ids: dict[str, str] = {}
         db_session_id = _create_pipeline_db_session_for_request(
             request,
             ip=ip,
@@ -2831,10 +3038,31 @@ def register_jobs_routes(
             if requested_schedule == "auto" and exec_mode == "single-worker"
             else _resolve_pipeline_schedule(requested_schedule, resolved)
         )
-        pipeline_id = uuid.uuid4().hex[:12]
         owner_user_id = _request_username(request)
         db_user_id = _request_db_user_id(request)
         selected_stage_ids = [stage["id"] for stage in resolved]
+        _, _ = _refresh_tracked_jobs(project_root())
+        conflicts = _active_job_conflicts(
+            ip=ip,
+            stage_ids=selected_stage_ids,
+            workflows=[stage["workflow"] for stage in resolved],
+            user_id=owner_user_id,
+            db_user_id=db_user_id,
+        )
+        if conflicts:
+            payload = _dedupe_payload(conflicts, ip=ip)
+            payload.update({
+                "action": "deduped",
+                "run_mode": run_mode,
+                "exec_mode": exec_mode,
+                "schedule": schedule,
+                "stages": resolved,
+                "user_id": owner_user_id,
+            })
+            _record_orchestrator_chat(request, ip=ip, message=message, reply=payload["reply"])
+            return JSONResponse(payload)
+
+        pipeline_id = uuid.uuid4().hex[:12]
         db_session_id = _create_pipeline_db_session_for_request(
             request,
             ip=ip,
@@ -2970,11 +3198,31 @@ def register_jobs_routes(
             else _resolve_pipeline_schedule(req_schedule, resolved)
         )
 
-        pipeline_id = uuid.uuid4().hex[:12]
         owner_user_id = _active_tool_owner()
+        selected_stage_ids = [stage["id"] for stage in resolved]
+        _, _ = _refresh_tracked_jobs(project_root())
+        conflicts = _active_job_conflicts(
+            ip=ip_name,
+            stage_ids=selected_stage_ids,
+            workflows=[stage["workflow"] for stage in resolved],
+            user_id=owner_user_id,
+        )
+        if conflicts:
+            payload = _dedupe_payload(conflicts, ip=ip_name)
+            payload.update({
+                "source": "dispatch_workflow_tool",
+                "schedule": dispatch_schedule,
+                "requested_schedule": req_schedule,
+                "run_mode": run_mode_resolved,
+                "exec_mode": exec_mode_resolved,
+                "stages": resolved,
+                "user_id": owner_user_id,
+            })
+            return payload
+
+        pipeline_id = uuid.uuid4().hex[:12]
         jobs: list[dict[str, Any]] = []
         stage_job_ids: dict[str, str] = {}
-        selected_stage_ids = [stage["id"] for stage in resolved]
         for idx, stage in enumerate(resolved):
             stage_workflow = stage["workflow"]
             stage_prompt = prompt or _default_workflow_prompt(stage_workflow, ip_name, stage["id"])

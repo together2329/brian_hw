@@ -25,17 +25,12 @@
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 7
+- Human-locked open tasks: 2
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=12, min_logic_modules=6, min_modules=7, min_procedural_blocks=14, min_source_files=7, min_state_updates=20
 - Locked-truth blockers:
-  - ssot_required_sections: RTL audit has not run yet.
-  - ssot_workflow_todo_format: RTL audit has not run yet.
-  - owner_traceability: RTL audit has not run yet.
-  - manifest_connection_contract_evidence: RTL audit has not run yet.
-  - golden_authority_artifacts: RTL audit has not run yet.
-  - target_scale_policy: RTL audit has not run yet.
-  - cycle_model_artifacts: RTL audit has not run yet.
+  - manifest_connection_contract_evidence: 9 SSOT connection contract issue(s) remain. pl330realverify_regs: SSOT connection contract port is not connected by the RTL named port map; pl330realverify_channel_fsm: RTL named port-map expression does not match SSOT connection signal terms; pl330realverify_channel_fsm: RTL named port-map expression does not match SSOT connection signal terms
+  - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json
 - SSOT connection contracts:
   - pl330realverify_regs.clk_i <= dmaclk (sub_modules[0].connections[0])
   - pl330realverify_regs.rst_ni <= dmacresetn (sub_modules[0].connections[1])
@@ -57,13 +52,13 @@
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.ssot_required_sections
 - Detail: rtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.
 SSOT ref: quality_gates.rtl_gen.ssot_required_sections.
 Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: SSOT function_model and cycle_model authority is present.
 - Criteria:
   - function_model is present and non-empty in the SSOT
   - cycle_model is present and non-empty in the SSOT
@@ -76,13 +71,13 @@ Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.workflow_todo_contract
 - Detail: Every SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.
 SSOT ref: quality_gates.rtl_gen.workflow_todo_contract.
 Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: SSOT-authored rtl-gen workflow TODOs are well formed.
 - Criteria:
   - Every workflow_todos.rtl-gen item has content
   - Every workflow_todos.rtl-gen item has detail
@@ -95,13 +90,13 @@ Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.owner_traceability
 - Detail: Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.
 SSOT ref: quality_gates.rtl_gen.owner_traceability.
 Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Every required SSOT-derived RTL behavior has an owner module.
 - Criteria:
   - No required function_model task is orphaned
   - No required cycle_model task is orphaned
@@ -115,13 +110,13 @@ Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: 9 SSOT connection contract issue(s) remain. pl330realverify_regs: SSOT connection contract port is not connected by the RTL named port map; pl330realverify_channel_fsm: RTL named port-map expression does not match SSOT connection signal terms; pl330realverify_channel_fsm: RTL named port-map expression does not match SSOT connection signal terms
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port
@@ -134,13 +129,13 @@ Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.golden_authority_artifacts
 - Detail: PL330-level RTL cannot proceed from prose alone. It must carry machine-readable authority artifacts that separate human-owned truth from LLM-editable implementation.
 SSOT ref: quality_gates.rtl_gen.golden_authority_artifacts.
 Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json
 - Criteria:
   - governance/authority.json exists
   - authority.json is the current IP human_llm_authority_manifest
@@ -161,13 +156,13 @@ Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.target_scale
 - Detail: When a calibration reference profile provides target-scale candidates, a human must lock the chosen minimum structural scale in SSOT quality_gates.rtl_gen.target_scale or record an explicit SSOT target_scale_waiver before rtl-gen can claim production signoff.
 SSOT ref: quality_gates.rtl_gen.target_scale.
 Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: SSOT quality_gates.rtl_gen.target_scale contains human-locked structural scale minima.
 - Criteria:
   - Reference-derived suggested_ssot_target_scale candidates are review inputs only
   - SSOT quality_gates.rtl_gen.target_scale contains human-locked structural depth minima before PL330-level PASS claims
@@ -180,13 +175,13 @@ Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.cycle_model_artifacts
 - Detail: Complex DMA-class RTL needs a cycle-level oracle for latency, handshake, ordering, backpressure, and performance-sensitive behavior.
 SSOT ref: quality_gates.rtl_gen.cycle_model_artifacts.
 Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Cycle model artifact and self-check are present.
 - Criteria:
   - model/cycle_model.py exists
   - model/cl_model_check.json passed=true

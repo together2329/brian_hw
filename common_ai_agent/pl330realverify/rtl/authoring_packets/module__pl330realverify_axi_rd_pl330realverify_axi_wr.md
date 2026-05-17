@@ -34,14 +34,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[3]
 - Detail: Implement pl330realverify_axi_rd and pl330realverify_axi_wr with stable payload hold-until-ready behavior, response classification, single-outstanding policy, and ready/valid timing from cycle_model.handshake_rules.
 SSOT ref: workflow_todos.rtl-gen[3].
 Owner: pl330realverify_axi_rd/pl330realverify_axi_wr in rtl/pl330realverify_axi_rd.sv, rtl/pl330realverify_axi_wr.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_AXI_ADAPTERS.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/pl330realverify_axi_rd.sv, rtl/pl330realverify_axi_wr.sv.
 - Criteria:
   - AR/AW/W payloads remain stable while valid is asserted and ready is low
   - R data captures only on rvalid and rready with rresp OKAY

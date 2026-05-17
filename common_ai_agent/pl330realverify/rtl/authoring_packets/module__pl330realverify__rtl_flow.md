@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 2
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 1/9 section=rtl_flow task_limit=48
@@ -51,13 +51,13 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_flow.seed
 - Source ref: top_module
 - Detail: Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.
 SSOT ref: top_module.
 Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - rtl_todo_plan.json was regenerated from the current SSOT
   - Every required task in the plan is either implemented, evidenced, or escalated
@@ -70,14 +70,14 @@ Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: pl330realverify in rtl/pl330realverify.sv via top_module.
 SSOT item context: value=pl330realverify.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width

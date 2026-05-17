@@ -59,6 +59,34 @@ def test_pipeline_state_returns_15_stages(tmp_path: Path, monkeypatch) -> None:
     assert data["stages"]["ssot"]["state"] == "idle"
 
 
+def test_pipeline_state_summarizes_nested_junit_testsuites(tmp_path: Path, monkeypatch) -> None:
+    ip = "nested_junit_ip"
+    sim_dir = tmp_path / ip / "sim"
+    sim_dir.mkdir(parents=True)
+    (sim_dir / "results.xml").write_text(
+        """<testsuites>
+  <testsuite name="alpha" tests="2" failures="0" errors="0">
+    <testcase name="test_a"/>
+    <testcase name="test_b"/>
+  </testsuite>
+  <testsuite name="beta" tests="2" failures="0" errors="0">
+    <testcase name="test_c"/>
+    <testcase name="test_d"/>
+  </testsuite>
+</testsuites>
+""",
+        encoding="utf-8",
+    )
+
+    client = _make_client(tmp_path, monkeypatch)
+    resp = client.get(f"/api/pipeline/state?ip={ip}")
+    assert resp.status_code == 200, resp.text
+
+    sim = resp.json()["stages"]["sim"]
+    assert sim["state"] == "passed"
+    assert sim["top"] == "4 tests · 0 failures"
+
+
 def test_pipeline_state_includes_real_worker_and_headless_progress_debug(tmp_path: Path, monkeypatch) -> None:
     ip = "progress_debug_ip"
     logs = tmp_path / ip / "logs"

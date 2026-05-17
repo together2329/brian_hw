@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="results" tests="4" failures="0" errors="0">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1779031942" />
+    <testcase name="tc_reset_apb_smoke" classname="test_pl330realverify" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/tb/cocotb/test_pl330realverify.py" lineno="225" time="0.025409936904907227" sim_time_ns="23000000000" ratio_time="905157698190.041" />
+    <testcase name="tc_single_beat_copy" classname="test_pl330realverify" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/tb/cocotb/test_pl330realverify.py" lineno="236" time="0.03545784950256348" sim_time_ns="121000000000" ratio_time="3412502497965.99" />
+    <testcase name="tc_irq_fault_path" classname="test_pl330realverify" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/tb/cocotb/test_pl330realverify.py" lineno="247" time="0.02973318099975586" sim_time_ns="121000000000" ratio_time="4069527575976.265" />
+    <testcase name="tc_ssot_regression_summary" classname="test_pl330realverify" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/tb/cocotb/test_pl330realverify.py" lineno="258" time="4.482269287109375e-05" sim_time_ns="2000000000" ratio_time="44620255319148.94" />
+  </testsuite>
+</testsuites>

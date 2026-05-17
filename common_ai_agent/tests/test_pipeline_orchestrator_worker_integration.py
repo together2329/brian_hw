@@ -524,11 +524,11 @@ def test_orchestrator_worker_status_exposes_default_model_bindings(
     body = resp.json()
     assert body["orchestrator"]["model"] == "gpt-5.5"
     models = {item["workflow"]: item["model"] for item in body["workers"]}
-    assert models["ssot-gen"] == "deepseek"
+    assert models["ssot-gen"] == "gpt-5.5"
     assert models["rtl-gen"] == "gpt-5.3-codex"
-    assert models["tb-gen"] == "kimi"
-    assert models["sim_debug"] == "glm-5.1"
-    assert models["lint"] == "gpt-5.3-codex"
+    assert models["tb-gen"] == "deepseek"
+    assert models["sim_debug"] == "kimi"
+    assert models["lint"] == "deepseek"
     toolchains = {item["workflow"]: item.get("toolchain") for item in body["workers"]}
     assert toolchains["lint"] == "pyslang + verilator"
     assert toolchains["coverage"] == "verilator coverage + VCD"
@@ -894,12 +894,12 @@ def test_orchestrator_chat_run_to_green_dispatches_workers_and_records_chat(
 
         assert len(rows) == len(jobs._PIPELINE_STAGES)
         by_stage = {row["stage_id"]: row for row in rows}
-        assert by_stage["ssot"]["model"] == "deepseek"
+        assert by_stage["ssot"]["model"] == "gpt-5.5"
         assert by_stage["rtl"]["model"] == "gpt-5.3-codex"
-        assert by_stage["tb"]["model"] == "kimi"
+        assert by_stage["tb"]["model"] == "deepseek"
         assert by_stage["lint"]["toolchain"] == "pyslang + verilator"
         assert by_stage["coverage"]["toolchain"] == "verilator coverage + VCD"
-        assert by_stage["sim-debug"]["model"] == "glm-5.1"
+        assert by_stage["sim-debug"]["model"] == "kimi"
         assert all(row["pipeline_run_id"] == body["pipeline_id"] for row in rows)
         assert all(row["user_id"] == "u" for row in rows)
         assert worker.requests
@@ -929,6 +929,48 @@ def test_orchestrator_chat_run_to_green_dispatches_workers_and_records_chat(
         assert "completed" in status.json()["reply"]
 
     with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_orchestrator_chat_dedupes_active_ip_stage(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "dedupe_chat_ip"
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["active-rtl"] = {
+            "job_id": "active-rtl",
+            "run_id": "worker-run-1",
+            "worker": "http://127.0.0.1:9",
+            "workflow": "rtl-gen",
+            "stage_id": "rtl",
+            "ip": ip,
+            "status": "running",
+            "session": f"u/{ip}/pipeline/existing/05-rtl-gen",
+            "pipeline_id": "existing",
+            "pipeline_run_id": "existing",
+            "user_id": "u",
+            "_last_polled": time.time(),
+        }
+
+    client = _make_client(tmp_path, monkeypatch)
+    resp = client.post("/api/pipeline/orchestrator/chat", json={
+        "ip": ip,
+        "message": "run to green",
+        "exec_mode": "orchestrator",
+    })
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["ok"] is True
+    assert body["deduped"] is True
+    assert body["status"] == "already_running"
+    assert body["existing_jobs"][0]["job_id"] == "active-rtl"
+
+    with jobs._jobs_lock:
+        assert list(jobs._jobs) == ["active-rtl"]
         jobs._jobs.clear()
 
 

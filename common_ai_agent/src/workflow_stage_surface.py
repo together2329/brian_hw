@@ -150,10 +150,11 @@ def run_common_stage_surface(
             "/mode normal",
             "/wf rtl-gen",
             "/clear",
-            f"/todo template {template} {ip}",
+            f"/ssot-rtl {ip}",
             (
                 f"Implement RTL for {ip} from {ip}/yaml/{ip}.ssot.yaml and the dynamic "
-                f"TodoTracker list loaded from {ip}/rtl/rtl_todo_tracker.json.\n"
+                f"RTL ledger stored at {ip}/rtl/rtl_todo_plan.json and "
+                f"{ip}/rtl/rtl_todo_tracker.json.\n"
                 f"Use {ip}/rtl/rtl_authoring_plan.json and open packets under "
                 f"{ip}/rtl/authoring_packets/ as the work queue; review "
                 f"{ip}/rtl/rtl_authoring_status.md for a human-readable queue preview"
@@ -312,7 +313,7 @@ def _kpi_rtl(ip_dir: Path) -> List[_KPI_DOT]:
     if compile_doc is None:
         compile_rc = "idle"
     else:
-        rc = compile_doc.get("rc", compile_doc.get("return_code", 1))
+        rc = compile_doc.get("rc", compile_doc.get("return_code", compile_doc.get("returncode", 1)))
         compile_rc = "pass" if rc == 0 else "fail"
     lint_clean: _KPI_DOT
     if lint_doc is None:
@@ -384,6 +385,41 @@ def _count_metric(value: object, default: int = -1) -> int:
         return default
 
 
+def _junit_counts(results_xml: Path) -> tuple[int, int, int]:
+    root = ET.parse(str(results_xml)).getroot()
+    suite_nodes = [node for node in root.iter() if node.tag.endswith("testsuite")]
+    if root.tag.endswith("testsuite"):
+        suite_nodes = [root]
+
+    tests = failures = errors = 0
+    for node in suite_nodes:
+        tests += int(float(node.get("tests", 0) or 0))
+        failures += int(float(node.get("failures", 0) or 0))
+        errors += int(float(node.get("errors", 0) or 0))
+
+    if tests == 0:
+        tests = int(float(root.get("tests", 0) or 0))
+    if failures == 0:
+        failures = int(float(root.get("failures", 0) or 0))
+    if errors == 0:
+        errors = int(float(root.get("errors", 0) or 0))
+
+    cases = [node for node in root.iter() if node.tag.endswith("testcase")]
+    if tests == 0 and cases:
+        tests = len(cases)
+    if failures == 0 and cases:
+        failures = sum(
+            1 for case in cases
+            if any(child.tag.endswith("failure") for child in list(case))
+        )
+    if errors == 0 and cases:
+        errors = sum(
+            1 for case in cases
+            if any(child.tag.endswith("error") for child in list(case))
+        )
+    return tests, failures, errors
+
+
 def _kpi_sim(ip_dir: Path) -> List[_KPI_DOT]:
     results_xml = ip_dir / "sim" / "results.xml"
     if not results_xml.is_file():
@@ -394,8 +430,8 @@ def _kpi_sim(ip_dir: Path) -> List[_KPI_DOT]:
     xml_pass: _KPI_DOT = "idle"
     if results_xml.is_file():
         try:
-            root = ET.parse(str(results_xml)).getroot()
-            failures = int(root.get("failures", 0)) + int(root.get("errors", 0))
+            _tests, failures, errors = _junit_counts(results_xml)
+            failures += errors
             xml_pass = "pass" if failures == 0 else "fail"
         except Exception:
             xml_pass = "warn"

@@ -178,8 +178,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 33,
-    "open_required_count": 33,
+    "llm_actionable_open_count": 17,
+    "open_required_count": 17,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -223,7 +223,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 33,
+    "open_required_count": 17,
     "required_count": 33,
     "source_refs": [
       "fsm.channel_fsm.states.state_0",
@@ -252,7 +252,8 @@
       "fsm.channel_fsm.transitions.transition_12"
     ],
     "status_counts": {
-      "planned": 33
+      "open": 17,
+      "pass": 16
     },
     "task_count": 33
   },
@@ -284,6 +285,20 @@
       "ssot_refs": [
         "fsm.channel_fsm.states.state_0"
       ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "STOPPED"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "STOPPED"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -292,9 +307,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -324,6 +339,18 @@
       "ssot_refs": [
         "fsm.channel_fsm.states.state_1"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "EXECUTING"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -332,9 +359,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -364,6 +391,18 @@
       "ssot_refs": [
         "fsm.channel_fsm.states.state_2"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "WAITING_FOR_PERIPHERAL"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -372,9 +411,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -404,6 +443,18 @@
       "ssot_refs": [
         "fsm.channel_fsm.states.state_3"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ISSUE_READ"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -412,9 +463,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -444,6 +495,18 @@
       "ssot_refs": [
         "fsm.channel_fsm.states.state_4"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "WAIT_READ"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -452,9 +515,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -484,6 +547,18 @@
       "ssot_refs": [
         "fsm.channel_fsm.states.state_5"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ISSUE_WRITE"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -492,9 +567,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -524,6 +599,18 @@
       "ssot_refs": [
         "fsm.channel_fsm.states.state_6"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "WAIT_WRITE_RESP"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -532,9 +619,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -564,6 +651,18 @@
       "ssot_refs": [
         "fsm.channel_fsm.states.state_7"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "COMPLETING"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -572,9 +671,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -604,6 +703,18 @@
       "ssot_refs": [
         "fsm.channel_fsm.states.state_8"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "FAULT_COMPLETING"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -612,9 +723,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -644,6 +755,18 @@
       "ssot_refs": [
         "fsm.channel_fsm.states.state_9"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "COMPLETED"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -652,9 +775,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -684,6 +807,18 @@
       "ssot_refs": [
         "fsm.channel_fsm.states.state_10"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "FAULTED"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -692,9 +827,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -737,6 +872,39 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_0"
       ],
+      "static_evidence": {
+        "matched_count": 10,
+        "matched_terms": [
+          "STOPPED",
+          "addresses",
+          "addresses_aligned",
+          "aligned",
+          "cmd",
+          "fault",
+          "fault_inject",
+          "inject",
+          "start",
+          "start_cmd"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "EXECUTING",
+          "STOPPED",
+          "addresses",
+          "addresses_aligned",
+          "aligned",
+          "cmd",
+          "fault",
+          "fault_inject",
+          "inject",
+          "start",
+          "start_cmd"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -745,9 +913,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -792,6 +960,42 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_1"
       ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "FAULT",
+          "STOPPED",
+          "addresses",
+          "addresses_aligned",
+          "aligned",
+          "cmd",
+          "fault",
+          "fault_inject",
+          "inject",
+          "start",
+          "start_cmd"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPLETING",
+          "FAULT",
+          "FAULT_COMPLETING",
+          "STOPPED",
+          "addresses",
+          "addresses_aligned",
+          "aligned",
+          "cmd",
+          "fault",
+          "fault_inject",
+          "inject",
+          "start",
+          "start_cmd"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -800,9 +1004,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -843,6 +1047,32 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_2"
       ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "enable",
+          "selected",
+          "selected_event",
+          "wfp",
+          "wfp_enable"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "EXECUTING",
+          "PERIPHERAL",
+          "WAITING",
+          "WAITING_FOR_PERIPHERAL",
+          "enable",
+          "selected",
+          "selected_event",
+          "wfp",
+          "wfp_enable"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -851,9 +1081,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -893,6 +1123,29 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_3"
       ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "ISSUE",
+          "selected",
+          "selected_event"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ISSUE",
+          "ISSUE_READ",
+          "PERIPHERAL",
+          "READ",
+          "WAITING",
+          "WAITING_FOR_PERIPHERAL",
+          "selected",
+          "selected_event"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -901,9 +1154,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -944,6 +1197,33 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_4"
       ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "ISSUE",
+          "enable",
+          "selected",
+          "selected_event",
+          "wfp",
+          "wfp_enable"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "EXECUTING",
+          "ISSUE",
+          "ISSUE_READ",
+          "READ",
+          "enable",
+          "selected",
+          "selected_event",
+          "wfp",
+          "wfp_enable"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -952,9 +1232,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -991,6 +1271,25 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_5"
       ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "ISSUE",
+          "WAIT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ISSUE",
+          "ISSUE_READ",
+          "READ",
+          "WAIT",
+          "WAIT_READ"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -999,9 +1298,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1039,6 +1338,26 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_6"
       ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "ISSUE",
+          "WAIT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ISSUE",
+          "ISSUE_WRITE",
+          "READ",
+          "WAIT",
+          "WAIT_READ",
+          "WRITE"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1047,9 +1366,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1087,6 +1406,26 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_7"
       ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "FAULT",
+          "WAIT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPLETING",
+          "FAULT",
+          "FAULT_COMPLETING",
+          "READ",
+          "WAIT",
+          "WAIT_READ"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1095,9 +1434,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1139,6 +1478,31 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_8"
       ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "ISSUE",
+          "WAIT",
+          "aw"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ISSUE",
+          "ISSUE_WRITE",
+          "RESP",
+          "WAIT",
+          "WAIT_WRITE_RESP",
+          "WRITE",
+          "aw",
+          "aw_handshake",
+          "handshake",
+          "w_handshake"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1147,9 +1511,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1189,6 +1553,28 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_9"
       ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "WAIT",
+          "loop"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPLETING",
+          "RESP",
+          "WAIT",
+          "WAIT_WRITE_RESP",
+          "WRITE",
+          "loop",
+          "loop_remaining",
+          "remaining"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1197,9 +1583,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1241,6 +1627,31 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_10"
       ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "ISSUE",
+          "WAIT",
+          "loop"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ISSUE",
+          "ISSUE_READ",
+          "READ",
+          "RESP",
+          "WAIT",
+          "WAIT_WRITE_RESP",
+          "WRITE",
+          "loop",
+          "loop_remaining",
+          "remaining"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1249,9 +1660,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1290,6 +1701,27 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_11"
       ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "FAULT",
+          "WAIT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPLETING",
+          "FAULT",
+          "FAULT_COMPLETING",
+          "RESP",
+          "WAIT",
+          "WAIT_WRITE_RESP",
+          "WRITE"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1298,9 +1730,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1338,6 +1770,25 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_12"
       ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "complete"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPLETED",
+          "COMPLETING",
+          "complete",
+          "complete_status_posted",
+          "posted",
+          "status"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1346,9 +1797,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1388,6 +1839,28 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_13"
       ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "FAULT",
+          "fault"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPLETING",
+          "FAULT",
+          "FAULTED",
+          "FAULT_COMPLETING",
+          "fault",
+          "fault_status_posted",
+          "posted",
+          "status"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1396,9 +1869,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1437,6 +1910,31 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_14"
       ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "STOPPED",
+          "cmd",
+          "halt",
+          "halt_cmd",
+          "start",
+          "start_cmd"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPLETED",
+          "STOPPED",
+          "cmd",
+          "halt",
+          "halt_cmd",
+          "start",
+          "start_cmd"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1445,9 +1943,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1483,6 +1981,25 @@
       "ssot_refs": [
         "fsm.channel_fsm.transitions.transition_15"
       ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "STOPPED",
+          "fault",
+          "fault_clear"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "FAULTED",
+          "STOPPED",
+          "fault",
+          "fault_clear"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1491,9 +2008,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1523,6 +2040,18 @@
       "ssot_refs": [
         "fsm.register_fsm.states.state_0"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "APB_IDLE"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1531,9 +2060,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1563,6 +2092,18 @@
       "ssot_refs": [
         "fsm.register_fsm.states.state_1"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "APB_SETUP"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1571,9 +2112,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1603,6 +2144,18 @@
       "ssot_refs": [
         "fsm.register_fsm.states.state_2"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "APB_ACCESS"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1611,9 +2164,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1650,6 +2203,22 @@
       "ssot_refs": [
         "fsm.register_fsm.transitions.transition_0"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "APB",
+          "APB_IDLE",
+          "APB_SETUP",
+          "IDLE",
+          "SETUP"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1658,9 +2227,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1696,6 +2265,21 @@
       "ssot_refs": [
         "fsm.register_fsm.transitions.transition_1"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "APB",
+          "APB_ACCESS",
+          "APB_SETUP",
+          "SETUP"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1704,9 +2288,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1742,6 +2326,21 @@
       "ssot_refs": [
         "fsm.register_fsm.transitions.transition_2"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "APB",
+          "APB_ACCESS",
+          "APB_IDLE",
+          "IDLE"
+        ],
+        "source_scope": "rtl/pl330realverify_channel_fsm.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1750,9 +2349,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

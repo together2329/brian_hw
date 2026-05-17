@@ -1456,7 +1456,7 @@
       "workflow_todos.rtl-gen[0]"
     ],
     "status_counts": {
-      "planned": 1
+      "open": 1
     },
     "task_count": 1
   },
@@ -1507,6 +1507,29 @@
         "top_module",
         "workflow_todos.rtl-gen[0]"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "PARAMS",
+          "RTL_TODO_TOP_AND_PARAMS",
+          "TODO",
+          "TOP",
+          "io",
+          "io_list",
+          "list",
+          "modules",
+          "sub",
+          "sub_modules",
+          "top",
+          "top_module"
+        ],
+        "source_scope": "rtl/pl330realverify.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -1515,9 +1538,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       },
       "workflow_todo": {
         "id": "RTL_TODO_TOP_AND_PARAMS",

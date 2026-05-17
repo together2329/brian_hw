@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/tb/cocotb/scoreboard.py", line 271, in <module>
+    run_self_check()
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/tb/cocotb/scoreboard.py", line 247, in run_self_check
+    result = sb.predict_apb_write(32, 0xFF)
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/tb/cocotb/scoreboard.py", line 87, in predict_apb_write
+    return self.apply_fl(txn)
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/tb/cocotb/scoreboard.py", line 65, in apply_fl
+    return self.fl.apply(txn)
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/model/functional_model.py", line 728, in apply
+    return self._record(kind, txn, self._apply_primary(tx, txn))
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/model/functional_model.py", line 699, in _apply_primary
+    structured = self._apply_structured_rules(tx, txn)
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/model/functional_model.py", line 636, in _apply_structured_rules
+    raise KeyError(f"unresolved output rule dependencies: {missing}")
+KeyError: "unresolved output rule dependencies: apb_write_error: 'unknown rule name illegal_apb_access'"

@@ -295,6 +295,145 @@ def _resolve_asset_path(path):
     return path
 
 
+def _summarize_atlas_rtl_ledger(path, total_lines):
+    """Return a compact view for large ATLAS RTL ledgers."""
+    basename = os.path.basename(path)
+    if basename not in {"rtl_todo_plan.json", "rtl_todo_tracker.json", "rtl_authoring_plan.json"}:
+        return ""
+    norm = path.replace("\\", "/")
+    if "/rtl/" not in norm:
+        return ""
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as exc:
+        return (
+            f"[ATLAS RTL LEDGER SUMMARY unavailable: {exc}]\n"
+            f"Use read_lines(path=\"{path}\", start_line=1, end_line=120) for a bounded preview."
+        )
+
+    def _pick(d, keys):
+        if not isinstance(d, dict):
+            return {}
+        return {k: d.get(k) for k in keys if k in d}
+
+    def _task_preview(tasks, limit=12):
+        preview = []
+        for item in (tasks or [])[:limit]:
+            if not isinstance(item, dict):
+                preview.append(str(item)[:160])
+                continue
+            preview.append(_pick(item, [
+                "id", "content", "category", "owner_module", "owner_file",
+                "source_ref", "priority", "required", "status",
+            ]))
+        return preview
+
+    def _compact_summary(summary):
+        if not isinstance(summary, dict):
+            return {}
+        compact_summary = _pick(summary, [
+            "blocking_questions", "required_tasks", "orphan_tasks",
+            "rtl_gate_todos", "ssot_workflow_todos", "rtl_quality_profile",
+            "reference_profile_present", "pending_connection_contract_suggestions",
+            "deferred_human_qa_allowed", "pass_allowed",
+            "recommended_packet_batch_limit", "llm_actionable_packets",
+            "llm_actionable_tasks", "human_locked_packets", "human_locked_tasks",
+            "module_packets", "packets", "max_packet_required_tasks",
+        ])
+        if isinstance(summary.get("by_category"), dict):
+            compact_summary["by_category"] = summary["by_category"]
+        if isinstance(summary.get("owner_modules"), list):
+            compact_summary["owner_module_count"] = len(summary["owner_modules"])
+            compact_summary["owner_modules_preview"] = summary["owner_modules"][:16]
+        if isinstance(summary.get("next_llm_packets"), list):
+            compact_summary["next_llm_packets"] = summary["next_llm_packets"][:12]
+        return compact_summary
+
+    def _compact_gate(gate):
+        if not isinstance(gate, dict):
+            return {}
+        compact_gate = _pick(gate, [
+            "status", "audit_rtl", "all_required_todos_pass",
+            "blocking_questions", "orphan_tasks",
+        ])
+        for key in ("open_required_todos", "static_missing"):
+            val = gate.get(key)
+            if isinstance(val, list):
+                compact_gate[f"{key}_count"] = len(val)
+                compact_gate[f"{key}_preview"] = val[:12]
+            elif val is not None:
+                compact_gate[key] = val
+        return compact_gate
+
+    compact = {
+        "file": path,
+        "total_lines": total_lines,
+        "note": "Compact ATLAS RTL ledger view. Read rtl_authoring_status.md first, then targeted packet JSON/MD files.",
+    }
+    if basename == "rtl_todo_plan.json":
+        tasks = data.get("tasks") if isinstance(data, dict) else []
+        compact.update({
+            "top": data.get("top"),
+            "summary": _compact_summary(data.get("summary", {})),
+            "gate": _compact_gate(data.get("gate", {})),
+            "todo_completion": _pick(data.get("todo_completion", {}), [
+                "status", "required_total", "required_passed", "required_open",
+                "pass_count", "fail_count", "pending_count",
+            ]),
+            "task_count": len(tasks) if isinstance(tasks, list) else None,
+            "first_tasks": _task_preview(tasks),
+        })
+    elif basename == "rtl_todo_tracker.json":
+        tasks = data.get("tasks") if isinstance(data, dict) else []
+        compact.update({
+            "name": data.get("name"),
+            "source_plan": data.get("source_plan"),
+            "source_task_count": data.get("source_task_count"),
+            "status_counts": data.get("status_counts", {}),
+            "ui_grouping": data.get("ui_grouping", {}),
+            "first_tasks": _task_preview(tasks),
+        })
+    elif basename == "rtl_authoring_plan.json":
+        packets = data.get("packets") if isinstance(data, dict) else []
+        packet_preview = []
+        for pkt in (packets or [])[:16]:
+            if not isinstance(pkt, dict):
+                continue
+            summary = pkt.get("summary") if isinstance(pkt.get("summary"), dict) else {}
+            packet_preview.append({
+                "packet_id": pkt.get("packet_id"),
+                "kind": pkt.get("kind"),
+                "owner_module": pkt.get("owner_module"),
+                "owner_file": pkt.get("owner_file"),
+                "json": pkt.get("json"),
+                "markdown": pkt.get("markdown"),
+                "open_required_count": summary.get("open_required_count"),
+                "required_count": summary.get("required_count"),
+                "categories": summary.get("categories"),
+            })
+        policy = data.get("execution_policy") if isinstance(data.get("execution_policy"), dict) else {}
+        compact.update({
+            "top": data.get("top"),
+            "summary": _compact_summary(data.get("summary", {})),
+            "execution_policy": _pick(policy, [
+                "draft_allowed", "deferred_human_qa_allowed", "gate_status",
+                "pass_allowed", "connection_contract_gap",
+            ]),
+            "packet_count": len(packets) if isinstance(packets, list) else None,
+            "first_packets": packet_preview,
+        })
+
+    return (
+        "[ATLAS RTL LEDGER COMPACT READ]\n"
+        + json.dumps(compact, indent=2, ensure_ascii=False)
+        + "\n\nDo not call read_file on this ledger again for full contents. "
+        + f"Use grep_file/read_lines on {path}, or read specific files listed in "
+        + "rtl_authoring_status.md and rtl/authoring_packets/.\n"
+    )
+
+
 def read_file(path):
     """
     Reads the content of a file with smart truncation for large files.
@@ -334,6 +473,10 @@ def read_file(path):
             lines = f.readlines()
 
         total_lines = len(lines)
+        rtl_ledger_summary = _summarize_atlas_rtl_ledger(path, total_lines)
+        if rtl_ledger_summary:
+            _log_file_access(path, "read")
+            return rtl_ledger_summary
 
         # Smart truncation for large files (Grep-first pattern)
         MAX_LINES = _tool_cfg('TOOL_READ_MAX_LINES', 500)

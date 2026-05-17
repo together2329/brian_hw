@@ -130,7 +130,7 @@
       "workflow_todos.rtl-gen[3]"
     ],
     "status_counts": {
-      "planned": 1
+      "open": 1
     },
     "task_count": 1
   },
@@ -188,6 +188,37 @@
         "io_list.interfaces.axi_wr_master",
         "workflow_todos.rtl-gen[3]"
       ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "AW",
+          "AXI",
+          "axi"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "ADAPTERS",
+          "AR",
+          "AW",
+          "AXI",
+          "AXI_AR",
+          "AXI_AW",
+          "AXI_B",
+          "AXI_R",
+          "AXI_W",
+          "RTL_TODO_AXI_ADAPTERS",
+          "TODO",
+          "axi",
+          "axi_rd_master",
+          "axi_wr_master",
+          "error_handling",
+          "error_sources"
+        ],
+        "source_scope": "rtl/pl330realverify_axi_wr.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -196,9 +227,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/pl330realverify_axi_rd.sv, rtl/pl330realverify_axi_wr.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       },
       "workflow_todo": {
         "id": "RTL_TODO_AXI_ADAPTERS",

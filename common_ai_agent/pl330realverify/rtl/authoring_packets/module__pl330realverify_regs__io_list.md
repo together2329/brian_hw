@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 11
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model.handshake_rules.APB_ACCESS, decomposition.units.apb_registers, error_handling, error_handling.error_sources, function_model.transactions.FM_APB_READ, function_model.transactions.FM_APB_WRITE, function_model.transactions.FM_IRQ_CLEAR, function_model.transactions.FM_RESET, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave, registers, registers.register_list, rtl_contract, rtl_contract.input_map
 - Module slice: 1/8 section=io_list task_limit=48
@@ -50,14 +50,14 @@
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.clock_domains.dmaclk.ports.dmaclk
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.dmaclk.ports.dmaclk.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via io_list.
 SSOT item context: name=dmaclk; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -72,14 +72,14 @@ SSOT item context: name=dmaclk; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.resets.dmacresetn.ports.dmacresetn
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.dmacresetn.ports.dmacresetn.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via io_list.
 SSOT item context: name=dmacresetn; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -94,14 +94,14 @@ SSOT item context: name=dmacresetn; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.paddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.paddr.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=paddr; width=12; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -116,14 +116,14 @@ SSOT item context: name=paddr; width=12; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.psel
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.psel.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=psel; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -138,14 +138,14 @@ SSOT item context: name=psel; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.penable
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.penable.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=penable; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -160,14 +160,14 @@ SSOT item context: name=penable; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pwrite
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pwrite.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pwrite; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -182,14 +182,14 @@ SSOT item context: name=pwrite; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pwdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pwdata.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pwdata; width=32; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -204,14 +204,14 @@ SSOT item context: name=pwdata; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pstrb
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pstrb.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pstrb; width=4; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -226,14 +226,14 @@ SSOT item context: name=pstrb; width=4; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.prdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.prdata.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=prdata; width=32; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -248,14 +248,14 @@ SSOT item context: name=prdata; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pready.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pready; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -270,14 +270,14 @@ SSOT item context: name=pready; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pslverr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pslverr.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pslverr; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 41
+- LLM-actionable open tasks: 5
 - Human-locked open tasks: 0
 - Owner refs: cycle_model.handshake_rules.APB_ACCESS, decomposition.units.apb_registers, error_handling, error_handling.error_sources, function_model.transactions.FM_APB_READ, function_model.transactions.FM_APB_WRITE, function_model.transactions.FM_IRQ_CLEAR, function_model.transactions.FM_RESET, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave, registers, registers.register_list, rtl_contract, rtl_contract.input_map
 - Module slice: 2/8 section=function_model task_limit=48
@@ -50,14 +50,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_RESET
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_RESET.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: id=FM_RESET; name=reset_architecture.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -70,14 +70,14 @@ SSOT item context: id=FM_RESET; name=reset_architecture.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_RESET.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.preconditions.precondition_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: value=dmacresetn == 0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -90,14 +90,14 @@ SSOT item context: value=dmacresetn == 0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_RESET.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.inputs.input_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: id=FM_RESET; name=reset_architecture; port=["dmac_irq", "pready", "pslverr"]; signal=["dmacresetn"]; state=["sar", "dar", "loop_remaining", "status", "error_code", "rd_buf", "intstatus", "inten"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -111,14 +111,14 @@ SSOT item context: id=FM_RESET; name=reset_architecture; port=["dmac_irq", "prea
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_RESET.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.outputs.output_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: id=FM_RESET; name=reset_architecture; port=["dmac_irq", "pready", "pslverr"]; signal=["All externally visible output valids and interrupt are deasserted during reset."]; state=["sar", "dar", "loop_remaining", "status", "error_code", "rd_buf", "intstatus", "inten"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -132,14 +132,14 @@ SSOT item context: id=FM_RESET; name=reset_architecture; port=["dmac_irq", "prea
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_RESET.output_rules.irq_reset
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.output_rules.irq_reset.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: name=irq_reset; port=dmac_irq; expr=0; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -156,14 +156,14 @@ SSOT item context: name=irq_reset; port=dmac_irq; expr=0; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_RESET.output_rules.pready_reset
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.output_rules.pready_reset.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: name=pready_reset; port=pready; expr=0; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -180,14 +180,14 @@ SSOT item context: name=pready_reset; port=pready; expr=0; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_RESET.output_rules.pslverr_reset
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.output_rules.pslverr_reset.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: name=pslverr_reset; port=pslverr; expr=0; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -204,14 +204,14 @@ SSOT item context: name=pslverr_reset; port=pslverr; expr=0; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_RESET.state_updates.sar
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.state_updates.sar.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: name=sar; expr=0; width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -227,14 +227,14 @@ SSOT item context: name=sar; expr=0; width=32.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_RESET.state_updates.dar
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.state_updates.dar.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: name=dar; expr=0; width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -250,14 +250,14 @@ SSOT item context: name=dar; expr=0; width=32.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_RESET.state_updates.loop_remaining
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.state_updates.loop_remaining.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: name=loop_remaining; expr=0; width=8.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -273,14 +273,14 @@ SSOT item context: name=loop_remaining; expr=0; width=8.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_RESET.state_updates.status
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.state_updates.status.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: name=status; expr=0; width=4.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -296,14 +296,14 @@ SSOT item context: name=status; expr=0; width=4.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_RESET.state_updates.error_code
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.state_updates.error_code.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: name=error_code; expr=0; width=4.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -319,14 +319,14 @@ SSOT item context: name=error_code; expr=0; width=4.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_RESET.state_updates.rd_buf
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.state_updates.rd_buf.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: name=rd_buf; expr=0; width=64.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -342,14 +342,14 @@ SSOT item context: name=rd_buf; expr=0; width=64.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_RESET.state_updates.intstatus
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.state_updates.intstatus.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: name=intstatus; expr=0; width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -365,14 +365,14 @@ SSOT item context: name=intstatus; expr=0; width=32.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_RESET.state_updates.inten
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.state_updates.inten.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: name=inten; expr=0; width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -388,14 +388,14 @@ SSOT item context: name=inten; expr=0; width=32.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_RESET.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_RESET.side_effects.side_effect_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_RESET.
 SSOT item context: id=FM_RESET; name=reset_architecture; port=["dmac_irq", "pready", "pslverr"]; signal=["All architectural state returns to declared reset values."]; state=["sar", "dar", "loop_remaining", "status", "error_code", "rd_buf", "intstatus", "inten"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -409,14 +409,14 @@ SSOT item context: id=FM_RESET; name=reset_architecture; port=["dmac_irq", "prea
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_APB_WRITE
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_APB_WRITE.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: id=FM_APB_WRITE; name=apb_register_write.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -429,14 +429,14 @@ SSOT item context: id=FM_APB_WRITE; name=apb_register_write.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_APB_WRITE.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.preconditions.precondition_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: value=dmacresetn == 1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -449,14 +449,14 @@ SSOT item context: value=dmacresetn == 1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_APB_WRITE.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.preconditions.precondition_1.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: value=psel == 1 and penable == 1 and pwrite == 1 and pready == 1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -469,14 +469,14 @@ SSOT item context: value=psel == 1 and penable == 1 and pwrite == 1 and pready =
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_APB_WRITE.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.inputs.input_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "pslverr"]; signal=["paddr"]; state=["inten", "intstatus", "sar", "dar"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -490,14 +490,14 @@ SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "ps
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_APB_WRITE.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.inputs.input_1.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "pslverr"]; signal=["pwdata"]; state=["inten", "intstatus", "sar", "dar"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -511,14 +511,14 @@ SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "ps
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_APB_WRITE.inputs.input_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.inputs.input_2.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "pslverr"]; signal=["pstrb"]; state=["inten", "intstatus", "sar", "dar"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -532,14 +532,14 @@ SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "ps
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APB_WRITE.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.outputs.output_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "pslverr"]; signal=["pready acknowledges the access; pslverr reports illegal address/access/strobe."]; state=["inten", "intstatus", "sar", "dar"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -553,14 +553,14 @@ SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "ps
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_APB_WRITE.output_rules.apb_write_ready
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.output_rules.apb_write_ready.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: name=apb_write_ready; port=pready; expr=1; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -577,14 +577,14 @@ SSOT item context: name=apb_write_ready; port=pready; expr=1; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_APB_WRITE.output_rules.apb_write_error
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.output_rules.apb_write_error.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: name=apb_write_error; port=pslverr; expr=1 if illegal_apb_access == 1 else 0; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -601,14 +601,14 @@ SSOT item context: name=apb_write_error; port=pslverr; expr=1 if illegal_apb_acc
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APB_WRITE.state_updates.inten
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.state_updates.inten.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: name=inten; expr=((inten & (~write_mask_32)) | (pwdata & write_mask_32)) if (apb_addr_inten == 1 and illegal_apb_access == 0) else inten; width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -624,14 +624,14 @@ SSOT item context: name=inten; expr=((inten & (~write_mask_32)) | (pwdata & writ
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APB_WRITE.state_updates.intstatus
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.state_updates.intstatus.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: name=intstatus; expr=(intstatus & (~pwdata)) if (apb_addr_intstatus == 1 and illegal_apb_access == 0) else intstatus; width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -647,14 +647,14 @@ SSOT item context: name=intstatus; expr=(intstatus & (~pwdata)) if (apb_addr_int
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APB_WRITE.state_updates.sar
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.state_updates.sar.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: name=sar; expr=pwdata if (apb_addr_sar == 1 and channel_idle == 1 and illegal_apb_access == 0) else sar; width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -670,14 +670,14 @@ SSOT item context: name=sar; expr=pwdata if (apb_addr_sar == 1 and channel_idle 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APB_WRITE.state_updates.dar
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.state_updates.dar.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: name=dar; expr=pwdata if (apb_addr_dar == 1 and channel_idle == 1 and illegal_apb_access == 0) else dar; width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -693,14 +693,14 @@ SSOT item context: name=dar; expr=pwdata if (apb_addr_dar == 1 and channel_idle 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_APB_WRITE.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.side_effects.side_effect_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "pslverr"]; signal=["Writable register fields update only through declared write_effect rules; reserved fields ignore writes."]; state=["inten", "intstatus", "sar", "dar"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -714,14 +714,14 @@ SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "ps
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_APB_WRITE.error_cases.ERR_APB_ILLEGAL
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_WRITE.error_cases.ERR_APB_ILLEGAL.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_WRITE.
 SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "pslverr"]; signal=[{"condition": "illegal_apb_access == 1", "id": "ERR_APB_ILLEGAL", "result": "pslverr asserted for the completing acc...; state=["inten", "intstatus", "sar", "dar"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -735,14 +735,14 @@ SSOT item context: id=FM_APB_WRITE; name=apb_register_write; port=["pready", "ps
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_APB_READ
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_APB_READ.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.
 SSOT item context: id=FM_APB_READ; name=apb_register_read.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -755,14 +755,14 @@ SSOT item context: id=FM_APB_READ; name=apb_register_read.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_APB_READ.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_READ.preconditions.precondition_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.
 SSOT item context: value=dmacresetn == 1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -775,14 +775,14 @@ SSOT item context: value=dmacresetn == 1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_APB_READ.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_READ.preconditions.precondition_1.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.
 SSOT item context: value=psel == 1 and penable == 1 and pwrite == 0 and pready == 1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -795,14 +795,14 @@ SSOT item context: value=psel == 1 and penable == 1 and pwrite == 0 and pready =
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_APB_READ.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_READ.inputs.input_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.
 SSOT item context: id=FM_APB_READ; name=apb_register_read; port=["pready", "pslverr", "prdata"]; signal=["paddr"]; state=["status"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -816,14 +816,14 @@ SSOT item context: id=FM_APB_READ; name=apb_register_read; port=["pready", "pslv
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APB_READ.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_READ.outputs.output_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.
 SSOT item context: id=FM_APB_READ; name=apb_register_read; port=["pready", "pslverr", "prdata"]; signal=["prdata returns the decoded register value with reserved bits forced to zero."]; state=["status"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -837,14 +837,14 @@ SSOT item context: id=FM_APB_READ; name=apb_register_read; port=["pready", "pslv
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_APB_READ.output_rules.apb_read_ready
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_READ.output_rules.apb_read_ready.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.
 SSOT item context: name=apb_read_ready; port=pready; expr=1; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -861,14 +861,14 @@ SSOT item context: name=apb_read_ready; port=pready; expr=1; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_APB_READ.output_rules.apb_read_error
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_READ.output_rules.apb_read_error.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.
 SSOT item context: name=apb_read_error; port=pslverr; expr=1 if illegal_apb_access == 1 else 0; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -885,14 +885,14 @@ SSOT item context: name=apb_read_error; port=pslverr; expr=1 if illegal_apb_acce
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_APB_READ.output_rules.apb_read_data
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_READ.output_rules.apb_read_data.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.
 SSOT item context: name=apb_read_data; port=prdata; expr=0 if illegal_apb_access == 1 else (register_read_value & 0xFFFFFFFF); width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -909,14 +909,14 @@ SSOT item context: name=apb_read_data; port=prdata; expr=0 if illegal_apb_access
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APB_READ.state_updates.status
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_READ.state_updates.status.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.
 SSOT item context: name=status; expr=status; width=4.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -932,14 +932,14 @@ SSOT item context: name=status; expr=status; width=4.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_APB_READ.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_READ.side_effects.side_effect_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via function_model.transactions.FM_APB_READ.
 SSOT item context: id=FM_APB_READ; name=apb_register_read; port=["pready", "pslverr", "prdata"]; signal=["APB reads do not alter architectural state."]; state=["status"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction

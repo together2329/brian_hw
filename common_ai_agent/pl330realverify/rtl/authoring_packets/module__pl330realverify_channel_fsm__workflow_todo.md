@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.backpressure, cycle_model.ordering, cycle_model.pipeline, decomposition.units.channel_control, fsm, fsm.channel_fsm, function_model, function_model.transactions.FM_FAULT, function_model.transactions.FM_TRANSFER, function_model.transactions.FM_WFP
 - Module slice: 5/5 section=workflow_todo task_limit=48
@@ -45,14 +45,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[2]
 - Detail: Implement pl330realverify_channel_fsm legal states and transitions, command accept, WFP hold/release, AXI stage sequencing, completion/fault terminal states, and halt/fault-clear behavior according to fsm.channel_fsm and cycle_model.pipeline/order/backpressure.
 SSOT ref: workflow_todos.rtl-gen[2].
 Owner: pl330realverify_channel_fsm in rtl/pl330realverify_channel_fsm.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_CHANNEL_FSM.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Reset state is STOPPED and state transitions match fsm.channel_fsm.transitions
   - No AXI traffic is issued while WAITING_FOR_PERIPHERAL and selected_event is zero

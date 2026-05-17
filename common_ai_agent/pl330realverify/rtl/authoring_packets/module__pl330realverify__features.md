@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 6
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 4/9 section=features task_limit=48
@@ -51,14 +51,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: features.item
 - Source ref: features.APB_programmable_DMA_channels
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.APB_programmable_DMA_channels.
 Owner: pl330realverify in rtl/pl330realverify.sv via features.
 SSOT item context: name=APB programmable DMA channels; output=APB read data, pslverr, channel status, and command pulses..
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -71,14 +71,14 @@ SSOT item context: name=APB programmable DMA channels; output=APB read data, psl
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: features.item
 - Source ref: features.AXI_memory_to_memory_transfer
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.AXI_memory_to_memory_transfer.
 Owner: pl330realverify in rtl/pl330realverify.sv via features.
 SSOT item context: name=AXI memory-to-memory transfer; output=AXI read/write master transactions and completion status/interrupt..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -91,14 +91,14 @@ SSOT item context: name=AXI memory-to-memory transfer; output=AXI read/write mas
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: features.item
 - Source ref: features.Wait_for_peripheral_event_release
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Wait_for_peripheral_event_release.
 Owner: pl330realverify in rtl/pl330realverify.sv via features.
 SSOT item context: name=Wait-for-peripheral event release; output=No AXI traffic while waiting; normal transfer resumes after event..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -111,14 +111,14 @@ SSOT item context: name=Wait-for-peripheral event release; output=No AXI traffic
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: features.item
 - Source ref: features.Interrupt_pending_enable_W1C
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Interrupt_pending_enable_W1C.
 Owner: pl330realverify in rtl/pl330realverify.sv via features.
 SSOT item context: name=Interrupt pending/enable/W1C; output=Active-high level dmac_irq and software-readable pending status..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -131,14 +131,14 @@ SSOT item context: name=Interrupt pending/enable/W1C; output=Active-high level d
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: features.item
 - Source ref: features.Debug_command_subset
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Debug_command_subset.
 Owner: pl330realverify in rtl/pl330realverify.sv via features.
 SSOT item context: name=Debug command subset; output=Debug pulse/status and parameterized debug-done interrupt controlled by INTEN.dbg_done_en..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -151,14 +151,14 @@ SSOT item context: name=Debug command subset; output=Debug pulse/status and para
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: features.item
 - Source ref: features.Fault_classification_and_first_error_wins
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Fault_classification_and_first_error_wins.
 Owner: pl330realverify in rtl/pl330realverify.sv via features.
 SSOT item context: name=Fault classification and first-error-wins; output=FAULTED status, CH_FAULT pending bit, and dmac_irq when enabled..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT

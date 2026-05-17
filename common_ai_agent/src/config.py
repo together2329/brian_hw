@@ -1279,6 +1279,7 @@ TOOL_SCHEMA_COMPACT     = os.getenv("TOOL_SCHEMA_COMPACT", "false").lower() in (
 # old gating (todo_write/todo_remove plan-only; todo_update execution-
 # only).
 UNLOCK_NORMAL_MODE_TOOLS = os.getenv("UNLOCK_NORMAL_MODE_TOOLS", "true").lower() in ("true", "1", "yes")
+DISABLE_TODO_TOOLS = os.getenv("ATLAS_DISABLE_TODO_TOOLS", "false").lower() in ("true", "1", "yes", "on")
 
 # ============================================================
 # RTL dialect for the rtl-gen / ssot-gen workflows
@@ -2552,9 +2553,15 @@ PLAN_MODE_BLOCKED_TOOLS = frozenset({
 # permitted in normal mode too — the agent occasionally needs to (re)build
 # the task list mid-execution (e.g. after an unexpected branch in a workflow).
 # UNLOCK_NORMAL_MODE_TOOLS=true continues to unlock todo_remove.
-NORMAL_MODE_BLOCKED_TOOLS = frozenset() if UNLOCK_NORMAL_MODE_TOOLS else frozenset({
-    'todo_remove',  # Task removal only during planning when unlock is off
-})
+if DISABLE_TODO_TOOLS:
+    NORMAL_MODE_BLOCKED_TOOLS = frozenset({
+        'todo_write', 'todo_update', 'todo_add', 'todo_remove', 'todo_status',
+        'todo_note', 'todo_check', 'todo_auto_step',
+    })
+else:
+    NORMAL_MODE_BLOCKED_TOOLS = frozenset() if UNLOCK_NORMAL_MODE_TOOLS else frozenset({
+        'todo_remove',  # Task removal only during planning when unlock is off
+    })
 
 
 # Update SYSTEM_PROMPT to use new tool description system

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 10
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 2/9 section=parameters task_limit=48
@@ -51,14 +51,14 @@
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.DATA_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DATA_WIDTH.
 Owner: pl330realverify in rtl/pl330realverify.sv via parameters.
 SSOT item context: name=DATA_WIDTH.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -71,14 +71,14 @@ SSOT item context: name=DATA_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.ADDR_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.ADDR_WIDTH.
 Owner: pl330realverify in rtl/pl330realverify.sv via parameters.
 SSOT item context: name=ADDR_WIDTH.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -91,14 +91,14 @@ SSOT item context: name=ADDR_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.ID_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.ID_WIDTH.
 Owner: pl330realverify in rtl/pl330realverify.sv via parameters.
 SSOT item context: name=ID_WIDTH.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -111,14 +111,14 @@ SSOT item context: name=ID_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.NUM_CHANNELS
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.NUM_CHANNELS.
 Owner: pl330realverify in rtl/pl330realverify.sv via parameters.
 SSOT item context: name=NUM_CHANNELS.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -131,14 +131,14 @@ SSOT item context: name=NUM_CHANNELS.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.NUM_EVENTS
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.NUM_EVENTS.
 Owner: pl330realverify in rtl/pl330realverify.sv via parameters.
 SSOT item context: name=NUM_EVENTS.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -151,14 +151,14 @@ SSOT item context: name=NUM_EVENTS.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.REG_ADDR_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.REG_ADDR_WIDTH.
 Owner: pl330realverify in rtl/pl330realverify.sv via parameters.
 SSOT item context: name=REG_ADDR_WIDTH.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -171,14 +171,14 @@ SSOT item context: name=REG_ADDR_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.MAX_BURST_LEN
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.MAX_BURST_LEN.
 Owner: pl330realverify in rtl/pl330realverify.sv via parameters.
 SSOT item context: name=MAX_BURST_LEN.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -191,14 +191,14 @@ SSOT item context: name=MAX_BURST_LEN.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.CLOCK_FREQ_MHZ
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.CLOCK_FREQ_MHZ.
 Owner: pl330realverify in rtl/pl330realverify.sv via parameters.
 SSOT item context: name=CLOCK_FREQ_MHZ.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -211,14 +211,14 @@ SSOT item context: name=CLOCK_FREQ_MHZ.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.RESET_POLARITY
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.RESET_POLARITY.
 Owner: pl330realverify in rtl/pl330realverify.sv via parameters.
 SSOT item context: name=RESET_POLARITY.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -231,14 +231,14 @@ SSOT item context: name=RESET_POLARITY.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.SUPPORT_UNALIGNED
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.SUPPORT_UNALIGNED.
 Owner: pl330realverify in rtl/pl330realverify.sv via parameters.
 SSOT item context: name=SUPPORT_UNALIGNED.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects

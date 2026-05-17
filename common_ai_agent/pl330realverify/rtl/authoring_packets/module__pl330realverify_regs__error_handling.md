@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 2
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model.handshake_rules.APB_ACCESS, decomposition.units.apb_registers, error_handling, error_handling.error_sources, function_model.transactions.FM_APB_READ, function_model.transactions.FM_APB_WRITE, function_model.transactions.FM_IRQ_CLEAR, function_model.transactions.FM_RESET, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave, registers, registers.register_list, rtl_contract, rtl_contract.input_map
 - Module slice: 5/8 section=error_handling task_limit=48
@@ -50,14 +50,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_0
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_0.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via error_handling.
 SSOT item context: action=W1C INTSTATUS fault bit.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -70,14 +70,14 @@ SSOT item context: action=W1C INTSTATUS fault bit.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_1
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_1.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via error_handling.
 SSOT item context: action=software reprograms idle/faulted channel.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

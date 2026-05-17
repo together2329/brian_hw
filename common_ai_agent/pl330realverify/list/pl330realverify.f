@@ -1,0 +1,7 @@
+rtl/pl330realverify_regs.sv
+rtl/pl330realverify_channel_fsm.sv
+rtl/pl330realverify_axi_rd.sv
+rtl/pl330realverify_axi_wr.sv
+rtl/pl330realverify_datapath.sv
+rtl/pl330realverify_event_irq.sv
+rtl/pl330realverify.sv

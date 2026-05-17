@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 12
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 6/9 section=synthesis task_limit=48
@@ -51,14 +51,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.clock
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.clock.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=clock; value={"frequency_mhz": 500, "name": "dmaclk", "period_ns": 2.0}.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -71,14 +71,14 @@ SSOT item context: name=clock; value={"frequency_mhz": 500, "name": "dmaclk", "p
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.reset
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.reset.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=reset; value={"async_assert": true, "name": "dmacresetn", "polarity": "active_low", "sync_deassert": true}.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -91,14 +91,14 @@ SSOT item context: name=reset; value={"async_assert": true, "name": "dmacresetn"
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.io_delay_ns
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.io_delay_ns.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=io_delay_ns; value=0.2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -111,14 +111,14 @@ SSOT item context: name=io_delay_ns; value=0.2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.max_fanout
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.max_fanout.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=max_fanout; value=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -131,14 +131,14 @@ SSOT item context: name=max_fanout; value=32.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.max_transition_ns
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.max_transition_ns.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=max_transition_ns; value=0.25.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -151,14 +151,14 @@ SSOT item context: name=max_transition_ns; value=0.25.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.false_paths
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.false_paths.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=false_paths; value=[{"from": "dmacresetn", "reason": "Asynchronous reset assertion path.", "to": "all_registers"}].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -171,14 +171,14 @@ SSOT item context: name=false_paths; value=[{"from": "dmacresetn", "reason": "As
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.multicycle_paths
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.multicycle_paths.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=multicycle_paths.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -191,14 +191,14 @@ SSOT item context: name=multicycle_paths.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.technology
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.technology.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=technology; value=generic.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -211,14 +211,14 @@ SSOT item context: name=technology; value=generic.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.target_frequency_mhz
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.target_frequency_mhz.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=target_frequency_mhz; value=500.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -231,14 +231,14 @@ SSOT item context: name=target_frequency_mhz; value=500.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.area_um2
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.area_um2.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=area_um2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -251,14 +251,14 @@ SSOT item context: name=area_um2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.power_mw
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.power_mw.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=power_mw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -271,14 +271,14 @@ SSOT item context: name=power_mw.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.utilization_pct
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.utilization_pct.
 Owner: pl330realverify in rtl/pl330realverify.sv via synthesis.
 SSOT item context: name=utilization_pct; value=60.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

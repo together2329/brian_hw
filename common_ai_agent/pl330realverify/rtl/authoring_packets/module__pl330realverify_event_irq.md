@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 30
+- LLM-actionable open tasks: 6
 - Human-locked open tasks: 0
 - Owner refs: decomposition.units.event_interrupt, function_model, function_model.transactions.FM_IRQ_CLEAR, function_model.transactions.FM_WFP, interrupts, io_list, io_list.interfaces.event_inputs, io_list.interfaces.interrupt_output, registers, registers.register_list.CONTROL, registers.register_list.INTEN, registers.register_list.INTSTATUS
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=12, min_logic_modules=6, min_modules=7, min_procedural_blocks=14, min_source_files=7, min_state_updates=20
@@ -42,14 +42,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_WFP.output_rules.irq_during_wfp
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_WFP.output_rules.irq_during_wfp.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_WFP.
 SSOT item context: name=irq_during_wfp; port=dmac_irq; expr=1 if (intstatus & inten) != 0 else 0; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -66,14 +66,14 @@ SSOT item context: name=irq_during_wfp; port=dmac_irq; expr=1 if (intstatus & in
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_IRQ_CLEAR
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_IRQ_CLEAR.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.
 SSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -86,14 +86,14 @@ SSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_0.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.
 SSOT item context: value=dmacresetn == 1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -106,14 +106,14 @@ SSOT item context: value=dmacresetn == 1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_1.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.
 SSOT item context: value=apb_addr_intstatus == 1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -126,14 +126,14 @@ SSOT item context: value=apb_addr_intstatus == 1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_IRQ_CLEAR.preconditions.precondition_2.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.
 SSOT item context: value=psel == 1 and penable == 1 and pwrite == 1 and pready == 1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -146,14 +146,14 @@ SSOT item context: value=psel == 1 and penable == 1 and pwrite == 1 and pready =
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_IRQ_CLEAR.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_IRQ_CLEAR.inputs.input_0.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.
 SSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear; port=["dmac_irq"]; signal=["pwdata"]; state=["intstatus"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -167,14 +167,14 @@ SSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear; port=["dm
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_IRQ_CLEAR.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_IRQ_CLEAR.outputs.output_0.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.
 SSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear; port=["dmac_irq"]; signal=["dmac_irq reflects the enabled pending status after the W1C clear."]; state=["intstatus"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -188,14 +188,14 @@ SSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear; port=["dm
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_IRQ_CLEAR.output_rules.irq_after_w1c
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_IRQ_CLEAR.output_rules.irq_after_w1c.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.
 SSOT item context: name=irq_after_w1c; port=dmac_irq; expr=1 if ((intstatus & (~pwdata)) & inten) != 0 else 0; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -212,14 +212,14 @@ SSOT item context: name=irq_after_w1c; port=dmac_irq; expr=1 if ((intstatus & (~
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_IRQ_CLEAR.state_updates.intstatus
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_IRQ_CLEAR.state_updates.intstatus.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.
 SSOT item context: name=intstatus; expr=intstatus & (~pwdata); width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -235,14 +235,14 @@ SSOT item context: name=intstatus; expr=intstatus & (~pwdata); width=32.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_IRQ_CLEAR.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_IRQ_CLEAR.side_effects.side_effect_0.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via function_model.transactions.FM_IRQ_CLEAR.
 SSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear; port=["dmac_irq"]; signal=["Only bits written as one are cleared; bits written as zero retain their prior value."]; state=["intstatus"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -256,14 +256,14 @@ SSOT item context: id=FM_IRQ_CLEAR; name=interrupt_write_one_to_clear; port=["dm
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.INTEN
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.INTEN.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTEN.
 SSOT item context: name=INTEN; width=32; reset=0; access=rw; offset=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -280,14 +280,14 @@ SSOT item context: name=INTEN; width=32; reset=0; access=rw; offset=32.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.INTEN.fields.ch_complete_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTEN.fields.ch_complete_en.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTEN.
 SSOT item context: name=ch_complete_en; reset=0; access=rw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -306,14 +306,14 @@ SSOT item context: name=ch_complete_en; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.INTEN.fields.ch_fault_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTEN.fields.ch_fault_en.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTEN.
 SSOT item context: name=ch_fault_en; reset=0; access=rw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -332,14 +332,14 @@ SSOT item context: name=ch_fault_en; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.INTEN.fields.dbg_done_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTEN.fields.dbg_done_en.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTEN.
 SSOT item context: name=dbg_done_en; reset=0; access=rw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -358,14 +358,14 @@ SSOT item context: name=dbg_done_en; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: registers.field
 - Source ref: registers.register_list.INTEN.fields.reserved_31_17
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTEN.fields.reserved_31_17.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTEN.
 SSOT item context: name=reserved_31_17; reset=0; access=reserved.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -384,14 +384,14 @@ SSOT item context: name=reserved_31_17; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.INTSTATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.INTSTATUS.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTSTATUS.
 SSOT item context: name=INTSTATUS; width=32; reset=0; access=w1c; offset=36.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -408,14 +408,14 @@ SSOT item context: name=INTSTATUS; width=32; reset=0; access=w1c; offset=36.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.INTSTATUS.fields.ch_complete
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTSTATUS.fields.ch_complete.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTSTATUS.
 SSOT item context: name=ch_complete; reset=0; access=w1c.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -434,14 +434,14 @@ SSOT item context: name=ch_complete; reset=0; access=w1c.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.INTSTATUS.fields.ch_fault
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTSTATUS.fields.ch_fault.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTSTATUS.
 SSOT item context: name=ch_fault; reset=0; access=w1c.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -460,14 +460,14 @@ SSOT item context: name=ch_fault; reset=0; access=w1c.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.INTSTATUS.fields.dbg_done
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTSTATUS.fields.dbg_done.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTSTATUS.
 SSOT item context: name=dbg_done; reset=0; access=w1c.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -486,14 +486,14 @@ SSOT item context: name=dbg_done; reset=0; access=w1c.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: registers.field
 - Source ref: registers.register_list.INTSTATUS.fields.reserved_31_17
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTSTATUS.fields.reserved_31_17.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.INTSTATUS.
 SSOT item context: name=reserved_31_17; reset=0; access=reserved.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -512,14 +512,14 @@ SSOT item context: name=reserved_31_17; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.CONTROL
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CONTROL.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.
 SSOT item context: name=CONTROL; width=32; reset=0; access=rw; offset=276.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -536,14 +536,14 @@ SSOT item context: name=CONTROL; width=32; reset=0; access=rw; offset=276.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.start
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.start.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.
 SSOT item context: name=start; reset=0; access=rw1p.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -562,14 +562,14 @@ SSOT item context: name=start; reset=0; access=rw1p.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.halt
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.halt.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.
 SSOT item context: name=halt; reset=0; access=rw1p.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -588,14 +588,14 @@ SSOT item context: name=halt; reset=0; access=rw1p.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.wfp_enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.wfp_enable.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.
 SSOT item context: name=wfp_enable; reset=0; access=rw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -614,14 +614,14 @@ SSOT item context: name=wfp_enable; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.wfp_event
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.wfp_event.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.
 SSOT item context: name=wfp_event; reset=0; access=rw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -640,14 +640,14 @@ SSOT item context: name=wfp_event; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.fault_inject
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.fault_inject.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.
 SSOT item context: name=fault_inject; reset=0; access=rw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -666,14 +666,14 @@ SSOT item context: name=fault_inject; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.reserved_31_17
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.reserved_31_17.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via registers.register_list.CONTROL.
 SSOT item context: name=reserved_31_17; reset=0; access=reserved.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -692,13 +692,13 @@ SSOT item context: name=reserved_31_17; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.pl330realverify_event_irq.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.pl330realverify_event_irq.module_equivalence.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -713,14 +713,14 @@ Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via module_
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.event_inputs.ports.peripheral_events
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.event_inputs.ports.peripheral_events.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via io_list.interfaces.event_inputs.
 SSOT item context: name=peripheral_events; width=32; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -735,14 +735,14 @@ SSOT item context: name=peripheral_events; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.interrupt_output.ports.dmac_irq
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.interrupt_output.ports.dmac_irq.
 Owner: pl330realverify_event_irq in rtl/pl330realverify_event_irq.sv via io_list.interfaces.interrupt_output.
 SSOT item context: name=dmac_irq; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

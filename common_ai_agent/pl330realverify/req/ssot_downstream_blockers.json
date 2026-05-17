@@ -1,0 +1,12 @@
+{
+  "schema_version": "ssot_downstream_blockers.v1",
+  "ip": "pl330realverify",
+  "ssot": "pl330realverify/yaml/pl330realverify.ssot.yaml",
+  "issues": [
+    {
+      "id": "SSOT_SUBMODULE_REFS_MISSING_PL330REALVERIFY",
+      "submodule": "pl330realverify",
+      "fix": "Add at least one of implements / function_model_refs / cycle_model_refs / fsm_refs / register_refs / dataflow_refs."
+    }
+  ]
+}

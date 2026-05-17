@@ -4,9 +4,9 @@
 
 - Top: pl330realverify
 - Packets: 31
-- LLM-actionable tasks: 376
-- Human-locked tasks: 7
-- Tool-evidence tasks: 7
+- LLM-actionable tasks: 75
+- Human-locked tasks: 2
+- Tool-evidence tasks: 4
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: True
@@ -15,22 +15,22 @@
 
 ## Next LLM Packets
 
-- module__pl330realverify_regs__function_model: rtl/authoring_packets/module__pl330realverify_regs__function_model.json (llm_open=41, human_locked=0)
-- module__pl330realverify_regs__registers: rtl/authoring_packets/module__pl330realverify_regs__registers.json (llm_open=23, human_locked=0)
-- module__pl330realverify_regs__interrupts: rtl/authoring_packets/module__pl330realverify_regs__interrupts.json (llm_open=17, human_locked=0)
-- module__pl330realverify_regs__io_list: rtl/authoring_packets/module__pl330realverify_regs__io_list.json (llm_open=11, human_locked=0)
-- module__pl330realverify_regs__error_handling: rtl/authoring_packets/module__pl330realverify_regs__error_handling.json (llm_open=2, human_locked=0)
-- module__pl330realverify_regs__cycle_model: rtl/authoring_packets/module__pl330realverify_regs__cycle_model.json (llm_open=1, human_locked=0)
-- module__pl330realverify_regs__equivalence: rtl/authoring_packets/module__pl330realverify_regs__equivalence.json (llm_open=1, human_locked=0)
-- module__pl330realverify_regs__workflow_todo: rtl/authoring_packets/module__pl330realverify_regs__workflow_todo.json (llm_open=1, human_locked=0)
+- module__pl330realverify_axi_rd_pl330realverify_axi_wr: rtl/authoring_packets/module__pl330realverify_axi_rd_pl330realverify_axi_wr.json (llm_open=1, human_locked=0)
+- module__pl330realverify_datapath_pl330realverify_event_irq: rtl/authoring_packets/module__pl330realverify_datapath_pl330realverify_event_irq.json (llm_open=1, human_locked=0)
+- module__pl330realverify_regs__interrupts: rtl/authoring_packets/module__pl330realverify_regs__interrupts.json (llm_open=7, human_locked=0)
+- module__pl330realverify_regs__function_model: rtl/authoring_packets/module__pl330realverify_regs__function_model.json (llm_open=5, human_locked=0)
+- module__pl330realverify_regs__registers: rtl/authoring_packets/module__pl330realverify_regs__registers.json (llm_open=5, human_locked=0)
+- module__pl330realverify_channel_fsm__function_model: rtl/authoring_packets/module__pl330realverify_channel_fsm__function_model.json (llm_open=20, human_locked=0)
+- module__pl330realverify_channel_fsm__fsm: rtl/authoring_packets/module__pl330realverify_channel_fsm__fsm.json (llm_open=17, human_locked=0)
+- module__pl330realverify_channel_fsm__cycle_model: rtl/authoring_packets/module__pl330realverify_channel_fsm__cycle_model.json (llm_open=4, human_locked=0)
 
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=7, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=4, next_tool=audit-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 
-- rtl_gate_human_closure: human_locked=7, json=rtl/authoring_packets/rtl_gate_human_closure.json
+- rtl_gate_human_closure: human_locked=2, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

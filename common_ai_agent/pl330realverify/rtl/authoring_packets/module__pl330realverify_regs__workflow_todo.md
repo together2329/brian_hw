@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model.handshake_rules.APB_ACCESS, decomposition.units.apb_registers, error_handling, error_handling.error_sources, function_model.transactions.FM_APB_READ, function_model.transactions.FM_APB_WRITE, function_model.transactions.FM_IRQ_CLEAR, function_model.transactions.FM_RESET, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave, registers, registers.register_list, rtl_contract, rtl_contract.input_map
 - Module slice: 8/8 section=workflow_todo task_limit=48
@@ -50,14 +50,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[1]
 - Detail: Implement pl330realverify_regs from registers.register_list, APB protocol rules, reserved-field policy, illegal access behavior, W1C INTSTATUS, INTEN, CSR status visibility, DBGCMD pulses, and CONTROL start/halt/fault/WFP fields.
 SSOT ref: workflow_todos.rtl-gen[1].
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_APB_REGISTERS.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - APB read/write timing follows cycle_model.handshake_rules.APB_ACCESS and APB_READ_DATA
   - Every register field has declared access/reset/read/write behavior implemented

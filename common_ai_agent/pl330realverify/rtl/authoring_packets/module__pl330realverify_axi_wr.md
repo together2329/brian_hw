@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 21
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules.AXI_AW, cycle_model.handshake_rules.AXI_B, cycle_model.handshake_rules.AXI_W, decomposition.units.axi_write_adapter, error_handling, error_handling.error_sources.ERR_AXI_WR, function_model.transactions.FM_TRANSFER, function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_WR, io_list, io_list.interfaces.axi_wr_master
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=12, min_logic_modules=6, min_modules=7, min_procedural_blocks=14, min_source_files=7, min_state_updates=20
@@ -48,14 +48,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_WR
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_WR.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_WR.
 SSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy; port=["wdata", "wstrb", "dmac_irq"]; signal=[{"condition": "bvalid == 1 and bready == 1 and bresp != 0", "id": "ERR_AXI_WR", "result": "status=FAULTED, error_cod...; state=["rd_buf", "sar", "dar", "loop_remaining", "status", "error_code", "intstatus"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -69,14 +69,14 @@ SSOT item context: id=FM_TRANSFER; name=single_or_multi_beat_memory_copy; port=[
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.AXI_AW
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.AXI_AW.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via cycle_model.handshake_rules.AXI_AW.
 SSOT item context: id=AXI_AW; signal=awvalid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -90,13 +90,13 @@ SSOT item context: id=AXI_AW; signal=awvalid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.pl330realverify_axi_wr.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.pl330realverify_axi_wr.module_equivalence.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -111,14 +111,14 @@ Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via module_equiva
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.awid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.awid.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=awid; width=6; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -133,14 +133,14 @@ SSOT item context: name=awid; width=6; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.awaddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.awaddr.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=awaddr; width=32; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -155,14 +155,14 @@ SSOT item context: name=awaddr; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.awlen
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.awlen.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=awlen; width=8; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -177,14 +177,14 @@ SSOT item context: name=awlen; width=8; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.awsize
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.awsize.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=awsize; width=3; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -199,14 +199,14 @@ SSOT item context: name=awsize; width=3; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.awburst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.awburst.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=awburst; width=2; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -221,14 +221,14 @@ SSOT item context: name=awburst; width=2; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.awcache
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.awcache.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=awcache; width=4; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -243,14 +243,14 @@ SSOT item context: name=awcache; width=4; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.awprot
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.awprot.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=awprot; width=3; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -265,14 +265,14 @@ SSOT item context: name=awprot; width=3; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.awvalid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.awvalid.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=awvalid; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -287,14 +287,14 @@ SSOT item context: name=awvalid; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.awready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.awready.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=awready; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -309,14 +309,14 @@ SSOT item context: name=awready; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.wdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.wdata.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=wdata; width=64; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -331,14 +331,14 @@ SSOT item context: name=wdata; width=64; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.wstrb
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.wstrb.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=wstrb; width=8; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -353,14 +353,14 @@ SSOT item context: name=wstrb; width=8; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.wlast
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.wlast.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=wlast; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -375,14 +375,14 @@ SSOT item context: name=wlast; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.wvalid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.wvalid.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=wvalid; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -397,14 +397,14 @@ SSOT item context: name=wvalid; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.wready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.wready.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=wready; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -419,14 +419,14 @@ SSOT item context: name=wready; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.bid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.bid.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=bid; width=6; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -441,14 +441,14 @@ SSOT item context: name=bid; width=6; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.bresp
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.bresp.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=bresp; width=2; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -463,14 +463,14 @@ SSOT item context: name=bresp; width=2; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.bvalid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.bvalid.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=bvalid; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -485,14 +485,14 @@ SSOT item context: name=bvalid; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_wr_master.ports.bready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_wr_master.ports.bready.
 Owner: pl330realverify_axi_wr in rtl/pl330realverify_axi_wr.sv via io_list.interfaces.axi_wr_master.
 SSOT item context: name=bready; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

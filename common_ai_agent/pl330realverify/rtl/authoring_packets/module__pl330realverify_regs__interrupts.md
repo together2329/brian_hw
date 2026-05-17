@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 17
+- LLM-actionable open tasks: 7
 - Human-locked open tasks: 0
 - Owner refs: cycle_model.handshake_rules.APB_ACCESS, decomposition.units.apb_registers, error_handling, error_handling.error_sources, function_model.transactions.FM_APB_READ, function_model.transactions.FM_APB_WRITE, function_model.transactions.FM_IRQ_CLEAR, function_model.transactions.FM_RESET, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave, registers, registers.register_list, rtl_contract, rtl_contract.input_map
 - Module slice: 6/8 section=interrupts task_limit=48
@@ -50,14 +50,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH0_COMPLETE
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH0_COMPLETE.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH0_COMPLETE; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -71,14 +71,14 @@ SSOT item context: name=CH0_COMPLETE; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH1_COMPLETE
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH1_COMPLETE.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH1_COMPLETE; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -92,14 +92,14 @@ SSOT item context: name=CH1_COMPLETE; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH2_COMPLETE
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH2_COMPLETE.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH2_COMPLETE; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -113,14 +113,14 @@ SSOT item context: name=CH2_COMPLETE; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH3_COMPLETE
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH3_COMPLETE.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH3_COMPLETE; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -134,14 +134,14 @@ SSOT item context: name=CH3_COMPLETE; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH4_COMPLETE
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH4_COMPLETE.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH4_COMPLETE; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -155,14 +155,14 @@ SSOT item context: name=CH4_COMPLETE; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH5_COMPLETE
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH5_COMPLETE.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH5_COMPLETE; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -176,14 +176,14 @@ SSOT item context: name=CH5_COMPLETE; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH6_COMPLETE
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH6_COMPLETE.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH6_COMPLETE; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -197,14 +197,14 @@ SSOT item context: name=CH6_COMPLETE; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH7_COMPLETE
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH7_COMPLETE.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH7_COMPLETE; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -218,14 +218,14 @@ SSOT item context: name=CH7_COMPLETE; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH0_FAULT
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH0_FAULT.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH0_FAULT; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -239,14 +239,14 @@ SSOT item context: name=CH0_FAULT; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH1_FAULT
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH1_FAULT.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH1_FAULT; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -260,14 +260,14 @@ SSOT item context: name=CH1_FAULT; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH2_FAULT
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH2_FAULT.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH2_FAULT; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -281,14 +281,14 @@ SSOT item context: name=CH2_FAULT; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH3_FAULT
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH3_FAULT.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH3_FAULT; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -302,14 +302,14 @@ SSOT item context: name=CH3_FAULT; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH4_FAULT
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH4_FAULT.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH4_FAULT; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -323,14 +323,14 @@ SSOT item context: name=CH4_FAULT; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH5_FAULT
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH5_FAULT.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH5_FAULT; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -344,14 +344,14 @@ SSOT item context: name=CH5_FAULT; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH6_FAULT
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH6_FAULT.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH6_FAULT; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -365,14 +365,14 @@ SSOT item context: name=CH6_FAULT; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.CH7_FAULT
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.CH7_FAULT.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=CH7_FAULT; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -386,14 +386,14 @@ SSOT item context: name=CH7_FAULT; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.DBG_DONE
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.DBG_DONE.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via interrupts.sources.
 SSOT item context: name=DBG_DONE; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

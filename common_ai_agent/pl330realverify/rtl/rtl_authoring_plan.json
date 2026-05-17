@@ -9,221 +9,68 @@
       {
         "gate_kind": "static_rtl_evidence",
         "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
+        "reason": "72 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0007"
-      },
-      {
-        "gate_kind": "owner_logic_structure_evidence",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "status": "planned",
-        "task_id": "RTL-0008"
-      },
-      {
-        "gate_kind": "rtl_placeholder_free_evidence",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "status": "planned",
-        "task_id": "RTL-0009"
-      },
-      {
-        "gate_kind": "top_io_contract_evidence",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "status": "planned",
-        "task_id": "RTL-0010"
-      },
-      {
-        "gate_kind": "top_output_drive_evidence",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "status": "planned",
-        "task_id": "RTL-0011"
-      },
-      {
-        "gate_kind": "top_input_consumption_evidence",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "status": "planned",
-        "task_id": "RTL-0012"
-      },
-      {
-        "gate_kind": "manifest_hierarchy_integration",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "status": "planned",
-        "task_id": "RTL-0013"
-      },
-      {
-        "gate_kind": "manifest_port_connection_evidence",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_port_connection_evidence",
-        "status": "planned",
-        "task_id": "RTL-0014"
-      },
-      {
-        "gate_kind": "manifest_signal_flow_evidence",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "status": "planned",
-        "task_id": "RTL-0015"
-      },
-      {
-        "gate_kind": "rtl_implementation_depth_evidence",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
-        "status": "planned",
-        "task_id": "RTL-0022"
       }
     ],
     "blocked_by_locked_truth": [
       {
-        "gate_kind": "ssot_required_sections",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
-        "status": "planned",
-        "task_id": "RTL-0003"
-      },
-      {
-        "gate_kind": "ssot_workflow_todo_format",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
-        "status": "planned",
-        "task_id": "RTL-0004"
-      },
-      {
-        "gate_kind": "owner_traceability",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_traceability",
-        "status": "planned",
-        "task_id": "RTL-0005"
-      },
-      {
         "gate_kind": "manifest_connection_contract_evidence",
         "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
+        "reason": "9 SSOT connection contract issue(s) remain. pl330realverify_regs: SSOT connection contract port is not connected by the RTL named port map; pl330realverify_channel_fsm: RTL named port-map expression does not match SSOT connection signal terms; pl330realverify_channel_fsm: RTL named port-map expression does not match SSOT connection signal terms",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0016"
       },
       {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0020"
-      },
-      {
-        "gate_kind": "target_scale_policy",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.target_scale",
-        "status": "planned",
-        "task_id": "RTL-0021"
-      },
-      {
-        "gate_kind": "cycle_model_artifacts",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-        "status": "planned",
-        "task_id": "RTL-0023"
       }
     ],
     "blocked_by_tool_evidence": [
       {
-        "gate_kind": "common_ai_agent_authoring",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "planned",
-        "task_id": "RTL-0006"
-      },
-      {
-        "gate_kind": "dut_compile",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "planned",
-        "task_id": "RTL-0017"
-      },
-      {
-        "gate_kind": "dut_lint",
-        "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "planned",
-        "task_id": "RTL-0018"
-      },
-      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
+        "reason": "80 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0019"
       },
       {
         "gate_kind": "protocol_assertion_evidence",
         "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0024"
       },
       {
         "gate_kind": "fl_rtl_goal_audit",
         "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0025"
       },
       {
         "gate_kind": "coverage_closure",
         "owner_module": "pl330realverify",
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing coverage closure artifact: cov/coverage.json.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0026"
       }
     ],
@@ -246,9 +93,9 @@
     },
     "deferred_human_qa_allowed": true,
     "draft_allowed": true,
-    "gate_status": "planned",
+    "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 390,
+    "open_required_todos": 81,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -257,76 +104,6 @@
       "Do not sign off top integration while required connection contracts are missing."
     ],
     "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_authoring_provenance.json",
-        "artifacts": [
-          "pl330realverify/rtl/rtl_authoring_provenance.json",
-          "pl330realverify/rtl/rtl_todo_plan.json"
-        ],
-        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-        "commands": [
-          "python3 src/headless_workflow.py --root . --ip pl330realverify --stages rtl-gen",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330realverify --root . --audit-rtl"
-        ],
-        "gate_kind": "common_ai_agent_authoring",
-        "prerequisites": [
-          "An LLM authoring pass emitted or repaired DUT RTL files."
-        ],
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "stage_sequence": [
-          "ssot-rtl"
-        ],
-        "status": "planned",
-        "task_id": "RTL-0006"
-      },
-      {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "pl330realverify/rtl/rtl_compile.json",
-          "pl330realverify/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py pl330realverify --top pl330realverify --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330realverify --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "pl330realverify/list/pl330realverify.f covers the current DUT RTL sources."
-        ],
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "planned",
-        "task_id": "RTL-0017"
-      },
-      {
-        "artifact": "lint/dut_lint.json",
-        "artifacts": [
-          "pl330realverify/lint/dut_lint.json"
-        ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-        "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py pl330realverify --top pl330realverify",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330realverify --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_lint",
-        "prerequisites": [
-          "pl330realverify/list/pl330realverify.f covers the current DUT RTL/header sources."
-        ],
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "stage_sequence": [
-          "lint",
-          "dut_lint"
-        ],
-        "status": "planned",
-        "task_id": "RTL-0018"
-      },
       {
         "artifact": "rtl/rtl_todo_plan.json",
         "artifacts": [
@@ -341,12 +118,12 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "80 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0019"
       },
       {
@@ -366,13 +143,13 @@
           "SSOT cycle_model/protocol rules are machine-checkable.",
           "Simulation has run after RTL edits."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "stage_sequence": [
           "ssot-protocol-assertions",
           "sim"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0024"
       },
       {
@@ -389,7 +166,7 @@
         "prerequisites": [
           "FL model, equivalence goals, TB, and simulation evidence are current."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "stage_sequence": [
           "ssot-fl-model",
@@ -398,7 +175,7 @@
           "sim",
           "goal-audit"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0025"
       },
       {
@@ -415,13 +192,13 @@
         "prerequisites": [
           "Simulation evidence exists and planned coverage bins are observable."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing coverage closure artifact: cov/coverage.json.",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "stage_sequence": [
           "sim",
           "coverage"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0026"
       }
     ]
@@ -440,8 +217,185 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 41,
-        "open_required_count": 41,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify_axi_rd_pl330realverify_axi_wr.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify_axi_rd_pl330realverify_axi_wr.md",
+      "owner_file": "rtl/pl330realverify_axi_rd.sv, rtl/pl330realverify_axi_wr.sv",
+      "owner_module": "pl330realverify_axi_rd/pl330realverify_axi_wr",
+      "packet_id": "module__pl330realverify_axi_rd_pl330realverify_axi_wr",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[3]"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify_datapath_pl330realverify_event_irq.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify_datapath_pl330realverify_event_irq.md",
+      "owner_file": "rtl/pl330realverify_datapath.sv, rtl/pl330realverify_event_irq.sv",
+      "owner_module": "pl330realverify_datapath/pl330realverify_event_irq",
+      "packet_id": "module__pl330realverify_datapath_pl330realverify_event_irq",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[4]"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 7,
+        "open_required_count": 7,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify_regs__interrupts.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__interrupts.md",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "packet_id": "module__pl330realverify_regs__interrupts",
+      "summary": {
+        "categories": {
+          "interrupts.sources": 17
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 6,
+          "key": "interrupts",
+          "module_task_count": 97,
+          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "interrupts",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 7,
+        "required_count": 17,
+        "source_refs": [
+          "interrupts.sources.CH0_COMPLETE",
+          "interrupts.sources.CH1_COMPLETE",
+          "interrupts.sources.CH2_COMPLETE",
+          "interrupts.sources.CH3_COMPLETE",
+          "interrupts.sources.CH4_COMPLETE",
+          "interrupts.sources.CH5_COMPLETE",
+          "interrupts.sources.CH6_COMPLETE",
+          "interrupts.sources.CH7_COMPLETE",
+          "interrupts.sources.CH0_FAULT",
+          "interrupts.sources.CH1_FAULT",
+          "interrupts.sources.CH2_FAULT",
+          "interrupts.sources.CH3_FAULT",
+          "interrupts.sources.CH4_FAULT",
+          "interrupts.sources.CH5_FAULT",
+          "interrupts.sources.CH6_FAULT",
+          "interrupts.sources.CH7_FAULT",
+          "interrupts.sources.DBG_DONE"
+        ],
+        "status_counts": {
+          "open": 7,
+          "pass": 10
+        },
+        "task_count": 17
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 5,
+        "open_required_count": 5,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -481,7 +435,7 @@
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 41,
+        "open_required_count": 5,
         "required_count": 41,
         "source_refs": [
           "function_model.transactions.FM_RESET",
@@ -510,7 +464,8 @@
           "function_model.transactions.FM_APB_WRITE.output_rules.apb_write_ready"
         ],
         "status_counts": {
-          "planned": 41
+          "open": 5,
+          "pass": 36
         },
         "task_count": 41
       }
@@ -526,8 +481,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 23,
-        "open_required_count": 23,
+        "llm_actionable_open_count": 5,
+        "open_required_count": 5,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -561,7 +516,7 @@
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 23,
+        "open_required_count": 5,
         "required_count": 23,
         "source_refs": [
           "registers.register_list.DBGSTATUS",
@@ -589,7 +544,8 @@
           "registers.register_list.PC.fields.pc_addr"
         ],
         "status_counts": {
-          "planned": 23
+          "open": 5,
+          "pass": 18
         },
         "task_count": 23
       }
@@ -605,371 +561,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 17,
-        "open_required_count": 17,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify_regs__interrupts.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__interrupts.md",
-      "owner_file": "rtl/pl330realverify_regs.sv",
-      "owner_module": "pl330realverify_regs",
-      "packet_id": "module__pl330realverify_regs__interrupts",
-      "summary": {
-        "categories": {
-          "interrupts.sources": 17
-        },
-        "module_slice": {
-          "count": 8,
-          "enabled": true,
-          "index": 6,
-          "key": "interrupts",
-          "module_task_count": 97,
-          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "interrupts",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 17,
-        "required_count": 17,
-        "source_refs": [
-          "interrupts.sources.CH0_COMPLETE",
-          "interrupts.sources.CH1_COMPLETE",
-          "interrupts.sources.CH2_COMPLETE",
-          "interrupts.sources.CH3_COMPLETE",
-          "interrupts.sources.CH4_COMPLETE",
-          "interrupts.sources.CH5_COMPLETE",
-          "interrupts.sources.CH6_COMPLETE",
-          "interrupts.sources.CH7_COMPLETE",
-          "interrupts.sources.CH0_FAULT",
-          "interrupts.sources.CH1_FAULT",
-          "interrupts.sources.CH2_FAULT",
-          "interrupts.sources.CH3_FAULT",
-          "interrupts.sources.CH4_FAULT",
-          "interrupts.sources.CH5_FAULT",
-          "interrupts.sources.CH6_FAULT",
-          "interrupts.sources.CH7_FAULT",
-          "interrupts.sources.DBG_DONE"
-        ],
-        "status_counts": {
-          "planned": 17
-        },
-        "task_count": 17
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 11,
-        "open_required_count": 11,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify_regs__io_list.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__io_list.md",
-      "owner_file": "rtl/pl330realverify_regs.sv",
-      "owner_module": "pl330realverify_regs",
-      "packet_id": "module__pl330realverify_regs__io_list",
-      "summary": {
-        "categories": {
-          "io_list.port": 11
-        },
-        "module_slice": {
-          "count": 8,
-          "enabled": true,
-          "index": 1,
-          "key": "io_list",
-          "module_task_count": 97,
-          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "io_list",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 11,
-        "required_count": 11,
-        "source_refs": [
-          "io_list.clock_domains.dmaclk.ports.dmaclk",
-          "io_list.resets.dmacresetn.ports.dmacresetn",
-          "io_list.interfaces.apb_slave.ports.paddr",
-          "io_list.interfaces.apb_slave.ports.psel",
-          "io_list.interfaces.apb_slave.ports.penable",
-          "io_list.interfaces.apb_slave.ports.pwrite",
-          "io_list.interfaces.apb_slave.ports.pwdata",
-          "io_list.interfaces.apb_slave.ports.pstrb",
-          "io_list.interfaces.apb_slave.ports.prdata",
-          "io_list.interfaces.apb_slave.ports.pready",
-          "io_list.interfaces.apb_slave.ports.pslverr"
-        ],
-        "status_counts": {
-          "planned": 11
-        },
-        "task_count": 11
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify_regs__error_handling.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__error_handling.md",
-      "owner_file": "rtl/pl330realverify_regs.sv",
-      "owner_module": "pl330realverify_regs",
-      "packet_id": "module__pl330realverify_regs__error_handling",
-      "summary": {
-        "categories": {
-          "error_handling.recovery": 2
-        },
-        "module_slice": {
-          "count": 8,
-          "enabled": true,
-          "index": 5,
-          "key": "error_handling",
-          "module_task_count": 97,
-          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "error_handling",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 2,
-        "required_count": 2,
-        "source_refs": [
-          "error_handling.recovery.recovery_0",
-          "error_handling.recovery.recovery_1"
-        ],
-        "status_counts": {
-          "planned": 2
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify_regs__cycle_model.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__cycle_model.md",
-      "owner_file": "rtl/pl330realverify_regs.sv",
-      "owner_module": "pl330realverify_regs",
-      "packet_id": "module__pl330realverify_regs__cycle_model",
-      "summary": {
-        "categories": {
-          "cycle_model.handshake_rules": 1
-        },
-        "module_slice": {
-          "count": 8,
-          "enabled": true,
-          "index": 3,
-          "key": "cycle_model",
-          "module_task_count": 97,
-          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "cycle_model",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "cycle_model.handshake_rules.APB_ACCESS"
-        ],
-        "status_counts": {
-          "planned": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify_regs__equivalence.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__equivalence.md",
-      "owner_file": "rtl/pl330realverify_regs.sv",
-      "owner_module": "pl330realverify_regs",
-      "packet_id": "module__pl330realverify_regs__equivalence",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 8,
-          "enabled": true,
-          "index": 7,
-          "key": "equivalence",
-          "module_task_count": 97,
-          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "equivalence",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.pl330realverify_regs.module_equivalence"
-        ],
-        "status_counts": {
-          "planned": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify_regs__workflow_todo.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__workflow_todo.md",
-      "owner_file": "rtl/pl330realverify_regs.sv",
-      "owner_module": "pl330realverify_regs",
-      "packet_id": "module__pl330realverify_regs__workflow_todo",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 8,
-          "enabled": true,
-          "index": 8,
-          "key": "workflow_todo",
-          "module_task_count": 97,
-          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "workflow_todo",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "workflow_todos.rtl-gen[1]"
-        ],
-        "status_counts": {
-          "planned": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 44,
-        "open_required_count": 44,
+        "llm_actionable_open_count": 20,
+        "open_required_count": 20,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1010,7 +603,7 @@
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 44,
+        "open_required_count": 20,
         "required_count": 44,
         "source_refs": [
           "function_model.transactions.FM_TRANSFER.preconditions.precondition_0",
@@ -1039,7 +632,8 @@
           "function_model.transactions.FM_WFP.state_updates.status"
         ],
         "status_counts": {
-          "planned": 44
+          "open": 20,
+          "pass": 24
         },
         "task_count": 44
       }
@@ -1055,8 +649,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 33,
-        "open_required_count": 33,
+        "llm_actionable_open_count": 17,
+        "open_required_count": 17,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1090,7 +684,7 @@
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 33,
+        "open_required_count": 17,
         "required_count": 33,
         "source_refs": [
           "fsm.channel_fsm.states.state_0",
@@ -1119,7 +713,8 @@
           "fsm.channel_fsm.transitions.transition_12"
         ],
         "status_counts": {
-          "planned": 33
+          "open": 17,
+          "pass": 16
         },
         "task_count": 33
       }
@@ -1135,8 +730,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 25,
-        "open_required_count": 25,
+        "llm_actionable_open_count": 4,
+        "open_required_count": 4,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1176,7 +771,7 @@
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 25,
+        "open_required_count": 4,
         "required_count": 25,
         "source_refs": [
           "cycle_model.clock",
@@ -1205,7 +800,8 @@
           "cycle_model.observability.observability_signal_0"
         ],
         "status_counts": {
-          "planned": 25
+          "open": 4,
+          "pass": 21
         },
         "task_count": 25
       }
@@ -1221,120 +817,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify_channel_fsm__equivalence.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify_channel_fsm__equivalence.md",
-      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
-      "owner_module": "pl330realverify_channel_fsm",
-      "packet_id": "module__pl330realverify_channel_fsm__equivalence",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 5,
-          "enabled": true,
-          "index": 4,
-          "key": "equivalence",
-          "module_task_count": 104,
-          "rule": "Owner module pl330realverify_channel_fsm is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "equivalence",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.pl330realverify_channel_fsm.module_equivalence"
-        ],
-        "status_counts": {
-          "planned": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify_channel_fsm__workflow_todo.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify_channel_fsm__workflow_todo.md",
-      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
-      "owner_module": "pl330realverify_channel_fsm",
-      "packet_id": "module__pl330realverify_channel_fsm__workflow_todo",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 5,
-          "enabled": true,
-          "index": 5,
-          "key": "workflow_todo",
-          "module_task_count": 104,
-          "rule": "Owner module pl330realverify_channel_fsm is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "workflow_todo",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "workflow_todos.rtl-gen[2]"
-        ],
-        "status_counts": {
-          "planned": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 22,
-        "open_required_count": 22,
+        "llm_actionable_open_count": 2,
+        "open_required_count": 2,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1367,7 +851,7 @@
           "module_task_count": 22,
           "task_limit": 48
         },
-        "open_required_count": 22,
+        "open_required_count": 2,
         "required_count": 22,
         "source_refs": [
           "function_model.transactions.FM_TRANSFER",
@@ -1394,7 +878,8 @@
           "io_list.interfaces.axi_rd_master.ports.rready"
         ],
         "status_counts": {
-          "planned": 22
+          "open": 2,
+          "pass": 20
         },
         "task_count": 22
       }
@@ -1410,83 +895,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 21,
-        "open_required_count": 21,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify_axi_wr.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify_axi_wr.md",
-      "owner_file": "rtl/pl330realverify_axi_wr.sv",
-      "owner_module": "pl330realverify_axi_wr",
-      "packet_id": "module__pl330realverify_axi_wr",
-      "summary": {
-        "categories": {
-          "cycle_model.handshake_rules": 1,
-          "equivalence.module": 1,
-          "function_model.error_case": 1,
-          "io_list.port": 18
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 21,
-          "task_limit": 48
-        },
-        "open_required_count": 21,
-        "required_count": 21,
-        "source_refs": [
-          "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_WR",
-          "cycle_model.handshake_rules.AXI_AW",
-          "sub_modules.pl330realverify_axi_wr.module_equivalence",
-          "io_list.interfaces.axi_wr_master.ports.awid",
-          "io_list.interfaces.axi_wr_master.ports.awaddr",
-          "io_list.interfaces.axi_wr_master.ports.awlen",
-          "io_list.interfaces.axi_wr_master.ports.awsize",
-          "io_list.interfaces.axi_wr_master.ports.awburst",
-          "io_list.interfaces.axi_wr_master.ports.awcache",
-          "io_list.interfaces.axi_wr_master.ports.awprot",
-          "io_list.interfaces.axi_wr_master.ports.awvalid",
-          "io_list.interfaces.axi_wr_master.ports.awready",
-          "io_list.interfaces.axi_wr_master.ports.wdata",
-          "io_list.interfaces.axi_wr_master.ports.wstrb",
-          "io_list.interfaces.axi_wr_master.ports.wlast",
-          "io_list.interfaces.axi_wr_master.ports.wvalid",
-          "io_list.interfaces.axi_wr_master.ports.wready",
-          "io_list.interfaces.axi_wr_master.ports.bid",
-          "io_list.interfaces.axi_wr_master.ports.bresp",
-          "io_list.interfaces.axi_wr_master.ports.bvalid",
-          "io_list.interfaces.axi_wr_master.ports.bready"
-        ],
-        "status_counts": {
-          "planned": 21
-        },
-        "task_count": 21
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 19,
-        "open_required_count": 19,
+        "llm_actionable_open_count": 4,
+        "open_required_count": 4,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1518,7 +928,7 @@
           "module_task_count": 19,
           "task_limit": 48
         },
-        "open_required_count": 19,
+        "open_required_count": 4,
         "required_count": 19,
         "source_refs": [
           "function_model.state_variables.sar",
@@ -1542,7 +952,8 @@
           "sub_modules.pl330realverify_datapath.module_equivalence"
         ],
         "status_counts": {
-          "planned": 19
+          "open": 4,
+          "pass": 15
         },
         "task_count": 19
       }
@@ -1558,8 +969,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 30,
-        "open_required_count": 30,
+        "llm_actionable_open_count": 6,
+        "open_required_count": 6,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1598,7 +1009,7 @@
           "module_task_count": 30,
           "task_limit": 48
         },
-        "open_required_count": 30,
+        "open_required_count": 6,
         "required_count": 30,
         "source_refs": [
           "function_model.transactions.FM_WFP.output_rules.irq_during_wfp",
@@ -1627,7 +1038,8 @@
           "registers.register_list.CONTROL.fields.wfp_enable"
         ],
         "status_counts": {
-          "planned": 30
+          "open": 6,
+          "pass": 24
         },
         "task_count": 30
       }
@@ -1643,285 +1055,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 27,
-        "open_required_count": 27,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify__integration.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify__integration.md",
-      "owner_file": "rtl/pl330realverify.sv",
-      "owner_module": "pl330realverify",
-      "packet_id": "module__pl330realverify__integration",
-      "summary": {
-        "categories": {
-          "integration.connections": 23,
-          "integration.dependencies": 4
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 3,
-          "key": "integration",
-          "module_task_count": 71,
-          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "integration",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 27,
-        "required_count": 27,
-        "source_refs": [
-          "integration.dependencies.external_modules",
-          "integration.dependencies.external_clocks",
-          "integration.dependencies.external_resets",
-          "integration.dependencies.external_protocols",
-          "integration.connections.dmaclk",
-          "integration.connections.dmacresetn",
-          "integration.connections.paddr",
-          "integration.connections.psel",
-          "integration.connections.penable",
-          "integration.connections.pwrite",
-          "integration.connections.pwdata",
-          "integration.connections.pstrb",
-          "integration.connections.prdata",
-          "integration.connections.pready",
-          "integration.connections.pslverr",
-          "integration.connections.channel_state",
-          "integration.connections.arvalid",
-          "integration.connections.arready",
-          "integration.connections.rvalid",
-          "integration.connections.rready",
-          "integration.connections.awvalid",
-          "integration.connections.wvalid",
-          "integration.connections.bready",
-          "integration.connections.rdata"
-        ],
-        "status_counts": {
-          "planned": 27
-        },
-        "task_count": 27
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 12,
-        "open_required_count": 12,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify__synthesis.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify__synthesis.md",
-      "owner_file": "rtl/pl330realverify.sv",
-      "owner_module": "pl330realverify",
-      "packet_id": "module__pl330realverify__synthesis",
-      "summary": {
-        "categories": {
-          "synthesis.constraints": 7,
-          "synthesis.ppa_targets": 5
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 6,
-          "key": "synthesis",
-          "module_task_count": 71,
-          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "synthesis",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 12,
-        "required_count": 12,
-        "source_refs": [
-          "synthesis.constraints.clock",
-          "synthesis.constraints.reset",
-          "synthesis.constraints.io_delay_ns",
-          "synthesis.constraints.max_fanout",
-          "synthesis.constraints.max_transition_ns",
-          "synthesis.constraints.false_paths",
-          "synthesis.constraints.multicycle_paths",
-          "synthesis.ppa_targets.technology",
-          "synthesis.ppa_targets.target_frequency_mhz",
-          "synthesis.ppa_targets.area_um2",
-          "synthesis.ppa_targets.power_mw",
-          "synthesis.ppa_targets.utilization_pct"
-        ],
-        "status_counts": {
-          "planned": 12
-        },
-        "task_count": 12
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 10,
-        "open_required_count": 10,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify__parameters.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify__parameters.md",
-      "owner_file": "rtl/pl330realverify.sv",
-      "owner_module": "pl330realverify",
-      "packet_id": "module__pl330realverify__parameters",
-      "summary": {
-        "categories": {
-          "parameters.item": 10
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 2,
-          "key": "parameters",
-          "module_task_count": 71,
-          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "parameters",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 10,
-        "required_count": 10,
-        "source_refs": [
-          "parameters.DATA_WIDTH",
-          "parameters.ADDR_WIDTH",
-          "parameters.ID_WIDTH",
-          "parameters.NUM_CHANNELS",
-          "parameters.NUM_EVENTS",
-          "parameters.REG_ADDR_WIDTH",
-          "parameters.MAX_BURST_LEN",
-          "parameters.CLOCK_FREQ_MHZ",
-          "parameters.RESET_POLARITY",
-          "parameters.SUPPORT_UNALIGNED"
-        ],
-        "status_counts": {
-          "planned": 10
-        },
-        "task_count": 10
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 9,
-        "open_required_count": 9,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify__test_requirements.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify__test_requirements.md",
-      "owner_file": "rtl/pl330realverify.sv",
-      "owner_module": "pl330realverify",
-      "packet_id": "module__pl330realverify__test_requirements",
-      "summary": {
-        "categories": {
-          "test_requirements.scenario": 9
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 7,
-          "key": "test_requirements",
-          "module_task_count": 71,
-          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "test_requirements",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 9,
-        "required_count": 9,
-        "source_refs": [
-          "test_requirements.scenarios.SC_RESET_APB",
-          "test_requirements.scenarios.SC_SINGLE_BEAT_COPY",
-          "test_requirements.scenarios.SC_MULTI_BEAT_COPY",
-          "test_requirements.scenarios.SC_AXI_BACKPRESSURE",
-          "test_requirements.scenarios.SC_WFP_EVENT",
-          "test_requirements.scenarios.SC_AXI_READ_FAULT",
-          "test_requirements.scenarios.SC_AXI_WRITE_FAULT",
-          "test_requirements.scenarios.SC_W1C_IRQ_CLEAR",
-          "test_requirements.scenarios.SC_DEBUG_COMMAND"
-        ],
-        "status_counts": {
-          "planned": 9
-        },
-        "task_count": 9
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 6,
-        "open_required_count": 6,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -1954,7 +1089,7 @@
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 6,
+        "open_required_count": 1,
         "required_count": 6,
         "source_refs": [
           "features.APB_programmable_DMA_channels",
@@ -1965,181 +1100,10 @@
           "features.Fault_classification_and_first_error_wins"
         ],
         "status_counts": {
-          "planned": 6
+          "open": 1,
+          "pass": 5
         },
         "task_count": 6
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 3,
-        "open_required_count": 3,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify__security.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify__security.md",
-      "owner_file": "rtl/pl330realverify.sv",
-      "owner_module": "pl330realverify",
-      "packet_id": "module__pl330realverify__security",
-      "summary": {
-        "categories": {
-          "security.assets": 3
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 5,
-          "key": "security",
-          "module_task_count": 71,
-          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "security",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 3,
-        "required_count": 3,
-        "source_refs": [
-          "security.assets.register_map",
-          "security.assets.memory_transfer_data",
-          "security.assets.interrupt_status"
-        ],
-        "status_counts": {
-          "planned": 3
-        },
-        "task_count": 3
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify__rtl_flow.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify__rtl_flow.md",
-      "owner_file": "rtl/pl330realverify.sv",
-      "owner_module": "pl330realverify",
-      "packet_id": "module__pl330realverify__rtl_flow",
-      "summary": {
-        "categories": {
-          "rtl_flow.seed": 1,
-          "rtl_flow.top": 1
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 1,
-          "key": "rtl_flow",
-          "module_task_count": 71,
-          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "rtl_flow",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 2,
-        "required_count": 2,
-        "source_refs": [
-          "top_module",
-          "io_list"
-        ],
-        "status_counts": {
-          "planned": 2
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify__equivalence.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify__equivalence.md",
-      "owner_file": "rtl/pl330realverify.sv",
-      "owner_module": "pl330realverify",
-      "packet_id": "module__pl330realverify__equivalence",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 8,
-          "key": "equivalence",
-          "module_task_count": 71,
-          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "equivalence",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.pl330realverify.module_equivalence"
-        ],
-        "status_counts": {
-          "planned": 1
-        },
-        "task_count": 1
       }
     },
     {
@@ -2193,111 +1157,7 @@
           "workflow_todos.rtl-gen[0]"
         ],
         "status_counts": {
-          "planned": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify_axi_rd_pl330realverify_axi_wr.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify_axi_rd_pl330realverify_axi_wr.md",
-      "owner_file": "rtl/pl330realverify_axi_rd.sv, rtl/pl330realverify_axi_wr.sv",
-      "owner_module": "pl330realverify_axi_rd/pl330realverify_axi_wr",
-      "packet_id": "module__pl330realverify_axi_rd_pl330realverify_axi_wr",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "workflow_todos.rtl-gen[3]"
-        ],
-        "status_counts": {
-          "planned": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pl330realverify_datapath_pl330realverify_event_irq.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pl330realverify_datapath_pl330realverify_event_irq.md",
-      "owner_file": "rtl/pl330realverify_datapath.sv, rtl/pl330realverify_event_irq.sv",
-      "owner_module": "pl330realverify_datapath/pl330realverify_event_irq",
-      "packet_id": "module__pl330realverify_datapath_pl330realverify_event_irq",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "workflow_todos.rtl-gen[4]"
-        ],
-        "status_counts": {
-          "planned": 1
+          "open": 1
         },
         "task_count": 1
       }
@@ -2313,8 +1173,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 10,
-        "open_required_count": 10,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -2336,7 +1196,7 @@
           "rtl_gate.rtl_gen": 10
         },
         "module_slice": {},
-        "open_required_count": 10,
+        "open_required_count": 1,
         "required_count": 10,
         "source_refs": [
           "quality_gates.rtl_gen.static_rtl_evidence",
@@ -2351,7 +1211,8 @@
           "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
         ],
         "status_counts": {
-          "planned": 10
+          "open": 1,
+          "pass": 9
         },
         "task_count": 10
       }
@@ -2360,67 +1221,22 @@
       "execution_policy": {
         "blocked_by_locked_truth": [
           {
-            "gate_kind": "ssot_required_sections",
-            "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
-            "status": "planned",
-            "task_id": "RTL-0003"
-          },
-          {
-            "gate_kind": "ssot_workflow_todo_format",
-            "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
-            "status": "planned",
-            "task_id": "RTL-0004"
-          },
-          {
-            "gate_kind": "owner_traceability",
-            "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.owner_traceability",
-            "status": "planned",
-            "task_id": "RTL-0005"
-          },
-          {
             "gate_kind": "manifest_connection_contract_evidence",
             "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
+            "reason": "9 SSOT connection contract issue(s) remain. pl330realverify_regs: SSOT connection contract port is not connected by the RTL named port map; pl330realverify_channel_fsm: RTL named port-map expression does not match SSOT connection signal terms; pl330realverify_channel_fsm: RTL named port-map expression does not match SSOT connection signal terms",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-            "status": "planned",
+            "status": "open",
             "task_id": "RTL-0016"
           },
           {
             "gate_kind": "golden_authority_artifacts",
             "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
+            "reason": "Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
-            "status": "planned",
+            "status": "open",
             "task_id": "RTL-0020"
-          },
-          {
-            "gate_kind": "target_scale_policy",
-            "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.target_scale",
-            "status": "planned",
-            "task_id": "RTL-0021"
-          },
-          {
-            "gate_kind": "cycle_model_artifacts",
-            "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-            "status": "planned",
-            "task_id": "RTL-0023"
           }
         ],
         "blocked_by_tool_evidence": [],
@@ -2428,11 +1244,11 @@
         "deferred_human_qa_allowed": true,
         "draft_allowed": false,
         "evidence_closure_allowed": true,
-        "human_locked_open_count": 7,
+        "human_locked_open_count": 2,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 7,
+        "open_required_count": 2,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -2454,7 +1270,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 7,
+        "open_required_count": 2,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.ssot_required_sections",
@@ -2466,7 +1282,8 @@
           "quality_gates.rtl_gen.cycle_model_artifacts"
         ],
         "status_counts": {
-          "planned": 7
+          "open": 2,
+          "pass": 5
         },
         "task_count": 7
       }
@@ -2476,66 +1293,39 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [
           {
-            "gate_kind": "common_ai_agent_authoring",
-            "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "status": "planned",
-            "task_id": "RTL-0006"
-          },
-          {
-            "gate_kind": "dut_compile",
-            "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "status": "planned",
-            "task_id": "RTL-0017"
-          },
-          {
-            "gate_kind": "dut_lint",
-            "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "status": "planned",
-            "task_id": "RTL-0018"
-          },
-          {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
+            "reason": "80 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-            "status": "planned",
+            "status": "open",
             "task_id": "RTL-0019"
           },
           {
             "gate_kind": "protocol_assertion_evidence",
             "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
+            "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
-            "status": "planned",
+            "status": "open",
             "task_id": "RTL-0024"
           },
           {
             "gate_kind": "fl_rtl_goal_audit",
             "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
+            "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
-            "status": "planned",
+            "status": "open",
             "task_id": "RTL-0025"
           },
           {
             "gate_kind": "coverage_closure",
             "owner_module": "pl330realverify",
-            "reason": "RTL audit has not run yet.",
+            "reason": "Missing coverage closure artifact: cov/coverage.json.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.coverage_closure",
-            "status": "planned",
+            "status": "open",
             "task_id": "RTL-0026"
           }
         ],
@@ -2547,85 +1337,15 @@
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 7,
+        "open_required_count": 4,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
           "Never use a fixed RTL template as the implementation."
         ],
-        "tool_evidence_open_count": 7,
+        "tool_evidence_open_count": 4,
         "tool_evidence_plan": [
-          {
-            "artifact": "rtl/rtl_authoring_provenance.json",
-            "artifacts": [
-              "pl330realverify/rtl/rtl_authoring_provenance.json",
-              "pl330realverify/rtl/rtl_todo_plan.json"
-            ],
-            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-            "commands": [
-              "python3 src/headless_workflow.py --root . --ip pl330realverify --stages rtl-gen",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330realverify --root . --audit-rtl"
-            ],
-            "gate_kind": "common_ai_agent_authoring",
-            "prerequisites": [
-              "An LLM authoring pass emitted or repaired DUT RTL files."
-            ],
-            "reason": "RTL audit has not run yet.",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "stage_sequence": [
-              "ssot-rtl"
-            ],
-            "status": "planned",
-            "task_id": "RTL-0006"
-          },
-          {
-            "artifact": "rtl/rtl_compile.json",
-            "artifacts": [
-              "pl330realverify/rtl/rtl_compile.json",
-              "pl330realverify/rtl/rtl_compile.log"
-            ],
-            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-            "commands": [
-              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py pl330realverify --top pl330realverify --project-root .",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330realverify --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_compile",
-            "prerequisites": [
-              "pl330realverify/list/pl330realverify.f covers the current DUT RTL sources."
-            ],
-            "reason": "RTL audit has not run yet.",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "stage_sequence": [
-              "ssot-rtl",
-              "dut_compile"
-            ],
-            "status": "planned",
-            "task_id": "RTL-0017"
-          },
-          {
-            "artifact": "lint/dut_lint.json",
-            "artifacts": [
-              "pl330realverify/lint/dut_lint.json"
-            ],
-            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-            "commands": [
-              "python3 workflow/lint/scripts/dut_lint_report.py pl330realverify --top pl330realverify",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330realverify --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_lint",
-            "prerequisites": [
-              "pl330realverify/list/pl330realverify.f covers the current DUT RTL/header sources."
-            ],
-            "reason": "RTL audit has not run yet.",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "stage_sequence": [
-              "lint",
-              "dut_lint"
-            ],
-            "status": "planned",
-            "task_id": "RTL-0018"
-          },
           {
             "artifact": "rtl/rtl_todo_plan.json",
             "artifacts": [
@@ -2640,12 +1360,12 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "RTL audit has not run yet.",
+            "reason": "80 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
             ],
-            "status": "planned",
+            "status": "open",
             "task_id": "RTL-0019"
           },
           {
@@ -2665,13 +1385,13 @@
               "SSOT cycle_model/protocol rules are machine-checkable.",
               "Simulation has run after RTL edits."
             ],
-            "reason": "RTL audit has not run yet.",
+            "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
             "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
             "stage_sequence": [
               "ssot-protocol-assertions",
               "sim"
             ],
-            "status": "planned",
+            "status": "open",
             "task_id": "RTL-0024"
           },
           {
@@ -2688,7 +1408,7 @@
             "prerequisites": [
               "FL model, equivalence goals, TB, and simulation evidence are current."
             ],
-            "reason": "RTL audit has not run yet.",
+            "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
             "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
             "stage_sequence": [
               "ssot-fl-model",
@@ -2697,7 +1417,7 @@
               "sim",
               "goal-audit"
             ],
-            "status": "planned",
+            "status": "open",
             "task_id": "RTL-0025"
           },
           {
@@ -2714,13 +1434,13 @@
             "prerequisites": [
               "Simulation evidence exists and planned coverage bins are observable."
             ],
-            "reason": "RTL audit has not run yet.",
+            "reason": "Missing coverage closure artifact: cov/coverage.json.",
             "source_ref": "quality_gates.rtl_gen.coverage_closure",
             "stage_sequence": [
               "sim",
               "coverage"
             ],
-            "status": "planned",
+            "status": "open",
             "task_id": "RTL-0026"
           }
         ],
@@ -2737,7 +1457,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 7,
+        "open_required_count": 4,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -2749,9 +1469,937 @@
           "quality_gates.rtl_gen.coverage_closure"
         ],
         "status_counts": {
-          "planned": 7
+          "open": 4,
+          "pass": 3
         },
         "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify_regs__cycle_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__cycle_model.md",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "packet_id": "module__pl330realverify_regs__cycle_model",
+      "summary": {
+        "categories": {
+          "cycle_model.handshake_rules": 1
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 3,
+          "key": "cycle_model",
+          "module_task_count": 97,
+          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "cycle_model.handshake_rules.APB_ACCESS"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify_regs__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__equivalence.md",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "packet_id": "module__pl330realverify_regs__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 7,
+          "key": "equivalence",
+          "module_task_count": 97,
+          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.pl330realverify_regs.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify_regs__error_handling.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__error_handling.md",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "packet_id": "module__pl330realverify_regs__error_handling",
+      "summary": {
+        "categories": {
+          "error_handling.recovery": 2
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 5,
+          "key": "error_handling",
+          "module_task_count": 97,
+          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "error_handling",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "error_handling.recovery.recovery_0",
+          "error_handling.recovery.recovery_1"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify_regs__io_list.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__io_list.md",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "packet_id": "module__pl330realverify_regs__io_list",
+      "summary": {
+        "categories": {
+          "io_list.port": 11
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 1,
+          "key": "io_list",
+          "module_task_count": 97,
+          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "io_list",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 11,
+        "source_refs": [
+          "io_list.clock_domains.dmaclk.ports.dmaclk",
+          "io_list.resets.dmacresetn.ports.dmacresetn",
+          "io_list.interfaces.apb_slave.ports.paddr",
+          "io_list.interfaces.apb_slave.ports.psel",
+          "io_list.interfaces.apb_slave.ports.penable",
+          "io_list.interfaces.apb_slave.ports.pwrite",
+          "io_list.interfaces.apb_slave.ports.pwdata",
+          "io_list.interfaces.apb_slave.ports.pstrb",
+          "io_list.interfaces.apb_slave.ports.prdata",
+          "io_list.interfaces.apb_slave.ports.pready",
+          "io_list.interfaces.apb_slave.ports.pslverr"
+        ],
+        "status_counts": {
+          "pass": 11
+        },
+        "task_count": 11
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify_regs__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify_regs__workflow_todo.md",
+      "owner_file": "rtl/pl330realverify_regs.sv",
+      "owner_module": "pl330realverify_regs",
+      "packet_id": "module__pl330realverify_regs__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 8,
+          "key": "workflow_todo",
+          "module_task_count": 97,
+          "rule": "Owner module pl330realverify_regs is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[1]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify_channel_fsm__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify_channel_fsm__equivalence.md",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "packet_id": "module__pl330realverify_channel_fsm__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 5,
+          "enabled": true,
+          "index": 4,
+          "key": "equivalence",
+          "module_task_count": 104,
+          "rule": "Owner module pl330realverify_channel_fsm is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.pl330realverify_channel_fsm.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify_channel_fsm__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify_channel_fsm__workflow_todo.md",
+      "owner_file": "rtl/pl330realverify_channel_fsm.sv",
+      "owner_module": "pl330realverify_channel_fsm",
+      "packet_id": "module__pl330realverify_channel_fsm__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 5,
+          "enabled": true,
+          "index": 5,
+          "key": "workflow_todo",
+          "module_task_count": 104,
+          "rule": "Owner module pl330realverify_channel_fsm is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[2]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify_axi_wr.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify_axi_wr.md",
+      "owner_file": "rtl/pl330realverify_axi_wr.sv",
+      "owner_module": "pl330realverify_axi_wr",
+      "packet_id": "module__pl330realverify_axi_wr",
+      "summary": {
+        "categories": {
+          "cycle_model.handshake_rules": 1,
+          "equivalence.module": 1,
+          "function_model.error_case": 1,
+          "io_list.port": 18
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 21,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 21,
+        "source_refs": [
+          "function_model.transactions.FM_TRANSFER.error_cases.ERR_AXI_WR",
+          "cycle_model.handshake_rules.AXI_AW",
+          "sub_modules.pl330realverify_axi_wr.module_equivalence",
+          "io_list.interfaces.axi_wr_master.ports.awid",
+          "io_list.interfaces.axi_wr_master.ports.awaddr",
+          "io_list.interfaces.axi_wr_master.ports.awlen",
+          "io_list.interfaces.axi_wr_master.ports.awsize",
+          "io_list.interfaces.axi_wr_master.ports.awburst",
+          "io_list.interfaces.axi_wr_master.ports.awcache",
+          "io_list.interfaces.axi_wr_master.ports.awprot",
+          "io_list.interfaces.axi_wr_master.ports.awvalid",
+          "io_list.interfaces.axi_wr_master.ports.awready",
+          "io_list.interfaces.axi_wr_master.ports.wdata",
+          "io_list.interfaces.axi_wr_master.ports.wstrb",
+          "io_list.interfaces.axi_wr_master.ports.wlast",
+          "io_list.interfaces.axi_wr_master.ports.wvalid",
+          "io_list.interfaces.axi_wr_master.ports.wready",
+          "io_list.interfaces.axi_wr_master.ports.bid",
+          "io_list.interfaces.axi_wr_master.ports.bresp",
+          "io_list.interfaces.axi_wr_master.ports.bvalid",
+          "io_list.interfaces.axi_wr_master.ports.bready"
+        ],
+        "status_counts": {
+          "pass": 21
+        },
+        "task_count": 21
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify__equivalence.md",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "packet_id": "module__pl330realverify__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 8,
+          "key": "equivalence",
+          "module_task_count": 71,
+          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.pl330realverify.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify__integration.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify__integration.md",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "packet_id": "module__pl330realverify__integration",
+      "summary": {
+        "categories": {
+          "integration.connections": 23,
+          "integration.dependencies": 4
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 3,
+          "key": "integration",
+          "module_task_count": 71,
+          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "integration",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 27,
+        "source_refs": [
+          "integration.dependencies.external_modules",
+          "integration.dependencies.external_clocks",
+          "integration.dependencies.external_resets",
+          "integration.dependencies.external_protocols",
+          "integration.connections.dmaclk",
+          "integration.connections.dmacresetn",
+          "integration.connections.paddr",
+          "integration.connections.psel",
+          "integration.connections.penable",
+          "integration.connections.pwrite",
+          "integration.connections.pwdata",
+          "integration.connections.pstrb",
+          "integration.connections.prdata",
+          "integration.connections.pready",
+          "integration.connections.pslverr",
+          "integration.connections.channel_state",
+          "integration.connections.arvalid",
+          "integration.connections.arready",
+          "integration.connections.rvalid",
+          "integration.connections.rready",
+          "integration.connections.awvalid",
+          "integration.connections.wvalid",
+          "integration.connections.bready",
+          "integration.connections.rdata"
+        ],
+        "status_counts": {
+          "pass": 27
+        },
+        "task_count": 27
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify__parameters.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify__parameters.md",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "packet_id": "module__pl330realverify__parameters",
+      "summary": {
+        "categories": {
+          "parameters.item": 10
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 2,
+          "key": "parameters",
+          "module_task_count": 71,
+          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "parameters",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 10,
+        "source_refs": [
+          "parameters.DATA_WIDTH",
+          "parameters.ADDR_WIDTH",
+          "parameters.ID_WIDTH",
+          "parameters.NUM_CHANNELS",
+          "parameters.NUM_EVENTS",
+          "parameters.REG_ADDR_WIDTH",
+          "parameters.MAX_BURST_LEN",
+          "parameters.CLOCK_FREQ_MHZ",
+          "parameters.RESET_POLARITY",
+          "parameters.SUPPORT_UNALIGNED"
+        ],
+        "status_counts": {
+          "pass": 10
+        },
+        "task_count": 10
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify__rtl_flow.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify__rtl_flow.md",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "packet_id": "module__pl330realverify__rtl_flow",
+      "summary": {
+        "categories": {
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 1,
+          "key": "rtl_flow",
+          "module_task_count": 71,
+          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "rtl_flow",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "top_module",
+          "io_list"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify__security.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify__security.md",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "packet_id": "module__pl330realverify__security",
+      "summary": {
+        "categories": {
+          "security.assets": 3
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 5,
+          "key": "security",
+          "module_task_count": 71,
+          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "security",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "security.assets.register_map",
+          "security.assets.memory_transfer_data",
+          "security.assets.interrupt_status"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify__synthesis.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify__synthesis.md",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "packet_id": "module__pl330realverify__synthesis",
+      "summary": {
+        "categories": {
+          "synthesis.constraints": 7,
+          "synthesis.ppa_targets": 5
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 6,
+          "key": "synthesis",
+          "module_task_count": 71,
+          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "synthesis",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 12,
+        "source_refs": [
+          "synthesis.constraints.clock",
+          "synthesis.constraints.reset",
+          "synthesis.constraints.io_delay_ns",
+          "synthesis.constraints.max_fanout",
+          "synthesis.constraints.max_transition_ns",
+          "synthesis.constraints.false_paths",
+          "synthesis.constraints.multicycle_paths",
+          "synthesis.ppa_targets.technology",
+          "synthesis.ppa_targets.target_frequency_mhz",
+          "synthesis.ppa_targets.area_um2",
+          "synthesis.ppa_targets.power_mw",
+          "synthesis.ppa_targets.utilization_pct"
+        ],
+        "status_counts": {
+          "pass": 12
+        },
+        "task_count": 12
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330realverify__test_requirements.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330realverify__test_requirements.md",
+      "owner_file": "rtl/pl330realverify.sv",
+      "owner_module": "pl330realverify",
+      "packet_id": "module__pl330realverify__test_requirements",
+      "summary": {
+        "categories": {
+          "test_requirements.scenario": 9
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 7,
+          "key": "test_requirements",
+          "module_task_count": 71,
+          "rule": "Owner module pl330realverify is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "test_requirements",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 9,
+        "source_refs": [
+          "test_requirements.scenarios.SC_RESET_APB",
+          "test_requirements.scenarios.SC_SINGLE_BEAT_COPY",
+          "test_requirements.scenarios.SC_MULTI_BEAT_COPY",
+          "test_requirements.scenarios.SC_AXI_BACKPRESSURE",
+          "test_requirements.scenarios.SC_WFP_EVENT",
+          "test_requirements.scenarios.SC_AXI_READ_FAULT",
+          "test_requirements.scenarios.SC_AXI_WRITE_FAULT",
+          "test_requirements.scenarios.SC_W1C_IRQ_CLEAR",
+          "test_requirements.scenarios.SC_DEBUG_COMMAND"
+        ],
+        "status_counts": {
+          "pass": 9
+        },
+        "task_count": 9
       }
     }
   ],
@@ -2799,20 +2447,20 @@
     "deferred_human_qa_allowed": true,
     "gate_packets": 3,
     "human_locked_packets": 1,
-    "human_locked_tasks": 7,
-    "llm_actionable_packets": 29,
-    "llm_actionable_tasks": 376,
+    "human_locked_tasks": 2,
+    "llm_actionable_packets": 14,
+    "llm_actionable_tasks": 75,
     "max_packet_required_tasks": 44,
     "module_packets": 28,
     "next_llm_packets": [
+      "module__pl330realverify_axi_rd_pl330realverify_axi_wr",
+      "module__pl330realverify_datapath_pl330realverify_event_irq",
+      "module__pl330realverify_regs__interrupts",
       "module__pl330realverify_regs__function_model",
       "module__pl330realverify_regs__registers",
-      "module__pl330realverify_regs__interrupts",
-      "module__pl330realverify_regs__io_list",
-      "module__pl330realverify_regs__error_handling",
-      "module__pl330realverify_regs__cycle_model",
-      "module__pl330realverify_regs__equivalence",
-      "module__pl330realverify_regs__workflow_todo"
+      "module__pl330realverify_channel_fsm__function_model",
+      "module__pl330realverify_channel_fsm__fsm",
+      "module__pl330realverify_channel_fsm__cycle_model"
     ],
     "packet_task_limit": 48,
     "packets": 31,
@@ -2825,7 +2473,7 @@
     "sliced_module_packets": 22,
     "target_scale_present": true,
     "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 7,
+    "tool_evidence_tasks": 4,
     "total_tasks": 390,
     "unowned_packets": 0
   },

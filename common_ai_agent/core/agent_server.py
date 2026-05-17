@@ -1143,6 +1143,61 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         # ── Populate entry.log from messages (observations, tool calls) ──
         files_modified = []
         files_examined = []
+        tool_call_names: Dict[str, str] = {}
+
+        def _extract_path_from_tool_args(raw_args: Any) -> str:
+            """Best-effort path extraction from native JSON or ReAct args."""
+            if isinstance(raw_args, dict):
+                value = raw_args.get("path") or raw_args.get("file") or raw_args.get("directory")
+                return str(value or "")
+            raw = str(raw_args or "").strip()
+            if not raw:
+                return ""
+            if raw.startswith("{"):
+                try:
+                    parsed = json.loads(raw)
+                    if isinstance(parsed, dict):
+                        value = parsed.get("path") or parsed.get("file") or parsed.get("directory")
+                        if value:
+                            return str(value)
+                except Exception:
+                    pass
+            try:
+                from core.action_parser import parse_tool_arguments
+                parsed_args, parsed_kwargs = parse_tool_arguments(raw)
+                value = parsed_kwargs.get("path") or parsed_kwargs.get("file") or parsed_kwargs.get("directory")
+                if value:
+                    return str(value)
+                if parsed_args and isinstance(parsed_args[0], str):
+                    return parsed_args[0]
+            except Exception:
+                pass
+            match = _re.search(r'(?:path|file|directory)\s*[:=]\s*["\']([^"\']+)["\']', raw)
+            if match:
+                return match.group(1)
+            return ""
+
+        def _record_tool_path(tool_name: str, raw_args: Any, *, from_action: bool = False) -> None:
+            path = _extract_path_from_tool_args(raw_args)
+            if not path:
+                return
+            if tool_name in ("write_file", "write_to_file", "replace_in_file", "replace_lines", "replace_file_content"):
+                files_modified.append(path)
+            elif tool_name in ("read_file", "read_lines", "grep_file", "list_dir", "find_files"):
+                files_examined.append(path)
+            elif from_action and tool_name == "run_command":
+                # Shell commands may generate reports. Keep them examined-only
+                # here; actual modified-file detection is handled by write tools
+                # or output parsing below.
+                files_examined.append(path)
+
+        def _record_wrote_paths_from_observation(text: str) -> None:
+            # Tool scripts commonly report "wrote /abs/path/file.json".
+            for match in _re.finditer(r'\bwrote\s+([^\s]+(?:\.[A-Za-z0-9_]+)?)', text):
+                path = match.group(1).strip().strip('",')
+                if path and not path.startswith("http"):
+                    files_modified.append(path)
+
         # Scan messages for tool observations
         import re as _re
         for msg in updated_messages:
@@ -1167,17 +1222,36 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                 # Detect tool_calls in message dict
                 tool_calls = msg.get("tool_calls", [])
                 for tc in tool_calls:
+                    tc_id = str(tc.get("id") or tc.get("tool_call_id") or "")
                     func = tc.get("function", {})
                     tname = func.get("name", "")
                     targs = func.get("arguments", "{}")
+                    if tc_id and tname:
+                        tool_call_names[tc_id] = tname
                     entry.add_log("tool_call", f"{tname}({str(targs)[:100]})",
                                   role="assistant")
+                    _record_tool_path(tname, targs)
+
+                # ReAct workers may emit textual Action: calls that are parsed
+                # and executed by the loop without being stored as native
+                # tool_calls. Count those too so producing workers are not
+                # falsely marked as silent failures.
+                try:
+                    from core.action_parser import parse_all_actions
+                    for tname, targs, _hint in parse_all_actions(str(content), debug=False):
+                        _record_tool_path(tname, targs, from_action=True)
+                except Exception:
+                    pass
 
             elif role == "tool":
                 tname = msg.get("name", "")
+                if not tname:
+                    tc_id = str(msg.get("tool_call_id") or "")
+                    tname = tool_call_names.get(tc_id, "")
                 entry.add_log("observation", str(content)[:500], role="tool")
                 # Track files
                 if isinstance(content, str):
+                    _record_wrote_paths_from_observation(content)
                     fp_match = _re.search(r'["\']([^"\']+\.[a-zA-Z]+)["\']', content)
                     if fp_match:
                         fp = fp_match.group(1)
@@ -1610,6 +1684,16 @@ def create_app():
         project_root = str(request.get("project_root", "")).strip()
         rtl_version_id = str(request.get("rtl_version_id", "")).strip()
         artifact_versions = request.get("artifact_versions") or []
+        if (
+            not todos
+            and template == "ssot-rtl"
+            and (workflow.strip() == "rtl-gen" or str(request.get("stage_id", "")).strip() == "rtl")
+        ):
+            print(
+                "[template] Skipping dynamic 'ssot-rtl' todo preload for rtl-gen; "
+                "worker will execute /ssot-rtl and read RTL ledgers from disk"
+            )
+            template = ""
         if not template_ip and session_name:
             parts = [p for p in session_name.split("/") if p]
             known = {

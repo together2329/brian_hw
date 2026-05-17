@@ -1,0 +1,31 @@
+# Coverage Report: pl330realverify
+- Functional bins: 1/28
+## Bin Status
+- [MISS] SC_AXI_BACKPRESSURE_executed
+- [HIT] SC_AXI_READ_FAULT_executed
+- [MISS] SC_AXI_WRITE_FAULT_executed
+- [MISS] SC_DEBUG_COMMAND_executed
+- [MISS] SC_MULTI_BEAT_COPY_executed
+- [MISS] SC_RESET_APB_executed
+- [MISS] SC_SINGLE_BEAT_COPY_executed
+- [MISS] SC_W1C_IRQ_CLEAR_executed
+- [MISS] SC_WFP_EVENT_executed
+- [MISS] ccov_apb_access
+- [MISS] ccov_axi_ar_hold
+- [MISS] ccov_axi_aw_w
+- [MISS] ccov_axi_b
+- [MISS] ccov_axi_r_capture
+- [MISS] ccov_channel_fsm
+- [MISS] ccov_irq_level
+- [MISS] ccov_performance_depth
+- [MISS] ccov_performance_outstanding
+- [MISS] ccov_performance_throughput
+- [MISS] ccov_pipeline_all_stages
+- [MISS] fcov_apb_read
+- [MISS] fcov_apb_write
+- [MISS] fcov_fault_rd
+- [MISS] fcov_fault_wr
+- [MISS] fcov_irq_clear
+- [MISS] fcov_reset
+- [MISS] fcov_transfer
+- [MISS] fcov_wfp

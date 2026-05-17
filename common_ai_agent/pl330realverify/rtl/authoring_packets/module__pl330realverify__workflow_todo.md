@@ -51,14 +51,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Create rtl/pl330realverify.sv as the top module named pl330realverify plus rtl/pl330realverify_param.vh. Instantiate or directly implement the declared manifest submodules exactly as listed in sub_modules and integration.connections. Do not introduce undeclared external modules.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: pl330realverify in rtl/pl330realverify.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_TOP_AND_PARAMS.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - rtl/pl330realverify.sv contains module pl330realverify with ports matching io_list
   - rtl/pl330realverify_param.vh defines DATA_WIDTH, ADDR_WIDTH, ID_WIDTH, NUM_CHANNELS, NUM_EVENTS, REG_ADDR_WIDTH, MAX_BURST_LEN, CLOCK_FREQ_MHZ, RESET_POLARITY, and SUPPORT_UNALIGNED

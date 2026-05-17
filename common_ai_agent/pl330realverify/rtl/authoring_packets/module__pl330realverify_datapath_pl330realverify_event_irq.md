@@ -34,14 +34,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[4]
 - Detail: Implement pl330realverify_datapath and pl330realverify_event_irq using function_model state updates/output rules, dataflow read/write/loop/event/interrupt paths, memory.instances, interrupts.clear_policy, and error_handling propagation/recovery rules.
 SSOT ref: workflow_todos.rtl-gen[4].
 Owner: pl330realverify_datapath/pl330realverify_event_irq in rtl/pl330realverify_datapath.sv, rtl/pl330realverify_event_irq.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_DATAPATH_AND_INTERRUPTS.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/pl330realverify_datapath.sv, rtl/pl330realverify_event_irq.sv.
 - Criteria:
   - rd_buf captures read data and wdata/wstrb output rules match rtl_contract/function_model
   - SAR/DAR increment by DATA_WIDTH/8 only after successful write responses

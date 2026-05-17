@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 27
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 3/9 section=integration task_limit=48
@@ -51,14 +51,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_modules
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_modules.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: name=external_modules.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -71,14 +71,14 @@ SSOT item context: name=external_modules.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_clocks
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_clocks.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: name=external_clocks; value=["dmaclk"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -91,14 +91,14 @@ SSOT item context: name=external_clocks; value=["dmaclk"].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_resets
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_resets.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: name=external_resets; value=["dmacresetn"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -111,14 +111,14 @@ SSOT item context: name=external_resets; value=["dmacresetn"].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_protocols
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_protocols.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: name=external_protocols; value=["APB4", "AXI4"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -131,14 +131,14 @@ SSOT item context: name=external_protocols; value=["APB4", "AXI4"].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.dmaclk
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.dmaclk.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=clk_i; signal=dmaclk.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -152,14 +152,14 @@ SSOT item context: port=clk_i; signal=dmaclk.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.dmacresetn
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.dmacresetn.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=rst_ni; signal=dmacresetn.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -173,14 +173,14 @@ SSOT item context: port=rst_ni; signal=dmacresetn.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.paddr
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.paddr.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=paddr_i; signal=paddr.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -194,14 +194,14 @@ SSOT item context: port=paddr_i; signal=paddr.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.psel
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.psel.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=psel_i; signal=psel.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -215,14 +215,14 @@ SSOT item context: port=psel_i; signal=psel.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.penable
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.penable.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=penable_i; signal=penable.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -236,14 +236,14 @@ SSOT item context: port=penable_i; signal=penable.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.pwrite
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pwrite.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=pwrite_i; signal=pwrite.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -257,14 +257,14 @@ SSOT item context: port=pwrite_i; signal=pwrite.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.pwdata
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pwdata.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=pwdata_i; signal=pwdata.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -278,14 +278,14 @@ SSOT item context: port=pwdata_i; signal=pwdata.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.pstrb
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pstrb.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=pstrb_i; signal=pstrb.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -299,14 +299,14 @@ SSOT item context: port=pstrb_i; signal=pstrb.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.prdata
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.prdata.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=prdata_o; signal=prdata.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -320,14 +320,14 @@ SSOT item context: port=prdata_o; signal=prdata.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.pready
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pready.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=pready_o; signal=pready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -341,14 +341,14 @@ SSOT item context: port=pready_o; signal=pready.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.pslverr
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pslverr.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=pslverr_o; signal=pslverr.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -362,14 +362,14 @@ SSOT item context: port=pslverr_o; signal=pslverr.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.channel_state
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.channel_state.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=state_o; signal=channel_state.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -383,14 +383,14 @@ SSOT item context: port=state_o; signal=channel_state.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.arvalid
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.arvalid.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=arvalid_o; signal=arvalid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -404,14 +404,14 @@ SSOT item context: port=arvalid_o; signal=arvalid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.arready
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.arready.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=arready_i; signal=arready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -425,14 +425,14 @@ SSOT item context: port=arready_i; signal=arready.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.rvalid
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.rvalid.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=rvalid_i; signal=rvalid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -446,14 +446,14 @@ SSOT item context: port=rvalid_i; signal=rvalid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.rready
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.rready.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=rready_o; signal=rready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -467,14 +467,14 @@ SSOT item context: port=rready_o; signal=rready.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.awvalid
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.awvalid.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=awvalid_o; signal=awvalid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -488,14 +488,14 @@ SSOT item context: port=awvalid_o; signal=awvalid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.wvalid
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.wvalid.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=wvalid_o; signal=wvalid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -509,14 +509,14 @@ SSOT item context: port=wvalid_o; signal=wvalid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.bready
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.bready.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=bready_o; signal=bready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -530,14 +530,14 @@ SSOT item context: port=bready_o; signal=bready.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.rdata
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.rdata.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=rd_data_i; signal=rdata.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -551,14 +551,14 @@ SSOT item context: port=rd_data_i; signal=rdata.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.wdata
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.wdata.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=wr_data_o; signal=wdata.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -572,14 +572,14 @@ SSOT item context: port=wr_data_o; signal=wdata.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.peripheral_events
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.peripheral_events.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=peripheral_events_i; signal=peripheral_events.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -593,14 +593,14 @@ SSOT item context: port=peripheral_events_i; signal=peripheral_events.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.dmac_irq
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.dmac_irq.
 Owner: pl330realverify in rtl/pl330realverify.sv via integration.
 SSOT item context: port=irq_o; signal=dmac_irq.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

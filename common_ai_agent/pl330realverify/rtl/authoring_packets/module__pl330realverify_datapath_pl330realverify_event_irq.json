@@ -130,7 +130,7 @@
       "workflow_todos.rtl-gen[4]"
     ],
     "status_counts": {
-      "planned": 1
+      "open": 1
     },
     "task_count": 1
   },
@@ -188,6 +188,38 @@
         "memory.instances",
         "workflow_todos.rtl-gen[4]"
       ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "IRQ",
+          "irq",
+          "pl330realverify",
+          "pl330realverify_event_irq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "DATAPATH",
+          "FM",
+          "FM_IRQ_CLEAR",
+          "FM_TRANSFER",
+          "INTERRUPTS",
+          "IRQ",
+          "RTL_TODO_DATAPATH_AND_INTERRUPTS",
+          "TODO",
+          "TRANSFER",
+          "datapath",
+          "error_handling",
+          "handling",
+          "irq",
+          "pl330realverify",
+          "pl330realverify_datapath",
+          "pl330realverify_event_irq"
+        ],
+        "source_scope": "rtl/pl330realverify_event_irq.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 10,
         "evidence_basis": [
@@ -196,9 +228,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/pl330realverify_datapath.sv, rtl/pl330realverify_event_irq.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       },
       "workflow_todo": {
         "id": "RTL_TODO_DATAPATH_AND_INTERRUPTS",

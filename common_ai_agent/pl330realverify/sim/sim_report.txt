@@ -1,0 +1,5 @@
+[SIM RESULT] cocotb completed
+tests=4 pass=4 fail=0 scoreboard_passed=7 scoreboard_escalations=75
+scoreboard=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/sim/scoreboard_events.jsonl
+coverage=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pl330realverify/cov/coverage_functional.json
+[SIM ESCALATE] bounded TB/SIM did not close every required equivalence goal; see scoreboard_events.jsonl

@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 9
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Module slice: 7/9 section=test_requirements task_limit=48
@@ -51,14 +51,14 @@
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_RESET_APB
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_RESET_APB.
 Owner: pl330realverify in rtl/pl330realverify.sv via test_requirements.
 SSOT item context: id=SC_RESET_APB; name=Reset and APB discovery; expected=Reset values match registers/function_model; reserved fields read zero; illegal APB access asserts pslverr only for t....
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -72,14 +72,14 @@ SSOT item context: id=SC_RESET_APB; name=Reset and APB discovery; expected=Reset
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_SINGLE_BEAT_COPY
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_SINGLE_BEAT_COPY.
 Owner: pl330realverify in rtl/pl330realverify.sv via test_requirements.
 SSOT item context: id=SC_SINGLE_BEAT_COPY; name=Single-beat DMA memory copy; expected=One read beat is written unchanged to DAR, SAR/DAR increment by 8, status reaches COMPLETED, CH_COMPLETE pending is s....
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -93,14 +93,14 @@ SSOT item context: id=SC_SINGLE_BEAT_COPY; name=Single-beat DMA memory copy; exp
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_MULTI_BEAT_COPY
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_MULTI_BEAT_COPY.
 Owner: pl330realverify in rtl/pl330realverify.sv via test_requirements.
 SSOT item context: id=SC_MULTI_BEAT_COPY; name=Multi-beat address and loop progression; expected=Every beat writes matching data, SAR/DAR increment by DATA_WIDTH/8 per beat, loop_remaining decreases, and completion....
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -114,14 +114,14 @@ SSOT item context: id=SC_MULTI_BEAT_COPY; name=Multi-beat address and loop progr
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_AXI_BACKPRESSURE
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_AXI_BACKPRESSURE.
 Owner: pl330realverify in rtl/pl330realverify.sv via test_requirements.
 SSOT item context: id=SC_AXI_BACKPRESSURE; name=AXI ready/valid hold behavior under backpressure; expected=Payload signals remain stable while valid waits for ready; architectural state updates only on completed handshakes..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -135,14 +135,14 @@ SSOT item context: id=SC_AXI_BACKPRESSURE; name=AXI ready/valid hold behavior un
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_WFP_EVENT
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_WFP_EVENT.
 Owner: pl330realverify in rtl/pl330realverify.sv via test_requirements.
 SSOT item context: id=SC_WFP_EVENT; name=Wait-for-peripheral event gating; expected=Channel remains WAITING_FOR_PERIPHERAL with no AXI issue until event is sampled, then resumes transfer..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -156,14 +156,14 @@ SSOT item context: id=SC_WFP_EVENT; name=Wait-for-peripheral event gating; expec
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_AXI_READ_FAULT
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_AXI_READ_FAULT.
 Owner: pl330realverify in rtl/pl330realverify.sv via test_requirements.
 SSOT item context: id=SC_AXI_READ_FAULT; name=AXI read fault propagation; expected=Channel transitions to FAULTED, error_code=ERR_AXI_RD, CH_FAULT pending set, no destination write for the failed beat..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -177,14 +177,14 @@ SSOT item context: id=SC_AXI_READ_FAULT; name=AXI read fault propagation; expect
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_AXI_WRITE_FAULT
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_AXI_WRITE_FAULT.
 Owner: pl330realverify in rtl/pl330realverify.sv via test_requirements.
 SSOT item context: id=SC_AXI_WRITE_FAULT; name=AXI write fault propagation; expected=Channel transitions to FAULTED, error_code=ERR_AXI_WR, CH_FAULT pending set, and completion interrupt is not raised..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -198,14 +198,14 @@ SSOT item context: id=SC_AXI_WRITE_FAULT; name=AXI write fault propagation; expe
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_W1C_IRQ_CLEAR
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_W1C_IRQ_CLEAR.
 Owner: pl330realverify in rtl/pl330realverify.sv via test_requirements.
 SSOT item context: id=SC_W1C_IRQ_CLEAR; name=Interrupt enable and W1C clear; expected=Only bits written as one clear; dmac_irq reflects enabled pending bits after clear..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -219,14 +219,14 @@ SSOT item context: id=SC_W1C_IRQ_CLEAR; name=Interrupt enable and W1C clear; exp
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_DEBUG_COMMAND
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_DEBUG_COMMAND.
 Owner: pl330realverify in rtl/pl330realverify.sv via test_requirements.
 SSOT item context: id=SC_DEBUG_COMMAND; name=Debug command pulse and rejection; expected=Idle debug command emits a bounded pulse; busy manager rejects with declared ERR_DEBUG_REJECT behavior when applicable..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared

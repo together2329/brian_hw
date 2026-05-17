@@ -1,0 +1,29 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_packets": [],
+  "contract_files": [],
+  "filelist": "list/pl330realverify.f",
+  "generated_at": "2026-05-17T14:29:20Z",
+  "generation_note": "Headless common engine recorded LLM-authored RTL artifacts from rtl_authoring_plan packets.",
+  "ip": "pl330realverify",
+  "model": "gpt-5.3-codex",
+  "model_profile": "gpt-5.3-codex engineering",
+  "rtl_files": [
+    "rtl/pl330realverify_regs.sv",
+    "rtl/pl330realverify_channel_fsm.sv",
+    "rtl/pl330realverify_axi_rd.sv",
+    "rtl/pl330realverify_axi_wr.sv",
+    "rtl/pl330realverify_datapath.sv",
+    "rtl/pl330realverify_event_irq.sv",
+    "rtl/pl330realverify.sv"
+  ],
+  "schema_version": 1,
+  "ssot": "pl330realverify/yaml/pl330realverify.ssot.yaml",
+  "surface": "headless_common_engine",
+  "todo_plan": "rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "b7f6b796d440c4cbbe6eee1a6a6f5fafdb0e14d478c2a39e323259db96338d34",
+  "toolchain": "atlas rtl-gen via common_ai_agent",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-17T14:29:36Z",
+  "workflow": "rtl-gen"
+}

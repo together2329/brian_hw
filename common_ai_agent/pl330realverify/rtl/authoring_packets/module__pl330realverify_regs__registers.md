@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 23
+- LLM-actionable open tasks: 5
 - Human-locked open tasks: 0
 - Owner refs: cycle_model.handshake_rules.APB_ACCESS, decomposition.units.apb_registers, error_handling, error_handling.error_sources, function_model.transactions.FM_APB_READ, function_model.transactions.FM_APB_WRITE, function_model.transactions.FM_IRQ_CLEAR, function_model.transactions.FM_RESET, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave, registers, registers.register_list, rtl_contract, rtl_contract.input_map
 - Module slice: 4/8 section=registers task_limit=48
@@ -50,14 +50,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.DBGSTATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.DBGSTATUS.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=DBGSTATUS; width=32; reset=0; access=ro; offset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -74,14 +74,14 @@ SSOT item context: name=DBGSTATUS; width=32; reset=0; access=ro; offset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DBGSTATUS.fields.manager_busy
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DBGSTATUS.fields.manager_busy.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=manager_busy; reset=0; access=ro.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -100,14 +100,14 @@ SSOT item context: name=manager_busy; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DBGSTATUS.fields.num_channels_minus1
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DBGSTATUS.fields.num_channels_minus1.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=num_channels_minus1; reset=7; access=ro.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -126,14 +126,14 @@ SSOT item context: name=num_channels_minus1; reset=7; access=ro.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: registers.field
 - Source ref: registers.register_list.DBGSTATUS.fields.reserved_31_8
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DBGSTATUS.fields.reserved_31_8.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_8; reset=0; access=reserved.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -152,14 +152,14 @@ SSOT item context: name=reserved_31_8; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.DBGCMD
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.DBGCMD.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=DBGCMD; width=32; reset=0; access=wo; offset=12.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -176,14 +176,14 @@ SSOT item context: name=DBGCMD; width=32; reset=0; access=wo; offset=12.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DBGCMD.fields.dbgcmd
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DBGCMD.fields.dbgcmd.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=dbgcmd; reset=0; access=wo.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -202,14 +202,14 @@ SSOT item context: name=dbgcmd; reset=0; access=wo.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DBGCMD.fields.channel
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DBGCMD.fields.channel.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=channel; reset=0; access=wo.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -228,14 +228,14 @@ SSOT item context: name=channel; reset=0; access=wo.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: registers.field
 - Source ref: registers.register_list.DBGCMD.fields.reserved_31_7
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DBGCMD.fields.reserved_31_7.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_7; reset=0; access=reserved.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -254,14 +254,14 @@ SSOT item context: name=reserved_31_7; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.CSR
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CSR.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=CSR; width=32; reset=0; access=ro; offset=256.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -278,14 +278,14 @@ SSOT item context: name=CSR; width=32; reset=0; access=ro; offset=256.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CSR.fields.ch_status
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CSR.fields.ch_status.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=ch_status; reset=0; access=ro.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -304,14 +304,14 @@ SSOT item context: name=ch_status; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: registers.field
 - Source ref: registers.register_list.CSR.fields.error_code
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CSR.fields.error_code.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=error_code; reset=0; access=ro.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -330,14 +330,14 @@ SSOT item context: name=error_code; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CSR.fields.loop_remaining
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CSR.fields.loop_remaining.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=loop_remaining; reset=0; access=ro.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -356,14 +356,14 @@ SSOT item context: name=loop_remaining; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: registers.field
 - Source ref: registers.register_list.CSR.fields.reserved_31_16
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CSR.fields.reserved_31_16.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_16; reset=0; access=reserved.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -382,14 +382,14 @@ SSOT item context: name=reserved_31_16; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.SAR
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.SAR.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=SAR; width=32; reset=0; access=rw; offset=264.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -406,14 +406,14 @@ SSOT item context: name=SAR; width=32; reset=0; access=rw; offset=264.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.SAR.fields.src_addr
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.SAR.fields.src_addr.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=src_addr; reset=0; access=rw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -432,14 +432,14 @@ SSOT item context: name=src_addr; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.DAR
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.DAR.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=DAR; width=32; reset=0; access=rw; offset=268.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -456,14 +456,14 @@ SSOT item context: name=DAR; width=32; reset=0; access=rw; offset=268.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DAR.fields.dst_addr
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DAR.fields.dst_addr.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=dst_addr; reset=0; access=rw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -482,14 +482,14 @@ SSOT item context: name=dst_addr; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.LOOP_CFG
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.LOOP_CFG.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=LOOP_CFG; width=32; reset=0; access=rw; offset=272.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -506,14 +506,14 @@ SSOT item context: name=LOOP_CFG; width=32; reset=0; access=rw; offset=272.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.LOOP_CFG.fields.loop_count
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.LOOP_CFG.fields.loop_count.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=loop_count; reset=0; access=rw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -532,14 +532,14 @@ SSOT item context: name=loop_count; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.LOOP_CFG.fields.burst_len
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.LOOP_CFG.fields.burst_len.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=burst_len; reset=0; access=rw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -558,14 +558,14 @@ SSOT item context: name=burst_len; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: registers.field
 - Source ref: registers.register_list.LOOP_CFG.fields.reserved_31_12
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.LOOP_CFG.fields.reserved_31_12.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=reserved_31_12; reset=0; access=reserved.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -584,14 +584,14 @@ SSOT item context: name=reserved_31_12; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.PC
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.PC.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=PC; width=32; reset=0; access=rw; offset=280.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -608,14 +608,14 @@ SSOT item context: name=PC; width=32; reset=0; access=rw; offset=280.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.PC.fields.pc_addr
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.PC.fields.pc_addr.
 Owner: pl330realverify_regs in rtl/pl330realverify_regs.sv via registers.register_list.
 SSOT item context: name=pc_addr; reset=0; access=rw.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
